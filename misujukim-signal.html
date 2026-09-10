@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>미주김군 시그널 — 미국주식·가상화폐 시장 신호</title>
+<style>
+:root{
+  --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
+  --tx:#e8edf6; --tx2:#9fb0c9; --accent:#ffb020; --accent2:#ff8a00;
+  --up:#ff4d4f; --down:#3d9dff; --ok:#22c55e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);
+  font-family:system-ui,'Apple SD Gothic Neo','Nanum Gothic',sans-serif;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.nav ul{display:flex;gap:22px;list-style:none;font-size:14px;color:var(--tx2)}
+.nav ul a{text-decoration:none}
+.nav ul a:hover{color:var(--accent)}
+.updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
+@media(max-width:640px){.updated-top{display:none}}
+.btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px}
+.btn:hover{filter:brightness(1.08)}
+.btn.sm{padding:9px 18px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+@media(max-width:760px){.nav ul{display:none}}
+
+/* hero */
+.hero{padding:70px 0 50px;text-align:center;
+  background:radial-gradient(900px 380px at 50% -60px,rgba(255,176,32,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(255,176,32,.35);
+  background:rgba(255,176,32,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@media(max-width:640px){.hero h1{font-size:31px}}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h2{font-size:26px;letter-spacing:-.6px}
+.sub{color:var(--tx2);font-size:15px;margin-bottom:22px}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
+.tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
+  padding:8px 15px;border-radius:7px;font-family:inherit}
+.tabs button.on{background:var(--accent);color:#1a1206}
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
+.big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.mut{color:var(--tx2);font-size:13px}
+.chg{font-weight:800;font-size:15px}
+.up{color:var(--up)}.down{color:var(--down)}
+
+/* gauge */
+.gauge{display:flex;align-items:center;gap:18px}
+.dial{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--g,#666) var(--p,0%),#222c3c 0)}
+.dial b{width:82px;height:82px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font-size:27px;font-weight:800}
+.state{font-size:19px;font-weight:800}
+.kimcomment{display:inline-block;padding:10px 18px;border-radius:10px}
+.bars{display:flex;gap:6px;align-items:flex-end;height:120px;margin-top:16px}
+.bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
+.bars-labels{display:none;gap:6px;margin-top:4px}
+.bars-labels span{flex:1;text-align:center;font-size:10px;color:var(--tx2);overflow:hidden;white-space:nowrap}
+.trend-lg{margin-top:8px}
+.trend-lg svg{width:100%;height:44px;display:block}
+
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
+td.num{text-align:center;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
+.t-h{background:rgba(255,77,79,.15);color:#ff7a7c}
+.t-m{background:rgba(255,176,32,.15);color:var(--accent)}
+.t-l{background:rgba(159,176,201,.13);color:var(--tx2)}
+.scroll{overflow-x:auto}
+td.spark{width:100px;text-align:center}
+td.spark svg{display:block;margin:0 auto}
+
+/* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
+#events-tbl-wrap col.ev-date{width:100px}
+#events-tbl-wrap col.ev-name{width:30%}
+#events-tbl-wrap col.ev-imp{width:110px}
+#events-tbl-wrap col.ev-src{width:56px}
+#events-tbl-wrap td.ev-src{text-align:center}
+#events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
+#events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
+.tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
+
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.plan.hi{border-color:rgba(255,176,32,.5);box-shadow:0 0 0 1px rgba(255,176,32,.15)}
+.plan h3{font-size:18px;margin-bottom:6px}
+.plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
+.plan li{padding:6px 0 6px 22px;position:relative}
+.plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+.soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
+
+.band{text-align:center;background:linear-gradient(135deg,rgba(255,176,32,.12),rgba(255,138,0,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(255,176,32,.25)}
+.band h2{font-size:29px}
+.band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
+
+footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);font-size:13px}
+.disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+  font-size:12.5px;color:var(--tx2);margin-top:18px}
+.updated{font-size:12.5px;color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">미주<span>김군</span> 시그널</div>
+    <ul>
+      <li><a href="#stock">미국지수</a></li>
+      <li><a href="#events">이벤트 일정</a></li>
+      <li><a href="misujukim-crypto.html">가상화폐</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="updated-top" id="stamp-top"></span>
+      <a class="btn sm" href="#join">텔레그램 참여</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero" style="border:0">
+  <div class="wrap">
+    <span class="badge">● 미국주식 · 가상화폐 시장 신호 대시보드</span>
+    <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
+    <p>미국지수 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.
+       일간·주간·월간·연간 흐름을 한 화면에서 확인하세요. 가상화폐 시황은 <a href="misujukim-crypto.html" style="color:var(--accent);text-decoration:underline">별도 페이지</a>에서 확인할 수 있습니다.</p>
+    <div class="cta">
+      <a class="btn" href="#join">텔레그램 무료 시그널 받기</a>
+      <a class="btn ghost btn sm" href="#stock" style="padding:13px 26px">대시보드 보기</a>
+    </div>
+    <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
+  </div>
+</section>
+
+<!-- 미국지수 -->
+<section id="stock">
+  <div class="wrap">
+    <div class="sec-h">
+      <div>
+        <h2>미국지수 공포탐욕지수</h2>
+        <p class="sub">CNN Business Fear &amp; Greed Index 공식 데이터 연동 · 0 극단적 공포 ~ 100 극단적 탐욕</p>
+      </div>
+      <div class="tabs" data-group="us">
+        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+        <button data-p="m">월간</button><button data-p="y">연간</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>현재 지수 <span id="us-per" class="mut">· 일간</span></h3>
+        <div class="gauge">
+          <div class="dial" id="us-dial"><a href="https://www.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="CNN 공식 원문 보기"><b id="us-val">--</b></a></div>
+          <div>
+            <div class="state" id="us-state">불러오는 중</div>
+            <div class="mut" id="us-note">전일 대비 --</div>
+          </div>
+        </div>
+        <div class="bars" id="us-bars"></div>
+        <div class="bars-labels" id="us-bars-labels"></div>
+        <div class="trend-lg" id="us-trend"></div>
+        <div class="mut" style="margin-top:8px">최근 흐름</div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="mut" style="font-weight:700;margin-bottom:8px">김군코멘트</div>
+          <div id="us-kimcomment" class="kimcomment" style="font-weight:800;font-size:26px;line-height:1.3">불러오는 중…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>CNN 7개 세부지표</h3>
+        <table><tbody id="us-sub"><tr><td class="mut">불러오는 중…</td></tr></tbody></table>
+        <p class="mut" id="us-src" style="margin-top:10px;font-size:12px"></p>
+      </div>
+    </div>
+
+    <h2 style="font-size:21px;margin-top:44px">핵심 종목 수익률 — QLD · USD · SCHD</h2>
+    <p class="sub">기간별 등락률 비교</p>
+    <div class="tabs" data-group="tick">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <table id="tick-tbl">
+        <thead><tr><th>티커</th><th>설명</th><th class="num">현재가</th><th class="num">등락률</th><th class="num">거래량</th><th class="num">EPS</th><th class="num">PER</th><th class="num">PEG</th><th class="num">ROA</th><th class="num">ROE</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr data-t="QLD"><td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/qld" target="_blank" rel="noopener"><b>QLD</b></a></td><td class="mut">나스닥100 2배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="USD"><td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/usd" target="_blank" rel="noopener"><b>USD</b></a></td><td class="mut">반도체 2배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="SCHD"><td><a href="https://www.schwabassetmanagement.com/products/schd" target="_blank" rel="noopener"><b>SCHD</b></a></td><td class="mut">미국 대표 배당성장 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">EPS·PER·PEG·ROA·ROE는 ETF 특성상 해당 없는 경우 '—'로 표시되며, 개별 종목 값은 분기 실적 발표 기준 근사치입니다 · 이 항목은 Yahoo 인증(쿠키·crumb)이 필요해 cors-proxy-worker.js를 배포하고 PROXY_BASE를 설정해야 표시됩니다(미설정 시 '--').</p>
+
+    <h2 style="font-size:21px;margin-top:44px">미국주식 시가총액 TOP 10</h2>
+    <p class="sub">미국 증시 상장 종목 시가총액 순위 · 기간별 등락률</p>
+    <div class="tabs" data-group="cap">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <table id="cap-tbl">
+        <thead><tr><th>순위</th><th>티커</th><th>기업명</th><th class="num">현재가</th><th class="num">등락률</th><th class="num">거래량</th><th class="num">EPS</th><th class="num">PER</th><th class="num">PEG</th><th class="num">ROA</th><th class="num">ROE</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr data-t="NVDA"><td class="mut">1</td><td><a href="https://investor.nvidia.com/" target="_blank" rel="noopener"><b>NVDA</b></a></td><td class="mut">엔비디아</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="AAPL"><td class="mut">2</td><td><a href="https://investor.apple.com/" target="_blank" rel="noopener"><b>AAPL</b></a></td><td class="mut">애플</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="GOOGL"><td class="mut">3</td><td><a href="https://abc.xyz/investor/" target="_blank" rel="noopener"><b>GOOGL</b></a></td><td class="mut">알파벳(구글)</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="MSFT"><td class="mut">4</td><td><a href="https://www.microsoft.com/en-us/investor" target="_blank" rel="noopener"><b>MSFT</b></a></td><td class="mut">마이크로소프트</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="AMZN"><td class="mut">5</td><td><a href="https://ir.aboutamazon.com/" target="_blank" rel="noopener"><b>AMZN</b></a></td><td class="mut">아마존</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="TSM"><td class="mut">6</td><td><a href="https://investor.tsmc.com/english/" target="_blank" rel="noopener"><b>TSM</b></a></td><td class="mut">TSMC(대만)</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="SPCX"><td class="mut">7</td><td><a href="https://ir.spacex.com/" target="_blank" rel="noopener"><b>SPCX</b></a></td><td class="mut">스페이스X</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="AVGO"><td class="mut">8</td><td><a href="https://investors.broadcom.com/" target="_blank" rel="noopener"><b>AVGO</b></a></td><td class="mut">브로드컴</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="META"><td class="mut">9</td><td><a href="https://investor.atmeta.com/" target="_blank" rel="noopener"><b>META</b></a></td><td class="mut">메타 플랫폼스</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="TSLA"><td class="mut">10</td><td><a href="https://ir.tesla.com/" target="_blank" rel="noopener"><b>TSLA</b></a></td><td class="mut">테슬라</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">순위는 미국 증시에 상장된 종목 기준(2026년 9월 초 기준 스냅샷) · 시가총액은 수시로 변동 · 괄호는 전월 순위 대비 변동(추정치, 예: 9(↓8)=전월 8위→이번달 9위) · EPS·PER·PEG·ROA·ROE는 분기 실적 발표 기준 근사치이며 SPCX는 공식 재무데이터 미공개로 '—' 표시</p>
+
+    <h2 style="font-size:21px;margin-top:44px">레버리지 ETF — TQQQ · UPRO · UDOW · TECL · BULZ · SOXL · KORU</h2>
+    <p class="sub">3배 레버리지 ETF·ETN · 기간별 등락률 (변동성이 매우 큰 상품입니다)</p>
+    <div class="tabs" data-group="lev">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <table id="lev-tbl">
+        <thead><tr><th>티커</th><th>설명</th><th class="num">현재가</th><th class="num">등락률</th><th class="num">거래량</th><th class="num">EPS</th><th class="num">PER</th><th class="num">PEG</th><th class="num">ROA</th><th class="num">ROE</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr data-t="TQQQ"><td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/tqqq" target="_blank" rel="noopener"><b>TQQQ</b></a></td><td class="mut">나스닥100 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="UPRO"><td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/upro" target="_blank" rel="noopener"><b>UPRO</b></a></td><td class="mut">S&amp;P500 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="UDOW"><td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/udow" target="_blank" rel="noopener"><b>UDOW</b></a></td><td class="mut">다우존스30 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="TECL"><td><a href="https://www.direxion.com/product/daily-technology-bull-bear-3x-etfs" target="_blank" rel="noopener"><b>TECL</b></a></td><td class="mut">미국 기술주 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="BULZ"><td><a href="https://microsectors.com/products/bulz/" target="_blank" rel="noopener"><b>BULZ</b></a></td><td class="mut">FANG+ 혁신기업 3배 레버리지 ETN</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="SOXL"><td><a href="https://www.direxion.com/product/daily-semiconductor-bull-bear-3x-etfs" target="_blank" rel="noopener"><b>SOXL</b></a></td><td class="mut">반도체 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+          <tr data-t="KORU"><td><a href="https://www.direxion.com/product/daily-msci-south-korea-bull-3x-etf" target="_blank" rel="noopener"><b>KORU</b></a></td><td class="mut">한국(MSCI Korea) 3배 레버리지 ETF</td><td class="num px">--</td><td class="num ch">--</td><td class="num vol">--</td><td class="num eps">--</td><td class="num per">--</td><td class="num peg">--</td><td class="num roa">--</td><td class="num roe">--</td><td class="spark"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 3배 레버리지 상품은 일간 수익률을 추종하며 변동성이 매우 크고 장기 보유 시 지수와 괴리가 발생할 수 있습니다 · 티커명을 클릭하면 운용사 공식 상품 페이지로 이동합니다 · EPS·PER·PEG·ROA·ROE는 ETF/ETN 특성상 대부분 해당 없어 '--'로 표시됩니다.</p>
+  </div>
+</section>
+
+<!-- 주식 이벤트 -->
+<section id="events">
+  <div class="wrap">
+    <h2>주식시장 주요 이벤트 일정</h2>
+    <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 날짜는 미국 동부시간(ET) 기준 · 2026년</p>
+    <div class="tabs" data-group="evmonth" id="evmonth-tabs">
+      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
+      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
+      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
+    </div>
+    <div class="scroll" id="events-tbl-wrap">
+      <table>
+        <colgroup>
+          <col class="ev-date"><col class="ev-name"><col><col class="ev-imp"><col class="ev-src">
+        </colgroup>
+        <thead><tr><th>날짜</th><th>이벤트</th><th>영향/구분</th><th>중요도</th><th>출처</th></tr></thead>
+        <tbody id="events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC·CPI·고용보고서 등 발표일은 정부기관 사정(연방정부 셧다운 등)에 따라 변경될 수 있습니다 · PCE 일부 월은 추정치입니다 · 최신 일정은 각 출처 링크에서 확인하세요.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">이번 달 휴장일</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">증시 전일 휴장 · 채권시장만 휴장 · 조기폐장 안내</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>날짜</th><th>안내</th><th>구분</th></tr></thead>
+        <tbody id="holidays-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="band" id="join">
+    <h2>매일 아침, 시장의 온도를 먼저 확인하세요</h2>
+    <p>미주김군 시그널 텔레그램 채널에서 공포탐욕지수와 주요 일정을 무료로 받아보실 수 있습니다.</p>
+    <a class="btn" href="#join">텔레그램 채널 입장하기</a>
+    <p class="mut" style="margin-top:14px">※ 채널 링크는 운영자 계정 연결 후 삽입해 주세요.</p>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="margin-bottom:8px">미주<span>김군</span> 시그널</div>
+    <p>미국주식 · 가상화폐 시장 신호 대시보드</p>
+    <div class="disc">
+      <b>투자 유의사항</b> — 본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.
+      투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다. 시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.
+    </div>
+    <p style="margin-top:16px">© 2026 미주김군 시그널. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
+const curPer={us:'d',tick:'d',cap:'d',lev:'d'};
+const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
+const cls=v=>v>0?'up':(v<0?'down':'');
+
+function label(v){
+  if(v<25)return['극단적 공포','#ff4d4f'];
+  if(v<45)return['공포','#ff8a00'];
+  if(v<=55)return['중립','#9fb0c9'];
+  if(v<=75)return['탐욕','#a3e635'];
+  return['극단적 탐욕','#22c55e'];
+}
+function paint(pre,v,note){
+  const [t,c]=label(v);
+  $('#'+pre+'-val').textContent=Math.round(v);
+  $('#'+pre+'-state').textContent=t;
+  const d=$('#'+pre+'-dial');
+  d.style.setProperty('--p',v+'%'); d.style.setProperty('--g',c);
+  $('#'+pre+'-state').style.color=c;
+  if(note)$('#'+pre+'-note').textContent=note;
+  const kc=document.getElementById(pre+'-kimcomment');
+  if(kc){
+    const ACTION={'극단적 공포':'매수 시작','공포':'매수 시작','중립':'관망','탐욕':'매수 금지','극단적 탐욕':'매수 금지'};
+    kc.textContent=t+' — '+(ACTION[t]||'—');
+    kc.style.color=c;
+    kc.style.background=c+'26';
+    kc.style.border='1px solid '+c+'55';
+  }
+}
+function bars(pre,arr,labels,tickEvery){
+  const el=$('#'+pre+'-bars'); el.innerHTML='';
+  arr.forEach((v,i)=>{
+    const it=document.createElement('i');
+    it.style.height=Math.max(8,v)+'%'; it.style.background=label(v)[1]+'aa';
+    if(labels&&labels[i]) it.title=labels[i]+' · '+Math.round(v)+'점';
+    el.appendChild(it);
+  });
+  const tr=document.getElementById(pre+'-trend');
+  if(tr) tr.innerHTML=trendSVG(arr);
+  const lb=document.getElementById(pre+'-bars-labels');
+  if(lb){
+    if(labels&&labels.length){
+      const every=tickEvery||1;
+      lb.innerHTML=labels.map((txt,i)=>'<span>'+((i%every===0||i===labels.length-1)?txt:'')+'</span>').join('');
+      lb.style.display='flex';
+    }else{
+      lb.innerHTML=''; lb.style.display='none';
+    }
+  }
+}
+
+/* ---- 스파크라인(추세) SVG 생성 ---- */
+function buildPath(arr,vbW,vbH,pad){
+  const min=Math.min(...arr), max=Math.max(...arr), range=(max-min)||1;
+  const step=(vbW-2*pad)/(arr.length-1);
+  const pts=arr.map((v,i)=>[pad+i*step, vbH-pad-((v-min)/range)*(vbH-2*pad)]);
+  return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+}
+/* 테이블 셀용 소형 스파크라인 (상승/하락 색상) */
+function sparkSVG(arr){
+  if(!arr||arr.length<2) return '';
+  const w=90,h=28,pad=2;
+  const d=buildPath(arr,w,h,pad);
+  const color=(arr[arr.length-1]>=arr[0])?'var(--up)':'var(--down)';
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" preserveAspectRatio="none">'+
+         '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+/* 공포탐욕지수 카드용 대형 추세선 (전체 너비, 강조색) */
+function trendSVG(arr){
+  if(!arr||arr.length<2) return '';
+  const w=200,h=44,pad=3;
+  const d=buildPath(arr,w,h,pad);
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+         '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+/* 실시간 데이터가 없을 때, 일/주/월/연 등락률로부터 근사 추세를 역산.
+   선택된 기간(p)에 따라 서로 다른 길이·모양의 곡선을 반환해 탭 전환 시 그림이 바뀌도록 한다. */
+function fallbackSeries(b,p){
+  const now=b.px;
+  const back=pct=>now/(1+pct/100);
+  switch(p){
+    case 'd': return [back(b.d), now];
+    case 'w': return [back(b.w), back(b.d), now];
+    case 'm': return [back(b.m), back(b.w), back(b.d), now];
+    case 'y':
+    default:  return [back(b.y), back(b.m), back(b.w), back(b.d), now];
+  }
+}
+
+/* ================= 미국 데이터: Yahoo Finance 연계 =================
+   [중요] Yahoo / CNN 모두 응답에 CORS 허용 헤더를 주지 않으므로
+   브라우저에서 직접 호출하면 반드시 차단된다. 아래 PROXY 를 통해 호출한다.
+   PROXY_BASE 에 본인 Cloudflare Worker 주소를 넣으면 가장 안정적이며,
+   비워두면 공개 프록시를 순차 시도한다(무료 서비스라 간헐적 실패 가능). */
+const PROXY_BASE='';   // 예: 'https://misujukim.<계정>.workers.dev/?url='
+const PROXIES=[
+  u=>PROXY_BASE?PROXY_BASE+encodeURIComponent(u):null,
+  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+  u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),
+  u=>'https://thingproxy.freeboard.io/fetch/'+u
+].filter(Boolean);
+
+async function getJSON(url){
+  for(const p of PROXIES){
+    const target=p(url); if(!target) continue;
+    try{
+      const c=new AbortController(), t=setTimeout(()=>c.abort(),9000);
+      const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
+      if(!r.ok) continue;
+      const j=await r.json();
+      if(j) return j;
+    }catch(e){}
+  }
+  return null;
+}
+/* Yahoo 일봉 종가 배열 */
+async function yclose(sym,range){
+  const j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+
+      encodeURIComponent(sym)+'?range='+(range||'1y')+'&interval=1d');
+  try{
+    const q=j.chart.result[0].indicators.quote[0].close.filter(x=>x!=null);
+    return q.length>30?q:null;
+  }catch(e){ return null; }
+}
+/* 종목 펀더멘털: 거래량·EPS·PER·PEG·ROA·ROE (Yahoo quoteSummary)
+   ETF/ETN 은 이 항목들이 대부분 제공되지 않아 null → 화면에는 '--' 로 표시된다. */
+async function yfund(sym){
+  const j=await getJSON('https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+
+      encodeURIComponent(sym)+'?modules=price,summaryDetail,defaultKeyStatistics,financialData');
+  try{
+    const r=j.quoteSummary.result[0];
+    const num=x=>(x&&x.raw!=null)?x.raw:null;
+    const price=r.price||{}, sd=r.summaryDetail||{}, ks=r.defaultKeyStatistics||{}, fd=r.financialData||{};
+    return {
+      vol: num(price.regularMarketVolume) ?? num(sd.volume),
+      eps: num(ks.trailingEps),
+      per: num(sd.trailingPE),
+      peg: num(ks.pegRatio),
+      roa: num(fd.returnOnAssets),
+      roe: num(fd.returnOnEquity)
+    };
+  }catch(e){ return null; }
+}
+
+/* ================= 시가총액 TOP10 순위 변동 이력 =================
+   전월(2026-08-01 스냅샷 기준) 순위 근사치. 운영 시 월간 리포트 작성 때 갱신하세요. */
+const RANK_PREV={NVDA:1, AAPL:3, GOOGL:2, MSFT:4, AMZN:5, TSM:7, SPCX:6, AVGO:8, META:10, TSLA:9};
+function applyRankHistory(){
+  document.querySelectorAll('#cap-tbl tbody tr').forEach(tr=>{
+    const t=tr.dataset.t, prev=RANK_PREV[t]; if(!prev)return;
+    const rankTd=tr.querySelector('td.mut'); if(!rankTd)return;
+    const cur=parseInt(rankTd.textContent,10); if(isNaN(cur))return;
+    let arrow='–', color='var(--tx2)';
+    if(prev>cur){ arrow='↑'; color='var(--ok)'; }      // 전월보다 순위 상승(개선)
+    else if(prev<cur){ arrow='↓'; color='var(--up)'; } // 전월보다 순위 하락
+    rankTd.innerHTML=cur+' <span style="font-size:11px;color:'+color+'">('+arrow+prev+')</span>';
+  });
+}
+
+/* ================= 주식시장 주요 이벤트 (월별, 2026년) =================
+   FOMC/CPI/고용보고서/PCE 는 연준·BLS·BEA 공식 발표 일정 기준(2026-09 기준 확인).
+   PCE 10~12월은 발표일이 아직 공식 공지되지 않아 통상 일정 기준 추정치입니다. */
+const FED_URL='https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm';
+const BLS_CPI='https://www.bls.gov/schedule/news_release/cpi.htm';
+const BLS_NFP='https://www.bls.gov/schedule/news_release/empsit.htm';
+const BEA_PCE='https://www.bea.gov/data/income-saving/personal-income-and-outlays';
+const NYSE_CAL='https://nyse.com/trade/hours-calendars';
+const SPDJI_URL='https://www.spglobal.com/spdji/en/index-family/us-equity/sp-us-indices/';
+const NDX_URL='https://indexes.nasdaq.com/';
+
+const MONTH_EVENTS={
+  1:[
+    {d:1,t:'신정(New Year\u2019s Day) — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:9,t:'고용보고서(2025년 12월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:13,t:'CPI 소비자물가지수(12월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:19,t:'MLK Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:20,t:'나스닥100 특별 변경: Walmart(WMT) 편입 · AstraZeneca(AZN) 편출',c:'정기 분기 일정 외 특별 리밸런싱',g:'m',s:NDX_URL},
+    {d:27,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:28,t:'FOMC 금리결정 발표',c:'금리 경로, 지수 변동성 최대',g:'h',s:FED_URL}
+  ],
+  2:[
+    {d:11,t:'고용보고서(1월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:13,t:'CPI 소비자물가지수(1월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:16,t:'Presidents\u2019 Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1}
+  ],
+  3:[
+    {d:6,t:'고용보고서(2월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:11,t:'CPI 소비자물가지수(2월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:13,t:'PCE 물가지수(1월, 지연 발표)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE},
+    {d:17,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:18,t:'FOMC 금리결정 발표 · 점도표(SEP)',c:'분기 경제전망 포함',g:'h',s:FED_URL},
+    {d:20,t:'분기 네 마녀의 날(선물·옵션 동시만기)',c:'수급 왜곡, 변동성 확대',g:'m',s:NDX_URL},
+    {d:23,t:'S&P500·나스닥100 분기 리밸런싱 효과일',c:'지수 구성 변경분 반영',g:'m',s:SPDJI_URL}
+  ],
+  4:[
+    {d:3,t:'고용보고서(3월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:3,t:'Good Friday — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:9,t:'PCE 물가지수(2월, 지연 발표)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE},
+    {d:10,t:'CPI 소비자물가지수(3월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:28,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:29,t:'FOMC 금리결정 발표',c:'금리 경로, 지수 변동성 최대',g:'h',s:FED_URL},
+    {d:30,t:'PCE 물가지수(3월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  5:[
+    {d:8,t:'고용보고서(4월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:12,t:'CPI 소비자물가지수(4월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:25,t:'Memorial Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:28,t:'PCE 물가지수(4월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  6:[
+    {d:5,t:'고용보고서(5월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:10,t:'CPI 소비자물가지수(5월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:16,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:17,t:'FOMC 금리결정 발표 · 점도표(SEP)',c:'분기 경제전망 포함',g:'h',s:FED_URL},
+    {d:19,t:'분기 네 마녀의 날 · Juneteenth 증시 휴장',c:'변동성 확대 · 전일 휴장',g:'h',s:NYSE_CAL},
+    {d:22,t:'S&P500 변경: Marvell(MRVL)·Flex(FLEX) 편입 / Pool Corp(POOL)·Campbell\u2019s(CPB) 편출',c:'분기 리밸런싱',g:'m',s:SPDJI_URL},
+    {d:22,t:'나스닥100 변경: Astera Labs·CoreWeave·Nebius·Rocket Lab·Teradyne 편입 / Charter·Cognizant·Insmed·Verisk·Zscaler 편출',c:'분기 리밸런싱',g:'m',s:NDX_URL},
+    {d:25,t:'PCE 물가지수(5월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  7:[
+    {d:2,t:'고용보고서(6월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:3,t:'Independence Day(대체휴일) — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:7,t:'나스닥100 특별 편입: SpaceX(SPCX)',c:'IPO 후 15거래일만에 초고속 편입',g:'m',s:NDX_URL},
+    {d:14,t:'CPI 소비자물가지수(6월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:28,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:29,t:'FOMC 금리결정 발표',c:'금리 경로, 지수 변동성 최대',g:'h',s:FED_URL},
+    {d:30,t:'PCE 물가지수(6월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  8:[
+    {d:7,t:'고용보고서(7월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:12,t:'CPI 소비자물가지수(7월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:26,t:'PCE 물가지수(7월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  9:[
+    {d:4,t:'고용보고서(8월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:7,t:'Labor Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:11,t:'CPI 소비자물가지수(8월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:15,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:16,t:'FOMC 금리결정 발표 · 점도표(SEP)',c:'분기 경제전망 포함',g:'h',s:FED_URL},
+    {d:18,t:'분기 네 마녀의 날(선물·옵션 동시만기)',c:'수급 왜곡, 변동성 확대',g:'m',s:NDX_URL},
+    {d:21,t:'S&P500 변경: Bloom Energy(BE)·Everpure(P)·Illumina(ILMN) 편입 / Molson Coors(TAP)·Trade Desk(TTD)·Builders FirstSource(BLDR) 편출',c:'분기 리밸런싱',g:'m',s:SPDJI_URL},
+    {d:21,t:'S&P100 변경: Dell(DELL)·Palo Alto Networks(PANW)·Arista(ANET)·SanDisk(SNDK) 편입 / Honeywell Aerospace·Nike(NKE)·Simon Property(SPG)·Colgate(CL) 편출',c:'S&P100 리밸런싱',g:'l',s:SPDJI_URL},
+    {d:30,t:'PCE 물가지수(8월)',c:'연준 선호 물가지표',g:'m',s:BEA_PCE}
+  ],
+  10:[
+    {d:2,t:'고용보고서(9월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:12,t:'Columbus Day — 채권시장 휴장(주식시장 정상거래)',c:'채권시장만 휴장',g:'l',s:NYSE_CAL,hol:1},
+    {d:14,t:'CPI 소비자물가지수(9월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:27,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:28,t:'FOMC 금리결정 발표',c:'금리 경로, 지수 변동성 최대',g:'h',s:FED_URL},
+    {d:30,t:'PCE 물가지수(9월, 추정)',c:'연준 선호 물가지표 · 정확한 날짜는 출처 확인',g:'m',s:BEA_PCE}
+  ],
+  11:[
+    {d:6,t:'고용보고서(10월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:10,t:'CPI 소비자물가지수(10월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:11,t:'Veterans Day — 채권시장 휴장(주식시장 정상거래)',c:'채권시장만 휴장',g:'l',s:NYSE_CAL,hol:1},
+    {d:25,t:'PCE 물가지수(10월, 추정)',c:'연준 선호 물가지표 · 정확한 날짜는 출처 확인',g:'m',s:BEA_PCE},
+    {d:26,t:'Thanksgiving Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1},
+    {d:27,t:'추수감사절 다음날 — 조기폐장(오후 1시 ET)',c:'거래시간 단축',g:'m',s:NYSE_CAL,hol:1}
+  ],
+  12:[
+    {d:4,t:'고용보고서(11월)',c:'경기 체력 점검',g:'h',s:BLS_NFP},
+    {d:8,t:'FOMC 회의 1일차',c:'금리 정책 논의',g:'l',s:FED_URL},
+    {d:9,t:'FOMC 금리결정 발표 · 점도표(SEP) · 올해 마지막 회의',c:'분기 경제전망 포함',g:'h',s:FED_URL},
+    {d:10,t:'CPI 소비자물가지수(11월)',c:'인플레이션·금리 기대',g:'h',s:BLS_CPI},
+    {d:18,t:'분기 네 마녀의 날(선물·옵션 동시만기)',c:'수급 왜곡, 변동성 확대',g:'m',s:NDX_URL},
+    {d:21,t:'나스닥100 연간 재조정 효과일',c:'편입·편출 종목은 12월 중 별도 발표 예정',g:'m',s:NDX_URL},
+    {d:23,t:'PCE 물가지수(11월, 추정)',c:'연준 선호 물가지표 · 정확한 날짜는 출처 확인',g:'m',s:BEA_PCE},
+    {d:24,t:'크리스마스 이브 — 조기폐장(오후 1시 ET)',c:'거래시간 단축',g:'m',s:NYSE_CAL,hol:1},
+    {d:25,t:'Christmas Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1}
+  ]
+};
+
+function renderEvents(m){
+  const tbody=document.getElementById('events-tbl'); if(!tbody)return;
+  const all=(MONTH_EVENTS[m]||[]).slice().sort((a,b)=>a.d-b.d);
+  const arr=all.filter(e=>!e.hol);
+  const holidays=all.filter(e=>e.hol);
+  if(!arr.length){ tbody.innerHTML='<tr><td class="mut" colspan="5">해당 월 일정 준비 중입니다.</td></tr>'; }
+  else{
+    const TAGLABEL={h:'최상',m:'중',l:'참고'}, TAGCLASS={h:'t-h',m:'t-m',l:'t-l'};
+    tbody.innerHTML=arr.map(e=>{
+      const ds='2026-'+String(m).padStart(2,'0')+'-'+String(e.d).padStart(2,'0');
+      return '<tr'+(e.g==='h'?' class="ev-hi"':'')+'><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td><td class="mut">'+e.c+'</td>'+
+        '<td><span class="tag '+TAGCLASS[e.g]+'">'+TAGLABEL[e.g]+'</span></td>'+
+        '<td class="ev-src"><a href="'+e.s+'" target="_blank" rel="noopener" title="출처 보기">+</a></td></tr>';
+    }).join('');
+  }
+  const htbody=document.getElementById('holidays-tbl');
+  if(htbody){
+    if(!holidays.length){ htbody.innerHTML='<tr><td class="mut" colspan="3">해당 월 휴장일이 없습니다.</td></tr>'; }
+    else{
+      htbody.innerHTML=holidays.map(e=>{
+        const ds='2026-'+String(m).padStart(2,'0')+'-'+String(e.d).padStart(2,'0');
+        const kind=e.c==='전일 휴장'?'휴장':(e.c.indexOf('채권시장')>-1?'채권시장만 휴장':'조기 폐장');
+        return '<tr><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td>'+
+          '<td><span class="tag t-close">'+kind+'</span></td></tr>';
+      }).join('');
+    }
+  }
+}
+
+/* ---- 네트워크 실패 시 사용할 실측 기준값 (Yahoo Finance 최근 종가 기준) ----
+   운영 시 주간 리포트 작성할 때 함께 갱신하면 폴백 정확도가 유지됩니다. */
+const BASE={
+  QLD :{px:90.68, d:0.33,  w:0.57,  m:0.61,  y:43.30},
+  USD :{px:88.80, d:4.26,  w:7.22,  m:-1.92, y:111.66},
+  SCHD:{px:34.80, d:-0.80, w:-0.29, m:3.26,  y:25.90},
+  /* 시가총액 TOP10 (2026-09-04 스냅샷 기준, w=최근 7일 추세 근사) */
+  NVDA :{px:230.36, d:1.20,  w:5.90,  m:12.0, y:45.0},
+  AAPL :{px:319.97, d:0.10,  w:0.10,  m:2.0,  y:15.0},
+  GOOGL:{px:338.46, d:-0.50, w:-2.40, m:-3.0, y:25.0},
+  MSFT :{px:499.70, d:-0.50, w:-2.70, m:-1.0, y:10.0},
+  AMZN :{px:258.51, d:-0.60, w:-3.00, m:-2.0, y:8.0},
+  TSM  :{px:428.91, d:0.50,  w:2.70,  m:5.0,  y:30.0},
+  SPCX :{px:147.94, d:1.00,  w:4.60,  m:8.0,  y:30.0},
+  AVGO :{px:357.89, d:-0.60, w:-3.00, m:-2.0, y:40.0},
+  META :{px:616.77, d:1.30,  w:6.70,  m:10.0, y:20.0},
+  TSLA :{px:354.08, d:0.30,  w:1.50,  m:5.0,  y:60.0},
+  /* 레버리지 ETF (변동성이 매우 커서 근사치 · 운영 시 자주 갱신 필요) */
+  TQQQ:{px:63.99,  d:-3.48,  w:-5.24,  m:-12.70, y:45.70},
+  UPRO:{px:136.38, d:0.08,   w:-1.51,  m:1.22,   y:38.87},
+  UDOW:{px:67.30,  d:-3.01,  w:-2.0,   m:1.0,    y:25.0},
+  TECL:{px:185.50, d:-3.03,  w:-5.0,   m:-10.0,  y:50.0},
+  BULZ:{px:29.59,  d:1.93,   w:-5.0,   m:14.35,  y:58.03},
+  SOXL:{px:136.79, d:-13.15, w:0.97,   m:-40.41, y:430.61},
+  KORU:{px:23.47,  d:13.44,  w:20.0,   m:40.16,  y:425.11}
+};
+/* ================= 미국 공포탐욕지수: CNN 공식 데이터 =================
+   CNN 페이지가 실제로 읽는 내부 엔드포인트를 그대로 사용한다.
+     https://production.dataviz.cnn.io/index/fearandgreed/graphdata
+   단, 이 엔드포인트는 Referer/Origin 헤더가 cnn.com 이 아니면
+   HTTP 418("You're a bot") 로 차단한다. 공개 프록시는 이 헤더를 붙여주지
+   못하므로, 반드시 함께 제공된 cors-proxy-worker.js 를 배포하고
+   위쪽 PROXY_BASE 에 그 주소를 넣어야 공식 수치가 표시된다. */
+const CNN_URL='https://production.dataviz.cnn.io/index/fearandgreed/graphdata';
+
+/* 프록시 미설정/실패 시 표시할 CNN 실측 스냅샷 (2026-09-05 기준) */
+const FG_BASE={d:41.9, w:52.3, m:60.0, y:61.2, prev:35.2, official:true};
+const FG_BARS=[53,22,34,22,22,49,46,59,64,36,41,24,6,47,67,66,61,27,25,47,38,65,56,42];
+/* CNN 7개 세부지표 스냅샷 */
+const FG_SUB=[['시장 모멘텀',36.6],['주가 강도',12.6],['주가 폭',46.4],
+              ['풋/콜 옵션',45.2],['시장 변동성',50],['정크본드 수요',76.2],['안전자산 선호',26]];
+
+let FGdata=null;   // CNN 원본 JSON
+async function loadUS(){
+  FGdata=await getJSON(CNN_URL);
+  renderUS(curPer.us);
+}
+/* 세부지표별 원문(근거 데이터) 출처 */
+const SUBSRC={
+  '시장 모멘텀':'https://www.spglobal.com/spdji/en/indices/equity/sp-500/',
+  '주가 강도':'https://www.wsj.com/market-data/stocks/marketsdiary',
+  '주가 폭':'https://www.wsj.com/market-data/stocks/marketsdiary',
+  '풋/콜 옵션':'https://www.cboe.com/us/options/market_statistics/daily/',
+  '시장 변동성':'https://www.cboe.com/tradable_products/vix/',
+  '정크본드 수요':'https://fred.stlouisfed.org/series/BAMLH0A0HYM2',
+  '안전자산 선호':'https://fred.stlouisfed.org/series/DGS10'
+};
+/* CNN 지표 라벨 (공식 구간과 동일하게 매핑) */
+function subTable(rows,src){
+  const el=$('#us-sub'); if(!el)return;
+  el.innerHTML=rows.map(([n,v])=>{
+    const link=SUBSRC[n];
+    const label_=link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+' ↗</a>':n;
+    return '<tr><td>'+label_+'</td><td class="num">'+v.toFixed(1)+'</td>'+
+    '<td class="num"><span class="tag '+(v<45?'t-h':v<=55?'t-l':'t-m')+'">'+label(v)[0]+'</span></td></tr>';
+  }).join('');
+  $('#us-src').textContent=src;
+}
+function renderUS(p){
+  $('#us-per').textContent='· '+PERKO[p];
+  if(!FGdata){                                    // 폴백 (CNN 실측 스냅샷)
+    const v=FG_BASE[p];
+    paint('us',v,'전일 '+FG_BASE.prev.toFixed(0)+'점 → 현재 '+FG_BASE.d.toFixed(0)+'점');
+    /* 폴백도 기간 탭에 따라 다른 근사 곡선을 보여준다 */
+    const fbSeries={d:[FG_BASE.prev,FG_BASE.d], w:[FG_BASE.m,FG_BASE.w,FG_BASE.d],
+                     m:[FG_BASE.y,FG_BASE.m,FG_BASE.w,FG_BASE.d], y:[FG_BASE.y,FG_BASE.m,FG_BASE.w,FG_BASE.d]}[p]||FG_BARS;
+    bars('us', fbSeries.length>1?fbSeries:FG_BARS);
+    subTable(FG_SUB,'CNN 공식 스냅샷 (프록시 미설정 — 실시간 아님)');
+    return;
+  }
+  const f=FGdata.fear_and_greed;
+  /* CNN 이 제공하는 기간별 공식 값을 그대로 사용 — 임의 재계산하지 않는다 */
+  const v={d:f.score, w:f.previous_1_week, m:f.previous_1_month, y:f.previous_1_year}[p];
+  const note={
+    d:'전일 종료 '+f.previous_close.toFixed(0)+'점 → 현재 '+f.score.toFixed(0)+'점',
+    w:'1주 전 값 · 현재 대비 '+sign(f.score-f.previous_1_week).replace('%','p'),
+    m:'1개월 전 값 · 현재 대비 '+sign(f.score-f.previous_1_month).replace('%','p'),
+    y:'1년 전 값 · 현재 대비 '+sign(f.score-f.previous_1_year).replace('%','p')
+  }[p];
+  paint('us',v,note);
+
+  /* 막대·추세선: 주간/월간은 일자별, 연간은 월별로 구분해서 보여준다 */
+  const hist=(FGdata.fear_and_greed_historical||{}).data||[];
+  const tsToDate=ts=>{ const n=+ts; return new Date(n>1e12?n:n*1000); };
+  if(hist.length>0){
+    if(p==='y'){
+      const byMonth=[], map={};
+      hist.forEach(x=>{
+        const dt=tsToDate(x.x); const key=dt.getFullYear()+'-'+(dt.getMonth()+1);
+        if(!map[key]){ map[key]={sum:0,n:0,label:(dt.getMonth()+1)+'월'}; byMonth.push(map[key]); }
+        map[key].sum+=x.y; map[key].n++;
+      });
+      const last=byMonth.slice(-12);
+      const vals=last.map(o=>o.sum/o.n), labels=last.map(o=>o.label);
+      bars('us', vals.length>1?vals:FG_BARS, vals.length>1?labels:null, 1);
+    }else{
+      const WIN={d:10,w:7,m:30}[p]||10;
+      const recent=hist.slice(-Math.min(hist.length,WIN));
+      const vals=recent.map(x=>x.y);
+      const labels=recent.map(x=>{ const dt=tsToDate(x.x); return (dt.getMonth()+1)+'/'+dt.getDate(); });
+      const tickEvery=p==='m'?5:1; // 월간은 5일 간격으로 표기(과밀 방지), 막대에 마우스오버하면 날짜별 정확한 값 확인 가능
+      bars('us', vals.length>1?vals:FG_BARS, (p==='w'||p==='m')&&vals.length>1?labels:null, tickEvery);
+    }
+  }else bars('us',FG_BARS);
+
+  /* CNN 7개 세부지표 */
+  const M=[['시장 모멘텀','market_momentum_sp125'],['주가 강도','stock_price_strength'],
+           ['주가 폭','stock_price_breadth'],['풋/콜 옵션','put_call_options'],
+           ['시장 변동성','market_volatility_vix'],['정크본드 수요','junk_bond_demand'],
+           ['안전자산 선호','safe_haven_demand']];
+  const rows=M.filter(([,k])=>FGdata[k]&&FGdata[k].score!=null)
+              .map(([n,k])=>[n,+FGdata[k].score]);
+  if(rows.length) subTable(rows,'CNN 공식 실시간 · '+
+      new Date(f.timestamp).toLocaleString('ko-KR'));
+}
+
+/* ---- 티커 시세: Yahoo Finance (그룹별: tick=QLD·USD·SCHD, cap=시가총액TOP10, lev=레버리지ETF) ---- */
+const TICKGROUPS={
+  tick:{table:'tick-tbl', list:['QLD','USD','SCHD']},
+  cap: {table:'cap-tbl',  list:['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA']},
+  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','KORU']}
+};
+const tickData={};
+const fundData={};
+async function loadTickGroup(g){
+  const list=TICKGROUPS[g].list;
+  await Promise.all(list.map(async t=>{
+    if(tickData[t]===undefined) tickData[t]=await yclose(t,'1y');
+    if(fundData[t]===undefined) fundData[t]=await yfund(t);
+  }));
+  renderTick(g,curPer[g]);
+}
+function renderTick(g,p){
+  const cfg=TICKGROUPS[g]; if(!cfg)return;
+  const n={d:1,w:5,m:21,y:252}[p];
+  const pct1=x=>x==null?'--':(x*100).toFixed(1)+'%';
+  const num1=x=>x==null?'--':x.toLocaleString('en-US',{maximumFractionDigits:1});
+  const volFmt=x=>x==null?'--':(x>=1e8?(x/1e8).toFixed(1)+'억':x.toLocaleString('en-US'));
+  document.querySelectorAll('#'+cfg.table+' tbody tr').forEach(tr=>{
+    const t=tr.dataset.t, d=tickData[t];
+    const px=tr.querySelector('.px'), ch=tr.querySelector('.ch'), sp=tr.querySelector('.spark');
+    const volEl=tr.querySelector('.vol'), epsEl=tr.querySelector('.eps'), perEl=tr.querySelector('.per'),
+          pegEl=tr.querySelector('.peg'), roaEl=tr.querySelector('.roa'), roeEl=tr.querySelector('.roe');
+    /* 펀더멘털은 가격 데이터 성공 여부와 무관하게 독립적으로 채운다 */
+    const f=fundData[t];
+    if(volEl) volEl.textContent=f?volFmt(f.vol):'--';
+    if(epsEl) epsEl.textContent=f?num1(f.eps):'--';
+    if(perEl) perEl.textContent=f?num1(f.per):'--';
+    if(pegEl) pegEl.textContent=f?num1(f.peg):'--';
+    if(roaEl) roaEl.textContent=f?pct1(f.roa):'--';
+    if(roeEl) roeEl.textContent=f?pct1(f.roe):'--';
+
+    if(!d||d.length<2){
+      const b=BASE[t];
+      if(!b){ px.textContent='--'; ch.textContent='--'; if(sp) sp.innerHTML=''; return; }
+      px.textContent='$'+fmt(b.px)+' *';
+      ch.textContent=sign(b[p]); ch.className='num ch chg '+cls(b[p]);
+      if(sp) sp.innerHTML=sparkSVG(fallbackSeries(b,p));
+      return;
+    }
+    const last=d[d.length-1];
+    const base=(p==='y')?d[0]:d[Math.max(0,d.length-1-n)];
+    const v=(last/base-1)*100;
+    px.textContent='$'+fmt(last);
+    ch.textContent=sign(v); ch.className='num ch chg '+cls(v);
+    if(sp){
+      const win={d:10,w:20,m:60,y:252}[p]||15;
+      const pts=d.slice(-Math.min(d.length, win));
+      sp.innerHTML=sparkSVG(pts);
+    }
+  });
+}
+
+/* ---- 탭 ---- */
+document.querySelectorAll('.tabs').forEach(box=>{
+  box.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    box.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    const g=box.dataset.group,p=b.dataset.p;
+    curPer[g]=p;
+    if(TICKGROUPS[g]) renderTick(g,p);
+    else if(g==='us') renderUS(p);
+  });
+});
+
+/* ---- 이벤트 캘린더 월 탭 ---- */
+const evMonthTabs=document.getElementById('evmonth-tabs');
+if(evMonthTabs){
+  evMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    evMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderEvents(+b.dataset.m);
+  });
+  const nowMonth=new Date().getMonth()+1;
+  const defMonth=MONTH_EVENTS[nowMonth]?nowMonth:9;
+  const defBtn=evMonthTabs.querySelector('button[data-m="'+defMonth+'"]');
+  if(defBtn) defBtn.classList.add('on');
+  renderEvents(defMonth);
+}
+
+const now=new Date();
+$('#stamp').textContent='최종 갱신 '+now.toLocaleString('ko-KR');
+$('#stamp-top').textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트';
+renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','d'); // 1차 즉시 표시(빈 화면 방지)
+applyRankHistory();
+loadUS();
+loadTickGroup('tick'); loadTickGroup('cap'); loadTickGroup('lev'); // 실시간 데이터로 교체
+</script>
+</body>
+</html>
