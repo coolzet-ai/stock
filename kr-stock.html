@@ -34,7 +34,16 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn:hover{filter:brightness(1.08)}
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
-@media(max-width:760px){.nav ul{display:none}}
+.wrap.nav{position:relative}
+.nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
+@media(max-width:760px){
+  .nav-toggle{display:block}
+  .nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border:1px solid var(--line);border-top:0;flex-direction:column;padding:6px 20px;gap:0;z-index:60}
+  .nav ul.open{display:flex}
+  .nav ul li{width:100%}
+  .nav ul a{display:block;padding:13px 0;border-bottom:1px solid var(--line)}
+  .nav ul li:last-child a{border-bottom:0}
+}
 
 /* hero */
 .hero{padding:70px 0 50px;text-align:center;
@@ -133,7 +142,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <header>
   <div class="wrap nav">
     <div class="logo">Mr.<span>Kim Signal</span></div>
-    <ul>
+    <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
+    <ul id="nav-menu">
       <li><a href="stock.html">미국지수</a></li>
       <li><a href="kr-stock.html">한국지수</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
@@ -143,7 +153,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
       <span class="updated-top" id="stamp-top"></span>
-      <button class="btn sm" id="naver-gift-btn" title="네이버ID: coolzet (클릭 시 복사)">네이버포인트 선물하기</button>
+      <a class="btn sm" href="https://pay.naver.com" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기 (ID: coolzet)">네이버포인트 선물하기 (ID: coolzet)</a>
     </div>
   </div>
 </header>

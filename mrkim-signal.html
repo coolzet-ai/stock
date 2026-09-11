@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mr.Kim Signal — 가상화폐</title>
+<title>Mr.Kim Signal — 미국지수·한국지수·가상화폐 시장 신호</title>
 <style>
 :root{
   --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
@@ -159,91 +159,50 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 </header>
 
 <main>
-<section id="crypto">
+<section class="hero" style="border:0">
+<section class="hero" style="border:0">
   <div class="wrap">
-    <div class="sec-h">
-      <div>
-        <h2>가상화폐 공포탐욕지수</h2>
-        <p class="sub">Alternative.me Crypto Fear &amp; Greed Index 실시간 연동</p>
-      </div>
-      <div class="tabs" data-group="cf">
-        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
-        <button data-p="m">월간</button><button data-p="y">연간</button>
-      </div>
+    <span class="badge">● 주식 · 가상화폐 시장 신호 대시보드</span>
+    <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
+    <p>미국지수·한국지수 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.
+       일간·주간·월간·연간 흐름을 한 화면에서 확인하세요. 가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</p>
+    <div class="cta">
+      <a class="btn ghost btn sm" href="stock.html" style="padding:13px 26px">대시보드 보기</a>
     </div>
+    <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
+  </div>
+</section>
+</section>
 
+<section>
+  <div class="wrap">
+    <h2>바로가기</h2>
+    <p class="sub">원하는 섹션을 선택하세요</p>
     <div class="grid">
-      <div class="card">
-        <h3>현재 지수 <span id="cf-per" class="mut">· 일간</span></h3>
-        <div class="gauge">
-          <div class="dial" id="cf-dial"><a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="Alternative.me 공식 원문 보기"><b id="cf-val">--</b></a></div>
-          <div>
-            <div class="state" id="cf-state">불러오는 중</div>
-            <div class="mut" id="cf-note">—</div>
-          </div>
-        </div>
-        <div class="bars" id="cf-bars"></div>
-        <div class="trend-lg" id="cf-trend"></div>
-        <div class="mut" style="margin-top:8px">최근 흐름</div>
-      </div>
-      <div class="card">
-        <h3>시장 코멘트</h3>
-        <p class="mut" id="cf-comment">지수를 불러오는 중입니다.</p>
-        <p class="mut" style="margin-top:12px">공포 구간은 분할매수, 극단적 탐욕 구간은 비중 축소 관점으로 활용합니다.</p>
-      </div>
-    </div>
-
-    <h2 style="font-size:21px;margin-top:44px">주요 코인 가격 — BTC · ETH · SOL · XRP</h2>
-    <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률 · 최근 7일 추세</p>
-
-    <h3 style="font-size:15px;color:var(--tx2);margin-bottom:10px">4종 시가총액 비중</h3>
-    <div id="mcap-chart" style="margin-bottom:28px"></div>
-
-    <div class="tabs" data-group="coin">
-      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
-      <button data-p="m">월간</button><button data-p="y">연간</button>
-    </div>
-    <div class="scroll">
-      <table id="coin-tbl">
-        <thead><tr><th>코인</th><th class="num">현재가(USD)</th><th class="num">등락률</th><th>추세(7일)</th></tr></thead>
-        <tbody>
-          <tr data-c="bitcoin"><td><a href="https://bitcoin.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="비트코인 공식 사이트"><b>BTC</b></a> <span class="mut">비트코인</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="ethereum"><td><a href="https://ethereum.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="이더리움 공식 사이트"><b>ETH</b></a> <span class="mut">이더리움</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="solana"><td><a href="https://solana.com" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="솔라나 공식 사이트"><b>SOL</b></a> <span class="mut">솔라나</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="ripple"><td><a href="https://xrpl.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="XRP 렛저 공식 사이트"><b>XRP</b></a> <span class="mut">리플</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2 style="font-size:21px;margin-top:44px">가상화폐 주요 이벤트 일정</h2>
-    <p class="sub">월을 선택하면 해당 월의 날짜별 일정을 확인할 수 있습니다 · 2026년</p>
-    <div class="tabs" data-group="cryptoevmonth" id="crypto-evmonth-tabs">
-      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
-      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
-      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
-      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
-    </div>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>날짜</th><th>이벤트</th><th>영향</th><th>중요도</th><th>출처</th></tr></thead>
-        <tbody id="crypto-events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
-      </table>
-    </div>
-    <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC는 위험자산 전반(암호화폐 포함)에 영향을 미치는 미국 금리 결정 일정, 옵션 만기는 디리비트 매월 마지막 금요일 기준입니다.</p>
-
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">상시 모니터링 이벤트</h3>
-    <p class="sub" style="margin-bottom:12px;font-size:13.5px">특정 날짜가 아닌 상시·수시로 발생하는 이벤트</p>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>주기</th><th>이벤트</th><th>영향</th><th>중요도</th><th>출처</th></tr></thead>
-        <tbody>
-          <tr><td class="mut">수시</td><td><b>미국 현물 ETF 자금 유출입</b></td><td class="mut">BTC·ETH 수급의 핵심 변수</td><td><span class="tag t-h">최상</span></td><td><a href="https://farside.co.uk/btc/" target="_blank" rel="noopener">Farside ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>이더리움 네트워크 업그레이드</b></td><td class="mut">수수료·스테이킹 구조 변화</td><td><span class="tag t-m">상</span></td><td><a href="https://ethereum.org/en/roadmap/" target="_blank" rel="noopener">이더리움 로드맵 ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>SEC·규제 이슈, XRP 소송 관련 판결</b></td><td class="mut">알트코인 급등락 트리거</td><td><span class="tag t-m">상</span></td><td><a href="https://www.sec.gov/litigation/litreleases" target="_blank" rel="noopener">SEC 소송 자료 ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>주요 토큰 언락 스케줄</b></td><td class="mut">개별 코인 매도 압력</td><td><span class="tag t-l">참고</span></td><td><a href="https://cryptorank.io/unlocks" target="_blank" rel="noopener">CryptoRank ↗</a></td></tr>
-          <tr><td class="mut">약 4년</td><td><b>비트코인 반감기</b></td><td class="mut">공급 축소, 장기 사이클 기준점 (2026년 해당 없음, 다음은 2028년 예상)</td><td><span class="tag t-l">참고</span></td><td><a href="https://academy.binance.com/en/articles/what-is-bitcoin-halving" target="_blank" rel="noopener">설명 보기 ↗</a></td></tr>
-        </tbody>
-      </table>
+      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국지수</h3>
+        <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
+      </a>
+      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국지수</h3>
+        <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
+      </a>
+      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
+        <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
+      </a>
+      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
+        <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
+      </a>
+      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
+        <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
+      </a>
+      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
+        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
+        <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
+      </a>
     </div>
   </div>
 </section>
@@ -265,31 +224,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js"></script>
 <script>
-const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
-if(cryptoEvMonthTabs){
-  cryptoEvMonthTabs.addEventListener('click',e=>{
-    const b=e.target.closest('button'); if(!b)return;
-    cryptoEvMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    renderCryptoEvents(+b.dataset.m);
-  });
-  const nowMonthCrypto=new Date().getMonth()+1;
-  const defMonthCrypto=CRYPTO_MONTH_EVENTS[nowMonthCrypto]?nowMonthCrypto:9;
-  const defBtnCrypto=cryptoEvMonthTabs.querySelector('button[data-m="'+defMonthCrypto+'"]');
-  if(defBtnCrypto) defBtnCrypto.classList.add('on');
-  renderCryptoEvents(defMonthCrypto);
-}
-
-
 const now=new Date();
-{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
 { const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
-
-loadCF(); loadCoin();
-setInterval(()=>{loadCF(); loadCoin();},60000);
-
+{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
 </script>
 </body>
 </html>

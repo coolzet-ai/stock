@@ -1092,17 +1092,11 @@ async function loadTradeBacktest(){
 }
 
 
-/* ---- 네이버포인트 선물하기: 아이디를 직접 지정하는 공개 링크가 없어(네이버페이 앱 내 검색으로만 선물 가능),
-   버튼 클릭 시 아이디를 클립보드에 복사해주는 방식으로 구현 ---- */
-const naverBtn=document.getElementById('naver-gift-btn');
-if(naverBtn){
-  naverBtn.addEventListener('click',async()=>{
-    const id='coolzet';
-    try{ await navigator.clipboard.writeText(id); }catch(e){}
-    const orig=naverBtn.textContent;
-    naverBtn.textContent='ID 복사됨: '+id;
-    setTimeout(()=>{ naverBtn.textContent=orig; },1800);
-  });
+/* ---- 모바일 상단 메뉴 토글 ---- */
+const navToggle=document.getElementById('nav-toggle');
+const navMenu=document.getElementById('nav-menu');
+if(navToggle && navMenu){
+  navToggle.addEventListener('click',()=>{ navMenu.classList.toggle('open'); });
 }
 
 /* ---- 에잇퍼센트 추천인코드 복사 ---- */
