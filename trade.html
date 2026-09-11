@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mr.Kim Signal — 미국지수·한국지수·가상화폐 시장 신호</title>
+<title>Mr.Kim Signal — 매매김군</title>
 <style>
 :root{
   --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
@@ -149,53 +149,82 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 </header>
 
 <main>
-<section class="hero" style="border:0">
-<section class="hero" style="border:0">
+<section id="trade">
   <div class="wrap">
-    <span class="badge">● 주식 · 가상화폐 시장 신호 대시보드</span>
-    <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
-    <p>미국지수·한국지수 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.
-       일간·주간·월간·연간 흐름을 한 화면에서 확인하세요. 가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</p>
-    <div class="cta">
-      <a class="btn ghost btn sm" href="stock.html" style="padding:13px 26px">대시보드 보기</a>
+    <h2>매매김군 매매법</h2>
+    <p class="sub">규칙 기반 분할매수 전략 · 실제 시세로 계산한 백테스트 결과</p>
+
+    <div class="card" style="margin-top:20px">
+      <h3>매매법 규칙</h3>
+      <p class="mut">본 매매법의 매수·매도 세부 규칙은 공개하지 않습니다. 아래 백테스트 결과는 실제 규칙을 적용해 계산한 성과입니다.</p>
     </div>
-    <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
+
+    <h2 style="font-size:21px;margin-top:44px">매매법 백테스트 (2026년 1월 ~ 현재)</h2>
+    <p class="sub" id="bt-status">데이터를 불러와 시뮬레이션하는 중…</p>
+
+    <div class="grid">
+      <div class="card">
+        <h3>누적 매수 횟수</h3>
+        <div class="big" id="bt-buycount">--</div>
+        <p class="mut" style="margin-top:6px">수량·종목별 세부내용은 비공개입니다</p>
+      </div>
+      <div class="card">
+        <h3>누적원금</h3>
+        <div class="big" id="bt-cost">--</div>
+        <p class="mut" style="margin-top:6px" id="bt-cost-krw">원화 환산 --</p>
+      </div>
+      <div class="card">
+        <h3>누적 배당금</h3>
+        <div class="big" id="bt-dividend">--</div>
+        <p class="mut" style="margin-top:6px" id="bt-dividend-krw">보유 종목 합산, 세전 기준</p>
+      </div>
+      <div class="card">
+        <h3>현재 평가수익금</h3>
+        <div class="big" id="bt-profit">--</div>
+        <p class="mut" style="margin-top:6px" id="bt-profit-krw">평가금 - 누적원금</p>
+      </div>
+      <div class="card">
+        <h3>원금 대비 평가금 수익률</h3>
+        <div class="big" id="bt-roi">--</div>
+        <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 -- · 평가금 --</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선 — 원금 대비 평가금</h3>
+    <div class="card" style="margin-top:12px">
+      <div id="bt-curve"></div>
+    </div>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 수익금</th><th class="num">월 수익률</th><th class="num">연환산</th></tr></thead>
+        <tbody id="bt-monthly-return"><tr><td class="mut" colspan="8">계산 중…</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 배당금 현황</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>월</th><th class="num">배당금 합계</th><th class="num">누적 배당금</th></tr></thead>
+        <tbody id="bt-monthly-div"><tr><td class="mut" colspan="3">계산 중…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>다음 예상 배당</h3>
+      <p class="mut" id="bt-next-div">계산 중…</p>
+    </div>
+
+    <p class="mut" style="margin-top:16px;font-size:12px">⚠ 배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다 · 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다 · MDD는 해당 월 내 일별 평가금 기준 최대 낙폭입니다 · 배당금 현황은 배당이 있었던 달만 표시합니다 · 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다 · 과거 성과가 미래 수익을 보장하지 않습니다.</p>
   </div>
-</section>
 </section>
 
-<section>
-  <div class="wrap">
-    <h2>바로가기</h2>
-    <p class="sub">원하는 섹션을 선택하세요</p>
-    <div class="grid">
-      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국지수</h3>
-        <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
-      </a>
-      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국지수</h3>
-        <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
-      </a>
-      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
-        <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
-      </a>
-      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
-        <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
-      </a>
-      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
-        <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
-      </a>
-      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
-        <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
-      </a>
-    </div>
+<div class="wrap">
+  <div class="band">
+    <h2>2026년 파일럿 시행 중</h2>
+    <p>매매김군 매매법은 2026년 한 해 동안 파일럿으로 운영되며 지속적으로 검증·개선을 거쳐,<br><b style="color:var(--accent);font-size:1.15em">2027년 1월 정식 출시</b> 예정입니다.</p>
   </div>
-</section>
+</div>
 </main>
 
 <footer>
@@ -214,10 +243,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
+<script src="mrkim-common.js"></script>
 <script>
 const now=new Date();
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
+
+loadTradeBacktest();
+
 </script>
 </body>
 </html>

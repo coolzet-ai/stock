@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mr.Kim Signal — 한국지수</title>
+<style>
+:root{
+  --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
+  --tx:#e8edf6; --tx2:#9fb0c9; --accent:#ffb020; --accent2:#ff8a00;
+  --up:#ff4d4f; --down:#3d9dff; --ok:#22c55e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);
+  font-family:system-ui,'Apple SD Gothic Neo','Nanum Gothic',sans-serif;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.nav ul{display:flex;gap:22px;list-style:none;font-size:14px;color:var(--tx2)}
+.nav ul a{text-decoration:none}
+.nav ul a:hover{color:var(--accent)}
+.nav ul a.nav-hi{color:var(--accent);font-weight:800}
+#naver-gift-btn{font-family:inherit}
+.updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
+@media(max-width:640px){.updated-top{display:none}}
+.btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px}
+.btn:hover{filter:brightness(1.08)}
+.btn.sm{padding:9px 18px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+@media(max-width:760px){.nav ul{display:none}}
+
+/* hero */
+.hero{padding:70px 0 50px;text-align:center;
+  background:radial-gradient(900px 380px at 50% -60px,rgba(255,176,32,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(255,176,32,.35);
+  background:rgba(255,176,32,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@media(max-width:640px){.hero h1{font-size:31px}}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h2{font-size:26px;letter-spacing:-.6px}
+.sub{color:var(--tx2);font-size:15px;margin-bottom:22px}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
+.tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
+  padding:8px 15px;border-radius:7px;font-family:inherit}
+.tabs button.on{background:var(--accent);color:#1a1206}
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
+.big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.mut{color:var(--tx2);font-size:13px}
+.chg{font-weight:800;font-size:15px}
+.up{color:var(--up)}.down{color:var(--down)}
+
+/* gauge */
+.gauge{display:flex;align-items:center;gap:18px}
+.dial{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--g,#666) var(--p,0%),#222c3c 0)}
+.dial b{width:82px;height:82px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font-size:27px;font-weight:800}
+.state{font-size:19px;font-weight:800}
+.kimcomment{display:inline-block;padding:10px 18px;border-radius:10px}
+.bars{display:flex;gap:6px;align-items:flex-end;height:120px;margin-top:16px}
+.bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
+.bars-labels{display:none;gap:6px;margin-top:4px}
+.bars-labels span{flex:1;text-align:center;font-size:10px;color:var(--tx2);overflow:hidden;white-space:nowrap}
+.trend-lg{margin-top:8px}
+.trend-lg svg{width:100%;height:44px;display:block}
+
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+th.fund-th{white-space:nowrap}
+td.fund-src{text-align:center;width:170px;white-space:nowrap}
+td.fund-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:14px;margin:0 3px}
+td.fund-src a.ts-link{color:var(--tx2)}
+td.fund-src a.news-link{color:#7cc4ff}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
+.t-h{background:rgba(255,77,79,.15);color:#ff7a7c}
+.t-m{background:rgba(255,176,32,.15);color:var(--accent)}
+.t-l{background:rgba(159,176,201,.13);color:var(--tx2)}
+.scroll{overflow-x:auto}
+td.spark{width:100px;text-align:center}
+td.spark svg{display:block;margin:0 auto}
+
+/* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
+#events-tbl-wrap col.ev-date{width:100px}
+#events-tbl-wrap col.ev-name{width:30%}
+#events-tbl-wrap col.ev-imp{width:110px}
+#events-tbl-wrap col.ev-src{width:56px}
+#events-tbl-wrap td.ev-src{text-align:center}
+#events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
+#events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
+.tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
+
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.plan.hi{border-color:rgba(255,176,32,.5);box-shadow:0 0 0 1px rgba(255,176,32,.15)}
+.plan h3{font-size:18px;margin-bottom:6px}
+.plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
+.plan li{padding:6px 0 6px 22px;position:relative}
+.plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+.soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
+
+.band{text-align:center;background:linear-gradient(135deg,rgba(255,176,32,.12),rgba(255,138,0,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(255,176,32,.25)}
+.band h2{font-size:29px}
+.band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
+
+footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);font-size:13px}
+.disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+  font-size:12.5px;color:var(--tx2);margin-top:18px}
+.updated{font-size:12.5px;color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">Mr.<span>Kim Signal</span></div>
+    <ul>
+      <li><a href="stock.html">미국지수</a></li>
+      <li><a href="kr-stock.html">한국지수</a></li>
+      <li><a href="crypto.html">가상화폐</a></li>
+      <li><a href="finprod.html">금융상품</a></li>
+      <li><a href="p2p.html">P2P</a></li>
+      <li><a href="trade.html" class="nav-hi">매매김군</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="updated-top" id="stamp-top"></span>
+      <button class="btn sm" id="naver-gift-btn" title="네이버ID: coolzet (클릭 시 복사)">네이버포인트 선물하기</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="kr-stock">
+  <div class="wrap">
+    <div class="sec-h">
+      <div>
+        <h2>한국지수 공포탐욕지수</h2>
+        <p class="sub">미국지수와 동일한 CNN 7개 세부지표 방식으로 설계 · 코스피(KOSPI) 기준</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>시장 모멘텀 기반 근사 지수</h3>
+        <div class="gauge">
+          <div class="dial" id="kr-dial"><b id="kr-val">--</b></div>
+          <div>
+            <div class="state" id="kr-state">불러오는 중</div>
+            <div class="mut" id="kr-note">코스피 vs 125일 이동평균 이격도 기준</div>
+          </div>
+        </div>
+        <p class="mut" style="margin-top:12px;font-size:12px" id="kr-detail">코스피 지수를 불러오는 중입니다.</p>
+      </div>
+      <div class="card">
+        <h3>7개 세부지표 (CNN 방식 설계)</h3>
+        <table><tbody id="kr-sub"></tbody></table>
+        <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번(시장 모멘텀)만 무료 공개 데이터(Yahoo KOSPI)로 실시간 계산됩니다. 나머지 6개는 KRX 시장 전체 등락종목 수, KOSPI200 옵션 풋/콜 비율, VKOSPI, 국고채 수익률, 신용스프레드(AA-/BBB-) 등 한국거래소·KOFIA의 유료/비공개 데이터가 필요해 무료 공개 API로는 실시간 연동이 불가능합니다. 종합 지수가 아닌 모멘텀 단일 지표 기준값으로 표시 중입니다.</p>
+      </div>
+    </div>
+
+    <h2 style="font-size:21px;margin-top:44px">시가총액 TOP 10 (코스피)</h2>
+    <p class="sub">코스피 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 11일 기준 순위)</p>
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
+    <div id="krcap-cap-chart" style="margin-bottom:24px"></div>
+    <div class="tabs" data-group="krcap">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <table id="krcap-tbl">
+        <thead><tr><th>순위</th><th>티커</th><th>기업명</th><th class="num">현재가</th><th class="num">등락률</th><th>세부내용</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr data-t="005930.KS"><td class="mut">1</td><td><a href="https://finance.naver.com/item/main.naver?code=005930" target="_blank" rel="noopener"><b>005930</b></a></td><td class="mut">삼성전자</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=005930" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=005930" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/005930.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="000660.KS"><td class="mut">2</td><td><a href="https://finance.naver.com/item/main.naver?code=000660" target="_blank" rel="noopener"><b>000660</b></a></td><td class="mut">SK하이닉스</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=000660" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=000660" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/000660.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="402340.KS"><td class="mut">3</td><td><a href="https://finance.naver.com/item/main.naver?code=402340" target="_blank" rel="noopener"><b>402340</b></a></td><td class="mut">SK스퀘어</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=402340" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=402340" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/402340.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="009150.KS"><td class="mut">4</td><td><a href="https://finance.naver.com/item/main.naver?code=009150" target="_blank" rel="noopener"><b>009150</b></a></td><td class="mut">삼성전기</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=009150" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=009150" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/009150.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="005380.KS"><td class="mut">5</td><td><a href="https://finance.naver.com/item/main.naver?code=005380" target="_blank" rel="noopener"><b>005380</b></a></td><td class="mut">현대차</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=005380" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=005380" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/005380.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="373220.KS"><td class="mut">6</td><td><a href="https://finance.naver.com/item/main.naver?code=373220" target="_blank" rel="noopener"><b>373220</b></a></td><td class="mut">LG에너지솔루션</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=373220" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=373220" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/373220.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="207940.KS"><td class="mut">7</td><td><a href="https://finance.naver.com/item/main.naver?code=207940" target="_blank" rel="noopener"><b>207940</b></a></td><td class="mut">삼성바이오로직스</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=207940" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=207940" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/207940.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="105560.KS"><td class="mut">8</td><td><a href="https://finance.naver.com/item/main.naver?code=105560" target="_blank" rel="noopener"><b>105560</b></a></td><td class="mut">KB금융</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=105560" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=105560" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/105560.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="032830.KS"><td class="mut">9</td><td><a href="https://finance.naver.com/item/main.naver?code=032830" target="_blank" rel="noopener"><b>032830</b></a></td><td class="mut">삼성생명</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=032830" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=032830" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/032830.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="028260.KS"><td class="mut">10</td><td><a href="https://finance.naver.com/item/main.naver?code=028260" target="_blank" rel="noopener"><b>028260</b></a></td><td class="mut">삼성물산</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=028260" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=028260" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/028260.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">출처: 한국거래소(KRX) 시가총액 기준 순위(stockdigging.com 2026-09-11 집계) · 세부내용의 +는 네이버 증권, 토론은 네이버 종목토론방, N은 최신 뉴스로 이동합니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">시가총액 TOP 10 (코스닥)</h2>
+    <p class="sub">코스닥 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 10일 기준 순위)</p>
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
+    <div id="krkq-cap-chart" style="margin-bottom:24px"></div>
+    <div class="tabs" data-group="krkq">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <table id="krkq-tbl">
+        <thead><tr><th>순위</th><th>티커</th><th>기업명</th><th class="num">현재가</th><th class="num">등락률</th><th>세부내용</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr data-t="196170.KQ"><td class="mut">1</td><td><a href="https://finance.naver.com/item/main.naver?code=196170" target="_blank" rel="noopener"><b>196170</b></a></td><td class="mut">알테오젠</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=196170" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=196170" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/196170.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="086520.KQ"><td class="mut">2</td><td><a href="https://finance.naver.com/item/main.naver?code=086520" target="_blank" rel="noopener"><b>086520</b></a></td><td class="mut">에코프로</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=086520" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=086520" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/086520.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="247540.KQ"><td class="mut">3</td><td><a href="https://finance.naver.com/item/main.naver?code=247540" target="_blank" rel="noopener"><b>247540</b></a></td><td class="mut">에코프로비엠</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=247540" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=247540" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/247540.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="036930.KQ"><td class="mut">4</td><td><a href="https://finance.naver.com/item/main.naver?code=036930" target="_blank" rel="noopener"><b>036930</b></a></td><td class="mut">주성엔지니어링</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=036930" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=036930" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/036930.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="277810.KQ"><td class="mut">5</td><td><a href="https://finance.naver.com/item/main.naver?code=277810" target="_blank" rel="noopener"><b>277810</b></a></td><td class="mut">레인보우로보틱스</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=277810" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=277810" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/277810.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="240810.KQ"><td class="mut">6</td><td><a href="https://finance.naver.com/item/main.naver?code=240810" target="_blank" rel="noopener"><b>240810</b></a></td><td class="mut">원익IPS</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=240810" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=240810" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/240810.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="039030.KQ"><td class="mut">7</td><td><a href="https://finance.naver.com/item/main.naver?code=039030" target="_blank" rel="noopener"><b>039030</b></a></td><td class="mut">이오테크닉스</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=039030" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=039030" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/039030.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="058470.KQ"><td class="mut">8</td><td><a href="https://finance.naver.com/item/main.naver?code=058470" target="_blank" rel="noopener"><b>058470</b></a></td><td class="mut">리노공업</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=058470" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=058470" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/058470.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="222800.KQ"><td class="mut">9</td><td><a href="https://finance.naver.com/item/main.naver?code=222800" target="_blank" rel="noopener"><b>222800</b></a></td><td class="mut">심텍</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=222800" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=222800" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/222800.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+          <tr data-t="108490.KQ"><td class="mut">10</td><td><a href="https://finance.naver.com/item/main.naver?code=108490" target="_blank" rel="noopener"><b>108490</b></a></td><td class="mut">로보티즈</td><td class="num px">--</td><td class="num ch">--</td><td class="fund-src"><a href="https://finance.naver.com/item/main.naver?code=108490" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.naver.com/item/board.naver?code=108490" target="_blank" rel="noopener" class="ts-link" title="네이버 종목토론방 보기">토론</a><a href="https://finance.yahoo.com/quote/108490.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></td><td class="spark"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">출처: 한국거래소(KRX) 시가총액 기준 순위(stockdigging.com 2026-09-10 집계) · 세부내용의 +는 네이버 증권, 토론은 네이버 종목토론방, N은 최신 뉴스로 이동합니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">한국 주식시장 주요 이벤트 일정</h2>
+    <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 2026년</p>
+    <div class="tabs" data-group="krevmonth" id="kr-evmonth-tabs">
+      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
+      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
+      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
+    </div>
+    <div class="scroll" id="kr-events-tbl-wrap">
+      <table>
+        <colgroup>
+          <col class="ev-date"><col class="ev-name"><col><col class="ev-imp"><col class="ev-src">
+        </colgroup>
+        <thead><tr><th>날짜</th><th>이벤트</th><th>영향/구분</th><th>중요도</th><th>출처</th></tr></thead>
+        <tbody id="kr-events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 한국은행 기준금리 결정일 8회(1·2·4·5·7·8·10·11월), 코스피200 옵션 만기일(매월 둘째 목요일), 코스피200·코스닥150 정기변경(연 2회, 6월·12월)을 포함합니다 · 6월은 KRX 확정 발표 기준, 12월은 과거 패턴 기반 예상일입니다 · 통계청 CPI·고용 등 세부 발표일은 추후 추가 예정입니다.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">이번 달 휴장일</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">한국거래소(KRX) 공식 휴장일 기준</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>날짜</th><th>안내</th><th>구분</th></tr></thead>
+        <tbody id="kr-holidays-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="margin-bottom:8px">투자김군</div>
+    <p>주식 · 가상화폐 시장 신호 대시보드</p>
+    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.8">
+      <li>본 프로그램은 지속적으로 기능이 개선될 예정입니다.</li>
+      <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
+    </ul>
+    <div class="disc">
+      <b>투자 유의사항</b> — 본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.
+      투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다. 시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.
+    </div>
+    <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="mrkim-common.js"></script>
+<script>
+const krEvMonthTabs=document.getElementById('kr-evmonth-tabs');
+if(krEvMonthTabs){
+  krEvMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    krEvMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderKrEvents(+b.dataset.m);
+  });
+  const nowMonthKr=new Date().getMonth()+1;
+  const defMonthKr=KR_MONTH_EVENTS[nowMonthKr]?nowMonthKr:9;
+  const defBtnKr=krEvMonthTabs.querySelector('button[data-m="'+defMonthKr+'"]');
+  if(defBtnKr) defBtnKr.classList.add('on');
+  renderKrEvents(defMonthKr);
+}
+
+
+const now=new Date();
+{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
+
+renderTick('krcap','d'); renderTick('krkq','d');
+renderCapShareChart('krcap-cap-chart', KRCAP_CAP_DATA);
+renderCapShareChart('krkq-cap-chart', KRKQ_CAP_DATA);
+loadTickGroup('krcap'); loadTickGroup('krkq');
+loadKR();
+
+</script>
+</body>
+</html>
