@@ -866,8 +866,8 @@ async function fgDailyHistory(){
 }
 
 async function runTradeBacktest(){
-  const [qld,usd,schd,fg]=await Promise.all([
-    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), fgDailyHistory()
+  const [qld,usd,schd,qqq,fg]=await Promise.all([
+    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), fgDailyHistory()
   ]);
   const missing=[];
   if(!qld) missing.push('QLD 시세(Yahoo)');
@@ -875,6 +875,7 @@ async function runTradeBacktest(){
   if(!schd) missing.push('SCHD 시세(Yahoo)');
   if(!fg) missing.push('공포탐욕지수 히스토리(CNN)');
   if(missing.length) return {error:missing};
+  /* QQQ 실패는 벤치마크 비교선만 못 그리는 것이라 백테스트 자체를 막지는 않는다 */
 
   const data={QLD:qld, USD:usd, SCHD:schd};
   const tradingTs=qld.series.map(p=>p.t).slice().sort((a,b)=>a-b);
@@ -882,6 +883,8 @@ async function runTradeBacktest(){
 
   const priceMap={};
   TRADE_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
+  const qqqPriceMap={};
+  if(qqq) qqq.series.forEach(p=>{ qqqPriceMap[p.t]=p.close; });
 
   const divMap={};
   TRADE_TICKERS.forEach(t=>{
@@ -920,6 +923,8 @@ async function runTradeBacktest(){
   const monthly={};
   const curve=[];
   let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
+  /* 벤치마크: 실제 전략이 그날 지출한 것과 동일한 금액을 QQQ·QLD 단독매수에 썼다면(분할매수 대상만 QQQ/QLD로 바꾼 가정) */
+  let bmQqqShares=0, bmQldShares=0;
 
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
@@ -940,17 +945,27 @@ async function runTradeBacktest(){
       else if(score<=55) qty=1;
       else qty=0;
     }
+    let dailySpend=0;
     if(qty>0){
       let bought=false;
       TRADE_TICKERS.forEach(t=>{
         const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]+=qty; cumCost+=px*qty; bought=true;
+        shares[t]+=qty; cumCost+=px*qty; dailySpend+=px*qty; bought=true;
       });
       if(bought){ buyCount++; monthly[mk].buys++; }
     }
+    if(dailySpend>0){
+      const qqqPx=qqqPriceMap[ts]; if(qqqPx) bmQqqShares+=dailySpend/qqqPx;
+      const qldPx=priceMap.QLD[ts]; if(qldPx) bmQldShares+=dailySpend/qldPx;
+    }
     let value=0;
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
-    curve.push({t:ts, cost:cumCost, value});
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts];
+    curve.push({
+      t:ts, cost:cumCost, value,
+      bmQqq: qqqPxNow!=null?bmQqqShares*qqqPxNow:null,
+      bmQld: qldPxNow!=null?bmQldShares*qldPxNow:null
+    });
     const mObj=monthly[mk];
     mObj.endValue=value; mObj.endCost=cumCost;
     mObj.peak=Math.max(mObj.peak,value);
@@ -1018,25 +1033,53 @@ function renderBacktest(res){
   /* 수익률 곡선 SVG */
   const curveEl=document.getElementById('bt-curve');
   if(curveEl){
-    const w=700,h=220,pad=30;
-    const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value));
+    const w=700,h=240,pad=30,padBottom=36;
+    const bmQqqVals=res.curve.map(p=>p.bmQqq).filter(v=>v!=null);
+    const bmQldVals=res.curve.map(p=>p.bmQld).filter(v=>v!=null);
+    const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value)).concat(bmQqqVals).concat(bmQldVals);
     const min=Math.min(...all,0), max=Math.max(...all,1);
     const n=res.curve.length;
     const stepX=n>1?(w-2*pad)/(n-1):0;
-    const yOf=v=>h-pad-((v-min)/((max-min)||1))*(h-2*pad);
+    const yOf=v=>h-padBottom-((v-min)/((max-min)||1))*(h-pad-padBottom);
     const ptsCost=res.curve.map((p,i)=>[pad+i*stepX,yOf(p.cost)]);
     const ptsVal=res.curve.map((p,i)=>[pad+i*stepX,yOf(p.value)]);
+    const ptsQqq=res.curve.map((p,i)=>p.bmQqq!=null?[pad+i*stepX,yOf(p.bmQqq)]:null).filter(Boolean);
+    const ptsQld=res.curve.map((p,i)=>p.bmQld!=null?[pad+i*stepX,yOf(p.bmQld)]:null).filter(Boolean);
     const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
     const profit=res.finalValue>=res.finalCost;
-    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-pad)+
-        ' L'+ptsVal[0][0].toFixed(1)+','+(h-pad)+' Z':'';
+    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+
+        ' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
+
+    /* 월별 세로 점선 + 라벨: 각 월의 첫 거래일 위치에 표시 */
+    let gridLines='', monthLabels='';
+    let prevMk=null;
+    res.curve.forEach((p,i)=>{
+      const d=new Date(p.t);
+      const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+      if(mk!==prevMk){
+        const x=(pad+i*stepX).toFixed(1);
+        gridLines+='<line x1="'+x+'" y1="'+pad*0.3+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>';
+        monthLabels+='<text x="'+x+'" y="'+(h-padBottom+16)+'" font-size="10" fill="var(--tx2)" text-anchor="start">'+(d.getUTCMonth()+1)+'월</text>';
+        prevMk=mk;
+      }
+    });
+
     curveEl.innerHTML=
-      '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:220px;display:block">'+
+      '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:240px;display:block">'+
+      gridLines+
       '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
+      (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#9fb0c9" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
+      (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
       '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
+      monthLabels+
       '</svg>'+
-      '<div class="mut" style="margin-top:6px;font-size:12px">점선: 누적 원금 · 굵은 선: 평가금('+(profit?'수익 구간 강조':'손실 구간 강조')+')</div>';
+      '<div class="mut" style="margin-top:6px;font-size:12px;line-height:1.8">'+
+      '<span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(실제 전략) &nbsp; '+
+      '<span style="color:var(--tx2)">┄</span> 누적 원금 &nbsp; '+
+      '<span style="color:#9fb0c9">┄</span> 동일 금액 QQQ 매수 시 &nbsp; '+
+      '<span style="color:#c084fc">┄</span> 동일 금액 QLD 매수 시'+
+      '</div>';
   }
 
   /* 월별 매매기록: 투입원금·누적원금·매수횟수·MDD·월 수익금·월 수익률·연환산 순 */
