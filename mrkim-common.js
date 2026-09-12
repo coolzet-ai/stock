@@ -178,6 +178,24 @@ async function loadCoin(){
   renderCoin(curPer.coin);
   renderMcapChart();
 }
+/* 추세(스파크라인)를 선택한 기간(일/주/월/연)에 맞춰 가져오기 위한 캐시.
+   CoinGecko coins/markets 는 7일 스파크라인만 제공하므로, 다른 기간은
+   coins/{id}/market_chart 를 기간별로 별도 호출해서 채운다(코인·기간 조합별 1회만 호출 후 캐시). */
+const coinTrendCache={};
+async function loadCoinTrend(period){
+  const days={d:1,w:7,m:30,y:365}[period];
+  if(period==='w') return; // 7일은 coins/markets의 sparkline_in_7d 로 이미 충분
+  const ids=['bitcoin','ethereum','solana','ripple'];
+  await Promise.all(ids.map(async id=>{
+    const key=id+'_'+period;
+    if(coinTrendCache[key]) return;
+    try{
+      const j=await fetchJSON(cgURL('/coins/'+id+'/market_chart?vs_currency=usd&days='+days),9000);
+      const prices=(j.prices||[]).map(p=>p[1]);
+      if(prices.length>1) coinTrendCache[key]=prices;
+    }catch(e){ /* 실패 시 캐시 없음 → 폴백 사용 */ }
+  }));
+}
 function renderCoin(p){
   const key={d:'price_change_percentage_24h_in_currency',w:'price_change_percentage_7d_in_currency',
              m:'price_change_percentage_30d_in_currency',y:'price_change_percentage_1y_in_currency'}[p];
@@ -194,7 +212,8 @@ function renderCoin(p){
     px.textContent='$'+fmtCoin(c.current_price);
     const v=c[key];
     ch.textContent=(v==null)?'—':sign(v); ch.className='num ch chg '+cls(v||0);
-    const prices=(c.sparkline_in_7d||{}).price||sparklineCache[id];
+    const periodPrices=coinTrendCache[id+'_'+p];
+    const prices=periodPrices||(c.sparkline_in_7d||{}).price||sparklineCache[id];
     if(sp) sp.innerHTML=prices?sparkSVG(prices):sparkSVG(fallbackSeries(COIN_BASE[id]||{px:c.current_price,d:0,w:0,m:0,y:0},p));
   });
 }
@@ -746,6 +765,11 @@ function renderTick(g,p){
     const base=(p==='y')?d[0]:d[Math.max(0,d.length-1-n)];
     const v=(last/base-1)*100;
     px.textContent=cur+f(last);
+    if(!isFinite(v)){
+      ch.textContent='--'; ch.className='num ch chg';
+      if(sp) sp.innerHTML='';
+      return;
+    }
     ch.textContent=sign(v); ch.className='num ch chg '+cls(v);
     if(sp){
       const win={d:10,w:20,m:60,y:252}[p]||15;
@@ -766,7 +790,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
     if(TICKGROUPS[g]) renderTick(g,p);
     else if(g==='us') renderUS(p);
     else if(g==='cf') renderCF(p);
-    else if(g==='coin') renderCoin(p);
+    else if(g==='coin'){ renderCoin(p); loadCoinTrend(p).then(()=>renderCoin(p)); }
   });
 });
 
@@ -774,7 +798,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
    실제 Yahoo 종가·배당 데이터와 CNN 공포탐욕지수 히스토리로 계산합니다(가상 수치 아님).
    PROXY_BASE 미설정 시 이 데이터들도 연동에 실패할 수 있습니다. */
 const TRADE_TICKERS=['QLD','USD','SCHD'];
-const BACKTEST_START_TS=Math.floor(new Date('2026-01-01T00:00:00Z').getTime()/1000);
+const BACKTEST_START_TS=Math.floor(new Date('2025-01-01T00:00:00Z').getTime()/1000);
 
 /* ===================== 한국지수 공포탐욕지수 =====================
    미국지수와 동일한 CNN 7개 세부지표 방식으로 설계했으나, 시장 모멘텀(1번)만
@@ -790,6 +814,7 @@ async function loadKR(){
   const last=closes[closes.length-1];
   const ma125=closes.slice(-125).reduce((a,b)=>a+b,0)/125;
   const ratio=(last-ma125)/ma125;
+  if(!isFinite(ratio)){ renderKR(null); return; }
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
   renderKR({score, last, ma125, ratio});
@@ -925,6 +950,7 @@ async function runTradeBacktest(){
   let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
   /* 벤치마크: 실제 전략이 그날 지출한 것과 동일한 금액을 QQQ·QLD 단독매수에 썼다면(분할매수 대상만 QQQ/QLD로 바꾼 가정) */
   let bmQqqShares=0, bmQldShares=0;
+  let globalPeak=0; /* 낙폭(underwater) 그래프용 — 월 단위로 리셋되지 않는 전체 기간 누적 최고점 */
 
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
@@ -961,15 +987,17 @@ async function runTradeBacktest(){
     let value=0;
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
     const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts];
+    globalPeak=Math.max(globalPeak,value);
+    const dd=globalPeak>0?(globalPeak-value)/globalPeak*100:0;
     curve.push({
-      t:ts, cost:cumCost, value,
+      t:ts, cost:cumCost, value, dd,
       bmQqq: qqqPxNow!=null?bmQqqShares*qqqPxNow:null,
       bmQld: qldPxNow!=null?bmQldShares*qldPxNow:null
     });
     const mObj=monthly[mk];
     mObj.endValue=value; mObj.endCost=cumCost;
     mObj.peak=Math.max(mObj.peak,value);
-    if(mObj.peak>0){ const dd=(mObj.peak-value)/mObj.peak; if(dd>mObj.mdd) mObj.mdd=dd; }
+    if(mObj.peak>0){ const mdd_=(mObj.peak-value)/mObj.peak; if(mdd_>mObj.mdd) mObj.mdd=mdd_; }
     monthStartValue=value; monthStartCost=cumCost;
   });
 
@@ -999,7 +1027,7 @@ function renderBacktest(res){
     if(statusEl) statusEl.textContent='⚠ '+reason+' — PROXY_BASE에 설정한 Worker 주소가 살아있는지, 코드가 정확히 배포됐는지 확인해주세요.';
     return;
   }
-  if(statusEl) statusEl.textContent='2026-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+  if(statusEl) statusEl.textContent='2025-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
   const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSD(res.finalCost);
@@ -1068,7 +1096,7 @@ function renderBacktest(res){
       '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:240px;display:block">'+
       gridLines+
       '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
-      (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#9fb0c9" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
+      (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
       '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
@@ -1077,9 +1105,29 @@ function renderBacktest(res){
       '<div class="mut" style="margin-top:6px;font-size:12px;line-height:1.8">'+
       '<span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(실제 전략) &nbsp; '+
       '<span style="color:var(--tx2)">┄</span> 누적 원금 &nbsp; '+
-      '<span style="color:#9fb0c9">┄</span> 동일 금액 QQQ 매수 시 &nbsp; '+
+      '<span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 매수 시 &nbsp; '+
       '<span style="color:#c084fc">┄</span> 동일 금액 QLD 매수 시'+
       '</div>';
+  }
+
+  /* 낙폭(underwater) 그래프 — 전체 기간 누적 최고점 대비 낙폭(%)을 아래로 그린다 */
+  const ddEl=document.getElementById('bt-drawdown');
+  if(ddEl){
+    const w=700,h=110,pad=24;
+    const n=res.curve.length;
+    const stepX=n>1?(w-2*pad)/(n-1):0;
+    const maxDD=Math.max(...res.curve.map(p=>p.dd||0),1);
+    const yOf=v=>pad+ (v/maxDD)*(h-pad-14);
+    const pts=res.curve.map((p,i)=>[pad+i*stepX, yOf(p.dd||0)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+pad+' L'+pts[0][0].toFixed(1)+','+pad+' Z':'';
+    const worstDD=maxDD.toFixed(1);
+    ddEl.innerHTML=
+      '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:110px;display:block">'+
+      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
+      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
+      '</svg>'+
+      '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 최대 -'+worstDD+'%</div>';
   }
 
   /* 월별 매매기록: 투입원금·누적원금·매수횟수·MDD·월 수익금·월 수익률·연환산 순 */
@@ -1134,6 +1182,15 @@ async function loadTradeBacktest(){
   renderBacktest(res);
 }
 
+
+/* ---- 네이버포인트 선물하기: 클릭 시 ID 복사 + 알림 후 새 창으로 이동(기본 링크 동작 유지) ---- */
+const naverGiftLink=document.getElementById('naver-gift-link');
+if(naverGiftLink){
+  naverGiftLink.addEventListener('click',async()=>{
+    try{ await navigator.clipboard.writeText('coolzet'); }catch(e){}
+    alert('아이디 coolzet 복사되었습니다.');
+  });
+}
 
 /* ---- 모바일 상단 메뉴 토글 ---- */
 const navToggle=document.getElementById('nav-toggle');

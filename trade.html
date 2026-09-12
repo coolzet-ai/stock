@@ -173,7 +173,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
       <span class="updated-top" id="stamp-top"></span>
-      <a class="btn sm naver-gift" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
+      <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
     </div>
   </div>
 </header>
@@ -189,7 +189,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p class="mut">본 매매법의 매수·매도 세부 규칙은 공개하지 않습니다. 아래 백테스트 결과는 실제 규칙을 적용해 계산한 성과입니다.</p>
     </div>
 
-    <h2 style="font-size:21px;margin-top:44px">매매법 백테스트 (2026년 1월 ~ 현재)</h2>
+    <h2 style="font-size:21px;margin-top:44px">매매법 백테스트 (2025년 1월 ~ 현재)</h2>
     <p class="sub" id="bt-status">데이터를 불러와 시뮬레이션하는 중…</p>
 
     <div class="grid">
@@ -223,6 +223,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선 — 원금 대비 평가금</h3>
     <div class="card" style="margin-top:12px">
       <div id="bt-curve"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div id="bt-drawdown"></div>
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
