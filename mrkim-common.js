@@ -813,7 +813,7 @@ const BACKTEST_START_TS=Math.floor(new Date('2025-01-01T00:00:00Z').getTime()/10
    인증키·항목코드 설정 완료. CORS가 막혀 있으면 getJSON의 PROXY_BASE 경유로 자동 우회된다
    (cors-proxy-worker.js ALLOW 목록에 ecos.bok.or.kr 이미 등록됨). */
 const ECOS_KEY='63MKYWEJT6RYCZ59IHTU';
-const ECOS_STAT_MARKET_RATE='817Y002'; // 시장금리, 일별
+const ECOS_STAT_MARKET_RATE='060Y001'; // 시장금리, 일별 — 제공된 항목코드(010200000 등)와 매칭되는 실제 통계표
 const ECOS_ITEM={
   treasury3y:'010200000',   // 국고채(3년)
   treasury10y:'010210000',  // 국고채(10년)
@@ -829,9 +829,11 @@ async function ecosSeries(itemCode, days){
       ECOS_STAT_MARKET_RATE+'/D/'+fmt8(start)+'/'+fmt8(end)+'/'+itemCode;
   try{
     const j=await getJSON(url);
+    if(j.RESULT){ console.warn('ECOS 오류('+itemCode+'):', j.RESULT.MESSAGE||j.RESULT); return null; }
     const rows=(j.StatisticSearch||{}).row||[];
+    if(!rows.length){ console.warn('ECOS 빈 응답('+itemCode+') — 통계표/항목코드 확인 필요:', j); return null; }
     return rows.map(r=>({t:r.TIME, v:+r.DATA_VALUE})).filter(r=>isFinite(r.v)).sort((a,b)=>a.t.localeCompare(b.t));
-  }catch(e){ return null; }
+  }catch(e){ console.warn('ECOS 호출 실패('+itemCode+'):', e); return null; }
 }
 
 async function loadEcosIndicators(){
@@ -867,24 +869,104 @@ async function loadEcosIndicators(){
   return result;
 }
 
+/* ===================== KRX Open API 연동 (4번·5번 지표) =====================
+   AUTH_KEY 는 HTTP 헤더로만 전달되어(URL 파라미터 아님) 반드시 Worker(PROXY_BASE)를
+   거쳐야 합니다 — 키는 Worker 안에만 있고 이 파일에는 없습니다.
+   [주의] 실제 응답 스키마(OutBlock_1의 필드명)를 직접 확인하지 못한 상태라 여러
+   후보 필드명을 순서대로 시도합니다. 콘솔에 경고가 뜨면 알려주시면 정확한 필드명으로
+   교정하겠습니다. */
+function fmtYmd(d){ return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function pick(row, keys){
+  for(const k of keys){ if(row[k]!=null && row[k]!=='') return row[k]; }
+  return null;
+}
+async function krxJSON(path, basDd){
+  const url='https://data-dbg.krx.co.kr/svc/apis/'+path+'?basDd='+basDd;
+  try{
+    const j=await getJSON(url);
+    if(j.OutBlock_1) return j.OutBlock_1;
+    console.warn('KRX 응답에 OutBlock_1 없음('+path+'):', j);
+    return null;
+  }catch(e){ console.warn('KRX 호출 실패('+path+'):', e); return null; }
+}
+async function krxJSONRecent(path, maxBack){
+  /* 휴장일이면 데이터가 없을 수 있어 최근 거래일까지 며칠 소급 시도 */
+  for(let i=0;i<(maxBack||5);i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const rows=await krxJSON(path, fmtYmd(d));
+    if(rows && rows.length) return rows;
+  }
+  return null;
+}
+async function loadKrxIndicators(){
+  const result={};
+  /* 5. 시장 변동성(VKOSPI): kospi_dd_trd(KOSPI 시리즈 지수)에서 이름으로 검색 */
+  try{
+    const idxRows=await krxJSONRecent('idx/kospi_dd_trd', 5);
+    if(idxRows){
+      const row=idxRows.find(r=>{
+        const name=pick(r,['IDX_NM','IDX_IND_NM','ISU_NM','IDX_NM_KOR'])||'';
+        return name.includes('변동성');
+      });
+      if(row){
+        const val=+pick(row,['CLSPRC_IDX','TDD_CLSPRC','CLSPRC','IDX_CLSPRC']);
+        if(isFinite(val)){
+          result.vkospi=val;
+          // VKOSPI 10~45 를 탐욕(100)~공포(0)로 역매핑(높을수록 공포)
+          const clipped=Math.max(10,Math.min(45,val));
+          result.vkospiScore=100-((clipped-10)/35)*100;
+        }
+      }else{
+        console.warn('KRX kospi_dd_trd 응답에서 VKOSPI 행을 찾지 못함(지수명 필드 확인 필요):', idxRows[0]);
+      }
+    }
+  }catch(e){ console.warn('VKOSPI 계산 실패:', e); }
+
+  /* 4. 풋/콜 비율: eqsop_bydd_trd(주식옵션 일별매매정보) — 개별주식옵션 합산 기준
+     (KOSPI200 지수옵션이 아닌 개별 종목 옵션이라 CNN 방식과 완전히 동일하진 않음) */
+  try{
+    const optRows=await krxJSONRecent('drv/eqsop_bydd_trd', 5);
+    if(optRows && optRows.length){
+      let callVol=0, putVol=0;
+      optRows.forEach(r=>{
+        const kind=(pick(r,['RGHT_TP_NM','RGHT_TP_CD','OPT_TP_NM'])||'').toUpperCase();
+        const vol=+pick(r,['ACC_TRDVOL','TRDVOL','TRD_VOL'])||0;
+        if(kind.includes('콜')||kind.includes('CALL')) callVol+=vol;
+        else if(kind.includes('풋')||kind.includes('PUT')) putVol+=vol;
+      });
+      if(callVol>0){
+        const ratio=putVol/callVol;
+        result.putCallRatio=ratio;
+        // 풋/콜 0.5~2.0 를 탐욕(100)~공포(0)로 역매핑(높을수록 공포)
+        const clipped=Math.max(0.5,Math.min(2.0,ratio));
+        result.putCallScore=100-((clipped-0.5)/1.5)*100;
+      }else{
+        console.warn('KRX eqsop_bydd_trd 응답에서 콜/풋 구분 실패(필드명 확인 필요):', optRows[0]);
+      }
+    }
+  }catch(e){ console.warn('풋/콜 비율 계산 실패:', e); }
+
+  return result;
+}
+
 async function loadKR(){
-  const [closes, ecos] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators()]);
-  if(!closes || closes.length<126){ renderKR(null, ecos); return; }
+  const [closes, ecos, krx] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators(), loadKrxIndicators()]);
+  if(!closes || closes.length<126){ renderKR(null, ecos, krx); return; }
   const last=closes[closes.length-1];
   const ma125=closes.slice(-125).reduce((a,b)=>a+b,0)/125;
   const ratio=(last-ma125)/ma125;
-  if(!isFinite(ratio)){ renderKR(null, ecos); return; }
+  if(!isFinite(ratio)){ renderKR(null, ecos, krx); return; }
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
-  renderKR({score, last, ma125, ratio}, ecos);
+  renderKR({score, last, ma125, ratio}, ecos, krx);
 }
-function renderKR(d, ecos){
+function renderKR(d, ecos, krx){
   const valEl=document.getElementById('kr-val'), stateEl=document.getElementById('kr-state'),
         dialEl=document.getElementById('kr-dial'), detailEl=document.getElementById('kr-detail');
   if(!d){
     if(stateEl) stateEl.textContent='연동 실패';
     if(detailEl) detailEl.textContent='코스피(^KS11) 데이터를 가져오지 못했습니다 · PROXY_BASE 설정을 확인해주세요.';
-    renderKRSub(null, ecos);
+    renderKRSub(null, ecos, krx);
     return;
   }
   const [t,c]=label(d.score);
@@ -893,16 +975,16 @@ function renderKR(d, ecos){
   if(dialEl){ dialEl.style.setProperty('--p',d.score+'%'); dialEl.style.setProperty('--g',c); }
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%';
-  renderKRSub(d.score, ecos);
+  renderKRSub(d.score, ecos, krx);
 }
-function renderKRSub(momentumScore, ecos){
+function renderKRSub(momentumScore, ecos, krx){
   const el=document.getElementById('kr-sub'); if(!el) return;
   const rows=[
     ['1. 시장 모멘텀 (코스피 vs 125일 이평)', momentumScore],
     ['2. 주가 강도 (52주 신고가/신저가 비율)', null],
     ['3. 주가 폭 (상승/하락 거래량 비율)', null],
-    ['4. 풋/콜 옵션 비율 (KOSPI200)', null],
-    ['5. 시장 변동성 (VKOSPI)', null],
+    ['4. 풋/콜 옵션 비율 (개별주식옵션 합산)', krx&&krx.putCallScore!=null?krx.putCallScore:null],
+    ['5. 시장 변동성 (VKOSPI)', krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
     ['6. 안전자산 수요 (코스피 vs 국고채)', ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
     ['7. 정크본드 수요 (AA-/BBB- 스프레드)', ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];

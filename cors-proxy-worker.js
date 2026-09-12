@@ -29,8 +29,15 @@ const ALLOW = [
   'query2.finance.yahoo.com',
   'api.coingecko.com',
   'api.alternative.me',
-  'production.dataviz.cnn.io'
+  'production.dataviz.cnn.io',
+  'ecos.bok.or.kr',
+  'data-dbg.krx.co.kr'
 ];
+
+/* KRX Open API 인증키 — AUTH_KEY 는 HTTP 헤더로만 전달 가능해 클라이언트 JS에서는
+   직접 호출이 안 됩니다(CORS도 열려있지 않음). 이 Worker 안에만 보관해 페이지
+   소스에는 절대 노출되지 않습니다. */
+const KRX_AUTH_KEY = 'D18554D94CDB4AE9870672CE9BA98C560004BDB7';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -128,6 +135,11 @@ export default {
         target = u.toString();
         headers['Cookie'] = auth.cookie;
       }
+    }
+
+    // KRX Open API 는 AUTH_KEY 를 HTTP 헤더로 요구합니다(URL 파라미터 아님).
+    if (host === 'data-dbg.krx.co.kr') {
+      headers['AUTH_KEY'] = KRX_AUTH_KEY;
     }
 
     try {
