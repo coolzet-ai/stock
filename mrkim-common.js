@@ -808,24 +808,83 @@ const BACKTEST_START_TS=Math.floor(new Date('2025-01-01T00:00:00Z').getTime()/10
    이 데이터들은 무료로 CORS 연동 가능한 공개 API가 없어(회원가입 후 유상 제공
    또는 화면 스크래핑만 가능) 실시간 연동이 불가능합니다. 정확성을 위해 이 6개는
    가짜 수치를 만들지 않고 '준비중'으로 명시합니다. */
+/* ===================== 한국은행 ECOS 연동 (6번·7번 지표) =====================
+   통계표 817Y002(시장금리, 일별) · 국고채(3년)/국고채(10년)/회사채(3년,AA-)/회사채(3년,BBB-)
+   인증키·항목코드 설정 완료. CORS가 막혀 있으면 getJSON의 PROXY_BASE 경유로 자동 우회된다
+   (cors-proxy-worker.js ALLOW 목록에 ecos.bok.or.kr 이미 등록됨). */
+const ECOS_KEY='63MKYWEJT6RYCZ59IHTU';
+const ECOS_STAT_MARKET_RATE='817Y002'; // 시장금리, 일별
+const ECOS_ITEM={
+  treasury3y:'010200000',   // 국고채(3년)
+  treasury10y:'010210000',  // 국고채(10년)
+  corpAA:'010300000',       // 회사채(3년,AA-)
+  corpBBB:'010320000'       // 회사채(3년,BBB-)
+};
+
+async function ecosSeries(itemCode, days){
+  if(!ECOS_KEY || !itemCode) return null;
+  const end=new Date(), start=new Date(); start.setDate(end.getDate()-(days||60));
+  const fmt8=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const url='https://ecos.bok.or.kr/api/StatisticSearch/'+ECOS_KEY+'/json/kr/1/200/'+
+      ECOS_STAT_MARKET_RATE+'/D/'+fmt8(start)+'/'+fmt8(end)+'/'+itemCode;
+  try{
+    const j=await getJSON(url);
+    const rows=(j.StatisticSearch||{}).row||[];
+    return rows.map(r=>({t:r.TIME, v:+r.DATA_VALUE})).filter(r=>isFinite(r.v)).sort((a,b)=>a.t.localeCompare(b.t));
+  }catch(e){ return null; }
+}
+
+async function loadEcosIndicators(){
+  if(!ECOS_KEY || !ECOS_ITEM.treasury3y || !ECOS_ITEM.corpAA || !ECOS_ITEM.corpBBB){
+    return null; // 설정 미완료 — 위 안내 참고
+  }
+  const [t3y, aa, bbb] = await Promise.all([
+    ecosSeries(ECOS_ITEM.treasury3y, 40),
+    ecosSeries(ECOS_ITEM.corpAA, 40),
+    ecosSeries(ECOS_ITEM.corpBBB, 40)
+  ]);
+  const result={};
+  /* 7. 정크본드 수요: 신용스프레드 = BBB- 금리 - AA- 금리. 스프레드가 좁을수록(위험선호) 탐욕, 벌어질수록 공포 */
+  if(aa && bbb && aa.length && bbb.length){
+    const spread=bbb[bbb.length-1].v - aa[aa.length-1].v;
+    // 스프레드 0.5%p~3.0%p 를 공포~탐욕 0~100으로 역매핑(좁을수록 탐욕)
+    const clipped=Math.max(0.5,Math.min(3.0,spread));
+    result.creditSpread=spread;
+    result.creditScore=100-((clipped-0.5)/2.5)*100;
+  }
+  /* 6. 안전자산 수요: 코스피 20일 수익률 - 국고채(3년) 20일 수익률(금리 변화분으로 근사) */
+  if(t3y && t3y.length>20){
+    const kospi=await yclose('^KS11','2mo');
+    if(kospi && kospi.length>20){
+      const kospiRet=(kospi[kospi.length-1]/kospi[kospi.length-21]-1)*100;
+      const bondRet=t3y[t3y.length-1].v - t3y[t3y.length-21>=0?t3y.length-21:0].v; // %p 변화(수익률 근사)
+      const gap=kospiRet-(-bondRet); // 채권금리 하락(=채권가격 상승)이 안전자산 선호를 의미하므로 부호 반전
+      const clipped=Math.max(-10,Math.min(10,gap));
+      result.safeHavenGap=gap;
+      result.safeHavenScore=((clipped+10)/20)*100;
+    }
+  }
+  return result;
+}
+
 async function loadKR(){
-  const closes=await yclose('^KS11','1y');
-  if(!closes || closes.length<126){ renderKR(null); return; }
+  const [closes, ecos] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators()]);
+  if(!closes || closes.length<126){ renderKR(null, ecos); return; }
   const last=closes[closes.length-1];
   const ma125=closes.slice(-125).reduce((a,b)=>a+b,0)/125;
   const ratio=(last-ma125)/ma125;
-  if(!isFinite(ratio)){ renderKR(null); return; }
+  if(!isFinite(ratio)){ renderKR(null, ecos); return; }
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
-  renderKR({score, last, ma125, ratio});
+  renderKR({score, last, ma125, ratio}, ecos);
 }
-function renderKR(d){
+function renderKR(d, ecos){
   const valEl=document.getElementById('kr-val'), stateEl=document.getElementById('kr-state'),
         dialEl=document.getElementById('kr-dial'), detailEl=document.getElementById('kr-detail');
   if(!d){
     if(stateEl) stateEl.textContent='연동 실패';
     if(detailEl) detailEl.textContent='코스피(^KS11) 데이터를 가져오지 못했습니다 · PROXY_BASE 설정을 확인해주세요.';
-    renderKRSub(null);
+    renderKRSub(null, ecos);
     return;
   }
   const [t,c]=label(d.score);
@@ -834,9 +893,9 @@ function renderKR(d){
   if(dialEl){ dialEl.style.setProperty('--p',d.score+'%'); dialEl.style.setProperty('--g',c); }
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%';
-  renderKRSub(d.score);
+  renderKRSub(d.score, ecos);
 }
-function renderKRSub(momentumScore){
+function renderKRSub(momentumScore, ecos){
   const el=document.getElementById('kr-sub'); if(!el) return;
   const rows=[
     ['1. 시장 모멘텀 (코스피 vs 125일 이평)', momentumScore],
@@ -844,8 +903,8 @@ function renderKRSub(momentumScore){
     ['3. 주가 폭 (상승/하락 거래량 비율)', null],
     ['4. 풋/콜 옵션 비율 (KOSPI200)', null],
     ['5. 시장 변동성 (VKOSPI)', null],
-    ['6. 안전자산 수요 (코스피 vs 국고채)', null],
-    ['7. 정크본드 수요 (AA-/BBB- 스프레드)', null]
+    ['6. 안전자산 수요 (코스피 vs 국고채)', ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
+    ['7. 정크본드 수요 (AA-/BBB- 스프레드)', ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
   el.innerHTML=rows.map(([n,v])=>{
     if(v==null) return '<tr><td>'+n+'</td><td class="num mut">--</td><td class="num"><span class="tag t-l">준비중</span></td></tr>';
