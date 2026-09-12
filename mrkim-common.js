@@ -3,6 +3,7 @@ const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
 const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
+const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
 function label(v){
@@ -199,22 +200,35 @@ async function loadCoinTrend(period){
 function renderCoin(p){
   const key={d:'price_change_percentage_24h_in_currency',w:'price_change_percentage_7d_in_currency',
              m:'price_change_percentage_30d_in_currency',y:'price_change_percentage_1y_in_currency'}[p];
-  document.querySelectorAll('#coin-tbl tbody tr').forEach(tr=>{
-    const id=tr.dataset.c, c=coinData&&coinData[id];
-    const px=tr.querySelector('.px'), ch=tr.querySelector('.ch'), sp=tr.querySelector('.spark');
+  document.querySelectorAll('#coin-tbl .wl-row').forEach(row=>{
+    const id=row.dataset.c, c=coinData&&coinData[id];
+    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar');
     if(!c){
-      const b=COIN_BASE[id]; if(!b){ px.textContent='--'; ch.textContent='--'; if(sp)sp.innerHTML=''; return; }
-      px.textContent='$'+fmtCoin(b.px);
-      ch.textContent=sign(b[p]); ch.className='num ch chg '+cls(b[p]);
-      if(sp) sp.innerHTML=sparkSVG(fallbackSeries(b,p));
+      const b=COIN_BASE[id];
+      if(!b){
+        if(px){ px.textContent='--'; px.className='px wl-price'; }
+        if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
+        if(bar) bar.className='wl-bar';
+        return;
+      }
+      const dir=cls(b[p]);
+      if(px){ px.textContent='$'+fmtCoin(b.px); px.className='px wl-price '+dir; }
+      if(ch){ ch.textContent=arrowSign(b[p]); ch.className='ch wl-pct '+dir; }
+      if(bar) bar.className='wl-bar '+dir;
       return;
     }
-    px.textContent='$'+fmtCoin(c.current_price);
+    if(px) px.textContent='$'+fmtCoin(c.current_price);
     const v=c[key];
-    ch.textContent=(v==null)?'—':sign(v); ch.className='num ch chg '+cls(v||0);
-    const periodPrices=coinTrendCache[id+'_'+p];
-    const prices=periodPrices||(c.sparkline_in_7d||{}).price||sparklineCache[id];
-    if(sp) sp.innerHTML=prices?sparkSVG(prices):sparkSVG(fallbackSeries(COIN_BASE[id]||{px:c.current_price,d:0,w:0,m:0,y:0},p));
+    if(v==null){
+      if(px) px.className='px wl-price';
+      if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
+      if(bar) bar.className='wl-bar';
+      return;
+    }
+    const dir=cls(v);
+    if(px) px.className='px wl-price '+dir;
+    if(ch){ ch.textContent=arrowSign(v); ch.className='ch wl-pct '+dir; }
+    if(bar) bar.className='wl-bar '+dir;
   });
 }
 
@@ -750,32 +764,37 @@ function renderTick(g,p){
   const cfg=TICKGROUPS[g]; if(!cfg)return;
   const cur=cfg.cur||'$', f=cfg.fmt||fmt;
   const n={d:1,w:5,m:21,y:252}[p];
-  document.querySelectorAll('#'+cfg.table+' tbody tr').forEach(tr=>{
-    const t=tr.dataset.t, d=tickData[t];
-    const px=tr.querySelector('.px'), ch=tr.querySelector('.ch'), sp=tr.querySelector('.spark');
+  document.querySelectorAll('#'+cfg.table+' .wl-row').forEach(row=>{
+    const t=row.dataset.t, d=tickData[t];
+    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar');
     if(!d||d.length<2){
       const b=BASE[t];
-      if(!b){ px.textContent='--'; ch.textContent='--'; if(sp) sp.innerHTML=''; return; }
-      px.textContent=cur+f(b.px);
-      ch.textContent=sign(b[p]); ch.className='num ch chg '+cls(b[p]);
-      if(sp) sp.innerHTML=sparkSVG(fallbackSeries(b,p));
+      if(!b){
+        if(px){ px.textContent='--'; px.className='px wl-price'; }
+        if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
+        if(bar) bar.className='wl-bar';
+        return;
+      }
+      const dir=cls(b[p]);
+      if(px){ px.textContent=cur+f(b.px); px.className='px wl-price '+dir; }
+      if(ch){ ch.textContent=arrowSign(b[p]); ch.className='ch wl-pct '+dir; }
+      if(bar) bar.className='wl-bar '+dir;
       return;
     }
     const last=d[d.length-1];
     const base=(p==='y')?d[0]:d[Math.max(0,d.length-1-n)];
     const v=(last/base-1)*100;
-    px.textContent=cur+f(last);
+    if(px) px.textContent=cur+f(last);
     if(!isFinite(v)){
-      ch.textContent='--'; ch.className='num ch chg';
-      if(sp) sp.innerHTML='';
+      if(px) px.className='px wl-price';
+      if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
+      if(bar) bar.className='wl-bar';
       return;
     }
-    ch.textContent=sign(v); ch.className='num ch chg '+cls(v);
-    if(sp){
-      const win={d:10,w:20,m:60,y:252}[p]||15;
-      const pts=d.slice(-Math.min(d.length, win));
-      sp.innerHTML=sparkSVG(pts);
-    }
+    const dir=cls(v);
+    if(px) px.className='px wl-price '+dir;
+    if(ch){ ch.textContent=arrowSign(v); ch.className='ch wl-pct '+dir; }
+    if(bar) bar.className='wl-bar '+dir;
   });
 }
 
@@ -790,7 +809,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
     if(TICKGROUPS[g]) renderTick(g,p);
     else if(g==='us') renderUS(p);
     else if(g==='cf') renderCF(p);
-    else if(g==='coin'){ renderCoin(p); loadCoinTrend(p).then(()=>renderCoin(p)); }
+    else if(g==='coin') renderCoin(p);
   });
 });
 

@@ -127,6 +127,34 @@ td.fund-src a.news-link{color:#7cc4ff}
 td.spark{width:100px;text-align:center}
 td.spark svg{display:block;margin:0 auto}
 
+/* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
+.wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
+.wl-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.wl-row:last-child{border-bottom:0}
+.wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
+.wl-bar.up{background:var(--up)}
+.wl-bar.down{background:var(--down)}
+.wl-info{flex:1;min-width:0}
+.wl-tag{font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name{font-size:16px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name a{color:inherit;text-decoration:none}
+.wl-quote{flex:none;text-align:right;min-width:86px}
+.wl-price{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price.up{color:var(--up)}
+.wl-price.down{color:var(--down)}
+.wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
+.wl-pct.up{color:var(--up)}
+.wl-pct.down{color:var(--down)}
+.wl-actions{flex:none;display:flex;flex-direction:column;gap:3px;padding-left:10px;margin-left:2px;
+  border-left:1px solid var(--line);align-items:center;min-width:34px}
+.wl-actions a{font-size:11.5px;font-weight:800;text-decoration:none;color:var(--accent)}
+.wl-actions a.ts-link{color:var(--tx2)}
+.wl-actions a.news-link{color:#7cc4ff}
+@media(max-width:480px){
+  .wl-tag{max-width:110px}
+  .wl-actions{display:none}
+}
+
 /* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
 #events-tbl-wrap col.ev-date{width:100px}
 #events-tbl-wrap col.ev-name{width:30%}
@@ -214,7 +242,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <h2 style="font-size:21px;margin-top:44px">주요 코인 가격 — BTC · ETH · SOL · XRP</h2>
-    <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률 · 최근 7일 추세</p>
+    <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률</p>
 
     <h3 style="font-size:15px;color:var(--tx2);margin-bottom:10px">4종 시가총액 비중</h3>
     <div id="mcap-chart" style="margin-bottom:28px"></div>
@@ -224,15 +252,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <button data-p="m">월간</button><button data-p="y">연간</button>
     </div>
     <div class="scroll">
-      <table id="coin-tbl">
-        <thead><tr><th>코인</th><th class="num">현재가(USD)</th><th class="num">등락률</th><th>추세(7일)</th></tr></thead>
-        <tbody>
-          <tr data-c="bitcoin"><td><a href="https://bitcoin.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="비트코인 공식 사이트"><b>BTC</b></a> <span class="mut">비트코인</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="ethereum"><td><a href="https://ethereum.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="이더리움 공식 사이트"><b>ETH</b></a> <span class="mut">이더리움</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="solana"><td><a href="https://solana.com" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="솔라나 공식 사이트"><b>SOL</b></a> <span class="mut">솔라나</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-          <tr data-c="ripple"><td><a href="https://xrpl.org" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="XRP 렛저 공식 사이트"><b>XRP</b></a> <span class="mut">리플</span></td><td class="num px">--</td><td class="num ch">--</td><td class="spark"></td></tr>
-        </tbody>
-      </table>
+      <div class="wl-list" id="coin-tbl">
+          <div class="wl-row" data-c="bitcoin"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">비트코인</div><div class="wl-name"><a href="https://bitcoin.org" target="_blank" rel="noopener" title="비트코인 공식 사이트">BTC</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="ethereum"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">이더리움</div><div class="wl-name"><a href="https://ethereum.org" target="_blank" rel="noopener" title="이더리움 공식 사이트">ETH</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="solana"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">솔라나</div><div class="wl-name"><a href="https://solana.com" target="_blank" rel="noopener" title="솔라나 공식 사이트">SOL</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="ripple"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">리플</div><div class="wl-name"><a href="https://xrpl.org" target="_blank" rel="noopener" title="XRP 렛저 공식 사이트">XRP</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+        </div>
     </div>
 
     <h2 style="font-size:21px;margin-top:44px">가상화폐 주요 이벤트 일정</h2>
