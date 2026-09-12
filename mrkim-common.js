@@ -898,6 +898,20 @@ async function krxJSONRecent(path, maxBack){
   }
   return null;
 }
+/* 2번(주가 강도)·3번(주가 폭): Worker의 Cron Trigger가 매일 1회 계산해 KV에 저장한
+   결과를 /kr-breadth 에서 그대로 읽어온다(전종목 배치 집계라 브라우저에서 직접 계산 불가).
+   [설정 필요] Worker에 KV 바인딩(KR_KV)과 Cron Trigger를 추가해야 값이 채워집니다. */
+async function loadKrBreadth(){
+  if(!PROXY_BASE) return null;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'kr-breadth',{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return (j && j.date) ? j : null;
+  }catch(e){ console.warn('주가강도/폭(kr-breadth) 호출 실패:', e); return null; }
+}
+
 async function loadKrxIndicators(){
   const result={};
   /* 5. 시장 변동성(VKOSPI): kospi_dd_trd(KOSPI 시리즈 지수)에서 이름으로 검색 */
@@ -950,23 +964,23 @@ async function loadKrxIndicators(){
 }
 
 async function loadKR(){
-  const [closes, ecos, krx] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators(), loadKrxIndicators()]);
-  if(!closes || closes.length<126){ renderKR(null, ecos, krx); return; }
+  const [closes, ecos, krx, breadth] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators(), loadKrxIndicators(), loadKrBreadth()]);
+  if(!closes || closes.length<126){ renderKR(null, ecos, krx, breadth); return; }
   const last=closes[closes.length-1];
   const ma125=closes.slice(-125).reduce((a,b)=>a+b,0)/125;
   const ratio=(last-ma125)/ma125;
-  if(!isFinite(ratio)){ renderKR(null, ecos, krx); return; }
+  if(!isFinite(ratio)){ renderKR(null, ecos, krx, breadth); return; }
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
-  renderKR({score, last, ma125, ratio}, ecos, krx);
+  renderKR({score, last, ma125, ratio}, ecos, krx, breadth);
 }
-function renderKR(d, ecos, krx){
+function renderKR(d, ecos, krx, breadth){
   const valEl=document.getElementById('kr-val'), stateEl=document.getElementById('kr-state'),
         dialEl=document.getElementById('kr-dial'), detailEl=document.getElementById('kr-detail');
   if(!d){
     if(stateEl) stateEl.textContent='연동 실패';
     if(detailEl) detailEl.textContent='코스피(^KS11) 데이터를 가져오지 못했습니다 · PROXY_BASE 설정을 확인해주세요.';
-    renderKRSub(null, ecos, krx);
+    renderKRSub(null, ecos, krx, breadth);
     return;
   }
   const [t,c]=label(d.score);
@@ -975,14 +989,15 @@ function renderKR(d, ecos, krx){
   if(dialEl){ dialEl.style.setProperty('--p',d.score+'%'); dialEl.style.setProperty('--g',c); }
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%';
-  renderKRSub(d.score, ecos, krx);
+  renderKRSub(d.score, ecos, krx, breadth);
 }
-function renderKRSub(momentumScore, ecos, krx){
+function renderKRSub(momentumScore, ecos, krx, breadth){
   const el=document.getElementById('kr-sub'); if(!el) return;
+  const strengthNote=breadth&&breadth.strength?' ('+breadth.strength.daysAccumulated+'일 누적, '+breadth.market+')':'';
   const rows=[
     ['1. 시장 모멘텀 (코스피 vs 125일 이평)', momentumScore],
-    ['2. 주가 강도 (52주 신고가/신저가 비율)', null],
-    ['3. 주가 폭 (상승/하락 거래량 비율)', null],
+    ['2. 주가 강도 (52주 신고가/신저가 비율)'+strengthNote, breadth&&breadth.strength?breadth.strength.score:null],
+    ['3. 주가 폭 (상승/하락 거래량 비율)', breadth&&breadth.breadth?breadth.breadth.score:null],
     ['4. 풋/콜 옵션 비율 (개별주식옵션 합산)', krx&&krx.putCallScore!=null?krx.putCallScore:null],
     ['5. 시장 변동성 (VKOSPI)', krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
     ['6. 안전자산 수요 (코스피 vs 국고채)', ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],

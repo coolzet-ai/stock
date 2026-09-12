@@ -89,13 +89,41 @@ async function getYahooAuth() {
   return yahooAuth;
 }
 
+/* KRX 응답에서 후보 필드명 중 존재하는 첫 값을 반환 (실제 필드명 미확정 대응) */
+function pickField(row, keys) {
+  for (const k of keys) { if (row[k] != null && row[k] !== '') return row[k]; }
+  return null;
+}
+function fmtYmd(d) {
+  return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+async function fetchKrxRows(path, basDd) {
+  try {
+    const r = await fetch('https://data-dbg.krx.co.kr/svc/apis/' + path + '?basDd=' + basDd, {
+      headers: { 'AUTH_KEY': KRX_AUTH_KEY, 'Accept': 'application/json' }
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.OutBlock_1 || null;
+  } catch (e) { return null; }
+}
+
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: CORS });
     }
 
-    let target = new URL(request.url).searchParams.get('url');
+    const reqUrl = new URL(request.url);
+
+    // 2번(주가 강도)·3번(주가 폭) 사전 계산 결과 — 매일 1회 scheduled()가 KV에 저장해둔 값을 그대로 서빙
+    if (reqUrl.pathname === '/kr-breadth') {
+      let data = '{}';
+      try { data = (await env.KR_KV.get('kr-breadth-latest')) || '{}'; } catch (e) {}
+      return new Response(data, { headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    let target = reqUrl.searchParams.get('url');
     if (!target) {
       return new Response('missing url parameter', { status: 400, headers: CORS });
     }
@@ -160,6 +188,71 @@ export default {
       });
     } catch (e) {
       return new Response('upstream error: ' + e.message, { status: 502, headers: CORS });
+    }
+  },
+
+  /* 매일 1회(Cron Trigger) 실행 — 코스피·코스닥 전종목 당일 시세를 받아
+     3번(주가 폭: 상승/하락 거래량)과 2번(주가 강도: 52주 신고가/신저가 종목수)을
+     계산해 KV에 저장한다. 클라이언트는 이 결과를 /kr-breadth 로 읽어간다.
+     [설정 필요] Worker 대시보드 → Settings → Variables → KV Namespace Bindings 에서
+     이름 KR_KV 로 바인딩하고, Triggers → Cron Triggers 에 스케줄을 추가해야 동작합니다
+     (예: '0 8 * * *' = 매일 UTC 08:00 = 한국시간 17:00, 장마감 이후). */
+  async scheduled(event, env, ctx) {
+    const today = new Date();
+    const basDd = fmtYmd(today);
+
+    const [kospiRows, kosdaqRows] = await Promise.all([
+      fetchKrxRows('sto/stk_bydd_trd', basDd),
+      fetchKrxRows('sto/ksq_bydd_trd', basDd) // 코스닥 서비스 미승인 시 null → 코스피만으로 계산
+    ]);
+    const allRows = [].concat(kospiRows || [], kosdaqRows || []);
+    if (!allRows.length) return; // 휴장일이거나 응답 실패 — 이번 회차는 건너뜀(이전 값 유지)
+
+    // 3. 주가 폭: 오늘 하루 데이터만으로 계산 가능
+    let advVol = 0, declVol = 0;
+    allRows.forEach(r => {
+      const chg = parseFloat(pickField(r, ['FLUC_RT', 'FLUC_TP_CD', 'CMPPREVDD_PRC']));
+      const vol = parseFloat(pickField(r, ['ACC_TRDVOL', 'TRDVOL'])) || 0;
+      if (chg > 0) advVol += vol;
+      else if (chg < 0) declVol += vol;
+    });
+    const breadthTotal = advVol + declVol;
+    const breadthScore = breadthTotal > 0 ? (advVol / breadthTotal) * 100 : 50;
+
+    // 2. 주가 강도: KV에 종목별 종가 이력을 계속 누적해 52주(252거래일) 롤링 고가/저가 판정
+    const histKey = 'kr-price-hist';
+    let hist = {};
+    try {
+      const raw = env.KR_KV ? await env.KR_KV.get(histKey) : null;
+      if (raw) hist = JSON.parse(raw);
+    } catch (e) {}
+
+    let highs = 0, lows = 0, counted = 0;
+    allRows.forEach(r => {
+      const code = pickField(r, ['ISU_CD', 'ISU_SRT_CD', 'ISU_CD6']);
+      const close = parseFloat(pickField(r, ['TDD_CLSPRC', 'CLSPRC']));
+      if (!code || !isFinite(close)) return;
+      if (!hist[code]) hist[code] = [];
+      hist[code].push(close);
+      if (hist[code].length > 252) hist[code].shift();
+      const maxV = Math.max(...hist[code]);
+      const minV = Math.min(...hist[code]);
+      if (close >= maxV) highs++;
+      if (close <= minV) lows++;
+      counted++;
+    });
+    const strengthTotal = highs + lows;
+    const strengthScore = strengthTotal > 0 ? (highs / strengthTotal) * 100 : 50;
+    const daysAccumulated = counted ? Math.max(...Object.values(hist).map(a => a.length)) : 0;
+
+    if (env.KR_KV) {
+      await env.KR_KV.put(histKey, JSON.stringify(hist));
+      await env.KR_KV.put('kr-breadth-latest', JSON.stringify({
+        date: basDd,
+        breadth: { advVol, declVol, score: breadthScore },
+        strength: { highs, lows, score: strengthScore, daysAccumulated, stockCount: counted },
+        market: kosdaqRows ? 'KOSPI+KOSDAQ' : 'KOSPI만'
+      }));
     }
   }
 };
