@@ -169,10 +169,12 @@ async function loadCoin(){
     });
     if(needSparkline) lastSparklineAt=Date.now();
   }catch(e1){
+    console.warn('CoinGecko 1차 실패(sparkline 포함):', e1.message);
     try{
       const arr=await fetchJSON(base,9000); // sparkline 없이 1회 재시도(요청 비용을 낮춰 레이트리밋 완화)
       coinData={}; arr.forEach(c=>coinData[c.id]=c);
     }catch(e2){
+      console.warn('CoinGecko 2차 실패 → 폴백 스냅샷 사용:', e2.message);
       coinData=null; // 완전 실패 → 폴백 스냅샷 사용
     }
   }
@@ -304,16 +306,19 @@ const PROXIES=[
 ].filter(Boolean);
 
 async function getJSON(url){
+  const errors=[];
   for(const p of PROXIES){
     const target=p(url); if(!target) continue;
     try{
       const c=new AbortController(), t=setTimeout(()=>c.abort(),9000);
       const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
-      if(!r.ok) continue;
+      if(!r.ok){ errors.push(target.split('?')[0]+' → HTTP '+r.status); continue; }
       const j=await r.json();
       if(j) return j;
-    }catch(e){}
+      errors.push(target.split('?')[0]+' → 빈 응답');
+    }catch(e){ errors.push(target.split('?')[0]+' → '+e.message); }
   }
+  console.warn('getJSON 전체 실패('+url+'):', errors);
   return null;
 }
 /* Yahoo 일봉 종가 배열 */
