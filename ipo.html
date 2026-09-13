@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mr.Kim Signal — 매매김군</title>
+<title>Mr.Kim Signal — 공모주</title>
 <style>
 :root{
   --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
@@ -85,7 +85,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
   padding:8px 15px;border-radius:7px;font-family:inherit}
 .tabs button.on{background:var(--accent);color:#1a1206}
-#evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
+#evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button, #ipo-month-tabs button{width:42px;padding:8px 0;text-align:center}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -180,92 +180,56 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 </header>
 
 <main>
-<section id="trade">
+<section id="ipo">
   <div class="wrap">
-    <h2>매매김군 매매법</h2>
-    <p class="sub">규칙 기반 분할매수 전략 · 실제 시세로 계산한 백테스트 결과</p>
+    <h2>공모주</h2>
+    <p class="sub">월간 공모주 캘린더 · 청약·상장 일정과 분석</p>
 
-    <div class="card" style="margin-top:20px">
-      <h3>매매법 규칙</h3>
-      <p class="mut">본 매매법의 매수·매도 세부 규칙은 공개하지 않습니다. 아래 백테스트 결과는 실제 규칙을 적용해 계산한 성과입니다.</p>
-    </div>
-
-    <h2 style="font-size:21px;margin-top:44px">매매법 백테스트</h2>
-    <div class="tabs" id="bt-year-tabs">
-      <button data-year="2022">2022년부터</button>
-      <button data-year="2023">2023년부터</button>
-      <button data-year="2024">2024년부터</button>
-      <button class="on" data-year="2025">2025년부터</button>
-      <button data-year="2026">2026년부터</button>
-    </div>
-    <p class="sub" id="bt-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
-
-    <div class="grid">
-      <div class="card">
-        <h3>누적 매수 횟수</h3>
-        <div class="big" id="bt-buycount">--</div>
-        <p class="mut" style="margin-top:6px">수량·종목별 세부내용은 비공개입니다</p>
-      </div>
-      <div class="card">
-        <h3>누적원금</h3>
-        <div class="big" id="bt-cost">--</div>
-        <p class="mut" style="margin-top:6px" id="bt-cost-krw">원화 환산 --</p>
-      </div>
-      <div class="card">
-        <h3>누적 배당금</h3>
-        <div class="big" id="bt-dividend">--</div>
-        <p class="mut" style="margin-top:6px" id="bt-dividend-krw">보유 종목 합산, 세전 기준</p>
-      </div>
-      <div class="card">
-        <h3>현재 평가수익금</h3>
-        <div class="big" id="bt-profit">--</div>
-        <p class="mut" style="margin-top:6px" id="bt-profit-krw">평가금 - 누적원금</p>
-      </div>
-      <div class="card">
-        <h3>원금 대비 평가금 수익률</h3>
-        <div class="big" id="bt-roi">--</div>
-        <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 --<br>· 평가금 --</p>
-      </div>
+    <div class="card" style="margin-bottom:20px">
+      <h3>김군코멘트 산정 기준 (참고용 · 투자 권유 아님)</h3>
+      <p class="mut">기관경쟁률·확정공모가 위치·의무보유확약비율·유통비율 4가지를 참고해 4단계로 표시합니다. 이 중 기관경쟁률·확정공모가·확약비율은 수요예측이 끝나야 발표되므로, 그 전까지는 "판정 보류"로 표시됩니다.</p>
+      <ul style="font-size:13px;color:var(--tx2);line-height:1.9;padding-left:18px;margin-top:8px">
+        <li><b style="color:var(--up)">적극추천</b> — 기관경쟁률 1,000:1 이상 + 공모가 밴드 상단 근접 확정</li>
+        <li><b style="color:var(--accent)">추천</b> — 기관경쟁률 500~1,000:1</li>
+        <li><b style="color:var(--tx2)">중립</b> — 기관경쟁률 100~500:1</li>
+        <li><b style="color:var(--down)">포기</b> — 기관경쟁률 100:1 미만 또는 밴드 하단 확정</li>
+      </ul>
+      <p class="mut" style="margin-top:10px;font-size:12px">⚠ 본 페이지는 정보 제공 목적이며 특정 종목의 청약을 권유하지 않습니다. 청약 전 반드시 증권신고서·투자설명서를 직접 확인하세요.</p>
     </div>
 
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선 — 원금 대비 평가금</h3>
-    <div class="card" style="margin-top:12px">
-      <div id="bt-curve"></div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <div id="bt-drawdown"></div>
-    </div>
-
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 수익금</th><th class="num">월 수익률</th><th class="num">연환산</th></tr></thead>
-        <tbody id="bt-monthly-return"><tr><td class="mut" colspan="8">계산 중…</td></tr></tbody>
-      </table>
+    <div class="tabs" data-group="ipomonth" id="ipo-month-tabs">
+      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
+      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
+      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
     </div>
 
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 배당금 현황</h3>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>월</th><th class="num">배당금 합계</th><th class="num">누적 배당금</th></tr></thead>
-        <tbody id="bt-monthly-div"><tr><td class="mut" colspan="3">계산 중…</td></tr></tbody>
-      </table>
-    </div>
-    <div class="card" style="margin-top:16px">
-      <h3>다음 예상 배당</h3>
-      <p class="mut" id="bt-next-div">계산 중…</p>
-    </div>
+    <div id="ipo-list" style="margin-top:20px"></div>
 
-    <p class="mut" style="margin-top:16px;font-size:12px">⚠ 배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD는 해당 월 내 일별 평가금 기준 최대 낙폭입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 과거 성과가 미래 수익을 보장하지 않습니다.</p>
+    <p class="mut" style="margin-top:16px;font-size:12px">출처: 아시아경제 "[이번주 IPO]9월 셋째 주 수요예측·청약 일정" (2026-09-13 발행) · 예상경쟁률·예상균등수량·비례예상 최소금액·손익계산서 시각화·경쟁사 비교 분석은 종목별 실제 재무·수요예측 데이터 연동이 필요해 준비 중입니다 — 없는 값을 임의로 만들어 보여드리지 않습니다.</p>
   </div>
 </section>
 
-<div class="wrap">
-  <div class="band">
-    <h2>2026년 파일럿 시행 중</h2>
-    <p>매매김군 매매법은 2026년 한 해 동안 파일럿으로 운영되며 지속적으로 검증·개선을 거쳐,<br><b style="color:var(--accent);font-size:1.15em">2027년 1월 정식 출시</b> 예정입니다.</p>
-  </div>
-</div>
+<style>
+.ipo-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.ipo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;cursor:pointer}
+.ipo-name{font-size:17px;font-weight:800}
+.ipo-market{font-size:11.5px;color:var(--tx2);background:var(--panel2);padding:2px 8px;border-radius:6px;margin-left:8px}
+.ipo-dates{font-size:12.5px;color:var(--tx2);margin-top:6px}
+.ipo-verdict{flex:none;text-align:center;min-width:76px}
+.ipo-verdict-badge{font-size:12px;font-weight:800;padding:5px 10px;border-radius:8px;white-space:nowrap}
+.ipo-detail{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);display:none;font-size:13.5px}
+.ipo-detail.open{display:block}
+.ipo-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.ipo-detail-grid .k{color:var(--tx2);font-size:12px}
+.ipo-detail-grid .v{font-weight:700;margin-top:2px}
+@media(max-width:560px){.ipo-detail-grid{grid-template-columns:1fr}}
+.ipo-tier-bar{display:flex;gap:4px;margin-top:8px}
+.ipo-tier-bar span{flex:1;text-align:center;font-size:11px;padding:5px 0;border-radius:6px;background:var(--panel2);color:var(--tx2)}
+.ipo-tier-bar span.on{color:#1a1206;font-weight:800}
+</style>
+</section>
+
 </main>
 
 <footer>
@@ -290,8 +254,119 @@ const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
 { const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 
-loadTradeBacktest();
+/* ================= 공모주 캘린더 데이터 =================
+   2026년 9월만 실제 확인된 정보로 채워져 있습니다(출처: 아시아경제, 2026-09-13).
+   다른 달은 아직 준비되지 않았습니다 — 없는 정보를 지어내지 않습니다. */
+const IPO_SOURCE='https://view.asiae.co.kr/article/2026091219111025691';
+const IPO_DATA={
+  9:[
+    {
+      name:'와이즈플래닛컴퍼니', market:'코스닥',
+      subscDate:'2026-09-14 ~ 09-15', listDate:'미정',
+      underwriter:'대신증권',
+      offerPriceBand:'10,000 ~ 12,000원', offerPriceFinal:'12,000원 (밴드 상단 확정)',
+      instRatio:1248, instCount:'2,323개 기관 참여', topBandRatio:'99.93%가 밴드 상단 이상 제시',
+      lockupRatio:null, floatRatio:null, refundRight:null,
+      desc:'2013년 설립, 13년 연속 흑자를 유지해온 소비재 브랜드 플랫폼 기업. 자체 데이터 운영 플랫폼 \'WAPL\'로 브랜드 기획부터 판매·재고까지 연결, 신규 브랜드 출시 시 카테고리 1위를 반복 달성.',
+      irUrl:null
+    },
+    {
+      name:'멜콘', market:'코스닥(이전상장)',
+      subscDate:'2026-10-01 ~ 10-02 (예정)', listDate:'2026년 내 예정',
+      underwriter:'미정',
+      offerPriceBand:'10,700 ~ 12,300원', offerPriceFinal:null,
+      instRatio:null, instCount:'수요예측 2026-09-16 ~ 09-22 진행 예정', topBandRatio:null,
+      lockupRatio:null, floatRatio:null, refundRight:null,
+      desc:'2003년 설립, 반도체 포토공정 장비의 온·습도 제어시스템(THC)·초정밀 정제 제어시스템(XPS) 개발·공급 기업. 총 250만주 공모, 공모예정금액 약 268억~308억원.',
+      irUrl:null
+    },
+    {
+      name:'진코스텍', market:'코스닥',
+      subscDate:'미정 (수요예측 진행중)', listDate:'미정',
+      underwriter:null, offerPriceBand:null, offerPriceFinal:null,
+      instRatio:null, instCount:'9월 셋째 주 기관 수요예측 진행', topBandRatio:null,
+      lockupRatio:null, floatRatio:null, refundRight:null,
+      desc:'하이드로겔 소재 기반 화장품 ODM/OEM 기업.',
+      irUrl:null
+    },
+    {name:'빅웨이브로보틱스', market:'코스닥', subscDate:'일반청약 예정 (9월 셋째 주)', listDate:'미정', desc:'세부 정보 확인 중입니다.'},
+    {name:'글로벌테크놀로지', market:'코스닥', subscDate:'일반청약 예정 (9월 셋째 주)', listDate:'미정', desc:'세부 정보 확인 중입니다.'},
+    {name:'덕산넵코어스', market:'코스닥', subscDate:'일반청약 예정 (9월 셋째 주)', listDate:'미정', desc:'세부 정보 확인 중입니다.'},
+    {name:'브릴스', market:'코스닥', subscDate:'일반청약 예정 (9월 셋째 주)', listDate:'미정', desc:'세부 정보 확인 중입니다.'}
+  ]
+};
 
+function ipoVerdict(item){
+  if(item.instRatio==null) return {tier:-1, label:'판정 보류', color:'var(--tx2)', reason:'수요예측 결과가 아직 발표되지 않았습니다.'};
+  const r=item.instRatio;
+  const topBand=item.offerPriceFinal && item.offerPriceFinal.includes('상단');
+  if(r>=1000 && topBand) return {tier:3, label:'적극추천', color:'var(--up)', reason:'기관경쟁률 '+r.toLocaleString()+':1, 공모가 밴드 상단 확정'};
+  if(r>=500) return {tier:2, label:'추천', color:'var(--accent)', reason:'기관경쟁률 '+r.toLocaleString()+':1'};
+  if(r>=100) return {tier:1, label:'중립', color:'var(--tx2)', reason:'기관경쟁률 '+r.toLocaleString()+':1'};
+  return {tier:0, label:'포기', color:'var(--down)', reason:'기관경쟁률 '+r.toLocaleString()+':1로 저조'};
+}
+
+function renderIpoList(m){
+  const el=document.getElementById('ipo-list'); if(!el) return;
+  const items=IPO_DATA[m];
+  if(!items || !items.length){
+    el.innerHTML='<div class="card"><p class="mut">해당 월의 공모주 일정은 아직 준비되지 않았습니다.</p></div>';
+    return;
+  }
+  el.innerHTML=items.map((item,i)=>{
+    const v=ipoVerdict(item);
+    const tierNames=['포기','중립','추천','적극추천'];
+    const tierBar=tierNames.map((t,idx)=>'<span'+(v.tier===idx?' class="on" style="background:'+v.color+'"':'')+'>'+t+'</span>').join('');
+    const detailRows=[
+      ['청약일', item.subscDate||'미정'],
+      ['상장일', item.listDate||'미정'],
+      ['주간사', item.underwriter||'미정'],
+      ['공모가', item.offerPriceFinal||item.offerPriceBand||'미정'],
+      ['기관경쟁률', item.instCount||'--'],
+      ['밴드 제시 현황', item.topBandRatio||'--'],
+      ['의무보유확약비율', item.lockupRatio||'미발표'],
+      ['유통비율', item.floatRatio||'미발표'],
+      ['환매청구권', item.refundRight||'미확인']
+    ];
+    return '<div class="ipo-card">'+
+      '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
+        '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+
+          '<div class="ipo-dates">'+(item.subscDate||'')+'</div></div>'+
+        '<div class="ipo-verdict"><div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
+      '</div>'+
+      '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
+        '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
+        '<div class="ipo-detail-grid">'+
+          detailRows.map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+
+        '</div>'+
+        '<div style="margin-top:14px">'+
+          '<div class="k" style="color:var(--tx2);font-size:12px">김군코멘트</div>'+
+          '<div class="ipo-tier-bar">'+tierBar+'</div>'+
+          '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
+        '</div>'+
+        '<div style="margin-top:14px;font-size:12.5px;color:var(--tx2)">'+
+          '손익계산서(최근 3년) 시각화 · 예상경쟁률 · 예상균등수량 · 비례예상 1주 최소금액 · IR자료 · 경쟁사 주가 비교: 데이터 연동 준비 중<br>'+
+          '<a href="'+IPO_SOURCE+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">출처 기사 보기 ↗</a>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+const ipoMonthTabs=document.getElementById('ipo-month-tabs');
+if(ipoMonthTabs){
+  ipoMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    ipoMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderIpoList(+b.dataset.m);
+  });
+  const nowMonthIpo=now.getMonth()+1;
+  const defMonthIpo=IPO_DATA[nowMonthIpo]?nowMonthIpo:9;
+  const defBtnIpo=ipoMonthTabs.querySelector('button[data-m="'+defMonthIpo+'"]');
+  if(defBtnIpo) defBtnIpo.classList.add('on');
+  renderIpoList(defMonthIpo);
+}
 </script>
 </body>
 </html>
