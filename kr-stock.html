@@ -27,7 +27,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{display:none}}
+@media(max-width:640px){.updated-top{font-size:10.5px}}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
   color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px}
@@ -76,7 +76,6 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
   .btn{padding:11px 18px;font-size:13.5px}
   .band{padding:28px 16px}
   .band h2{font-size:20px}
-  .updated-top{display:none}
 }
 
 section{padding:56px 0;border-top:1px solid var(--line)}
@@ -155,7 +154,8 @@ td.spark svg{display:block;margin:0 auto}
 .wl-actions a.ts-link{color:var(--tx2)}
 .wl-actions a.news-link{color:#7cc4ff}
 @media(max-width:480px){
-  .wl-actions{display:none}
+  .wl-actions{min-width:26px;padding-left:6px;margin-left:0}
+  .wl-actions a{font-size:10px}
 }
 
 /* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */

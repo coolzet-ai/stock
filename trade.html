@@ -27,7 +27,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{display:none}}
+@media(max-width:640px){.updated-top{font-size:10.5px}}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
   color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px}
@@ -72,7 +72,6 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
   .btn{padding:11px 18px;font-size:13.5px}
   .band{padding:28px 16px}
   .band h2{font-size:20px}
-  .updated-top{display:none}
 }
 
 section{padding:56px 0;border-top:1px solid var(--line)}
@@ -208,27 +207,27 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="grid">
       <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
         <h3>누적원금</h3>
-        <div class="big" id="bt-cost" style="font-size:30px">--</div>
+        <div class="big" id="bt-cost" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">신규 매수·리밸런싱 반영, 세전 기준</p>
       </div>
       <div class="card">
         <h3>누적 매수 횟수</h3>
-        <div class="big" id="bt-buycount">--</div>
+        <div class="big" id="bt-buycount" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px">수량·종목별 세부내용은 비공개입니다</p>
       </div>
       <div class="card">
         <h3>누적 배당금</h3>
-        <div class="big" id="bt-dividend">--</div>
+        <div class="big" id="bt-dividend" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-dividend-krw">보유 종목 합산, 세전 기준</p>
       </div>
       <div class="card">
         <h3>원금 대비 배당률</h3>
-        <div class="big" id="bt-div-yield">--</div>
+        <div class="big" id="bt-div-yield" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">누적 배당금 ÷ 누적원금</p>
       </div>
       <div class="card">
         <h3>연간 예상 수령 배당금</h3>
-        <div class="big" id="bt-annual-dividend" style="font-size:26px">--</div>
+        <div class="big" id="bt-annual-dividend" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
       </div>
       <div class="card">
@@ -238,12 +237,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>현재 평가수익금 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
-        <div class="big" id="bt-profit" style="font-size:32px">--</div>
+        <div class="big" id="bt-profit" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-profit-krw">평가금(배당포함) - 누적원금</p>
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
-        <div class="big" id="bt-roi" style="font-size:32px">--</div>
+        <div class="big" id="bt-roi" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 --<br>· 평가금 --</p>
       </div>
     </div>
@@ -254,6 +253,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <div class="card" style="margin-top:12px">
       <div id="bt-drawdown"></div>
+      <div id="bt-drawdown-yearly" style="margin-top:14px"></div>
       <div id="bt-drawdown-events" style="margin-top:10px"></div>
     </div>
 

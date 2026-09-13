@@ -1451,7 +1451,7 @@ async function runTradeBacktest(){
   let bmQqqShares=0, bmQldShares=0, bmTqqqShares=0;
   let bmQqqDiv=0, bmQldDiv=0, bmTqqqDiv=0;
   let globalPeak=0; /* 낙폭(underwater) 그래프용 — 리셋되지 않는 전체 기간 누적 최고점(배당 포함 총수익 기준) */
-  let bmQldPeak=0, bmTqqqPeak=0; /* QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
+  let bmQldPeak=0, bmTqqqPeak=0, bmQqqPeak=0; /* QQQ·QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
   let principalRecoveredTs=null; /* 누적 배당금만으로 누적원금을 회수한 첫 거래일(데이터 구간 내에서 도달 못하면 null) */
 
   tradingTs.forEach(ts=>{
@@ -1515,10 +1515,13 @@ async function runTradeBacktest(){
        전체 기간 최고점 대비)으로 계산해 나란히 비교할 수 있게 한다 */
     const bmQldValue=qldPxNow!=null?(bmQldShares*qldPxNow+bmQldDiv):null;
     const bmTqqqValue=tqqqPxNow!=null?(bmTqqqShares*tqqqPxNow+bmTqqqDiv):null;
+    const bmQqqValue=qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null;
     if(bmQldValue!=null) bmQldPeak=Math.max(bmQldPeak,bmQldValue);
     if(bmTqqqValue!=null) bmTqqqPeak=Math.max(bmTqqqPeak,bmTqqqValue);
+    if(bmQqqValue!=null) bmQqqPeak=Math.max(bmQqqPeak,bmQqqValue);
     const bmQldDD=(bmQldValue!=null && bmQldPeak>0)?(bmQldPeak-bmQldValue)/bmQldPeak*100:null;
     const bmTqqqDD=(bmTqqqValue!=null && bmTqqqPeak>0)?(bmTqqqPeak-bmTqqqValue)/bmTqqqPeak*100:null;
+    const bmQqqDD=(bmQqqValue!=null && bmQqqPeak>0)?(bmQqqPeak-bmQqqValue)/bmQqqPeak*100:null;
 
     /* 누적원금 회수 시점: 원금 대비 수익률(평가금 기준) 100% 달성 시점 — 평가금(배당 포함)이
        그 시점까지의 누적원금의 2배에 처음 도달한 날 */
@@ -1528,7 +1531,7 @@ async function runTradeBacktest(){
       t:ts, cost:cumCost, value:totalValue, dd, cumDividend,
       bmQqq: qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null,
       bmQld: bmQldValue, bmTqqq: bmTqqqValue,
-      bmQldDD, bmTqqqDD,
+      bmQldDD, bmTqqqDD, bmQqqDD,
       rebalanced: rebalanceDays.has(ts)
     });
     const mObj=monthly[mk];
@@ -1689,12 +1692,12 @@ function renderBacktest(res){
     if(recoveryCardEl) recoveryCardEl.style.cssText='';
     if(res.principalRecoveredTs){
       const days=dayCount(firstTs,res.principalRecoveredTs);
-      recoveryEl.textContent=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달 (D+'+days.toLocaleString('ko-KR')+'일)';
+      recoveryEl.innerHTML=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달<br>(D+'+days.toLocaleString('ko-KR')+'일)';
       recoveryEl.className='big up';
       if(recoveryCardEl) recoveryCardEl.style.cssText='border:2px solid var(--up);background:rgba(255,77,79,.08)';
     }else if(res.finalValue>=2*res.finalCost){
       const days=dayCount(firstTs,lastTs);
-      recoveryEl.textContent='도달 (D+'+days.toLocaleString('ko-KR')+'일)';
+      recoveryEl.innerHTML='도달<br>(D+'+days.toLocaleString('ko-KR')+'일)';
       recoveryEl.className='big up';
       if(recoveryCardEl) recoveryCardEl.style.cssText='border:2px solid var(--up);background:rgba(255,77,79,.08)';
     }else{
@@ -1708,14 +1711,14 @@ function renderBacktest(res){
           const projected=new Date(lastTs);
           projected.setDate(projected.getDate()+Math.round(extraYears*365));
           const totalDays=dayCount(firstTs,projected.getTime());
-          recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상 (현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과, 목표 D+'+totalDays.toLocaleString('ko-KR')+'일)';
+          recoveryEl.innerHTML='약 '+projected.toLocaleDateString('ko-KR')+' 예상<br>(현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과, 목표 D+'+totalDays.toLocaleString('ko-KR')+'일)';
           recoveryEl.className='big mut';
         }else{
-          recoveryEl.textContent='추정 불가 (현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
+          recoveryEl.innerHTML='추정 불가<br>(현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
           recoveryEl.className='big mut';
         }
       }else{
-        recoveryEl.textContent='추정 불가(현재 수익률이 마이너스이거나 데이터 부족) (D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
+        recoveryEl.innerHTML='추정 불가(현재 수익률이 마이너스이거나 데이터 부족)<br>(D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
         recoveryEl.className='big mut';
       }
     }
@@ -1766,6 +1769,16 @@ function renderBacktest(res){
     const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+
         ' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
 
+    /* 기간 중 최고 수익률(원금 대비 평가금, 배당 포함) 시점 탐색 */
+    let maxRoi=-Infinity, maxRoiTs=null;
+    res.curve.forEach(p=>{
+      if(p.cost>0){
+        const r=(p.value/p.cost-1)*100;
+        if(r>maxRoi){ maxRoi=r; maxRoiTs=p.t; }
+      }
+    });
+    if(maxRoi===-Infinity) maxRoi=0;
+
     /* 좌우 Y축 눈금(4단계) — 금액 기준선 */
     let yAxis='';
     const tickN=4;
@@ -1810,7 +1823,8 @@ function renderBacktest(res){
       '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
       monthLabels+
       '</svg>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:10px;font-size:12px;color:var(--tx2);min-width:0">'+
+      '<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2);min-width:0">'+
       '<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(배당포함, 실제 전략)</span>'+
       '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
@@ -1827,16 +1841,19 @@ function renderBacktest(res){
     const stepX=n>1?(w-padL-padR)/(n-1):0;
     const qldDDVals=res.curve.map(p=>p.bmQldDD).filter(v=>v!=null);
     const tqqqDDVals=res.curve.map(p=>p.bmTqqqDD).filter(v=>v!=null);
-    const maxDD=Math.max(...res.curve.map(p=>p.dd||0), ...qldDDVals, ...tqqqDDVals, 1);
+    const qqqDDVals=res.curve.map(p=>p.bmQqqDD).filter(v=>v!=null);
+    const maxDD=Math.max(...res.curve.map(p=>p.dd||0), ...qldDDVals, ...tqqqDDVals, ...qqqDDVals, 1);
     const yOf=v=>padTop+ (v/maxDD)*(h-padTop-14);
     const pts=res.curve.map((p,i)=>[padL+i*stepX, yOf(p.dd||0)]);
     const ptsQldDD=res.curve.map((p,i)=>p.bmQldDD!=null?[padL+i*stepX,yOf(p.bmQldDD)]:null).filter(Boolean);
     const ptsTqqqDD=res.curve.map((p,i)=>p.bmTqqqDD!=null?[padL+i*stepX,yOf(p.bmTqqqDD)]:null).filter(Boolean);
+    const ptsQqqDD=res.curve.map((p,i)=>p.bmQqqDD!=null?[padL+i*stepX,yOf(p.bmQqqDD)]:null).filter(Boolean);
     const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
     const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
     const worstDD=maxDD.toFixed(1);
     const worstQldDD=qldDDVals.length?Math.max(...qldDDVals).toFixed(1):null;
     const worstTqqqDD=tqqqDDVals.length?Math.max(...tqqqDDVals).toFixed(1):null;
+    const worstQqqDD=qqqDDVals.length?Math.max(...qqqDDVals).toFixed(1):null;
 
     /* 좌우 Y축 눈금(0%, 중간, 최대낙폭%) */
     let yAxis='';
@@ -1857,15 +1874,45 @@ function renderBacktest(res){
       '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
       (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
       (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
+      (ptsQqqDD.length?'<path d="'+pathOf(ptsQqqDD)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
       '</svg>'+
       '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 전략 최대 -'+worstDD+'%'+
+      (worstQqqDD!=null?' · QQQ 단독매수 최대 -'+worstQqqDD+'%':'')+
       (worstQldDD!=null?' · QLD 단독매수 최대 -'+worstQldDD+'%':'')+
       (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
       '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 전략(배당 포함 평가금 기준)</span>'+
+      '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> QQQ 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> QLD 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> TQQQ 단독매수</span>'+
       '</div>';
+
+    /* 연도별 최고 낙폭 박스 — 전략·QQQ·QLD·TQQQ 를 연도마다 나란히 비교 */
+    const ddYearBoxEl=document.getElementById('bt-drawdown-yearly');
+    if(ddYearBoxEl){
+      const byYear={};
+      res.curve.forEach(p=>{
+        const y=new Date(p.t).getUTCFullYear();
+        if(!byYear[y]) byYear[y]={strategy:0, qqq:0, qld:0, tqqq:0};
+        byYear[y].strategy=Math.max(byYear[y].strategy, p.dd||0);
+        if(p.bmQqqDD!=null) byYear[y].qqq=Math.max(byYear[y].qqq, p.bmQqqDD);
+        if(p.bmQldDD!=null) byYear[y].qld=Math.max(byYear[y].qld, p.bmQldDD);
+        if(p.bmTqqqDD!=null) byYear[y].tqqq=Math.max(byYear[y].tqqq, p.bmTqqqDD);
+      });
+      const years=Object.keys(byYear).sort();
+      ddYearBoxEl.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">'+
+        years.map(y=>{
+          const d=byYear[y];
+          return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px">'+
+            '<div style="font-weight:800;font-size:13px;margin-bottom:6px">'+y+'년</div>'+
+            '<div style="font-size:11.5px;color:var(--tx2);line-height:1.9">'+
+            '<span style="color:var(--up)">■</span> 전략 -'+d.strategy.toFixed(1)+'%<br>'+
+            '<span style="color:#2dd4bf">■</span> QQQ -'+d.qqq.toFixed(1)+'%<br>'+
+            '<span style="color:#c084fc">■</span> QLD -'+d.qld.toFixed(1)+'%<br>'+
+            '<span style="color:#facc15">■</span> TQQQ -'+d.tqqq.toFixed(1)+'%'+
+            '</div></div>';
+        }).join('')+'</div>';
+    }
   }
 
   /* 낙폭 15% 이상이었던 구간 각주 — 실제 계산된 시점(res.curve)을 바탕으로 자동 탐지하고,
