@@ -213,11 +213,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h3>백테스트 옵션 조건</h3>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
         <input type="checkbox" id="bt-opt-recovery" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
-        <span><b>원금 100% 회수</b> — 포트폴리오 시작 시점 기준으로 평가금이 원금의 2배에 처음 도달하면, 딱 1회 원금만큼 비례 매도해 현금화하고 남은 평가금으로 동일 조건 매수를 계속합니다. 리밸런싱 조건은 동일합니다. (반복 실행되지 않습니다)</span>
+        <span><b>원금 100% 회수</b></span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
         <input type="checkbox" id="bt-opt-sniper" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
-        <span><b>듀얼스나이퍼</b> — 포트폴리오 손실이 일정 구간을 넘으면 특정 레버리지 상품을 단계적으로 추가 매수하는 방어 전략입니다. 손실 구간이 커질수록 매수 강도가 세지고, 손실이 줄어들면 매수를 멈춥니다. 이 포지션은 연말 리밸런싱에서 제외됩니다. 매수 대상 종목·구체적 금액은 공개하지 않습니다.</span>
+        <span><b>듀얼스나이퍼</b></span>
       </label>
       <p class="mut" style="margin-top:10px;font-size:12px" id="bt-opt-summary"></p>
     </div>
@@ -256,21 +256,23 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
         <div id="bt-annual-dividend-diff"></div>
       </div>
-      <div class="card" id="bt-realized-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
-        <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(원금회수·듀얼스나이퍼는 서로 독립된 조건입니다)</span></h3>
+      <div class="card" id="bt-realized-recovery-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+        <h3>원금 100% 회수 — 수익실현금</h3>
         <div id="bt-realized-recovery-block" style="display:none;margin-top:6px">
-          <div class="mut" style="font-size:11px">💰 원금 100% 회수 실현액</div>
           <div class="big up" id="bt-realized-recovery" style="font-size:22px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-recovery-detail"></p>
         </div>
         <div id="bt-realized-recovery-projected-block" style="display:none;margin-top:6px">
-          <div class="mut" style="font-size:11px">💰 원금 100% 회수 <span style="color:var(--accent)">(예상 — 아직 도달 전)</span></div>
+          <div class="mut" style="font-size:11px">아직 도달 전 — 예상치</div>
           <div id="bt-realized-recovery-projected" style="font-size:13px;line-height:1.7;margin-top:2px">--</div>
         </div>
-        <div id="bt-realized-sniper-block" style="display:none;margin-top:10px">
-          <div class="mut" style="font-size:11px">🎯 듀얼스나이퍼 실현액</div>
+      </div>
+      <div class="card" id="bt-realized-sniper-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+        <h3>듀얼스나이퍼 — 수익실현금</h3>
+        <div id="bt-realized-sniper-block" style="display:none;margin-top:6px">
           <div class="big up" id="bt-realized-sniper" style="font-size:22px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-sniper-detail"></p>
         </div>
-        <p class="mut" style="margin-top:8px;font-size:12px;line-height:1.7" id="bt-realized-rounds">계산 중…</p>
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
@@ -288,6 +290,22 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div id="bt-drawdown"></div>
       <div id="bt-drawdown-yearly" style="margin-top:14px"></div>
       <div id="bt-drawdown-events" style="margin-top:10px"></div>
+    </div>
+
+    <div id="bt-post-recovery-section" style="display:none;margin-top:32px">
+      <h3 style="font-size:16px;color:var(--tx2)">원금 회수 이후 성과 <span class="mut" style="font-size:12px;font-weight:400">(회수 시점부터 0에서 다시 시작해서 비교)</span></h3>
+      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">평가금 증감(회수 시점 = 0)</div>
+        <div id="bt-post-curve"></div>
+      </div>
+      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">낙폭(회수 시점부터 새로 계산)</div>
+        <div id="bt-post-drawdown"></div>
+      </div>
+      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">누적 배당금(회수 시점부터)</div>
+        <div id="bt-post-dividend"></div>
+      </div>
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">연도별 수익률</h3>
@@ -321,9 +339,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">배당금 지급 내역</h3>
-    <div class="scroll">
+    <div class="scroll" style="max-height:340px;overflow-y:auto">
       <table>
-        <thead><tr><th>날짜</th><th class="num">배당금</th><th class="num">누적 배당금</th></tr></thead>
+        <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th class="num">배당금</th><th class="num">누적 배당금</th></tr></thead>
         <tbody id="bt-monthly-div"><tr><td class="mut" colspan="3">계산 중…</td></tr></tbody>
       </table>
     </div>
@@ -339,41 +357,103 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p class="mut" style="font-size:12px;margin-bottom:10px">종목별 세부 매수 기록과 듀얼스나이퍼 매수·매도 기록입니다. 일반 화면에는 공개하지 않는 내용입니다.</p>
 
       <h4 style="font-size:14px;color:var(--tx2);margin-top:18px">전략 조건 세부내용 (비공개)</h4>
-      <div class="scroll">
-        <table>
-          <thead><tr><th style="width:140px">구분</th><th>세부 조건</th></tr></thead>
-          <tbody>
-            <tr><td><b>기본 매수법</b></td><td class="mut" style="font-size:12.5px">미국지수 공포탐욕 점수 기준 — 점수 25 미만: 매일 QLD·USD·SCHD 각 4주씩 매수 · 매주 금요일에는 점수 45 미만 시 각 2주, 45~55 시 각 1주, 55 초과 시 매수 없음(위 25 미만 조건과 중복 적용되지 않음, 즉 25 미만이면 매일 4주가 우선)</td></tr>
-            <tr><td><b>리밸런싱</b></td><td class="mut" style="font-size:12.5px">투자기간이 1년을 초과하면 매년 마지막 거래일에 QLD 40% · USD 40% · SCHD 20% 비중으로 재배분(듀얼스나이퍼 TQQQ 포지션은 이 리밸런싱에서 완전히 제외)</td></tr>
-            <tr><td><b>원금 100% 회수</b></td><td class="mut" style="font-size:12.5px">평가금(배당 포함)이 그 시점까지의 순원금(누적원금－이미 회수한 금액)의 2배에 처음 도달하는 날, 순원금만큼 비례 매도해 현금화(딱 1회, 반복 없음). 포지션 시가가 순원금보다 작을 경우 시가만큼만 현금화(음수 방지)</td></tr>
-            <tr><td><b>듀얼스나이퍼 매수</b></td><td class="mut" style="font-size:12.5px">기본 전략(QLD/USD/SCHD, 배당 포함) 낙폭이 15% 초과 15%~30% 구간이면 매주 금요일 TQQQ 5,000달러, 30% 초과 구간이면 매주 금요일 TQQQ 10,000달러 매수(중복 아님, 구간별 택1). 낙폭이 15% 미만으로 회복되면 매수 중단</td></tr>
-            <tr><td><b>듀얼스나이퍼 매도</b></td><td class="mut" style="font-size:12.5px">TQQQ 포지션 수익률이 +200%에 처음 도달하면 잔고의 50% 매도, 이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도(매도분만큼 원가도 비례 차감해 잔여 포지션 평단가 유지)</td></tr>
-          </tbody>
-        </table>
+
+      <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기본 매수법 — 미국지수 공포탐욕 점수 기준</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">점수 &lt; 25</span>
+          <span class="mut">→</span>
+          <span>매일 QLD·USD·SCHD 각 <b>4주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">금요일 &amp; &lt;45</span>
+          <span class="mut">→</span>
+          <span>각 <b>2주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; 45~55</span>
+          <span class="mut">→</span>
+          <span>각 <b>1주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down);min-width:110px;text-align:center">금요일 &amp; &gt;55</span>
+          <span class="mut">→</span>
+          <span>매수 없음</span>
+        </div>
+      </div>
+      <p class="mut" style="font-size:11px;margin-top:6px">※ 25 미만 조건이 우선 적용되며(매일), 나머지는 금요일에만 평가됩니다.</p>
+
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">리밸런싱 — 매년 마지막 거래일</div>
+      <div style="display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:6px;max-width:420px">
+        <div style="width:40%;background:var(--up);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff">QLD 40%</div>
+        <div style="width:40%;background:#c084fc;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">USD 40%</div>
+        <div style="width:20%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">SCHD 20%</div>
+      </div>
+      <p class="mut" style="font-size:11.5px;margin-top:6px">보유 3종목 시가(배당 제외)를 위 비중으로 재배분(듀얼스나이퍼 TQQQ 포지션은 완전히 제외)</p>
+
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">원금 100% 회수</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;margin-top:6px">
+        <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:170px;text-align:center">평가금(배당포함) ≥ 순원금×2</span>
+        <span class="mut">→</span>
+        <span>순원금만큼 비례 매도(현금화, <b>1회성</b>) · 시가가 부족하면 시가만큼만</span>
       </div>
 
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">듀얼스나이퍼 매수 — 기본 전략 낙폭 기준</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:130px;text-align:center">낙폭 15%~30%</span>
+          <span class="mut">→</span>
+          <span>매주 금요일 TQQQ <b>$5,000</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:130px;text-align:center">낙폭 &gt;30%</span>
+          <span class="mut">→</span>
+          <span>매주 금요일 TQQQ <b>$10,000</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down);min-width:130px;text-align:center">낙폭 &lt;15%</span>
+          <span class="mut">→</span>
+          <span>매수 중단</span>
+        </div>
+      </div>
+
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">듀얼스나이퍼 매도 — TQQQ 포지션 수익률 기준</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">+200% 최초</span>
+          <span class="mut">→</span>
+          <span>잔고의 <b>50%</b> 매도</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">+100%p마다</span>
+          <span class="mut">→</span>
+          <span>잔고의 <b>25%</b>씩 매도(300%,400%…)</span>
+        </div>
+      </div>
+      <p class="mut" style="font-size:11px;margin-top:6px">매도분만큼 원가도 비례 차감해 잔여 포지션 평단가를 유지합니다.</p>
+
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">종목별 세부 매매기록</h4>
-      <div class="scroll" style="max-height:400px;overflow-y:auto">
-        <table>
-          <thead><tr><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">공포탐욕지수</th></tr></thead>
-          <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="6">데이터 없음</td></tr></tbody>
+      <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
+        <table style="table-layout:fixed;width:100%">
+          <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">누적수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">누적매수금액</th><th class="num">공포탐욕지수</th></tr></thead>
+          <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="8">데이터 없음</td></tr></tbody>
         </table>
       </div>
 
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">듀얼스나이퍼 매매기록</h4>
-      <div class="scroll" style="max-height:400px;overflow-y:auto">
-        <table>
-          <thead><tr><th>날짜</th><th>구분</th><th class="num">수량</th><th class="num">단가</th><th class="num">금액</th></tr></thead>
-          <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+      <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
+        <table style="table-layout:fixed;width:100%">
+          <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">수량</th><th class="num">누적수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">누적매수금액</th><th class="num">매도시 수익금</th></tr></thead>
+          <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="8">데이터 없음</td></tr></tbody>
         </table>
       </div>
 
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">리밸런싱 이력 (매도·매수 현황)</h4>
-      <p class="mut" style="font-size:12px;margin-top:2px">연말 리밸런싱 시 종목별 리밸런싱 전(직전 시가) → 후(재배분 후 시가)를 비교해 실제 매도·매수 방향을 보여줍니다.</p>
-      <div class="scroll" style="max-height:400px;overflow-y:auto">
-        <table>
-          <thead><tr><th>날짜</th><th>종목</th><th class="num">리밸런싱 전</th><th class="num">리밸런싱 후</th><th>구분</th></tr></thead>
-          <tbody id="bt-admin-rebalance"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+      <p class="mut" style="font-size:12px;margin-top:2px">연말 리밸런싱 시 종목별 리밸런싱 전(직전 시가) → 후(재배분 후 시가)를 비교해 실제 매도·매수 방향을 보여줍니다. "평가"는 그 리밸런싱 이후 현재까지 해당 종목 주가가 어떻게 움직였는지를 참고용으로 보여줍니다(그 리밸런싱 판단이 결과적으로 유리했는지 가늠하는 용도).</p>
+      <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
+        <table style="table-layout:fixed;width:100%">
+          <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>종목</th><th class="num">리밸런싱 전</th><th class="num">리밸런싱 후</th><th>구분</th><th>평가</th></tr></thead>
+          <tbody id="bt-admin-rebalance"><tr><td class="mut" colspan="6">데이터 없음</td></tr></tbody>
         </table>
       </div>
     </div>
