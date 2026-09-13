@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:6px 12px;line-height:1.15;text-align:center;white-space:normal}
+.naver-gift{padding:4px 12px;line-height:1.0;text-align:center;white-space:normal}
 @media(max-width:640px){
   #tick-tbl th:nth-child(2), #tick-tbl td:nth-child(2),
   #lev-tbl th:nth-child(2), #lev-tbl td:nth-child(2){display:none}
@@ -316,6 +316,58 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </div>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 3배 레버리지 상품은 일간 수익률을 추종하며 변동성이 매우 크고 장기 보유 시 지수와 괴리가 발생할 수 있습니다<br>· 티커명을 클릭하면 운용사 공식 상품 페이지로, 세부내용의 +는 Finviz 지표 페이지, X는 @TrendSpider의 해당 티커 게시물 검색, N은 최신 뉴스로 이동합니다.</p>
+  </div>
+</section>
+
+<!-- 유니콘 기업(비상장 AI 기업) -->
+<section id="unicorn">
+  <div class="wrap">
+    <h2 style="font-size:21px">유니콘 기업 — 아직 상장 전인 주요 AI 기업</h2>
+    <p class="sub">엔트로픽·오픈AI 등 비상장 AI 기업의 최근 기업가치·매출·투자자 현황 · 사모(私募) 시장 정보라 공개 시점마다 크게 달라질 수 있습니다</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>기업</th><th class="num">최근 기업가치</th><th class="num">매출(연환산)</th><th>손익</th><th>상장(IPO) 전망</th><th>주요 투자자 — 미국</th><th>주요 투자자 — 한국</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="https://www.anthropic.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">Anthropic</a> <a href="https://x.com/search?q=Anthropic&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Anthropic 관련 게시물 검색">X</a></td>
+            <td class="num">약 $965B<br><span class="mut" style="font-size:11px">(2026.5 Series H)</span></td>
+            <td class="num">약 $470~500억<br><span class="mut" style="font-size:11px">(2026.5 기준)</span></td>
+            <td class="mut" style="font-size:12.5px">아직 순손실이나 첫 분기 흑자 전환 근접으로 보도됨</td>
+            <td class="mut" style="font-size:12.5px">2026.6 SEC 비공개 S-1 제출 · 상장 시기 미확정(2026 하반기~2027 관측)</td>
+            <td class="mut" style="font-size:12.5px">Sequoia·Altimeter·Dragoneer·Greenoaks·GIC·Coatue·Amazon·Google·Microsoft·Nvidia</td>
+            <td class="mut" style="font-size:12.5px">삼성전자·SK하이닉스(메모리 공급 등 전략적 파트너 — 지분투자 여부는 비공개)</td>
+          </tr>
+          <tr>
+            <td><a href="https://openai.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">OpenAI</a> <a href="https://x.com/search?q=OpenAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 OpenAI 관련 게시물 검색">X</a></td>
+            <td class="num">약 $852B<br><span class="mut" style="font-size:11px">(2026.3 라운드, 신규 라운드 최대 $1T 거론)</span></td>
+            <td class="num">약 $200~250억<br><span class="mut" style="font-size:11px">(2026 초 기준, 추정치 편차 있음)</span></td>
+            <td class="mut" style="font-size:12.5px">대규모 순손실 지속(분기당 100억 달러 안팎 추정 보도)</td>
+            <td class="mut" style="font-size:12.5px">2026.5~6 SEC 비공개 S-1 제출 · 2026년 4분기~2027년 상장 목표 거론(공식 확정 아님)</td>
+            <td class="mut" style="font-size:12.5px">Microsoft·SoftBank·Thrive Capital·a16z·ARK Invest·BlackRock·Fidelity·Sequoia</td>
+            <td class="mut" style="font-size:12.5px">확인된 직접 지분투자 없음(삼성전자·SK하이닉스는 '스타게이트' 프로젝트향 메모리 공급 협력)</td>
+          </tr>
+          <tr>
+            <td><a href="https://x.ai" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">xAI</a> <a href="https://x.com/search?q=xAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 xAI 관련 게시물 검색">X</a></td>
+            <td class="num">약 $170~230B<br><span class="mut" style="font-size:11px">(2026.1 Series E $230B → 2026년 중 추가 라운드 논의)</span></td>
+            <td class="num">약 $20~38억<br><span class="mut" style="font-size:11px">(추정치 편차 큼)</span></td>
+            <td class="mut" style="font-size:12.5px">대규모 인프라 투자 지속 중, 순손실 상태로 추정</td>
+            <td class="mut" style="font-size:12.5px">공식 IPO 일정 없음</td>
+            <td class="mut" style="font-size:12.5px">Nvidia·Cisco Investments·Fidelity·Valor Equity Partners·Sequoia·a16z·BlackRock</td>
+            <td class="mut" style="font-size:12.5px">확인된 한국 기업 투자자 없음</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.databricks.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">Databricks</a> <a href="https://x.com/search?q=Databricks&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Databricks 관련 게시물 검색">X</a></td>
+            <td class="num">약 $134B<br><span class="mut" style="font-size:11px">(2025.12 Series L → 2026.6 이후 $165~175B 추진 중)</span></td>
+            <td class="num">약 $54억<br><span class="mut" style="font-size:11px">(2026.2 기준, 전년比 +65%)</span></td>
+            <td class="mut" style="font-size:12.5px">잉여현금흐름(FCF)은 흑자, 회계상 순이익 여부는 비공개</td>
+            <td class="mut" style="font-size:12.5px">공식 일정 없음, CEO는 "2027년 이후" 가능성 언급</td>
+            <td class="mut" style="font-size:12.5px">Nvidia·Meta·JPMorgan(부채금융 주관)</td>
+            <td class="mut" style="font-size:12.5px">확인된 한국 기업 투자자 없음</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 위 수치는 비상장 사모 시장 정보라 공식 재무제표 기준이 아니며, 라운드가 진행 중이거나 언론 보도 시점에 따라 실제 확정치와 다를 수 있습니다. 기업명을 클릭하면 공식 홈페이지로, X는 X(트위터)에서 해당 기업 관련 게시물 검색 결과로 이동합니다. 투자 권유 목적이 아닙니다.</p>
   </div>
 </section>
 
