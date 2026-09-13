@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:4px 12px;line-height:1.0;text-align:center;white-space:normal}
+.naver-gift{padding:3px 8px;line-height:1.0;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -250,6 +250,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div class="big" id="bt-recovery-date" style="font-size:17px;line-height:1.35">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px" id="bt-recovery-sub">계산 중…</p>
       </div>
+      <div class="card" id="bt-realized-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+        <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(원금 100% 회수 옵션)</span></h3>
+        <div class="big" id="bt-realized" style="font-size:28px">--</div>
+        <p class="mut" style="margin-top:6px;font-size:12px" id="bt-realized-rounds">계산 중…</p>
+      </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>현재 평가수익금 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
         <div class="big" id="bt-profit" style="font-size:28px">--</div>
@@ -291,10 +296,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
 
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 배당금 현황</h3>
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">배당금 지급 내역</h3>
     <div class="scroll">
       <table>
-        <thead><tr><th>월</th><th class="num">배당금 합계</th><th class="num">누적 배당금</th></tr></thead>
+        <thead><tr><th>날짜</th><th class="num">배당금</th><th class="num">누적 배당금</th></tr></thead>
         <tbody id="bt-monthly-div"><tr><td class="mut" colspan="3">계산 중…</td></tr></tbody>
       </table>
     </div>
