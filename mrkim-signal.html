@@ -35,6 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
+.naver-gift{padding:6px 12px;line-height:1.15;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -55,6 +56,24 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
 .hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 @media(max-width:640px){.hero h1{font-size:31px}}
+@media(max-width:530px){
+  h2{font-size:19px}
+  h3{font-size:14px}
+  .sec-h{gap:8px}
+  .card{padding:14px}
+  .grid{gap:10px}
+  table{font-size:12px}
+  th,td{padding:8px 6px}
+  .big{font-size:26px}
+  .gauge{gap:12px}
+  .dial{width:78px;height:78px}
+  .dial b{width:60px;height:60px;font-size:20px}
+  .badge{font-size:11px;padding:5px 11px}
+  .btn{padding:11px 18px;font-size:13.5px}
+  .band{padding:28px 16px}
+  .band h2{font-size:20px}
+  .updated-top{display:none}
+}
 
 section{padding:56px 0;border-top:1px solid var(--line)}
 .sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
@@ -66,6 +85,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
   padding:8px 15px;border-radius:7px;font-family:inherit}
 .tabs button.on{background:var(--accent);color:#1a1206}
+#evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -141,19 +161,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 <header>
   <div class="wrap nav">
-    <div class="logo">Mr.<span>Kim Signal</span></div>
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국지수</a></li>
       <li><a href="kr-stock.html">한국지수</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
       <li><a href="finprod.html">금융상품</a></li>
+      <li><a href="ipo.html">공모주</a></li>
       <li><a href="p2p.html">P2P</a></li>
       <li><a href="trade.html" class="nav-hi">매매김군</a></li>
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
       <span class="updated-top" id="stamp-top"></span>
-      <a class="btn sm" href="https://pay.naver.com" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기 (ID: coolzet)">네이버포인트 선물하기 (ID: coolzet)</a>
+      <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
     </div>
   </div>
 </header>
@@ -228,6 +249,19 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 const now=new Date();
 { const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+
+const naverGiftLink=document.getElementById('naver-gift-link');
+if(naverGiftLink){
+  naverGiftLink.addEventListener('click',async()=>{
+    try{ await navigator.clipboard.writeText('coolzet'); }catch(e){}
+    alert('아이디 coolzet 복사되었습니다.');
+  });
+}
+const navToggle=document.getElementById('nav-toggle');
+const navMenu=document.getElementById('nav-menu');
+if(navToggle && navMenu){
+  navToggle.addEventListener('click',()=>{ navMenu.classList.toggle('open'); });
+}
 </script>
 </body>
 </html>

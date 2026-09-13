@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:6px 12px;line-height:1.5;text-align:center;white-space:normal}
+.naver-gift{padding:6px 12px;line-height:1.15;text-align:center;white-space:normal}
 @media(max-width:640px){
   #tick-tbl th:nth-child(2), #tick-tbl td:nth-child(2),
   #lev-tbl th:nth-child(2), #lev-tbl td:nth-child(2){display:none}
@@ -192,7 +192,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 <header>
   <div class="wrap nav">
-    <div class="logo">Mr.<span>Kim Signal</span></div>
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국지수</a></li>
@@ -204,6 +204,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <li><a href="trade.html" class="nav-hi">매매김군</a></li>
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2);cursor:pointer;white-space:nowrap" title="미국주식·비트코인 등 달러 표시 가격에 원화를 괄호로 병기합니다">
+        <input type="checkbox" id="krw-toggle" style="accent-color:var(--accent);cursor:pointer">원화 표시
+      </label>
       <span class="updated-top" id="stamp-top"></span>
       <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
     </div>
@@ -262,6 +265,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <div class="wl-row" data-t="QLD"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">나스닥100 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/qld" target="_blank" rel="noopener">QLD</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=QLD" target="_blank" rel="noopener" title="Finviz에서 QLD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24QLD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 QLD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/QLD/news/" target="_blank" rel="noopener" class="news-link" title="QLD 관련 최신 뉴스 보기">N</a></div></div>
           <div class="wl-row" data-t="USD"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">반도체 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/usd" target="_blank" rel="noopener">USD</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=USD" target="_blank" rel="noopener" title="Finviz에서 USD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24USD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 USD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/USD/news/" target="_blank" rel="noopener" class="news-link" title="USD 관련 최신 뉴스 보기">N</a></div></div>
           <div class="wl-row" data-t="SCHD"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">미국 대표 배당성장 ETF</div><div class="wl-name"><a href="https://www.schwabassetmanagement.com/products/schd" target="_blank" rel="noopener">SCHD</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SCHD" target="_blank" rel="noopener" title="Finviz에서 SCHD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SCHD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SCHD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SCHD/news/" target="_blank" rel="noopener" class="news-link" title="SCHD 관련 최신 뉴스 보기">N</a></div></div>
+          <div class="wl-row" data-t="DRAM"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">글로벌 메모리반도체 테마 ETF (삼성전자·SK하이닉스·마이크론 등)</div><div class="wl-name"><a href="https://www.roundhillinvestments.com/etf/dram/" target="_blank" rel="noopener">DRAM</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=DRAM" target="_blank" rel="noopener" title="Finviz에서 DRAM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24DRAM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 DRAM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/DRAM/news/" target="_blank" rel="noopener" class="news-link" title="DRAM 관련 최신 뉴스 보기">N</a></div></div>
+          <div class="wl-row" data-t="RAM"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">DRAM 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.roundhillinvestments.com/etf/ram/" target="_blank" rel="noopener">RAM</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=RAM" target="_blank" rel="noopener" title="Finviz에서 RAM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24RAM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 RAM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/RAM/news/" target="_blank" rel="noopener" class="news-link" title="RAM 관련 최신 뉴스 보기">N</a></div></div>
+          <div class="wl-row" data-t="GLDM"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">금(金) 현물 추종 ETF</div><div class="wl-name"><a href="https://www.ssga.com/us/en/individual/etfs/spdr-gold-minishares-trust-gldm" target="_blank" rel="noopener">GLDM</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=GLDM" target="_blank" rel="noopener" title="Finviz에서 GLDM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24GLDM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 GLDM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/GLDM/news/" target="_blank" rel="noopener" class="news-link" title="GLDM 관련 최신 뉴스 보기">N</a></div></div>
+          <div class="wl-row" data-t="SLVP"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">글로벌 은(銀) 광업주 ETF</div><div class="wl-name"><a href="https://www.ishares.com/us/products/239674/ishares-msci-global-silver-metals-miners-etf" target="_blank" rel="noopener">SLVP</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SLVP" target="_blank" rel="noopener" title="Finviz에서 SLVP 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SLVP%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SLVP 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SLVP/news/" target="_blank" rel="noopener" class="news-link" title="SLVP 관련 최신 뉴스 보기">N</a></div></div>
         </div>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">세부내용의 +는 Finviz 상세 지표, X는 @TrendSpider의 해당 티커 게시물 검색, N은 야후 파이낸스의 해당 티커 최신 뉴스로 이동합니다(게시물·기사 존재 여부는 자동으로 판별되지 않으며, 없으면 결과가 비어 있을 수 있습니다).</p>
@@ -388,6 +395,7 @@ renderCapShareChart('us-cap-chart', US_CAP_DATA);
 applyRankHistory();
 loadUS();
 loadTickGroup('tick'); loadTickGroup('cap'); loadTickGroup('lev');
+initKrwToggle('#krw-toggle');
 
 </script>
 </body>

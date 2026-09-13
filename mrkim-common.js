@@ -751,7 +751,7 @@ function renderUS(p){
 /* ---- 티커 시세: Yahoo Finance (그룹별: tick=QLD·USD·SCHD, cap=시가총액TOP10, lev=레버리지ETF) ---- */
 const fmtWon=v=>Math.round(v).toLocaleString('ko-KR');
 const TICKGROUPS={
-  tick:{table:'tick-tbl', list:['QLD','USD','SCHD']},
+  tick:{table:'tick-tbl', list:['QLD','USD','SCHD','DRAM','RAM','GLDM','SLVP']},
   cap: {table:'cap-tbl',  list:['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA']},
   lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','KORU']},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
@@ -938,6 +938,131 @@ async function loadKrBreadth(){
   }catch(e){ console.warn('주가강도/폭(kr-breadth) 호출 실패:', e); return null; }
 }
 
+/* 금융상품 페이지 — 증권·은행·카드 이벤트 (Worker가 24시간마다 수집해둔 결과를 그대로 읽음) */
+async function loadFinEvents(){
+  const statusEl=document.getElementById('fin-events-status');
+  if(!PROXY_BASE){
+    if(statusEl) statusEl.textContent='⚠ PROXY_BASE가 설정되어 있지 않아 이벤트를 불러올 수 없습니다.';
+    return;
+  }
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'fin-events',{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});
+    const data=r.ok?await r.json():null;
+    renderFinEvents(data);
+  }catch(e){
+    console.warn('금융상품 이벤트 로딩 실패:', e);
+    renderFinEvents(null);
+  }
+}
+function renderFinEvents(data){
+  const statusEl=document.getElementById('fin-events-status');
+  const tbodies={증권:document.getElementById('fin-ev-sec'), 은행:document.getElementById('fin-ev-bank'), 카드:document.getElementById('fin-ev-card')};
+  if(!data || !data.byCat){
+    if(statusEl) statusEl.textContent='⚠ 이벤트 목록을 가져오지 못했습니다 — Worker(/fin-events)가 배포되어 있고 스케줄러가 한 번 이상 실행됐는지 확인해주세요.';
+    Object.values(tbodies).forEach(tb=>{ if(tb) tb.innerHTML='<tr><td class="mut" colspan="4">불러오지 못했습니다</td></tr>'; });
+    return;
+  }
+  if(statusEl){
+    const updated=data.updatedAt?new Date(data.updatedAt).toLocaleString('ko-KR'):'알 수 없음';
+    statusEl.textContent='최근 수집: '+updated+(data.failedSources&&data.failedSources.length?' · 수집 실패 '+data.failedSources.length+'곳':'');
+  }
+  Object.keys(tbodies).forEach(cat=>{
+    const tb=tbodies[cat]; if(!tb) return;
+    const rows=(data.byCat[cat]||[]);
+    if(!rows.length){ tb.innerHTML='<tr><td class="mut" colspan="4">표시할 이벤트가 없습니다</td></tr>'; return; }
+    tb.innerHTML=rows.map(ev=>{
+      const dstr=ev.deadlineTs?new Date(ev.deadlineTs).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'})+'까지':'상시';
+      const stars='★'.repeat(ev.star||1)+'☆'.repeat(3-(ev.star||1));
+      return '<tr><td>'+ev.source+'</td><td><a href="'+ev.url+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">'+ev.title+'</a></td>'+
+        '<td class="mut" style="white-space:nowrap">'+dstr+'</td><td style="text-align:center;color:var(--accent)">'+stars+'</td></tr>';
+    }).join('');
+  });
+}
+
+/* ===================== 전자공시(OpenDART) 연동 — 손익계산서 3년 시각화 =====================
+   crtfc_key는 Worker가 서버 쪽에서 자동으로 붙여주므로 클라이언트 코드에는 없다.
+   DART는 종목코드(005930)가 아니라 자체 corp_code(8자리)를 쓰는데, 이 매핑은 손으로
+   찾아 넣지 않고 Worker의 /dart-corp 엔드포인트에 물어봐서 자동으로 받아온다(Worker가
+   DART corpCode.xml 전체를 받아 캐시해두고 응답한다). 페이지에서 여러 종목을 한 번에
+   조회하면 아래 캐시에 저장되어 같은 세션에서는 재요청하지 않는다. */
+const dartCorpCodeCache={};
+async function resolveDartCorpCodes(stockCodes){
+  const need=stockCodes.filter(c=>!(c in dartCorpCodeCache));
+  if(need.length && PROXY_BASE){
+    try{
+      const origin=PROXY_BASE.replace(/\?url=$/,'');
+      const r=await fetch(origin+'dart-corp?codes='+need.join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});
+      if(r.ok){
+        const j=await r.json();
+        need.forEach(c=>{ dartCorpCodeCache[c]=j[c]||null; });
+      }
+    }catch(e){ console.warn('DART corp_code 해석 실패:', e); }
+  }
+  return stockCodes.map(c=>dartCorpCodeCache[c]||null);
+}
+
+/* bsns_year의 사업보고서(reprt_code=11011, 사업보고서) 단일회사 전체 재무제표 중
+   손익계산서 핵심 항목(매출액·영업이익·당기순이익)만 추출 */
+async function dartFinancialYear(corpCode, year){
+  const url='https://opendart.fss.or.kr/api/fnlttSinglAcnt.json?corp_code='+corpCode+'&bsns_year='+year+'&reprt_code=11011';
+  try{
+    const j=await getJSON(url);
+    if(!j || j.status!=='000' || !Array.isArray(j.list)){
+      console.warn('DART 재무제표 실패('+corpCode+','+year+'):', j&&j.message);
+      return null;
+    }
+    const pick=nm=>{
+      const row=j.list.find(r=>r.account_nm===nm && r.fs_div==='CFS') // 연결재무제표 우선
+             || j.list.find(r=>r.account_nm===nm); // 없으면 개별재무제표
+      return row?(+row.thstrm_amount.replace(/,/g,'')):null;
+    };
+    return { year, revenue:pick('매출액'), opProfit:pick('영업이익'), netProfit:pick('당기순이익') };
+  }catch(e){ console.warn('DART 호출 실패('+corpCode+','+year+'):', e); return null; }
+}
+
+/* 최근 3개 사업연도 손익계산서를 한 번에(전년도까지 확정 발표된 연도 기준) */
+async function dartFinancials3Y(stockCode){
+  const [corpCode]=await resolveDartCorpCodes([stockCode]);
+  if(!corpCode) return null;
+  const thisYear=new Date().getFullYear();
+  const years=[thisYear-3, thisYear-2, thisYear-1]; // 최근 확정 3개년(올해는 아직 사업보고서 미제출)
+  const results=await Promise.all(years.map(y=>dartFinancialYear(corpCode, y)));
+  const valid=results.filter(Boolean);
+  return valid.length?valid:null;
+}
+
+/* 손익계산서 3년 막대그래프(매출액·영업이익·당기순이익) — 반환된 HTML 문자열을 그대로 넣어 쓴다 */
+function renderFinancialsChart(data){
+  if(!data || !data.length) return '<p class="mut" style="font-size:12.5px">재무제표 데이터를 가져오지 못했습니다.</p>';
+  const w=320,barH=22,gap=6,leftLabelW=90;
+  const metrics=[['매출액','revenue','var(--tx)'],['영업이익','opProfit','var(--up)'],['당기순이익','netProfit','#2dd4bf']];
+  const allVals=data.flatMap(d=>metrics.map(([,k])=>d[k]||0));
+  const maxV=Math.max(...allVals,1);
+  const fmtOk=v=>{
+    if(v==null) return '--';
+    const eok=v/100000000; // 원 → 억원
+    return eok.toFixed(0)+'억';
+  };
+  let rows='';
+  data.forEach(d=>{
+    rows+='<div style="margin-bottom:10px"><div class="mut" style="font-size:11.5px;margin-bottom:4px">'+d.year+'년</div>';
+    metrics.forEach(([label,key,color])=>{
+      const v=d[key]||0;
+      const pct=Math.max(2,(Math.abs(v)/maxV)*100);
+      rows+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'+
+        '<span style="width:'+leftLabelW+'px;font-size:11px;color:var(--tx2);flex:none">'+label+'</span>'+
+        '<div style="flex:1;background:var(--panel2);border-radius:4px;overflow:hidden;height:'+barH+'px">'+
+          '<div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+color+'"></div>'+
+        '</div>'+
+        '<span style="width:64px;text-align:right;font-size:11.5px;font-weight:700;flex:none">'+fmtOk(v)+'</span>'+
+      '</div>';
+    });
+    rows+='</div>';
+  });
+  return '<div style="max-width:'+w+'px">'+rows+'</div>';
+}
+
 async function loadKrxIndicators(){
   const result={};
   /* 5. 시장 변동성(VKOSPI): kospi_dd_trd(KOSPI 시리즈 지수)에서 이름으로 검색 */
@@ -989,16 +1114,34 @@ async function loadKrxIndicators(){
   return result;
 }
 
+/* [로딩 지연 개선] 예전에는 Promise.all로 4개 소스를 전부 기다린 뒤 한꺼번에 그렸다.
+   ECOS·KRX 는 공개 프록시 폴백을 여러 번 시도하다 보니(각 5초 타임아웃 x 여러 프록시)
+   전체 응답까지 10~20초씩 걸리는 경우가 있었고, 그 사이 1번(시장 모멘텀, Yahoo 코스피
+   종가만 있으면 계산 가능)까지 같이 멈춰 있었다. 이제는 1번을 별도로 즉시 계산해서
+   먼저 표시하고, 2~7번(ECOS·KRX·주가강도폭)은 도착하는 대로 각자 갱신한다 — 값이
+   아직 없는 항목은 renderKRSub가 자동으로 "준비중"으로 표시한다. */
+let lastKrMomentumScore=null;
 async function loadKR(){
-  const [closes, ecos, krx, breadth] = await Promise.all([yclose('^KS11','1y'), loadEcosIndicators(), loadKrxIndicators(), loadKrBreadth()]);
-  if(!closes || closes.length<126){ renderKR(null, ecos, krx, breadth); return; }
+  let ecosData=null, krxData=null, breadthData=null;
+  renderKRSub(null, null, null, null); // 뼈대부터 즉시 그려서 "불러오는 중" 상태를 없앤다
+
+  const bg=(p, assign)=>p.then(v=>{ assign(v); renderKRSub(lastKrMomentumScore, ecosData, krxData, breadthData); })
+                        .catch(e=>{ console.warn('한국 공포탐욕 세부지표 로딩 실패:', e); });
+  const ecosP=bg(loadEcosIndicators(), v=>ecosData=v);
+  const krxP=bg(loadKrxIndicators(), v=>krxData=v);
+  const breadthP=bg(loadKrBreadth(), v=>breadthData=v);
+
+  const closes=await yclose('^KS11','1y');
+  if(!closes || closes.length<126){ renderKR(null, ecosData, krxData, breadthData); await Promise.allSettled([ecosP,krxP,breadthP]); return; }
   const last=closes[closes.length-1];
   const ma125=closes.slice(-125).reduce((a,b)=>a+b,0)/125;
   const ratio=(last-ma125)/ma125;
-  if(!isFinite(ratio)){ renderKR(null, ecos, krx, breadth); return; }
+  if(!isFinite(ratio)){ renderKR(null, ecosData, krxData, breadthData); await Promise.allSettled([ecosP,krxP,breadthP]); return; }
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
-  renderKR({score, last, ma125, ratio}, ecos, krx, breadth);
+  lastKrMomentumScore=score;
+  renderKR({score, last, ma125, ratio}, ecosData, krxData, breadthData);
+  await Promise.allSettled([ecosP,krxP,breadthP]); // 이미 각자 도착 시점에 화면을 갱신했으므로 여기선 대기만
 }
 function renderKR(d, ecos, krx, breadth){
   const valEl=document.getElementById('kr-val'), stateEl=document.getElementById('kr-state'),
@@ -1046,6 +1189,51 @@ async function loadFxRate(){
 function fmtKRW(usd){
   if(usdKrwRate==null) return null;
   return '₩'+Math.round(usd*usdKrwRate).toLocaleString('ko-KR');
+}
+
+/* ===== 미국주식·비트코인 등 달러 표시 가격에 원화 병기 옵션 =====
+   가격 텍스트를 하나하나 다시 만드는 대신, 이미 화면에 "$1,234.56" 형태로 그려진
+   .wl-price 요소를 스캔해 원화를 괄호로 덧붙이는 방식이라 stock.html·crypto.html의
+   기존 렌더링 함수(renderTick·renderCoin 등)를 건드리지 않고도 어디서나 동작한다.
+   가격은 주기적으로 갱신되므로 MutationObserver로 텍스트가 바뀔 때마다 다시 적용한다. */
+let krwDisplayOn=false;
+function applyKrwDisplayToEl(el){
+  if(!el) return;
+  const current=el.textContent;
+  let raw;
+  if(/^\$[\d,.]+$/.test(current)){
+    raw=current; // renderTick/renderCoin이 방금 새로 그린 순수 달러 텍스트 → 새 원본으로 채택
+  }else if(el.dataset.usdText!=null){
+    raw=el.dataset.usdText; // 이미 원화가 붙은 상태(우리가 만든 mutation) → 저장해둔 원본 재사용
+  }else{
+    return; // '--' 등 인식 불가 텍스트는 건드리지 않음
+  }
+  el.dataset.usdText=raw;
+  const target=(krwDisplayOn && usdKrwRate!=null)
+    ? (()=>{ const usd=parseFloat(raw.replace(/[$,]/g,'')); if(!isFinite(usd)) return raw; const krw=fmtKRW(usd); return krw?raw+' ('+krw+')':raw; })()
+    : raw;
+  if(current!==target) el.textContent=target; // 값이 같으면 쓰지 않아 MutationObserver 자기호출 루프를 끊는다
+}
+function applyKrwDisplayAll(){
+  document.querySelectorAll('.wl-price').forEach(applyKrwDisplayToEl);
+}
+function initKrwToggle(toggleSelector){
+  const toggle=document.querySelector(toggleSelector);
+  if(!toggle) return;
+  loadFxRate().then(applyKrwDisplayAll);
+  toggle.addEventListener('change',()=>{ krwDisplayOn=toggle.checked; applyKrwDisplayAll(); });
+  const obs=new MutationObserver(muts=>{
+    const touched=new Set();
+    muts.forEach(m=>{
+      const el=m.target.nodeType===1?m.target:m.target.parentElement;
+      const priceEl=el&&el.closest?el.closest('.wl-price'):null;
+      if(priceEl) touched.add(priceEl);
+    });
+    touched.forEach(applyKrwDisplayToEl);
+  });
+  document.querySelectorAll('.wl-price').forEach(el=>{
+    obs.observe(el,{childList:true,characterData:true,subtree:true});
+  });
 }
 
 async function yDailySeries(sym){
@@ -1161,6 +1349,8 @@ async function runTradeBacktest(){
   let bmQqqShares=0, bmQldShares=0, bmTqqqShares=0;
   let bmQqqDiv=0, bmQldDiv=0, bmTqqqDiv=0;
   let globalPeak=0; /* 낙폭(underwater) 그래프용 — 리셋되지 않는 전체 기간 누적 최고점(배당 포함 총수익 기준) */
+  let bmQldPeak=0, bmTqqqPeak=0; /* QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
+  let principalRecoveredTs=null; /* 누적 배당금만으로 누적원금을 회수한 첫 거래일(데이터 구간 내에서 도달 못하면 null) */
 
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
@@ -1218,11 +1408,24 @@ async function runTradeBacktest(){
     const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts];
     globalPeak=Math.max(globalPeak,totalValue);
     const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
+
+    /* QLD·TQQQ 단독매수 벤치마크의 낙폭(MDD)도 전략과 같은 방식(총수익 기준, 리셋 없는
+       전체 기간 최고점 대비)으로 계산해 나란히 비교할 수 있게 한다 */
+    const bmQldValue=qldPxNow!=null?(bmQldShares*qldPxNow+bmQldDiv):null;
+    const bmTqqqValue=tqqqPxNow!=null?(bmTqqqShares*tqqqPxNow+bmTqqqDiv):null;
+    if(bmQldValue!=null) bmQldPeak=Math.max(bmQldPeak,bmQldValue);
+    if(bmTqqqValue!=null) bmTqqqPeak=Math.max(bmTqqqPeak,bmTqqqValue);
+    const bmQldDD=(bmQldValue!=null && bmQldPeak>0)?(bmQldPeak-bmQldValue)/bmQldPeak*100:null;
+    const bmTqqqDD=(bmTqqqValue!=null && bmTqqqPeak>0)?(bmTqqqPeak-bmTqqqValue)/bmTqqqPeak*100:null;
+
+    /* 누적원금 회수 시점: 누적 배당금만으로 그 시점까지의 누적원금을 처음 넘어서는 날 */
+    if(principalRecoveredTs==null && cumCost>0 && cumDividend>=cumCost) principalRecoveredTs=ts;
+
     curve.push({
-      t:ts, cost:cumCost, value:totalValue, dd,
+      t:ts, cost:cumCost, value:totalValue, dd, cumDividend,
       bmQqq: qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null,
-      bmQld: qldPxNow!=null?(bmQldShares*qldPxNow+bmQldDiv):null,
-      bmTqqq: tqqqPxNow!=null?(bmTqqqShares*tqqqPxNow+bmTqqqDiv):null,
+      bmQld: bmQldValue, bmTqqq: bmTqqqValue,
+      bmQldDD, bmTqqqDD,
       rebalanced: rebalanceDays.has(ts)
     });
     const mObj=monthly[mk];
@@ -1257,10 +1460,21 @@ async function runTradeBacktest(){
     else if(nextDiv && Math.abs(nextDate-nextDiv.date)<3*86400000) nextDiv.amount+=nextAmt; // 비슷한 시기면 합산
   });
 
+  /* 연간 예상 수령 배당금: 현재 보유 수량 × 최근 12개월간 종목별 배당(주당) 합계 */
+  const lastTs=tradingTs.length?tradingTs[tradingTs.length-1]:Date.now();
+  const oneYearAgoTs=lastTs-365*86400000;
+  let annualDividendEst=0;
+  TRADE_TICKERS.forEach(t=>{
+    if(shares[t]<=0) return;
+    const perShare12m=(data[t].dividends||[]).filter(d=>d.t>oneYearAgoTs && d.t<=lastTs).reduce((s,d)=>s+d.amount,0);
+    annualDividendEst+=perShare12m*shares[t];
+  });
+
   return {
     curve, monthly, yearly, buyCount, cumDividend,
     finalCost:cumCost, finalValue:curve.length?curve[curve.length-1].value:0,
-    nextDiv, didRebalance:rebalanceDays.size>0
+    nextDiv, didRebalance:rebalanceDays.size>0,
+    annualDividendEst, principalRecoveredTs
   };
 }
 
@@ -1277,7 +1491,7 @@ function renderBacktest(res){
 
   const rebalNoteEl=document.getElementById('bt-rebal-note');
   if(rebalNoteEl) rebalNoteEl.textContent=res.didRebalance
-    ? '📌 투자기간이 1년을 초과해 매년 마지막 거래일에 QLD 40% · USD 40% · SCHD 20%로 리밸런싱이 반영되었습니다.'
+    ? '📌 투자기간 1년 초과 시 리밸런싱이 반영되었습니다.'
     : '';
 
   function fmtUSDKRW(usd){
@@ -1295,6 +1509,39 @@ function renderBacktest(res){
     const dy=res.finalCost>0?(res.cumDividend/res.finalCost*100):0;
     divYieldEl.textContent=dy.toFixed(2)+'%';
   }
+
+  /* 연간 예상 수령 배당금(현재 보유 수량 × 최근 12개월 배당 기준) */
+  const annualDivEl=document.getElementById('bt-annual-dividend');
+  if(annualDivEl) annualDivEl.textContent=fmtUSDKRW(res.annualDividendEst||0);
+
+  /* 누적원금 회수 시점 — 데이터 구간 내에서 이미 도달했으면 그 날짜, 아니면 최근 배당
+     페이스를 바탕으로 앞으로 얼마나 더 걸릴지 단순 추정(연간화 배당금 기준 선형 추정) */
+  const recoveryEl=document.getElementById('bt-recovery-date');
+  if(recoveryEl){
+    if(res.principalRecoveredTs){
+      recoveryEl.textContent=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달';
+      recoveryEl.className='big up';
+    }else{
+      const gap=res.finalCost-res.cumDividend;
+      if(gap<=0){
+        recoveryEl.textContent='도달';
+        recoveryEl.className='big up';
+      }else if(res.annualDividendEst>0){
+        const yearsNeeded=gap/res.annualDividendEst;
+        const projected=new Date(res.curve[res.curve.length-1].t);
+        projected.setDate(projected.getDate()+Math.round(yearsNeeded*365));
+        recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상';
+        recoveryEl.className='big mut';
+      }else{
+        recoveryEl.textContent='추정 불가';
+        recoveryEl.className='big mut';
+      }
+    }
+  }
+  const recoverySubEl=document.getElementById('bt-recovery-sub');
+  if(recoverySubEl) recoverySubEl.textContent=res.principalRecoveredTs
+    ? '실제 도달 시점(누적 배당금이 누적원금을 처음 넘어선 날)'
+    : '현재 연간 배당 페이스 기준 단순 선형 추정(배당 재투자 미반영)';
 
   const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
   const roiEl=document.getElementById('bt-roi');
@@ -1396,12 +1643,18 @@ function renderBacktest(res){
     const w=700,h=110,padL=56,padR=56,padTop=10;
     const n=res.curve.length;
     const stepX=n>1?(w-padL-padR)/(n-1):0;
-    const maxDD=Math.max(...res.curve.map(p=>p.dd||0),1);
+    const qldDDVals=res.curve.map(p=>p.bmQldDD).filter(v=>v!=null);
+    const tqqqDDVals=res.curve.map(p=>p.bmTqqqDD).filter(v=>v!=null);
+    const maxDD=Math.max(...res.curve.map(p=>p.dd||0), ...qldDDVals, ...tqqqDDVals, 1);
     const yOf=v=>padTop+ (v/maxDD)*(h-padTop-14);
     const pts=res.curve.map((p,i)=>[padL+i*stepX, yOf(p.dd||0)]);
+    const ptsQldDD=res.curve.map((p,i)=>p.bmQldDD!=null?[padL+i*stepX,yOf(p.bmQldDD)]:null).filter(Boolean);
+    const ptsTqqqDD=res.curve.map((p,i)=>p.bmTqqqDD!=null?[padL+i*stepX,yOf(p.bmTqqqDD)]:null).filter(Boolean);
     const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
     const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
     const worstDD=maxDD.toFixed(1);
+    const worstQldDD=qldDDVals.length?Math.max(...qldDDVals).toFixed(1):null;
+    const worstTqqqDD=tqqqDDVals.length?Math.max(...tqqqDDVals).toFixed(1):null;
 
     /* 좌우 Y축 눈금(0%, 중간, 최대낙폭%) */
     let yAxis='';
@@ -1420,8 +1673,17 @@ function renderBacktest(res){
       yAxis+
       '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
       '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
+      (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
+      (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
       '</svg>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 최대 -'+worstDD+'%</div>';
+      '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 전략 최대 -'+worstDD+'%'+
+      (worstQldDD!=null?' · QLD 단독매수 최대 -'+worstQldDD+'%':'')+
+      (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
+      '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 전략(배당 포함 평가금 기준)</span>'+
+      '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> QLD 단독매수</span>'+
+      '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> TQQQ 단독매수</span>'+
+      '</div>';
   }
 
   /* 연도별 수익률 */

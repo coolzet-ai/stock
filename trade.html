@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:6px 12px;line-height:1.5;text-align:center;white-space:normal}
+.naver-gift{padding:6px 12px;line-height:1.15;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -161,7 +161,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 <header>
   <div class="wrap nav">
-    <div class="logo">Mr.<span>Kim Signal</span></div>
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국지수</a></li>
@@ -222,6 +222,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div class="big" id="bt-div-yield">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">누적 배당금 ÷ 누적원금</p>
       </div>
+      <div class="card">
+        <h3>연간 예상 수령 배당금</h3>
+        <div class="big" id="bt-annual-dividend" style="font-size:26px">--</div>
+        <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
+      </div>
+      <div class="card">
+        <h3>누적원금 회수 시점</h3>
+        <div class="big" id="bt-recovery-date" style="font-size:22px">--</div>
+        <p class="mut" style="margin-top:6px;font-size:12px" id="bt-recovery-sub">계산 중…</p>
+      </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>현재 평가수익금 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
         <div class="big" id="bt-profit" style="font-size:32px">--</div>
@@ -271,7 +281,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
-    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 QLD 40% · USD 40% · SCHD 20%로 리밸런싱을 실시합니다.</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 누적원금 회수 시점은 누적 배당금이 누적원금에 도달(또는 도달 예상)하는 시점이며, 배당 재투자를 하지 않는다는 가정입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
   </div>
 </section>
 
