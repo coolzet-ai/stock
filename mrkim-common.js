@@ -1841,26 +1841,54 @@ function renderBacktest(res){
   }
 
   /* 수익실현금 카드 — 원금 100% 회수와 듀얼스나이퍼는 서로 독립된 조건이라(하나만 켜도 되고
-     둘 다 켤 수도 있음) 두 실현 현금을 하나로 합치지 않고 각각 별도 숫자·블록으로 보여준다. */
+     둘 다 켤 수도 있음) 두 실현 현금을 하나로 합치지 않고 각각 별도 숫자·블록으로 보여준다.
+     원금회수 옵션은 켰지만 아직 조건에 도달하지 못했으면(짧은 기간으로 테스트 중 등),
+     현재까지의 연환산 수익률(CAGR)로 추정한 "예상 실현금·예상 시점·D-DAY"를 대신 보여준다. */
   const realizedCardEl=document.getElementById('bt-realized-card');
   const hasRecoveryRealized=res.recoveryEvents && res.recoveryEvents.length>0;
   const hasSniperRealized=res.sniperRealizedCash>0;
+  const showProjected=res.principalRecoveryMode && !hasRecoveryRealized;
   if(realizedCardEl){
-    if(hasRecoveryRealized || hasSniperRealized){
+    if(hasRecoveryRealized || hasSniperRealized || showProjected){
       realizedCardEl.style.display='';
       const recoveryBlockEl=document.getElementById('bt-realized-recovery-block');
+      const projectedBlockEl=document.getElementById('bt-realized-recovery-projected-block');
       const sniperBlockEl=document.getElementById('bt-realized-sniper-block');
       const roundsEl=document.getElementById('bt-realized-rounds');
-      const firstTs0=res.curve[0].t;
+      const firstTs0=res.curve[0].t, lastTs0=res.curve[res.curve.length-1].t;
       const dayCount0=(a,b)=>Math.round((b-a)/86400000);
       const lines=[];
       if(hasRecoveryRealized){
         if(recoveryBlockEl) recoveryBlockEl.style.display='';
+        if(projectedBlockEl) projectedBlockEl.style.display='none';
         const ev=res.recoveryEvents[0];
         const recoveryEl2=document.getElementById('bt-realized-recovery');
         if(recoveryEl2) recoveryEl2.textContent=fmtUSDKRW(ev.amount);
-        lines.push('원금 회수: '+fmtUSDKRW(ev.amount)+' · '+new Date(ev.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,ev.t).toLocaleString('ko-KR')+'일)');
+        lines.push('<b>원금 회수</b><br>'+fmtUSDKRW(ev.amount)+'<br><span class="mut" style="font-size:11px">'+new Date(ev.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,ev.t).toLocaleString('ko-KR')+'일)</span>');
       }else if(recoveryBlockEl){ recoveryBlockEl.style.display='none'; }
+      if(showProjected && !hasRecoveryRealized){
+        if(projectedBlockEl) projectedBlockEl.style.display='';
+        const projectedEl=document.getElementById('bt-realized-recovery-projected');
+        const years=(lastTs0-firstTs0)/(365*86400000);
+        const ratio=res.finalCost>0?res.finalValue/res.finalCost:0;
+        const cagr=(years>0.1 && ratio>0)?Math.pow(ratio,1/years)-1:null;
+        if(projectedEl){
+          if(cagr!=null && cagr>0 && ratio<2){
+            const extraYears=Math.log(2/ratio)/Math.log(1+cagr);
+            if(isFinite(extraYears) && extraYears>0 && extraYears<100){
+              const projectedDate=new Date(lastTs0);
+              projectedDate.setDate(projectedDate.getDate()+Math.round(extraYears*365));
+              const dday=Math.round(extraYears*365);
+              projectedEl.innerHTML='예상 실현금(현재 순원금 기준, 실제로는 이후 매수분만큼 더 커짐)<br><b>'+fmtUSDKRW(res.finalCost)+'</b><br>'+
+                '예상 회수시점<br><b>'+projectedDate.toLocaleDateString('ko-KR')+'</b> <span class="mut">(D-'+dday.toLocaleString('ko-KR')+'일)</span>';
+            }else{
+              projectedEl.innerHTML='추정 불가(현재 페이스로는 100년 내 도달 예상 어려움)';
+            }
+          }else{
+            projectedEl.innerHTML='추정 불가(현재 수익률이 마이너스이거나 데이터가 부족합니다)';
+          }
+        }
+      }else if(projectedBlockEl){ projectedBlockEl.style.display='none'; }
       if(hasSniperRealized){
         if(sniperBlockEl) sniperBlockEl.style.display='';
         const sniperEl2=document.getElementById('bt-realized-sniper');
@@ -1868,13 +1896,13 @@ function renderBacktest(res){
         const sniperSells=(res.sniperLog||[]).filter(l=>l.type==='sell');
         if(sniperSells.length){
           sniperSells.forEach((s,i)=>{
-            lines.push('듀얼스나이퍼 실현 '+(i+1)+'회차: '+fmtUSDKRW(s.amount)+' · '+new Date(s.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,s.t).toLocaleString('ko-KR')+'일)');
+            lines.push('<b>듀얼스나이퍼 '+(i+1)+'차</b><br>'+fmtUSDKRW(s.amount)+'<br><span class="mut" style="font-size:11px">'+new Date(s.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,s.t).toLocaleString('ko-KR')+'일)</span>');
           });
         }else{
-          lines.push('듀얼스나이퍼 실현: '+fmtUSDKRW(res.sniperRealizedCash));
+          lines.push('<b>듀얼스나이퍼 실현</b><br>'+fmtUSDKRW(res.sniperRealizedCash));
         }
       }else if(sniperBlockEl){ sniperBlockEl.style.display='none'; }
-      if(roundsEl) roundsEl.innerHTML=lines.join('<br>');
+      if(roundsEl) roundsEl.innerHTML=lines.join('<div style="margin-top:8px;border-top:1px dashed var(--line)"></div>');
     }else{
       realizedCardEl.style.display='none';
     }
@@ -1894,20 +1922,25 @@ function renderBacktest(res){
      상태를 유지한) 가상의 시나리오다. 그냥 회색 텍스트 한 줄로만 보여주던 것을, 어떤 값인지
      헷갈리지 않도록 라벨을 명확히 하고(전액 미실현 유지 시), 점선 박스로 시각적으로 구분해
      차이(+/-)를 색상과 함께 눈에 띄게 표시한다. */
-  function diffNote(actual, counterfactual, elId){
+  /* [문구·시각화 개선] "회수 안 했다면"이라는 단정적 문구 대신 "계속 투자했다면(비교)"으로
+     톤을 낮췄고, 금액·차이를 줄로 나눠 표시한다. 누적원금·배당금 비교는 성과 평가가 아니라
+     단순 회계상 차이라 up/down(적/청) 색을 넣지 않는다 — 원금을 회수해서 누적원금이 줄어든
+     것은 "나쁜 결과"가 아닌데 빨간색을 넣으면 마치 손해처럼 보이는 문제가 있었다. */
+  function diffNote(actual, counterfactual, elId, neutral){
     const el=document.getElementById(elId);
     if(!el) return;
     const diff=actual-counterfactual;
     if(!hasRecoveryRealized || Math.abs(diff)<0.5){ el.innerHTML=''; return; }
-    const dir=diff>=0?'up':'down';
+    const dir=neutral?'':(diff>=0?'up':'down');
     el.innerHTML='<div style="margin-top:8px;padding:7px 10px;border-radius:8px;border:1px dashed var(--line);background:rgba(159,176,201,.06)">'+
-      '<div class="mut" style="font-size:10.5px">회수 안 했다면(전액 미실현 유지 시)</div>'+
-      '<div style="font-size:12.5px;margin-top:2px">'+fmtUSDKRW(counterfactual)+' <b class="'+dir+'">('+(diff>=0?'+':'-')+fmtUSDKRW(Math.abs(diff))+')</b></div>'+
+      '<div class="mut" style="font-size:10.5px">계속 투자했다면(비교)</div>'+
+      '<div style="font-size:12.5px;margin-top:4px">'+fmtUSDKRW(counterfactual)+'</div>'+
+      '<div style="font-size:11.5px;margin-top:2px" class="'+dir+'">차이 '+(diff>=0?'+':'-')+fmtUSDKRW(Math.abs(diff))+'</div>'+
       '</div>';
   }
-  diffNote(res.finalCost, res.noRecoveryCost, 'bt-cost-diff');
-  diffNote(res.cumDividend, res.noRecoveryDividend, 'bt-dividend-diff');
-  diffNote(res.annualDividendEst||0, res.noRecoveryAnnualDividendEst||0, 'bt-annual-dividend-diff');
+  diffNote(res.finalCost, res.noRecoveryCost, 'bt-cost-diff', true);
+  diffNote(res.cumDividend, res.noRecoveryDividend, 'bt-dividend-diff', true);
+  diffNote(res.annualDividendEst||0, res.noRecoveryAnnualDividendEst||0, 'bt-annual-dividend-diff', true);
 
   /* 원금 대비 배당률 = 누적 배당금 ÷ 누적원금 */
   const divYieldEl=document.getElementById('bt-div-yield');
@@ -1937,8 +1970,9 @@ function renderBacktest(res){
       const dir2=diff>=0?'up':'down';
       roiDiffEl.innerHTML=(hasRecoveryRealized && Math.abs(diff)>=0.1)
         ? '<div style="margin-top:8px;padding:7px 10px;border-radius:8px;border:1px dashed var(--line);background:rgba(159,176,201,.06)">'+
-          '<div class="mut" style="font-size:10.5px">회수 안 했다면(전액 미실현 유지 시)</div>'+
-          '<div style="font-size:12.5px;margin-top:2px">'+(roi2>=0?'+':'')+roi2.toFixed(1)+'%p <b class="'+dir2+'">('+(diff>=0?'+':'')+diff.toFixed(1)+'%p)</b></div>'+
+          '<div class="mut" style="font-size:10.5px">계속 투자했다면(비교)</div>'+
+          '<div style="font-size:12.5px;margin-top:4px">'+(roi2>=0?'+':'')+roi2.toFixed(1)+'%p</div>'+
+          '<div style="font-size:11.5px;margin-top:2px" class="'+dir2+'">차이 '+(diff>=0?'+':'')+diff.toFixed(1)+'%p</div>'+
           '</div>'
         : '';
     }
@@ -2034,30 +2068,43 @@ function renderBacktest(res){
         return '<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--accent)" stroke-width="2"/>'+
           '<text x="'+x+'" y="'+(padTop+11)+'" font-size="9.5" fill="var(--accent)" text-anchor="middle">💰원금회수</text>';
       })():'')+
-      (res.sniperLog && res.sniperLog.length ? res.sniperLog.filter(l=>l.type==='sell').map(sl=>{
+      (res.sniperLog && res.sniperLog.length ? res.sniperLog.filter(l=>l.type==='sell').map((sl,i)=>{
         const idx=res.curve.findIndex(p=>p.t>=sl.t);
         if(idx<0) return '';
         const x=(padL+idx*stepX).toFixed(1);
+        const labelY=h-padBottom-4-(i%3)*11; // 매도가 여러 차수 겹칠 때 라벨을 3단으로 순환 배치해 겹침 방지
         return '<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="#facc15" stroke-width="2" stroke-dasharray="3 2"/>'+
-          '<text x="'+x+'" y="'+(h-padBottom-4)+'" font-size="9.5" fill="#facc15" text-anchor="middle">🎯스나이퍼</text>';
+          '<text x="'+x+'" y="'+labelY+'" font-size="9.5" fill="#facc15" text-anchor="middle">🎯'+(i+1)+'차</text>';
       }).join(''):'')+
       '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
       (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       (ptsTqqq.length?'<path d="'+pathOf(ptsTqqq)+'" fill="none" stroke="#facc15" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
-      '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
+      /* [시각화 개선] 원금 회수가 있었으면 평가금 선을 "회수 전(실선)"과 "회수 후(점선, 옅게)"로
+         나눠 그려서 그 시점부터 포지션이 줄어든 상태로 이어진다는 걸 자연스럽게 보여준다. */
+      (()=>{
+        const evT=(res.recoveryEvents && res.recoveryEvents.length)?res.recoveryEvents[0].t:null;
+        const recIdx=evT!=null?res.curve.findIndex(p=>p.t>=evT):-1;
+        if(recIdx>0 && recIdx<ptsVal.length-1){
+          const pre=ptsVal.slice(0,recIdx+1), post=ptsVal.slice(recIdx);
+          return '<path d="'+pathOf(pre)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
+            '<path d="'+pathOf(post)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2" stroke-dasharray="5 3" opacity="0.7"/>';
+        }
+        return '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>';
+      })()+
       monthLabels+
       '</svg>'+
       '<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2);min-width:0">'+
-      '<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(배당포함, 실제 전략)</span>'+
+      '<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(배당포함, 회수 전)</span>'+
+      (res.recoveryEvents && res.recoveryEvents.length?'<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+';opacity:.7">┄</span> 평가금(회수 후, 축소된 포지션)</span>':'')+
       '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ(배당포함)</span>'+
       (res.recoveryEvents && res.recoveryEvents.length?'<span style="white-space:nowrap"><span style="color:var(--accent)">┃</span> 원금 100% 회수 시점</span>':'')+
-      (res.sniperLog && res.sniperLog.some(l=>l.type==='sell')?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 실현 시점</span>':'')+
+      (res.sniperLog && res.sniperLog.some(l=>l.type==='sell')?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 매도(차수별)</span>':'')+
       '</div>';
   }
 
