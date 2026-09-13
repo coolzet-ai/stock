@@ -1564,21 +1564,41 @@ function fmtUSD(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
    구간이 겹치지 않으면 "특정 사건과 자동 매칭되지 않음"이라고 솔직하게 표시한다. */
 const MARKET_STRESS_TIMELINE=[
   {start:'2022-01-01', end:'2022-10-31', label:'2022년 연준 고강도 금리인상·인플레이션 쇼크',
-   note:'연준이 인플레이션을 잡기 위해 자이언트 스텝(75bp)을 포함한 공격적 금리인상을 이어가며 성장주·반도체가 한 해 내내 큰 폭으로 조정받았던 구간입니다.'},
+   note:'연준이 인플레이션을 잡기 위해 자이언트 스텝(75bp)을 포함한 공격적 금리인상을 이어가며\n성장주·반도체가 한 해 내내 큰 폭으로 조정받았던 구간입니다.'},
+  {start:'2022-11-01', end:'2022-12-31', label:'2022년 말 긴축 장기화 우려·FTX 파산 여파',
+   note:'연준의 긴축 기조가 예상보다 오래갈 것이라는 우려가 이어졌고,\n11월 FTX 파산으로 위험자산 전반의 투자심리가 위축됐던 구간입니다.'},
   {start:'2023-03-01', end:'2023-03-31', label:'2023년 3월 미국 지역은행 위기(SVB 등)',
-   note:'실리콘밸리은행(SVB) 등 지역은행 파산을 계기로 금융시스템 리스크 우려가 번지며 단기간 급락이 발생했던 구간입니다.'},
+   note:'실리콘밸리은행(SVB) 등 지역은행 파산을 계기로\n금융시스템 리스크 우려가 번지며 단기간 급락이 발생했던 구간입니다.'},
+  {start:'2023-08-01', end:'2023-10-31', label:'2023년 가을 미국 국채금리 급등(고금리 장기화 우려)',
+   note:'미 10년물 국채금리가 급등하며 "higher for longer"(고금리 장기화) 우려가 커졌고,\n밸류에이션 부담이 큰 성장주·반도체가 조정받았던 구간입니다.'},
+  {start:'2024-04-01', end:'2024-04-30', label:'2024년 4월 금리인하 지연 실망 조정',
+   note:'예상보다 미뤄지는 연준의 금리인하 시점에 시장이 실망하며\n기술주 중심으로 단기 조정이 나타났던 구간입니다.'},
   {start:'2024-07-15', end:'2024-08-20', label:'2024년 8월 엔캐리트레이드 청산 쇼크',
-   note:'일본은행 금리인상과 엔화 강세로 엔캐리트레이드 청산 우려가 커지며(8월 5일 전후) 글로벌 증시, 특히 반도체주가 급락했던 구간입니다.'},
+   note:'일본은행 금리인상과 엔화 강세로 엔캐리트레이드 청산 우려가 커지며(8월 5일 전후)\n글로벌 증시, 특히 반도체주가 급락했던 구간입니다.'},
+  {start:'2025-01-24', end:'2025-02-10', label:'2025년 1월 딥시크(DeepSeek) 쇼크',
+   note:'중국 AI 스타트업 딥시크가 저비용으로 고성능 모델을 공개하며\n"빅테크의 대규모 AI 투자가 과도한 것 아니냐"는 우려가 불거졌고,\n1월 27일 하루 만에 엔비디아가 약 17%, 필라델피아 반도체지수가 약 9% 급락했던 구간입니다.'},
   {start:'2025-03-15', end:'2025-05-15', label:'2025년 4월 미국 상호관세 발표 쇼크',
-   note:'미국의 전면적 상호관세 발표로 글로벌 무역전쟁 우려가 커지며 증시 전반이 급락했던 구간입니다.'},
+   note:'미국의 전면적 상호관세 발표로 글로벌 무역전쟁 우려가 커지며\n증시 전반이 급락했던 구간입니다.'},
   {start:'2025-07-15', end:'2025-09-30', label:'2025년 여름 반도체 관세(무역확장법 232조) 우려',
-   note:'반도체 수입품에 대한 별도 관세 부과 우려(최대 300% 언급)가 커지며 반도체 업종 중심으로 조정이 나타났던 구간입니다.'}
+   note:'반도체 수입품에 대한 별도 관세 부과 우려(최대 300% 언급)가 커지며\n반도체 업종 중심으로 조정이 나타났던 구간입니다.'}
 ];
 function matchMarketStressEvent(troughTs){
   for(const ev of MARKET_STRESS_TIMELINE){
     if(troughTs>=new Date(ev.start+'T00:00:00Z').getTime() && troughTs<=new Date(ev.end+'T23:59:59Z').getTime()) return ev;
   }
   return null;
+}
+/* 정확히 겹치는 구간이 없을 때, 가장 날짜가 가까운 사건을 참고용으로 찾는다(정확한 매칭이 아님을 항상 명시) */
+function nearestMarketStressEvent(troughTs){
+  let best=null, bestDist=Infinity;
+  MARKET_STRESS_TIMELINE.forEach(ev=>{
+    const mid=(new Date(ev.start).getTime()+new Date(ev.end).getTime())/2;
+    const dist=Math.abs(troughTs-mid);
+    if(dist<bestDist){ bestDist=dist; best=ev; }
+  });
+  if(!best) return null;
+  const days=Math.round(bestDist/86400000);
+  return {ev:best, days};
 }
 /* dd(고점 대비 낙폭%)가 threshold 이상으로 올라간 구간을 찾아 시작·저점(최대낙폭)·종료(회복) 시점을 반환 */
 function detectDrawdownEpisodes(curve, threshold){
@@ -1634,34 +1654,44 @@ function renderBacktest(res){
   if(annualDivEl) annualDivEl.textContent=fmtUSDKRW(res.annualDividendEst||0);
 
   /* 누적원금 회수 시점 — 원금 대비 수익률(평가금 기준) 100% 달성 시점. 데이터 구간 내에서
-     이미 도달했으면 그 날짜, 아니면 현재까지의 연환산 수익률(CAGR)로 계속 간다고 가정했을 때
-     평가금이 원금의 2배에 도달하는 시점을 단순 추정한다. */
+     이미 도달했으면 그 날짜와 최초 투자일로부터 며칠 걸렸는지(D+일수)를 함께 표시하고,
+     아직이면 현재까지의 연환산 수익률(CAGR)로 계속 간다고 가정했을 때 평가금이 원금의
+     2배에 도달하는 시점을 단순 추정한다. */
   const recoveryEl=document.getElementById('bt-recovery-date');
+  const recoveryCardEl=recoveryEl?recoveryEl.closest('.card'):null;
+  const firstTs=res.curve[0].t, lastTs=res.curve[res.curve.length-1].t;
+  const dayCount=(a,b)=>Math.round((b-a)/86400000);
   if(recoveryEl){
+    if(recoveryCardEl) recoveryCardEl.style.cssText='';
     if(res.principalRecoveredTs){
-      recoveryEl.textContent=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달';
+      const days=dayCount(firstTs,res.principalRecoveredTs);
+      recoveryEl.textContent=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달 (D+'+days.toLocaleString('ko-KR')+'일)';
       recoveryEl.className='big up';
+      if(recoveryCardEl) recoveryCardEl.style.cssText='border:2px solid var(--up);background:rgba(255,77,79,.08)';
     }else if(res.finalValue>=2*res.finalCost){
-      recoveryEl.textContent='도달';
+      const days=dayCount(firstTs,lastTs);
+      recoveryEl.textContent='도달 (D+'+days.toLocaleString('ko-KR')+'일)';
       recoveryEl.className='big up';
+      if(recoveryCardEl) recoveryCardEl.style.cssText='border:2px solid var(--up);background:rgba(255,77,79,.08)';
     }else{
-      const firstTs=res.curve[0].t, lastTs=res.curve[res.curve.length-1].t;
       const years=(lastTs-firstTs)/(365*86400000);
       const ratio=res.finalCost>0?res.finalValue/res.finalCost:0;
       const cagr=(years>0.1 && ratio>0)?Math.pow(ratio,1/years)-1:null;
+      const elapsedDays=dayCount(firstTs,lastTs);
       if(cagr!=null && cagr>0){
         const extraYears=Math.log(2/ratio)/Math.log(1+cagr);
         if(isFinite(extraYears) && extraYears>0 && extraYears<100){
           const projected=new Date(lastTs);
           projected.setDate(projected.getDate()+Math.round(extraYears*365));
-          recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상';
+          const totalDays=dayCount(firstTs,projected.getTime());
+          recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상 (현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과, 목표 D+'+totalDays.toLocaleString('ko-KR')+'일)';
           recoveryEl.className='big mut';
         }else{
-          recoveryEl.textContent='추정 불가';
+          recoveryEl.textContent='추정 불가 (현재 D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
           recoveryEl.className='big mut';
         }
       }else{
-        recoveryEl.textContent='추정 불가(현재 수익률이 마이너스이거나 데이터 부족)';
+        recoveryEl.textContent='추정 불가(현재 수익률이 마이너스이거나 데이터 부족) (D+'+elapsedDays.toLocaleString('ko-KR')+'일 경과)';
         recoveryEl.className='big mut';
       }
     }
@@ -1815,22 +1845,36 @@ function renderBacktest(res){
   }
 
   /* 낙폭 15% 이상이었던 구간 각주 — 실제 계산된 시점(res.curve)을 바탕으로 자동 탐지하고,
-     널리 알려진 시장 충격 시기와 겹치면 참고 설명을 붙인다(매칭 안 되면 솔직히 표시) */
+     널리 알려진 시장 충격 시기와 겹치면 참고 설명을 붙인다. 정확히 겹치는 사건이 없으면
+     가장 가까운 시기의 사건을 "참고용(정확한 매칭 아님)"으로 대신 보여준다. */
   const ddEventsEl=document.getElementById('bt-drawdown-events');
   if(ddEventsEl){
     const episodes=detectDrawdownEpisodes(res.curve, 15);
     if(!episodes.length){
       ddEventsEl.innerHTML='<p class="mut" style="font-size:12px">이 백테스트 구간에는 낙폭이 15% 이상으로 커진 시점이 없었습니다.</p>';
     }else{
-      ddEventsEl.innerHTML='<p class="mut" style="font-size:12px;margin-bottom:6px">⚠ 낙폭 15% 이상 구간</p>'+
+      ddEventsEl.innerHTML='<p class="mut" style="font-size:12px;margin-bottom:6px">⚠ 낙폭 15% 이상 구간 — 시점과 관련 이벤트</p>'+
         episodes.map(ep=>{
           const troughDate=new Date(ep.troughTs).toLocaleDateString('ko-KR');
           const startDate=new Date(ep.startTs).toLocaleDateString('ko-KR');
           const endDate=ep.endTs?new Date(ep.endTs).toLocaleDateString('ko-KR'):'아직 회복 전(데이터 마지막 날 기준)';
-          const ev=matchMarketStressEvent(ep.troughTs);
-          const evTxt=ev?('<b>'+ev.label+'</b> — '+ev.note):'특정 사건과 자동 매칭되지 않음(그 시기 증시 뉴스를 직접 확인해보세요)';
-          return '<div class="mut" style="font-size:12px;margin-top:6px;padding-left:10px;border-left:2px solid var(--down)">'+
-            startDate+' ~ '+endDate+' · 최대 낙폭 -'+ep.troughDD.toFixed(1)+'%(저점 '+troughDate+')<br>'+evTxt+'</div>';
+          const exact=matchMarketStressEvent(ep.troughTs);
+          let titleHtml, noteHtml;
+          if(exact){
+            titleHtml='<b style="color:var(--up)">'+exact.label+'</b>';
+            noteHtml=exact.note.split('\n').join('<br>');
+          }else{
+            const near=nearestMarketStressEvent(ep.troughTs);
+            if(near){
+              titleHtml='<b style="color:var(--up)">'+near.ev.label+'</b> <span class="mut" style="font-weight:400">(약 '+near.days+'일 차이 · 참고용, 정확한 매칭 아님)</span>';
+              noteHtml=near.ev.note.split('\n').join('<br>');
+            }else{
+              titleHtml='<b style="color:var(--up)">특정 사건과 자동 매칭되지 않음</b>';
+              noteHtml='그 시기 증시 뉴스를 직접 확인해보세요.';
+            }
+          }
+          return '<div class="mut" style="font-size:12px;margin-top:8px;padding-left:10px;border-left:2px solid var(--down)">'+
+            startDate+' ~ '+endDate+' · 최대 낙폭 -'+ep.troughDD.toFixed(1)+'%(저점 '+troughDate+')<br>'+titleHtml+'<br>'+noteHtml+'</div>';
         }).join('');
     }
   }
