@@ -982,18 +982,35 @@ function renderFinEvents(data){
 }
 
 /* ===================== 환율 페이지 — 김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) =====================
-   원화(KRW) 기준 교차환율을 Yahoo Finance 티커(XXXKRW=X, 미국 달러만 관례상 KRW=X)로 받아
-   기간별 등락률·RSI(14)·200일 이격도·200일선 위/아래를 계산해 표로 보여준다. */
+   원화(KRW) 기준 교차환율을 Yahoo Finance 티커로 받는다. USD·JPY·EUR·CHF는 XXXKRW=X 직접
+   교차 티커가 존재하지만, CNY·BRL은 Yahoo에 해당 직접 교차 티커가 없어(조회 실패) 대신
+   달러를 다리 삼아(USD/KRW ÷ USD/XXX = XXX/KRW) 두 개의 실제 존재하는 티커(KRW=X, CNY=X,
+   BRL=X — 전부 표준 Yahoo 통화 티커)를 조합해 계산한다. */
 const FX_META={
   'KRW=X':   {name:'미국 달러', code:'USD', flag:'🇺🇸', url:'https://www.federalreserve.gov'},
   'JPYKRW=X':{name:'일본 엔',   code:'JPY', flag:'🇯🇵', url:'https://www.boj.or.jp'},
-  'CNYKRW=X':{name:'중국 위안', code:'CNY', flag:'🇨🇳', url:'http://www.pbc.gov.cn'},
+  'CNY_BRIDGE':{name:'중국 위안', code:'CNY', flag:'🇨🇳', url:'http://www.pbc.gov.cn', bridge:'CNY=X'},
   'EURKRW=X':{name:'유로',     code:'EUR', flag:'🇪🇺', url:'https://www.ecb.europa.eu'},
   'CHFKRW=X':{name:'스위스 프랑', code:'CHF', flag:'🇨🇭', url:'https://www.snb.ch'},
-  'BRLKRW=X':{name:'브라질 헤알', code:'BRL', flag:'🇧🇷', url:'https://www.bcb.gov.br'}
+  'BRL_BRIDGE':{name:'브라질 헤알', code:'BRL', flag:'🇧🇷', url:'https://www.bcb.gov.br', bridge:'BRL=X'}
 };
 const FX_LIST=Object.keys(FX_META);
 const fxData={};
+
+/* USD/KRW(krwCloses)와 USD/XXX(otherCloses) 두 시계열을 날짜 정렬 없이(둘 다 최신순으로
+   끝에서부터 정렬돼 있으므로) 끝을 맞춰 XXX/KRW = (USD/KRW) ÷ (USD/XXX) 로 나눈다.
+   완벽한 거래일 정렬은 아니지만 FX는 거의 매일 데이터가 있어 근사 오차가 작다. */
+function combineFxBridge(krwCloses, otherCloses){
+  if(!krwCloses || !otherCloses) return null;
+  const n=Math.min(krwCloses.length, otherCloses.length);
+  if(n<30) return null;
+  const k=krwCloses.slice(-n), o=otherCloses.slice(-n);
+  const out=[];
+  for(let i=0;i<n;i++){
+    if(o[i]) out.push(k[i]/o[i]);
+  }
+  return out.length>30?out:null;
+}
 
 /* RSI(14, 단순평균 기반 — 와일더 스무딩 아님, 참고용 근사치) */
 function calcRSI(closes, period){
@@ -1012,8 +1029,15 @@ function calcRSI(closes, period){
 }
 
 async function loadFxWatchlist(){
-  await Promise.all(FX_LIST.map(async sym=>{
-    if(!fxData[sym]) fxData[sym]=await yclose(sym,'2y'); // 200일선 계산에 넉넉한 기간 확보
+  await Promise.all(FX_LIST.map(async key=>{
+    if(fxData[key]) return;
+    const meta=FX_META[key];
+    if(meta.bridge){
+      const [krw, other]=await Promise.all([yclose('KRW=X','2y'), yclose(meta.bridge,'2y')]);
+      fxData[key]=combineFxBridge(krw, other);
+    }else{
+      fxData[key]=await yclose(key,'2y'); // 200일선 계산에 넉넉한 기간 확보
+    }
   }));
   renderFxWatchlist(curPer.fx||'d');
 }
