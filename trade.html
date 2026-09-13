@@ -195,7 +195,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p class="mut">본 매매법의 매수·매도 세부 규칙은 공개하지 않습니다. 아래 백테스트 결과는 실제 규칙을 적용해 계산한 성과입니다.</p>
     </div>
 
-    <h2 style="font-size:21px;margin-top:44px">매매법 백테스트</h2>
+    <div class="sec-h" style="margin-top:44px;align-items:baseline">
+      <h2 style="font-size:21px;margin:0">매매법 백테스트</h2>
+      <button class="btn sm ghost" id="bt-admin-btn" type="button">관리자 페이지</button>
+    </div>
     <div class="tabs" id="bt-year-tabs">
       <button data-year="2022">2022년부터</button>
       <button data-year="2023">2023년부터</button>
@@ -224,6 +227,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h3>누적원금</h3>
         <div class="big" id="bt-cost" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">신규 매수·리밸런싱 반영, 세전 기준</p>
+        <div id="bt-cost-diff"></div>
       </div>
       <div class="card">
         <h3>누적 매수 횟수</h3>
@@ -233,12 +237,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="card">
         <h3>현재 평가금 <span class="mut" style="font-size:11px;font-weight:400">(배당 제외)</span></h3>
         <div class="big" id="bt-total-value" style="font-size:28px">--</div>
-        <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가 + 회수·실현 현금 합산(배당금은 제외)</p>
+        <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가만(배당·회수·실현 현금 제외)</p>
       </div>
       <div class="card">
         <h3>누적 배당금</h3>
         <div class="big" id="bt-dividend" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-dividend-krw">보유 종목 합산, 세전 기준</p>
+        <div id="bt-dividend-diff"></div>
       </div>
       <div class="card">
         <h3>원금 대비 배당률</h3>
@@ -249,26 +254,18 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h3>연간 예상 수령 배당금</h3>
         <div class="big" id="bt-annual-dividend" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
-      </div>
-      <div class="card">
-        <h3>누적원금 회수 시점 <span class="mut" style="font-size:11px;font-weight:400">(수익률 100%)</span></h3>
-        <div class="big" id="bt-recovery-date" style="font-size:17px;line-height:1.35">--</div>
-        <p class="mut" style="margin-top:6px;font-size:12px" id="bt-recovery-sub">계산 중…</p>
+        <div id="bt-annual-dividend-diff"></div>
       </div>
       <div class="card" id="bt-realized-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
-        <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(원금 100% 회수 옵션)</span></h3>
+        <h3>수익실현금</h3>
         <div class="big" id="bt-realized" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px" id="bt-realized-rounds">계산 중…</p>
-      </div>
-      <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
-        <h3>현재 평가수익금 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
-        <div class="big" id="bt-profit" style="font-size:28px">--</div>
-        <p class="mut" style="margin-top:6px" id="bt-profit-krw">평가금(배당포함) - 누적원금</p>
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
         <div class="big" id="bt-roi" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 --<br>· 평가금 --</p>
+        <div id="bt-roi-diff"></div>
       </div>
     </div>
 
@@ -301,6 +298,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
 
+    <div id="bt-sniper-monthly-section" style="display:none">
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">듀얼스나이퍼 월별 매매기록</h3>
+      <p class="mut" style="font-size:12.5px;margin-top:4px">기본 전략(QLD/USD/SCHD)의 낙폭 구간에 따라 별도로 추가 매수한 TQQQ 포지션만의 월별 기록입니다 · 매도가 발생한 달은 하이라이트 표시됩니다</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>월</th><th class="num">투입원금(누적)</th><th class="num">매수횟수</th><th>매도</th></tr></thead>
+          <tbody id="bt-sniper-monthly"><tr><td class="mut" colspan="4">계산 중…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">배당금 지급 내역</h3>
     <div class="scroll">
       <table>
@@ -311,6 +319,29 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="card" style="margin-top:16px">
       <h3>다음 예상 배당</h3>
       <p class="mut" id="bt-next-div">계산 중…</p>
+    </div>
+
+    <div id="bt-admin-panel" style="display:none;margin-top:32px">
+      <div class="sec-h" style="align-items:baseline">
+        <h3 style="font-size:16px;color:var(--tx2)">🔒 관리자 페이지 — 세부 백테스트 결과</h3>
+      </div>
+      <p class="mut" style="font-size:12px;margin-bottom:10px">종목별 세부 매수 기록과 듀얼스나이퍼 매수·매도 기록입니다. 일반 화면에는 공개하지 않는 내용입니다.</p>
+
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:18px">종목별 세부 매매기록</h4>
+      <div class="scroll" style="max-height:400px;overflow-y:auto">
+        <table>
+          <thead><tr><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">단가</th><th class="num">매수금액</th></tr></thead>
+          <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+        </table>
+      </div>
+
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">듀얼스나이퍼 매매기록</h4>
+      <div class="scroll" style="max-height:400px;overflow-y:auto">
+        <table>
+          <thead><tr><th>날짜</th><th>구분</th><th class="num">수량</th><th class="num">단가</th><th class="num">금액</th></tr></thead>
+          <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
     <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
@@ -351,6 +382,7 @@ const now=new Date();
 loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
 initTradeOptionCheckboxes();
+initTradeAdminPanel();
 { const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
   if(_btn && _wrap){
     _btn.addEventListener('click',()=>{
