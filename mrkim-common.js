@@ -1559,6 +1559,45 @@ async function runTradeBacktest(){
 
 function fmtUSD(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
 
+/* 낙폭 15% 이상 구간에 실제 어떤 사건이 있었는지 참고용으로 매칭한다. 추측으로 날짜를
+   끼워 맞추지 않기 위해, 실제로 널리 보도된 시장 충격 구간만 아래 표에 등록해두고
+   구간이 겹치지 않으면 "특정 사건과 자동 매칭되지 않음"이라고 솔직하게 표시한다. */
+const MARKET_STRESS_TIMELINE=[
+  {start:'2022-01-01', end:'2022-10-31', label:'2022년 연준 고강도 금리인상·인플레이션 쇼크',
+   note:'연준이 인플레이션을 잡기 위해 자이언트 스텝(75bp)을 포함한 공격적 금리인상을 이어가며 성장주·반도체가 한 해 내내 큰 폭으로 조정받았던 구간입니다.'},
+  {start:'2023-03-01', end:'2023-03-31', label:'2023년 3월 미국 지역은행 위기(SVB 등)',
+   note:'실리콘밸리은행(SVB) 등 지역은행 파산을 계기로 금융시스템 리스크 우려가 번지며 단기간 급락이 발생했던 구간입니다.'},
+  {start:'2024-07-15', end:'2024-08-20', label:'2024년 8월 엔캐리트레이드 청산 쇼크',
+   note:'일본은행 금리인상과 엔화 강세로 엔캐리트레이드 청산 우려가 커지며(8월 5일 전후) 글로벌 증시, 특히 반도체주가 급락했던 구간입니다.'},
+  {start:'2025-03-15', end:'2025-05-15', label:'2025년 4월 미국 상호관세 발표 쇼크',
+   note:'미국의 전면적 상호관세 발표로 글로벌 무역전쟁 우려가 커지며 증시 전반이 급락했던 구간입니다.'},
+  {start:'2025-07-15', end:'2025-09-30', label:'2025년 여름 반도체 관세(무역확장법 232조) 우려',
+   note:'반도체 수입품에 대한 별도 관세 부과 우려(최대 300% 언급)가 커지며 반도체 업종 중심으로 조정이 나타났던 구간입니다.'}
+];
+function matchMarketStressEvent(troughTs){
+  for(const ev of MARKET_STRESS_TIMELINE){
+    if(troughTs>=new Date(ev.start+'T00:00:00Z').getTime() && troughTs<=new Date(ev.end+'T23:59:59Z').getTime()) return ev;
+  }
+  return null;
+}
+/* dd(고점 대비 낙폭%)가 threshold 이상으로 올라간 구간을 찾아 시작·저점(최대낙폭)·종료(회복) 시점을 반환 */
+function detectDrawdownEpisodes(curve, threshold){
+  threshold=threshold||15;
+  const episodes=[];
+  let cur=null;
+  curve.forEach(p=>{
+    const dd=p.dd||0;
+    if(!cur && dd>=threshold){
+      cur={startTs:p.t, troughTs:p.t, troughDD:dd, endTs:null};
+    }else if(cur){
+      if(dd>cur.troughDD){ cur.troughDD=dd; cur.troughTs=p.t; }
+      if(dd<3){ cur.endTs=p.t; episodes.push(cur); cur=null; }
+    }
+  });
+  if(cur) episodes.push(cur); // 데이터 마지막까지 회복이 안 된 채 끝난 경우
+  return episodes;
+}
+
 function renderBacktest(res){
   const statusEl=document.getElementById('bt-status');
   if(!res || res.error || !res.curve || !res.curve.length){
@@ -1775,21 +1814,52 @@ function renderBacktest(res){
       '</div>';
   }
 
+  /* 낙폭 15% 이상이었던 구간 각주 — 실제 계산된 시점(res.curve)을 바탕으로 자동 탐지하고,
+     널리 알려진 시장 충격 시기와 겹치면 참고 설명을 붙인다(매칭 안 되면 솔직히 표시) */
+  const ddEventsEl=document.getElementById('bt-drawdown-events');
+  if(ddEventsEl){
+    const episodes=detectDrawdownEpisodes(res.curve, 15);
+    if(!episodes.length){
+      ddEventsEl.innerHTML='<p class="mut" style="font-size:12px">이 백테스트 구간에는 낙폭이 15% 이상으로 커진 시점이 없었습니다.</p>';
+    }else{
+      ddEventsEl.innerHTML='<p class="mut" style="font-size:12px;margin-bottom:6px">⚠ 낙폭 15% 이상 구간</p>'+
+        episodes.map(ep=>{
+          const troughDate=new Date(ep.troughTs).toLocaleDateString('ko-KR');
+          const startDate=new Date(ep.startTs).toLocaleDateString('ko-KR');
+          const endDate=ep.endTs?new Date(ep.endTs).toLocaleDateString('ko-KR'):'아직 회복 전(데이터 마지막 날 기준)';
+          const ev=matchMarketStressEvent(ep.troughTs);
+          const evTxt=ev?('<b>'+ev.label+'</b> — '+ev.note):'특정 사건과 자동 매칭되지 않음(그 시기 증시 뉴스를 직접 확인해보세요)';
+          return '<div class="mut" style="font-size:12px;margin-top:6px;padding-left:10px;border-left:2px solid var(--down)">'+
+            startDate+' ~ '+endDate+' · 최대 낙폭 -'+ep.troughDD.toFixed(1)+'%(저점 '+troughDate+')<br>'+evTxt+'</div>';
+        }).join('');
+    }
+  }
+
   /* 연도별 수익률 */
   const yearlyEl=document.getElementById('bt-yearly-return');
   if(yearlyEl){
     const years=Object.keys(res.yearly||{}).sort();
-    yearlyEl.innerHTML=years.map(y=>{
+    const yretList=years.map(y=>{
       const yr=res.yearly[y];
       const contrib=yr.endCost-yr.startCost;
       const denom=yr.startValue+contrib;
       const profitYen=yr.endValue-yr.startValue-contrib;
-      const yret=denom>0?profitYen/denom*100:0;
-      return '<tr><td>'+y+'</td>'+
-        '<td class="num">'+fmtUSD(contrib)+'</td>'+
-        '<td class="num">'+fmtUSD(yr.endCost)+'</td>'+
+      return denom>0?profitYen/denom*100:0;
+    });
+    const bestYret=Math.max(...yretList), worstYret=Math.min(...yretList);
+    yearlyEl.innerHTML=years.map((y,i)=>{
+      const yr=res.yearly[y];
+      const contrib=yr.endCost-yr.startCost;
+      const yret=yretList[i];
+      const isBest=yret===bestYret && yretList.length>1;
+      const isWorst=yret===worstYret && yretList.length>1;
+      const rowBg='background:'+(yret>=0?'rgba(255,77,79,':'rgba(61,157,255,')+Math.min(Math.abs(yret)/40,1)*0.22+')';
+      const badge=isBest?' <span class="tag" style="background:rgba(255,176,32,.18);color:var(--accent)">최고</span>':isWorst?' <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">최저</span>':'';
+      return '<tr style="'+rowBg+'"><td>'+y+badge+'</td>'+
+        '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
+        '<td class="num">'+fmtUSDKRW(yr.endCost)+'</td>'+
         '<td class="num">'+yr.buys+'회</td>'+
-        '<td class="num">'+fmtUSD(yr.dividends)+'</td>'+
+        '<td class="num">'+fmtUSDKRW(yr.dividends)+'</td>'+
         '<td class="num '+(yret>=0?'up':'down')+'">'+(yret>=0?'+':'')+yret.toFixed(1)+'%</td></tr>';
     }).join('');
   }
@@ -1807,11 +1877,11 @@ function renderBacktest(res){
       const ann=(Math.pow(1+mret,12)-1)*100;
       const mddPct=(m.mdd||0)*100;
       return '<tr><td>'+mk+'</td>'+
-        '<td class="num">'+fmtUSD(contrib)+'</td>'+
-        '<td class="num">'+fmtUSD(m.endCost)+'</td>'+
+        '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
+        '<td class="num">'+fmtUSDKRW(m.endCost)+'</td>'+
         '<td class="num">'+m.buys+'회</td>'+
         '<td class="num down">-'+mddPct.toFixed(1)+'%</td>'+
-        '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSD(Math.abs(profitYen))+'</td>'+
+        '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW(Math.abs(profitYen))+'</td>'+
         '<td class="num '+(mret>=0?'up':'down')+'">'+(mret*100>=0?'+':'')+(mret*100).toFixed(2)+'%</td>'+
         '<td class="num '+(ann>=0?'up':'down')+'">'+(ann>=0?'+':'')+ann.toFixed(1)+'%</td></tr>';
     }).join('');
@@ -1825,7 +1895,7 @@ function renderBacktest(res){
     divEl.innerHTML=divMonths.length?divMonths.map(mk=>{
       const m=res.monthly[mk];
       running+=m.dividends;
-      return '<tr><td>'+mk+'</td><td class="num">'+fmtUSD(m.dividends)+'</td><td class="num">'+fmtUSD(running)+'</td></tr>';
+      return '<tr><td>'+mk+'</td><td class="num">'+fmtUSDKRW(m.dividends)+'</td><td class="num">'+fmtUSDKRW(running)+'</td></tr>';
     }).join(''):'<tr><td class="mut" colspan="3">배당이 발생한 달이 없습니다.</td></tr>';
   }
 
@@ -1834,7 +1904,7 @@ function renderBacktest(res){
   if(nextDivEl){
     if(res.nextDiv){
       const d=new Date(res.nextDiv.date);
-      nextDivEl.textContent='예상 배당시기: '+d.toLocaleDateString('ko-KR')+' 경 · 예상 배당금: '+fmtUSD(res.nextDiv.amount);
+      nextDivEl.textContent='예상 배당시기: '+d.toLocaleDateString('ko-KR')+' 경 · 예상 배당금: '+fmtUSDKRW(res.nextDiv.amount);
     }else{
       nextDivEl.textContent='배당 이력이 부족해 다음 배당을 추정할 수 없습니다.';
     }

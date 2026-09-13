@@ -254,6 +254,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <div class="card" style="margin-top:12px">
       <div id="bt-drawdown"></div>
+      <div id="bt-drawdown-events" style="margin-top:10px"></div>
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">연도별 수익률</h3>
@@ -264,8 +265,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
 
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
-    <div class="scroll">
+    <div class="sec-h" style="margin-top:32px;align-items:baseline">
+      <h3 style="font-size:16px;color:var(--tx2)">월별 매매기록</h3>
+      <button class="btn sm ghost" id="bt-monthly-toggle" type="button">세부내용 보기</button>
+    </div>
+    <div class="scroll" id="bt-monthly-wrap" style="display:none">
       <table>
         <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 수익금</th><th class="num">월 수익률</th><th class="num">연환산</th></tr></thead>
         <tbody id="bt-monthly-return"><tr><td class="mut" colspan="8">계산 중…</td></tr></tbody>
@@ -321,6 +325,15 @@ const now=new Date();
 
 loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
+{ const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
+  if(_btn && _wrap){
+    _btn.addEventListener('click',()=>{
+      const open=_wrap.style.display!=='none';
+      _wrap.style.display=open?'none':'block';
+      _btn.textContent=open?'세부내용 보기':'세부내용 숨기기';
+    });
+  }
+}
 
 </script>
 </body>
