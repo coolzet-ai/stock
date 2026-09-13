@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d'};
+const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
 const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
@@ -816,6 +816,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
     else if(g==='us') renderUS(p);
     else if(g==='cf') renderCF(p);
     else if(g==='coin') renderCoin(p);
+    else if(g==='fx') renderFxWatchlist(p);
   });
 });
 
@@ -978,6 +979,83 @@ function renderFinEvents(data){
         '<td class="mut" style="white-space:nowrap">'+dstr+'</td><td style="text-align:center;color:var(--accent)">'+stars+'</td></tr>';
     }).join('');
   });
+}
+
+/* ===================== 환율 페이지 — 김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) =====================
+   원화(KRW) 기준 교차환율을 Yahoo Finance 티커(XXXKRW=X, 미국 달러만 관례상 KRW=X)로 받아
+   기간별 등락률·RSI(14)·200일 이격도·200일선 위/아래를 계산해 표로 보여준다. */
+const FX_META={
+  'KRW=X':   {name:'미국 달러', code:'USD', flag:'🇺🇸', url:'https://www.federalreserve.gov'},
+  'JPYKRW=X':{name:'일본 엔',   code:'JPY', flag:'🇯🇵', url:'https://www.boj.or.jp'},
+  'CNYKRW=X':{name:'중국 위안', code:'CNY', flag:'🇨🇳', url:'http://www.pbc.gov.cn'},
+  'EURKRW=X':{name:'유로',     code:'EUR', flag:'🇪🇺', url:'https://www.ecb.europa.eu'},
+  'CHFKRW=X':{name:'스위스 프랑', code:'CHF', flag:'🇨🇭', url:'https://www.snb.ch'},
+  'BRLKRW=X':{name:'브라질 헤알', code:'BRL', flag:'🇧🇷', url:'https://www.bcb.gov.br'}
+};
+const FX_LIST=Object.keys(FX_META);
+const fxData={};
+
+/* RSI(14, 단순평균 기반 — 와일더 스무딩 아님, 참고용 근사치) */
+function calcRSI(closes, period){
+  period=period||14;
+  if(!closes||closes.length<period+1) return null;
+  const slice=closes.slice(-(period+1));
+  let gains=0, losses=0;
+  for(let i=1;i<slice.length;i++){
+    const diff=slice[i]-slice[i-1];
+    if(diff>=0) gains+=diff; else losses-=diff;
+  }
+  const avgGain=gains/period, avgLoss=losses/period;
+  if(avgLoss===0) return avgGain===0?50:100;
+  const rs=avgGain/avgLoss;
+  return 100-(100/(1+rs));
+}
+
+async function loadFxWatchlist(){
+  await Promise.all(FX_LIST.map(async sym=>{
+    if(!fxData[sym]) fxData[sym]=await yclose(sym,'2y'); // 200일선 계산에 넉넉한 기간 확보
+  }));
+  renderFxWatchlist(curPer.fx||'d');
+}
+
+function renderFxWatchlist(p){
+  const n={d:1,w:5,m:21,y:252}[p]||1;
+  const tbody=document.getElementById('fx-tbl');
+  if(!tbody) return;
+  tbody.innerHTML=FX_LIST.map(sym=>{
+    const meta=FX_META[sym];
+    const closes=fxData[sym];
+    const linkTag='<a href="'+meta.url+'" target="_blank" rel="noopener" title="'+meta.name+' 발행 중앙은행 공식 사이트" style="margin-left:5px;text-decoration:none">🔗</a>';
+    const nameCell='<td>'+meta.flag+' '+meta.name+' <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+'</td>';
+    if(!closes || closes.length<2){
+      return '<tr>'+nameCell+'<td class="mut" colspan="5">데이터 없음</td></tr>';
+    }
+    const last=closes[closes.length-1];
+    const base=closes[Math.max(0,closes.length-1-n)];
+    const chg=(last/base-1)*100;
+    if(!isFinite(chg)){
+      return '<tr>'+nameCell+'<td class="mut" colspan="5">계산 실패</td></tr>';
+    }
+    const dir=chg>=0?'up':'down';
+    const ma200Src=closes.slice(-200);
+    const ma200=ma200Src.length>=50?ma200Src.reduce((a,b)=>a+b,0)/ma200Src.length:null; // 데이터 부족 시(신규 상장 등) null
+    const disp=ma200!=null?((last/ma200-1)*100):null;
+    const above200=ma200!=null?(last>=ma200):null;
+    const rsi=calcRSI(closes,14);
+    const decimals=last<50?2:(last<500?1:0);
+    const priceStr='₩'+last.toLocaleString('ko-KR',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+    const rsiTxt=rsi!=null?rsi.toFixed(1):'--';
+    const rsiNote=rsi!=null?(rsi>=70?' <span class="mut" style="font-size:11px">(과매수)</span>':rsi<=30?' <span class="mut" style="font-size:11px">(과매도)</span>':''):'';
+    const ma200Badge=above200==null?'<span class="mut">--</span>'
+      :(above200?'<span class="tag" style="background:rgba(255,77,79,.15);color:var(--up)">200일선 위</span>'
+                :'<span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">200일선 아래</span>');
+    return '<tr><td>'+meta.flag+' '+meta.name+' <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+'</td>'+
+      '<td class="num">'+priceStr+'</td>'+
+      '<td class="num '+dir+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</td>'+
+      '<td class="num">'+rsiTxt+rsiNote+'</td>'+
+      '<td class="num">'+(disp!=null?(disp>=0?'+':'')+disp.toFixed(2)+'%':'--')+'</td>'+
+      '<td style="text-align:center">'+ma200Badge+'</td></tr>';
+  }).join('');
 }
 
 /* ===================== 전자공시(OpenDART) 연동 — 손익계산서 3년 시각화 =====================

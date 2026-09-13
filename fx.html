@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mr.Kim Signal — 미국지수·한국지수·가상화폐 시장 신호</title>
+<title>Mr.Kim Signal — 환율</title>
 <style>
 :root{
   --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
@@ -127,6 +127,33 @@ td.fund-src a.news-link{color:#7cc4ff}
 td.spark{width:100px;text-align:center}
 td.spark svg{display:block;margin:0 auto}
 
+/* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
+.wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
+.wl-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.wl-row:last-child{border-bottom:0}
+.wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
+.wl-bar.up{background:var(--up)}
+.wl-bar.down{background:var(--down)}
+.wl-info{flex:1;min-width:0}
+.wl-tag{font-size:11.5px;color:var(--tx2);white-space:normal;line-height:1.35}
+.wl-name{font-size:16px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name a{color:inherit;text-decoration:none}
+.wl-quote{flex:none;text-align:right;min-width:86px}
+.wl-price{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price.up{color:var(--up)}
+.wl-price.down{color:var(--down)}
+.wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
+.wl-pct.up{color:var(--up)}
+.wl-pct.down{color:var(--down)}
+.wl-actions{flex:none;display:flex;flex-direction:column;gap:3px;padding-left:10px;margin-left:2px;
+  border-left:1px solid var(--line);align-items:center;min-width:34px}
+.wl-actions a{font-size:11.5px;font-weight:800;text-decoration:none;color:var(--accent)}
+.wl-actions a.ts-link{color:var(--tx2)}
+.wl-actions a.news-link{color:#7cc4ff}
+@media(max-width:480px){
+  .wl-actions{display:none}
+}
+
 /* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
 #events-tbl-wrap col.ev-date{width:100px}
 #events-tbl-wrap col.ev-name{width:30%}
@@ -155,6 +182,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
   font-size:12.5px;color:var(--tx2);margin-top:18px}
 .updated{font-size:12.5px;color:var(--tx2)}
+.fx-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+@media(max-width:560px){.fx-2col{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -181,50 +210,67 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 </header>
 
 <main>
-<section class="hero" style="border:0">
-<section class="hero" style="border:0">
+<section id="fx">
   <div class="wrap">
-    <span class="badge">● 주식 · 가상화폐 시장 신호 대시보드</span>
-    <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
-    <p>미국지수·한국지수 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.
-       일간·주간·월간·연간 흐름을 한 화면에서 확인하세요. 가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</p>
-    <div class="cta">
-      <a class="btn ghost btn sm" href="stock.html" style="padding:13px 26px">대시보드 보기</a>
+    <div class="sec-h">
+      <div>
+        <h2>김군 관심 화폐</h2>
+        <p class="sub">원화(KRW) 기준 교차환율 · Yahoo Finance 실시간 연동 · 기간별 등락률·RSI·이격도·200일선</p>
+      </div>
+      <div class="tabs" data-group="fx">
+        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+        <button data-p="m">월간</button><button data-p="y">연간</button>
+      </div>
     </div>
-    <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
-  </div>
-</section>
-</section>
 
-<section>
-  <div class="wrap">
-    <h2>바로가기</h2>
-    <p class="sub">원하는 섹션을 선택하세요</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>통화</th><th class="num">환율(₩)</th><th class="num">등락률</th><th class="num">RSI(14)</th><th class="num">200일 이격도</th><th style="text-align:center">200일선</th></tr></thead>
+        <tbody id="fx-tbl"><tr><td class="mut" colspan="6">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">🔗는 해당 통화 발행국(또는 유로존)의 중앙은행 공식 사이트로 연결됩니다 · RSI는 14일 단순평균 기반 근사치이며 70 이상 과매수, 30 이하 과매도 참고 구간입니다 · 이격도는 (현재가 ÷ 200일 이동평균 − 1)×100, 데이터가 200일 미만인 경우 "--"로 표시됩니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">환율 우대 수수료 우수 금융사</h2>
+    <p class="sub">환전 수수료·우대율 기준으로 알려진 곳들입니다 · 조건은 자주 바뀌므로 실제 신청 전 공식 앱·페이지에서 최종 확인하세요</p>
     <div class="grid">
-      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국지수</h3>
-        <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
-      </a>
-      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국지수</h3>
-        <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
-      </a>
-      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
-        <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
-      </a>
-      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
-        <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
-      </a>
-      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
-        <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
-      </a>
-      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
-        <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
-      </a>
+      <div class="card">
+        <h3>증권사 외화 환전</h3>
+        <p class="mut">미래에셋증권·NH투자증권·한국투자증권 등 주요 증권사는 외화 RP·외화 종합계좌를 통해 환전 수수료 우대(최대 90%대)를 상시 제공하는 경우가 많습니다. 해외주식 투자자라면 증권사 환전이 은행보다 유리한 경우가 대부분입니다.</p>
+      </div>
+      <div class="card">
+        <h3>은행·핀테크 앱 환전</h3>
+        <p class="mut">트래블월렛·트래블로그(하나카드)·신한 SOL트래블·우리WON뱅킹 등은 환전 수수료 100% 우대(사실상 무료) + 해외 현지 인출 수수료 면제를 내세우는 경우가 많아, 여행·해외결제 목적이라면 환전 수수료 자체보다 이 카드형 상품들이 유리한 경우가 많습니다.</p>
+      </div>
+      <div class="card">
+        <h3>비교 확인하기</h3>
+        <p class="mut">은행별 실시간 환율 우대율은 한국은행 경제통계시스템(ECOS)이나 각 은행 앱의 "환율우대" 메뉴에서 직접 비교하는 것이 가장 정확합니다.</p>
+        <a class="btn sm" style="margin-top:10px" href="https://ecos.bok.or.kr" target="_blank" rel="noopener">한국은행 ECOS 바로가기 ↗</a>
+      </div>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 위 정보는 일반적으로 알려진 특징을 정리한 것이며 실시간 수수료 비교 크롤링 결과가 아닙니다. 특정 금융사·상품에 대한 투자·가입을 권유하지 않습니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">브라질국채 투자, 지금 유리할까? (자체평가)</h2>
+    <p class="sub">수수료·이자율·환위험을 고려한 참고용 코멘트이며 투자 조언이 아닙니다</p>
+    <div class="card">
+      <div class="fx-2col">
+        <div>
+          <div class="mut" style="font-size:12px">유리한 점</div>
+          <ul style="margin-top:6px;padding-left:18px;font-size:13.5px;color:var(--tx2);line-height:1.8">
+            <li>한·브라질 조세협약상 브라질국채 이자소득은 국내에서 비과세(단, 매매차익·환차익은 과세 대상일 수 있어 실제 신고 기준은 세무 전문가 확인 필요)</li>
+            <li>브라질 기준금리(SELIC)가 여전히 두 자릿수대로 높아 표면 이자율 자체는 매력적</li>
+          </ul>
+        </div>
+        <div>
+          <div class="mut" style="font-size:12px">불리한 점 / 위험</div>
+          <ul style="margin-top:6px;padding-left:18px;font-size:13.5px;color:var(--tx2);line-height:1.8">
+            <li>헤알화(BRL)는 장기적으로 원화·달러 대비 변동성이 크고 구조적 약세 흐름을 보여온 통화라, 표면 이자율이 높아도 환차손으로 실질 수익률이 크게 깎일 수 있음</li>
+            <li>판매 증권사별 환전 스프레드·매매 수수료 차이가 실질 수익률에 큰 영향을 미침 — 표면 금리만 보고 판단하면 위험</li>
+            <li>만기 전 매도 시 채권 가격 변동(브라질 금리 변화) 위험도 추가로 존재</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mut" style="margin-top:14px;font-size:13px">📌 자체 평가: 표면 이자율만 보면 매력적이지만, 실질 수익률은 결국 <b>헤알화 환율 흐름</b>과 <b>가입 증권사의 환전·매매 수수료 조건</b>에 좌우됩니다. 가입 전 (1) 판매사별 환전 우대율·매매수수료를 반드시 비교하고, (2) 만기까지 보유할 수 있는 자금인지, (3) 헤알화 약세가 이어질 경우의 손실 시나리오까지 감안해 소액·분할로 접근하는 것이 상대적으로 안전합니다. 이는 일반적인 정보 제공이며 투자 자문이 아니므로, 최종 판단 전 반드시 증권사 상품설명서와 세무 전문가 확인을 거치시기 바랍니다.</p>
     </div>
   </div>
 </section>
@@ -246,23 +292,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
+<script src="mrkim-common.js"></script>
 <script>
 const now=new Date();
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 
-const naverGiftLink=document.getElementById('naver-gift-link');
-if(naverGiftLink){
-  naverGiftLink.addEventListener('click',async()=>{
-    try{ await navigator.clipboard.writeText('coolzet'); }catch(e){}
-    alert('아이디 coolzet 복사되었습니다.');
-  });
-}
-const navToggle=document.getElementById('nav-toggle');
-const navMenu=document.getElementById('nav-menu');
-if(navToggle && navMenu){
-  navToggle.addEventListener('click',()=>{ navMenu.classList.toggle('open'); });
-}
+loadFxWatchlist();
+setInterval(loadFxWatchlist, 60000);
+
 </script>
 </body>
 </html>
