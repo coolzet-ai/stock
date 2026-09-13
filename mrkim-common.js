@@ -771,19 +771,21 @@ function renderTick(g,p){
   const n={d:1,w:5,m:21,y:252}[p];
   document.querySelectorAll('#'+cfg.table+' .wl-row').forEach(row=>{
     const t=row.dataset.t, d=tickData[t];
-    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar');
+    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar'), sp=row.querySelector('.wl-spark');
     if(!d||d.length<2){
       const b=BASE[t];
       if(!b){
         if(px){ px.textContent='--'; px.className='px wl-price'; }
         if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
         if(bar) bar.className='wl-bar';
+        if(sp) sp.innerHTML='';
         return;
       }
       const dir=cls(b[p]);
       if(px){ px.textContent=cur+f(b.px); px.className='px wl-price '+dir; }
       if(ch){ ch.textContent=arrowSign(b[p]); ch.className='ch wl-pct '+dir; }
       if(bar) bar.className='wl-bar '+dir;
+      if(sp) sp.innerHTML=sparkSVG(fallbackSeries(b,p));
       return;
     }
     const last=d[d.length-1];
@@ -795,12 +797,18 @@ function renderTick(g,p){
       if(px) px.className='px wl-price';
       if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
       if(bar) bar.className='wl-bar';
+      if(sp) sp.innerHTML='';
       return;
     }
     const dir=cls(v);
     if(px) px.className='px wl-price '+dir;
     if(ch){ ch.textContent=arrowSign(v); ch.className='ch wl-pct '+dir; }
     if(bar) bar.className='wl-bar '+dir;
+    if(sp){
+      const win={d:10,w:20,m:60,y:252}[p]||15;
+      const pts=d.slice(-Math.min(d.length, win));
+      sp.innerHTML=sparkSVG(pts);
+    }
   });
 }
 
