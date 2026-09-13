@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d'};
+const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
 const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
@@ -1496,8 +1496,9 @@ async function runTradeBacktest(){
     const bmQldDD=(bmQldValue!=null && bmQldPeak>0)?(bmQldPeak-bmQldValue)/bmQldPeak*100:null;
     const bmTqqqDD=(bmTqqqValue!=null && bmTqqqPeak>0)?(bmTqqqPeak-bmTqqqValue)/bmTqqqPeak*100:null;
 
-    /* 누적원금 회수 시점: 누적 배당금만으로 그 시점까지의 누적원금을 처음 넘어서는 날 */
-    if(principalRecoveredTs==null && cumCost>0 && cumDividend>=cumCost) principalRecoveredTs=ts;
+    /* 누적원금 회수 시점: 원금 대비 수익률(평가금 기준) 100% 달성 시점 — 평가금(배당 포함)이
+       그 시점까지의 누적원금의 2배에 처음 도달한 날 */
+    if(principalRecoveredTs==null && cumCost>0 && totalValue>=2*cumCost) principalRecoveredTs=ts;
 
     curve.push({
       t:ts, cost:cumCost, value:totalValue, dd, cumDividend,
@@ -1573,6 +1574,7 @@ function renderBacktest(res){
     : '';
 
   function fmtUSDKRW(usd){
+    if(!krwDisplayOn) return fmtUSD(usd); // 토글이 꺼져 있으면 달러만(stock.html·crypto.html과 동일 구조)
     const krw=fmtKRW(usd);
     return krw ? fmtUSD(usd)+' ('+krw+')' : fmtUSD(usd);
   }
@@ -1592,34 +1594,43 @@ function renderBacktest(res){
   const annualDivEl=document.getElementById('bt-annual-dividend');
   if(annualDivEl) annualDivEl.textContent=fmtUSDKRW(res.annualDividendEst||0);
 
-  /* 누적원금 회수 시점 — 데이터 구간 내에서 이미 도달했으면 그 날짜, 아니면 최근 배당
-     페이스를 바탕으로 앞으로 얼마나 더 걸릴지 단순 추정(연간화 배당금 기준 선형 추정) */
+  /* 누적원금 회수 시점 — 원금 대비 수익률(평가금 기준) 100% 달성 시점. 데이터 구간 내에서
+     이미 도달했으면 그 날짜, 아니면 현재까지의 연환산 수익률(CAGR)로 계속 간다고 가정했을 때
+     평가금이 원금의 2배에 도달하는 시점을 단순 추정한다. */
   const recoveryEl=document.getElementById('bt-recovery-date');
   if(recoveryEl){
     if(res.principalRecoveredTs){
       recoveryEl.textContent=new Date(res.principalRecoveredTs).toLocaleDateString('ko-KR')+' 도달';
       recoveryEl.className='big up';
+    }else if(res.finalValue>=2*res.finalCost){
+      recoveryEl.textContent='도달';
+      recoveryEl.className='big up';
     }else{
-      const gap=res.finalCost-res.cumDividend;
-      if(gap<=0){
-        recoveryEl.textContent='도달';
-        recoveryEl.className='big up';
-      }else if(res.annualDividendEst>0){
-        const yearsNeeded=gap/res.annualDividendEst;
-        const projected=new Date(res.curve[res.curve.length-1].t);
-        projected.setDate(projected.getDate()+Math.round(yearsNeeded*365));
-        recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상';
-        recoveryEl.className='big mut';
+      const firstTs=res.curve[0].t, lastTs=res.curve[res.curve.length-1].t;
+      const years=(lastTs-firstTs)/(365*86400000);
+      const ratio=res.finalCost>0?res.finalValue/res.finalCost:0;
+      const cagr=(years>0.1 && ratio>0)?Math.pow(ratio,1/years)-1:null;
+      if(cagr!=null && cagr>0){
+        const extraYears=Math.log(2/ratio)/Math.log(1+cagr);
+        if(isFinite(extraYears) && extraYears>0 && extraYears<100){
+          const projected=new Date(lastTs);
+          projected.setDate(projected.getDate()+Math.round(extraYears*365));
+          recoveryEl.textContent='약 '+projected.toLocaleDateString('ko-KR')+' 예상';
+          recoveryEl.className='big mut';
+        }else{
+          recoveryEl.textContent='추정 불가';
+          recoveryEl.className='big mut';
+        }
       }else{
-        recoveryEl.textContent='추정 불가';
+        recoveryEl.textContent='추정 불가(현재 수익률이 마이너스이거나 데이터 부족)';
         recoveryEl.className='big mut';
       }
     }
   }
   const recoverySubEl=document.getElementById('bt-recovery-sub');
   if(recoverySubEl) recoverySubEl.textContent=res.principalRecoveredTs
-    ? '실제 도달 시점(누적 배당금이 누적원금을 처음 넘어선 날)'
-    : '현재 연간 배당 페이스 기준 단순 선형 추정(배당 재투자 미반영)';
+    ? '실제 도달 시점(평가금이 원금의 2배를 처음 넘어선 날, 원금 대비 수익률 100%)'
+    : '지금까지의 연환산 수익률(CAGR)이 그대로 이어진다고 가정한 단순 추정치';
 
   const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
   const roiEl=document.getElementById('bt-roi');
@@ -1830,11 +1841,24 @@ function renderBacktest(res){
   }
 }
 
+let lastBacktestResult=null;
 async function loadTradeBacktest(){
   const statusEl=document.getElementById('bt-status');
   if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
   const [res]=await Promise.all([runTradeBacktest(), loadFxRate()]);
+  lastBacktestResult=res;
   renderBacktest(res);
+}
+
+/* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고
+   이미 계산해둔 결과(lastBacktestResult)를 다시 그린다(재계산 없이 즉시 반영) */
+function initTradeKrwToggle(sel){
+  const toggle=document.querySelector(sel);
+  if(!toggle) return;
+  toggle.addEventListener('change',()=>{
+    krwDisplayOn=toggle.checked;
+    if(lastBacktestResult) renderBacktest(lastBacktestResult);
+  });
 }
 
 /* 연도 선택 버튼(2024/2025/2026년부터) — 클릭 시 시작일을 바꾸고 백테스트 전체를 다시 계산 */

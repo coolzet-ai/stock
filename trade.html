@@ -174,6 +174,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <li><a href="trade.html" class="nav-hi">매매김군</a></li>
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2);cursor:pointer;white-space:nowrap" title="누적원금·배당금·평가금 등 달러 표시 금액에 원화를 괄호로 병기합니다">
+        <input type="checkbox" id="krw-toggle" style="accent-color:var(--accent);cursor:pointer">원화 표시
+      </label>
       <span class="updated-top" id="stamp-top"></span>
       <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
     </div>
@@ -229,7 +232,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
       </div>
       <div class="card">
-        <h3>누적원금 회수 시점</h3>
+        <h3>누적원금 회수 시점 <span class="mut" style="font-size:11px;font-weight:400">(수익률 100%)</span></h3>
         <div class="big" id="bt-recovery-date" style="font-size:22px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px" id="bt-recovery-sub">계산 중…</p>
       </div>
@@ -282,7 +285,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
-    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 누적원금 회수 시점은 누적 배당금이 누적원금에 도달(또는 도달 예상)하는 시점이며, 배당 재투자를 하지 않는다는 가정입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 누적원금 회수 시점은 평가금(배당 포함)이 누적원금의 2배(원금 대비 수익률 100%)에 도달(또는 도달 예상)하는 시점입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
   </div>
 </section>
 
@@ -317,6 +320,7 @@ const now=new Date();
 { const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 
 loadTradeBacktest();
+initTradeKrwToggle('#krw-toggle');
 
 </script>
 </body>
