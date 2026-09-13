@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:3px 8px;line-height:1.0;text-align:center;white-space:normal}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
 @media(max-width:640px){
   #tick-tbl th:nth-child(2), #tick-tbl td:nth-child(2),
   #lev-tbl th:nth-child(2), #lev-tbl td:nth-child(2){display:none}
@@ -89,7 +89,7 @@ h2{font-size:26px;letter-spacing:-.6px}
   padding:8px 15px;border-radius:7px;font-family:inherit}
 .tabs button.on{background:var(--accent);color:#1a1206}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
-#evmonth-tabs button[data-m="7"], #kr-evmonth-tabs button[data-m="7"], #crypto-evmonth-tabs button[data-m="7"], #ipo-month-tabs button[data-m="7"], #fx-evmonth-tabs button[data-m="7"]{flex-basis:100%}
+.tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -133,20 +133,20 @@ td.spark svg{display:block;margin:0 auto}
 
 /* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
 .wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
-.wl-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.wl-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
 .wl-row:last-child{border-bottom:0}
 .wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
 .wl-bar.up{background:var(--up)}
 .wl-bar.down{background:var(--down)}
 .wl-info{flex:1;min-width:0}
 .wl-tag{font-size:11.5px;color:var(--tx2);white-space:normal;line-height:1.35}
-.wl-name{font-size:16px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name{font-size:15px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wl-name a{color:inherit;text-decoration:none}
 .wl-quote{flex:none;text-align:right;min-width:86px}
 .wl-spark{display:none;flex:none;width:64px;margin:0 6px}
 .wl-spark svg{display:block;width:100%;height:28px}
 @media(min-width:761px){.wl-spark{display:block}}
-.wl-price{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
 .wl-price.up{color:var(--up)}
 .wl-price.down{color:var(--down)}
 .wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
@@ -172,6 +172,13 @@ td.spark svg{display:block;margin:0 auto}
 #events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
 #events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
 .tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
+.idx-chg-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13px;background:var(--panel2)}
+.idx-chg-row a{text-decoration:none;color:inherit}
+.idx-chg-row.idx-in{border-left:3px solid var(--up)}
+.idx-chg-row.idx-out{border-left:3px solid var(--down)}
+.idx-chg-row .mut{font-size:11px;white-space:nowrap;flex:none}
+.idx-chg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.idx-chg-grid{grid-template-columns:1fr}}
 .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--tx2);white-space:nowrap}
 .chip-top10{background:rgba(255,176,32,.18);color:var(--accent);font-weight:700}
 
@@ -329,60 +336,87 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <section id="unicorn">
   <div class="wrap">
     <h2 style="font-size:21px">유니콘 기업</h2>
-    <p class="sub">엔트로픽·오픈AI 등 비상장 AI 기업의 최근 기업가치·매출·투자자 현황 · 사모(私募) 시장 정보라 공개 시점마다 크게 달라질 수 있습니다</p>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>기업</th><th class="num">최근 기업가치</th><th class="num">매출(연환산)</th><th>손익</th><th>상장(IPO) 전망</th><th>주요 투자자 — 미국</th><th>주요 투자자 — 한국</th></tr></thead>
-        <tbody>
-          <tr>
-            <td style="display:flex;align-items:center;gap:8px"><img src="https://logo.clearbit.com/anthropic.com" alt="" style="width:20px;height:20px;border-radius:5px;flex:none" onerror="this.style.display='none'"><a href="https://www.anthropic.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">Anthropic</a> <a href="https://x.com/search?q=Anthropic&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Anthropic 관련 게시물 검색">X</a></td>
-            <td class="num">약 $965B<br><span class="mut" style="font-size:11px">(2026.5 Series H)</span></td>
-            <td class="num">약 $470~500억<br><span class="mut" style="font-size:11px">(2026.5 기준)</span></td>
-            <td class="mut" style="font-size:12.5px">아직 순손실이나 첫 분기 흑자 전환 근접으로 보도됨</td>
-            <td style="font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding-left:10px">2026.6 SEC 비공개 S-1 제출<br>· 상장 시기 미확정<br>(2026 하반기~2027 관측)</td>
-            <td class="mut" style="font-size:12.5px;max-width:220px"><div style="display:flex;flex-wrap:wrap;gap:4px">
-              <span class="chip">Sequoia</span><span class="chip">Altimeter</span><span class="chip">Dragoneer</span><span class="chip">Greenoaks</span><span class="chip">GIC</span><span class="chip">Coatue</span>
-              <span class="chip chip-top10">Amazon</span><span class="chip chip-top10">Google</span><span class="chip chip-top10">Microsoft</span><span class="chip chip-top10">Nvidia</span>
-            </div></td>
-            <td class="mut" style="font-size:12.5px;max-width:200px"><div style="display:flex;flex-wrap:wrap;gap:4px">
-              <span class="chip chip-top10">삼성전자</span><span class="chip chip-top10">SK하이닉스</span>
-            </div><div style="margin-top:4px;font-size:11px">(메모리 공급 등 전략적 파트너<br>— 지분투자 여부는 비공개)</div></td>
-          </tr>
-          <tr>
-            <td style="display:flex;align-items:center;gap:8px"><img src="https://logo.clearbit.com/openai.com" alt="" style="width:20px;height:20px;border-radius:5px;flex:none" onerror="this.style.display='none'"><a href="https://openai.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">OpenAI</a> <a href="https://x.com/search?q=OpenAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 OpenAI 관련 게시물 검색">X</a></td>
-            <td class="num">약 $852B<br><span class="mut" style="font-size:11px">(2026.3 라운드, 신규 라운드 최대 $1T 거론)</span></td>
-            <td class="num">약 $200~250억<br><span class="mut" style="font-size:11px">(2026 초 기준, 추정치 편차 있음)</span></td>
-            <td class="mut" style="font-size:12.5px">대규모 순손실 지속(분기당 100억 달러 안팎 추정 보도)</td>
-            <td style="font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding-left:10px">2026.5~6 SEC 비공개 S-1 제출<br>· 2026년 4분기~2027년 상장 목표 거론<br>(공식 확정 아님)</td>
-            <td class="mut" style="font-size:12.5px;max-width:220px"><div style="display:flex;flex-wrap:wrap;gap:4px">
-              <span class="chip chip-top10">Microsoft</span><span class="chip">SoftBank</span><span class="chip">Thrive Capital</span><span class="chip">a16z</span><span class="chip">ARK Invest</span><span class="chip">BlackRock</span><span class="chip">Fidelity</span><span class="chip">Sequoia</span>
-            </div></td>
-            <td class="mut" style="font-size:12.5px;max-width:200px">확인된 직접 지분투자 없음<br>(삼성전자·SK하이닉스는 '스타게이트' 프로젝트향 메모리 공급 협력)</td>
-          </tr>
-          <tr>
-            <td style="display:flex;align-items:center;gap:8px"><img src="https://logo.clearbit.com/databricks.com" alt="" style="width:20px;height:20px;border-radius:5px;flex:none" onerror="this.style.display='none'"><a href="https://www.databricks.com" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">Databricks</a> <a href="https://x.com/search?q=Databricks&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Databricks 관련 게시물 검색">X</a></td>
-            <td class="num">약 $134B<br><span class="mut" style="font-size:11px">(2025.12 Series L → 2026.6 이후 $165~175B 추진 중)</span></td>
-            <td class="num">약 $54억<br><span class="mut" style="font-size:11px">(2026.2 기준, 전년比 +65%)</span></td>
-            <td class="mut" style="font-size:12.5px">잉여현금흐름(FCF)은 흑자, 회계상 순이익 여부는 비공개</td>
-            <td style="font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding-left:10px">공식 일정 없음<br>· CEO는 "2027년 이후" 가능성 언급</td>
-            <td class="mut" style="font-size:12.5px;max-width:220px"><div style="display:flex;flex-wrap:wrap;gap:4px">
-              <span class="chip chip-top10">Nvidia</span><span class="chip chip-top10">Meta</span><span class="chip">JPMorgan(부채금융 주관)</span>
-            </div></td>
-            <td class="mut" style="font-size:12.5px">확인된 한국 기업 투자자 없음</td>
-          </tr>
-          <tr>
-            <td style="display:flex;align-items:center;gap:8px"><img src="https://logo.clearbit.com/x.ai" alt="" style="width:20px;height:20px;border-radius:5px;flex:none" onerror="this.style.display='none'"><a href="https://x.ai" target="_blank" rel="noopener" style="font-weight:800;text-decoration:none;color:var(--tx)">xAI</a> <a href="https://x.com/search?q=xAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 xAI 관련 게시물 검색">X</a></td>
-            <td class="num">약 $170~230B<br><span class="mut" style="font-size:11px">(2026.1 Series E $230B → 2026년 중 추가 라운드 논의)</span></td>
-            <td class="num">약 $20~38억<br><span class="mut" style="font-size:11px">(추정치 편차 큼)</span></td>
-            <td class="mut" style="font-size:12.5px">대규모 인프라 투자 지속 중, 순손실 상태로 추정</td>
-            <td class="mut" style="font-size:12.5px">공식 IPO 일정 없음</td>
-            <td class="mut" style="font-size:12.5px;max-width:220px"><div style="display:flex;flex-wrap:wrap;gap:4px">
-              <span class="chip chip-top10">Nvidia</span><span class="chip">Cisco Investments</span><span class="chip">Fidelity</span><span class="chip">Valor Equity Partners</span><span class="chip">Sequoia</span><span class="chip">a16z</span><span class="chip">BlackRock</span>
-            </div></td>
-            <td class="mut" style="font-size:12.5px">확인된 한국 기업 투자자 없음</td>
-          </tr>
-        </tbody>
-      </table>
+    <p class="sub">엔트로픽·오픈AI 등 비상장 AI 기업의 최근 기업가치·매출·투자자 현황 · 사모(私募) 시장 정보라 공개 시점마다 크게 달라질 수 있습니다 · 상장(IPO) 전망이 빠른 순서대로 정렬</p>
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/anthropic.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://www.anthropic.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">Anthropic</a> <a href="https://x.com/search?q=Anthropic&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Anthropic 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $965B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.5 Series H)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $470~500억<br><span class="mut" style="font-size:11px;font-weight:400">(2026.5 기준)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 아직 순손실이나 첫 분기 흑자 전환 근접으로 보도됨</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">2026.6 SEC 비공개 S-1 제출<br>· 상장 시기 미확정<br>(2026 하반기~2027 관측)</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip chip-top10">Google</span><span class="chip chip-top10">Microsoft</span><span class="chip chip-top10">Amazon</span>
+          <span class="chip">Sequoia</span><span class="chip">Altimeter</span><span class="chip">Dragoneer</span><span class="chip">Greenoaks</span><span class="chip">GIC</span><span class="chip">Coatue</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">삼성전자</span><span class="chip chip-top10">SK하이닉스</span>
+        </div>
+        <div class="mut" style="margin-top:4px;font-size:11px">(메모리 공급 등 전략적 파트너<br>— 지분투자 여부는 비공개)</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/openai.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://openai.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">OpenAI</a> <a href="https://x.com/search?q=OpenAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 OpenAI 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $852B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.3 라운드, 최대 $1T 거론)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $200~250억<br><span class="mut" style="font-size:11px;font-weight:400">(2026 초, 편차 있음)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 대규모 순손실 지속(분기당 100억 달러 안팎 추정 보도)</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">2026.5~6 SEC 비공개 S-1 제출<br>· 2026년 4분기~2027년 상장 목표 거론<br>(공식 확정 아님)</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Microsoft</span><span class="chip">SoftBank</span><span class="chip">Thrive Capital</span><span class="chip">a16z</span><span class="chip">ARK Invest</span><span class="chip">BlackRock</span><span class="chip">Fidelity</span><span class="chip">Sequoia</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 직접 지분투자 없음<br>(삼성전자·SK하이닉스는 '스타게이트' 프로젝트향 메모리 공급 협력)</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/databricks.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://www.databricks.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">Databricks</a> <a href="https://x.com/search?q=Databricks&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Databricks 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $134B<br><span class="mut" style="font-size:11px;font-weight:400">(2025.12 → $165~175B 추진 중)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $54억<br><span class="mut" style="font-size:11px;font-weight:400">(2026.2, 전년比 +65%)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 잉여현금흐름(FCF)은 흑자, 회계상 순이익 여부는 비공개</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(255,176,32,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">공식 일정 없음<br>· CEO는 "2027년 이후" 가능성 언급</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip chip-top10">Meta</span><span class="chip">JPMorgan(부채금융 주관)</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 한국 기업 투자자 없음</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/x.ai" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://x.ai" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">xAI</a> <a href="https://x.com/search?q=xAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 xAI 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $170~230B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.1, 추가 라운드 논의)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $20~38억<br><span class="mut" style="font-size:11px;font-weight:400">(추정치 편차 큼)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 대규모 인프라 투자 지속 중, 순손실 상태로 추정</div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">상장(IPO) 전망: 공식 일정 없음</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip">Cisco Investments</span><span class="chip">Fidelity</span><span class="chip">Valor Equity Partners</span><span class="chip">Sequoia</span><span class="chip">a16z</span><span class="chip">BlackRock</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 한국 기업 투자자 없음</div>
+      </div>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 위 수치는 비상장 사모 시장 정보라 공식 재무제표 기준이 아니며, 라운드가 진행 중이거나 언론 보도 시점에 따라 실제 확정치와 다를 수 있습니다.<br>· 기업명을 클릭하면 공식 홈페이지로, X는 X(트위터)에서 해당 기업 관련 게시물 검색 결과로 이동합니다.<br>· 상장(IPO) 전망이 빠른 순서대로 정렬했습니다.<br>· 투자자 중 <span class="chip chip-top10" style="font-size:11px">주황색</span>으로 표시된 곳은 미국·한국 시가총액 TOP10 이내 기업입니다.<br>· 투자 권유 목적이 아닙니다.</p>
   </div>
@@ -396,7 +430,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="tabs" data-group="evmonth" id="evmonth-tabs">
       <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
       <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
-      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <span class="row-break"></span><button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
       <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
     </div>
     <div class="scroll" id="events-tbl-wrap">
@@ -409,6 +443,40 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC·CPI·고용보고서 등 발표일은 정부기관 사정(연방정부 셧다운 등)에 따라 변경될 수 있습니다<br>· PCE 일부 월은 추정치입니다<br>· 최신 일정은 각 출처 링크에서 확인하세요.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">지수 편입 · 편출</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">S&P 500·나스닥100 최근 구성종목 변경 · 시가총액이 큰 순서로 정리 · 종목명 클릭 시 Finviz로 이동</p>
+    <div class="idx-chg-grid">
+      <div>
+        <h4 style="font-size:13px;color:var(--up);margin-bottom:8px">▲ 편입</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" rel="noopener"><b>CoreWeave</b> (CRWV)</a><span class="mut">나스닥100 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank" rel="noopener"><b>Marvell Technology</b> (MRVL)</a><span class="mut">S&P500 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=FERG" target="_blank" rel="noopener"><b>Ferguson Enterprises</b> (FERG)</a><span class="mut">S&P500 · 2026.8</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=RDDT" target="_blank" rel="noopener"><b>Reddit</b> (RDDT)</a><span class="mut">S&P500 · 2026.8</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=NBIS" target="_blank" rel="noopener"><b>Nebius</b> (NBIS)</a><span class="mut">나스닥100 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=ALAB" target="_blank" rel="noopener"><b>Astera Labs</b> (ALAB)</a><span class="mut">나스닥100 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=RKLB" target="_blank" rel="noopener"><b>Rocket Lab</b> (RKLB)</a><span class="mut">나스닥100 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=TER" target="_blank" rel="noopener"><b>Teradyne</b> (TER)</a><span class="mut">나스닥100 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=ILMN" target="_blank" rel="noopener"><b>Illumina</b> (ILMN)</a><span class="mut">S&P500 · 2026.9.21</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=FLEX" target="_blank" rel="noopener"><b>Flex</b> (FLEX)</a><span class="mut">S&P500 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-in"><a href="https://finviz.com/quote.ashx?t=BE" target="_blank" rel="noopener"><b>Bloom Energy</b> (BE)</a><span class="mut">S&P500 · 2026.9.21</span></div>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:13px;color:var(--down);margin-bottom:8px">▼ 편출</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=EA" target="_blank" rel="noopener"><b>Electronic Arts</b> (EA)</a><span class="mut">S&P500 · 2026.8 (비상장 전환)</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=TTD" target="_blank" rel="noopener"><b>The Trade Desk</b> (TTD)</a><span class="mut">S&P500 · 2026.9.21</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=AVB" target="_blank" rel="noopener"><b>AvalonBay Communities</b> (AVB)</a><span class="mut">S&P500 · 2026.8 (피인수)</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=BLDR" target="_blank" rel="noopener"><b>Builders FirstSource</b> (BLDR)</a><span class="mut">S&P500 · 2026.9.21</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=POOL" target="_blank" rel="noopener"><b>Pool Corp</b> (POOL)</a><span class="mut">S&P500 · 2026.6.22</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=TAP" target="_blank" rel="noopener"><b>Molson Coors</b> (TAP)</a><span class="mut">S&P500 · 2026.9.21</span></div>
+          <div class="idx-chg-row idx-out"><a href="https://finviz.com/quote.ashx?t=CPB" target="_blank" rel="noopener"><b>Campbell's Company</b> (CPB)</a><span class="mut">S&P500 · 2026.6.22</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ S&P Dow Jones Indices·Nasdaq 공식 발표 기준(2026년 6~9월분) · 편입은 지수 편입 시 패시브 자금 유입, 편출은 유출 압력이 발생하는 경향이 있습니다<br>· 정렬은 대략적인 시가총액 순서이며 실시간 순위가 아닙니다<br>· 피인수·비상장 전환으로 인한 편출은 사유를 표기했습니다.</p>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">이번 달 휴장일</h3>
     <p class="sub" style="margin-bottom:12px;font-size:13.5px">증시 전일 휴장 · 채권시장만 휴장 · 조기폐장 안내</p>

@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:3px 8px;line-height:1.0;text-align:center;white-space:normal}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -210,7 +210,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h3>백테스트 옵션 조건</h3>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
         <input type="checkbox" id="bt-opt-recovery" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
-        <span><b>원금 100% 회수</b> — 평가금이 원금의 2배에 처음 도달하면 원금만큼 비례 매도해 현금화하고, 남은 평가금으로 동일 조건 매수를 계속합니다. 리밸런싱 조건은 동일합니다.</span>
+        <span><b>원금 100% 회수</b> — 포트폴리오 시작 시점 기준으로 평가금이 원금의 2배에 처음 도달하면, 딱 1회 원금만큼 비례 매도해 현금화하고 남은 평가금으로 동일 조건 매수를 계속합니다. 리밸런싱 조건은 동일합니다. (반복 실행되지 않습니다)</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
         <input type="checkbox" id="bt-opt-sniper" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
@@ -229,6 +229,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h3>누적 매수 횟수</h3>
         <div class="big" id="bt-buycount" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px">수량·종목별 세부내용은 비공개입니다</p>
+      </div>
+      <div class="card">
+        <h3>현재 평가금 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
+        <div class="big" id="bt-total-value" style="font-size:28px">--</div>
+        <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 + 배당 누적 + 회수·실현 현금 합산</p>
       </div>
       <div class="card">
         <h3>누적 배당금</h3>

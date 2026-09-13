@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:3px 8px;line-height:1.0;text-align:center;white-space:normal}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
 @media(max-width:640px){
   #krcap-tbl th:nth-child(2), #krcap-tbl td:nth-child(2),
   #krkq-tbl th:nth-child(2), #krkq-tbl td:nth-child(2){display:none}
@@ -89,7 +89,7 @@ h2{font-size:26px;letter-spacing:-.6px}
   padding:8px 15px;border-radius:7px;font-family:inherit}
 .tabs button.on{background:var(--accent);color:#1a1206}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
-#evmonth-tabs button[data-m="7"], #kr-evmonth-tabs button[data-m="7"], #crypto-evmonth-tabs button[data-m="7"], #ipo-month-tabs button[data-m="7"], #fx-evmonth-tabs button[data-m="7"]{flex-basis:100%}
+.tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -133,20 +133,20 @@ td.spark svg{display:block;margin:0 auto}
 
 /* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
 .wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
-.wl-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.wl-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
 .wl-row:last-child{border-bottom:0}
 .wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
 .wl-bar.up{background:var(--up)}
 .wl-bar.down{background:var(--down)}
 .wl-info{flex:1;min-width:0}
 .wl-tag{font-size:11.5px;color:var(--tx2);white-space:normal;line-height:1.35}
-.wl-name{font-size:16px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name{font-size:15px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wl-name a{color:inherit;text-decoration:none}
 .wl-quote{flex:none;text-align:right;min-width:86px}
 .wl-spark{display:none;flex:none;width:64px;margin:0 6px}
 .wl-spark svg{display:block;width:100%;height:28px}
 @media(min-width:761px){.wl-spark{display:block}}
-.wl-price{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
 .wl-price.up{color:var(--up)}
 .wl-price.down{color:var(--down)}
 .wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
@@ -317,7 +317,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="tabs" data-group="krevmonth" id="kr-evmonth-tabs">
       <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
       <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
-      <button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <span class="row-break"></span><button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
       <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
     </div>
     <div class="scroll" id="kr-events-tbl-wrap">

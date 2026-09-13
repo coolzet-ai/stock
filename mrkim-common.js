@@ -1058,7 +1058,8 @@ function renderFxWatchlist(p){
     const meta=FX_META[sym];
     const closes=fxData[sym];
     const linkTag='<a href="'+meta.url+'" target="_blank" rel="noopener" title="'+meta.name+' 발행 중앙은행 공식 사이트" style="margin-left:5px;text-decoration:none">🔗</a>';
-    const nameCell='<td>'+meta.flag+' '+meta.name+' <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+'</td>';
+    const finvizUrl='https://finviz.com/forex_charts.ashx?t='+meta.code+'USD';
+    const nameCell='<td>'+meta.flag+' <a href="'+finvizUrl+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline" title="Finviz에서 '+meta.code+' 상세 차트 보기">'+meta.name+'</a> <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+'</td>';
     if(!closes || closes.length<2){
       return '<tr>'+nameCell+'<td class="mut" colspan="5">데이터 없음</td></tr>';
     }
@@ -1081,7 +1082,7 @@ function renderFxWatchlist(p){
     const ma200Badge=above200==null?'<span class="mut">--</span>'
       :(above200?'<span class="tag" style="background:rgba(255,77,79,.15);color:var(--up)">200일선 위</span>'
                 :'<span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">200일선 아래</span>');
-    return '<tr><td>'+meta.flag+' '+meta.name+' <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+'</td>'+
+    return '<tr>'+nameCell+
       '<td class="num">'+priceStr+'</td>'+
       '<td class="num '+dir+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</td>'+
       '<td class="num">'+rsiTxt+rsiNote+'</td>'+
@@ -1566,16 +1567,18 @@ async function runTradeBacktest(opts){
       }
     }
 
-    /* 원금 100% 회수: 평가금(배당 포함)이 "현재 순원금"의 2배에 도달할 때마다 순원금만큼
-       비례 매도해 현금화한다(스나이퍼 TQQQ 포지션은 건드리지 않음). 반복 가능. */
-    if(principalRecoveryMode){
+    /* 원금 100% 회수: 포트폴리오 시작 시점 기준으로 딱 1회만 수행한다고 가정한다.
+       평가금(배당 포함)이 최초 순원금의 2배에 처음 도달하는 순간, 그 순원금만큼 비례
+       매도해 현금화한다(스나이퍼 TQQQ 포지션은 건드리지 않음). 이후에는 다시 조건이
+       충족되어도 재실행하지 않는다. */
+    if(principalRecoveryMode && recoveryEvents.length===0){
       const netCost=cumCost-recoveredCash;
       if(netCost>0 && value>0 && (value+cumDividend)>=2*netCost){
         const sellRatio=Math.min(1, netCost/value);
         TRADE_TICKERS.forEach(t=>{ shares[t]*=(1-sellRatio); });
         value-=netCost;
         recoveredCash+=netCost;
-        recoveryEvents.push({t:ts, amount:netCost, round:recoveryEvents.length+1});
+        recoveryEvents.push({t:ts, amount:netCost, round:1});
       }
     }
 
@@ -1747,7 +1750,7 @@ function renderBacktest(res){
     const parts=[];
     if(res.principalRecoveryMode){
       parts.push(res.recoveredCash>0
-        ? '원금 100% 회수: 총 '+res.recoveryEvents.length+'차 · '+fmtUSDKRW(res.recoveredCash)+' 현금화됨'
+        ? '원금 100% 회수: '+fmtUSDKRW(res.recoveredCash)+' 현금화됨(1회성)'
         : '원금 100% 회수: 아직 조건(평가금 ≥ 순원금의 2배)에 도달하지 않았습니다');
     }
     if(res.dualSniperMode){
@@ -1784,6 +1787,7 @@ function renderBacktest(res){
   }
 
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
+  const totalValueEl=document.getElementById('bt-total-value'); if(totalValueEl) totalValueEl.textContent=fmtUSDKRW(res.finalValue);
   const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSDKRW(res.finalCost);
   const dv=document.getElementById('bt-dividend'); if(dv) dv.textContent=fmtUSDKRW(res.cumDividend);
 
