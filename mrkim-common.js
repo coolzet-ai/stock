@@ -1466,11 +1466,13 @@ async function runTradeBacktest(opts){
   let bmQldPeak=0, bmTqqqPeak=0, bmQqqPeak=0; /* QQQ·QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
   let principalRecoveredTs=null; /* 누적 배당금만으로 누적원금을 회수한 첫 거래일(데이터 구간 내에서 도달 못하면 null) */
 
-  /* [옵션] 원금 100% 회수: 평가금이 "현재 순원금(=누적원금-기존 회수금)"의 2배에 도달할 때마다
-     그 순원금만큼 비례 매도해 현금화하고(recoveredCash) 남은 평가금으로 동일 조건 매수를
-     계속한다. 조건이 다시 충족되면 몇 번이든 반복(차수별 기록)된다. */
+  /* [옵션] 원금 100% 회수: 포트폴리오 매수 첫 시작 시점 기준으로 딱 1회만 수행한다고 가정한다.
+     평가금(배당 포함)이 최초 원금의 2배에 처음 도달하는 순간, 그 원금만큼 비례 매도해
+     현금화하고(recoveredCash) 남은 평가금으로 동일 조건 매수를 계속한다. 이후 조건이 다시
+     충족되어도 재실행하지 않는다(실제 트리거는 아래 day loop에서 recoveryEvents.length===0
+     조건으로 강제한다). */
   let recoveredCash=0;
-  const recoveryEvents=[]; // {t, amount, round}
+  const recoveryEvents=[]; // 항상 0개 또는 1개 — {t, amount, round:1}
 
   /* [옵션] 듀얼스나이퍼: 기본 전략(QLD/USD/SCHD, 배당 포함)만의 낙폭이 15%를 넘으면 매일
      TQQQ 5,000달러, 30%를 넘으면 매일 TQQQ 10,000달러를 추가 매수한다(중복이 아니라 구간
@@ -1762,24 +1764,21 @@ function renderBacktest(res){
     optSummaryEl.textContent=parts.join(' · ');
   }
 
-  /* 수익실현금 카드 — 원금 100% 회수 옵션이 켜져 있을 때만 표시, 차수별 내역 나열 */
+  /* 수익실현금 카드 — 원금 100% 회수 옵션이 켜져 있을 때만 표시. 1회성이므로 차수 표기 없이
+     회수 여부와 금액만 보여준다. 아직 회수 전이면 "$0"처럼 결과처럼 보이는 값 대신 "--"로 표시 */
   const realizedCardEl=document.getElementById('bt-realized-card');
   if(realizedCardEl){
     if(res.principalRecoveryMode){
       realizedCardEl.style.display='';
       const realizedEl=document.getElementById('bt-realized');
-      if(realizedEl) realizedEl.textContent=fmtUSDKRW(res.recoveredCash);
       const roundsEl=document.getElementById('bt-realized-rounds');
-      if(roundsEl){
-        if(!res.recoveryEvents.length){
-          roundsEl.textContent='아직 회수된 차수가 없습니다.';
-        }else if(res.recoveryEvents.length>20){
-          const last=res.recoveryEvents.slice(-10);
-          roundsEl.innerHTML='총 '+res.recoveryEvents.length+'차 발생(강한 상승장에서는 원금이 빠르게 줄어들며 소액 회수가 반복될 수 있습니다) · 최근 10건만 표시<br>'+
-            last.map(ev=>ev.round+'차: '+new Date(ev.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW(ev.amount)).join('<br>');
-        }else{
-          roundsEl.innerHTML=res.recoveryEvents.map(ev=>ev.round+'차: '+new Date(ev.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW(ev.amount)).join('<br>');
-        }
+      if(res.recoveryEvents.length){
+        const ev=res.recoveryEvents[0];
+        if(realizedEl) realizedEl.textContent=fmtUSDKRW(ev.amount);
+        if(roundsEl) roundsEl.textContent=new Date(ev.t).toLocaleDateString('ko-KR')+'에 회수됨';
+      }else{
+        if(realizedEl) realizedEl.textContent='--';
+        if(roundsEl) roundsEl.textContent='아직 조건(평가금 ≥ 순원금의 2배)에 도달하지 않았습니다.';
       }
     }else{
       realizedCardEl.style.display='none';
@@ -1787,7 +1786,12 @@ function renderBacktest(res){
   }
 
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
-  const totalValueEl=document.getElementById('bt-total-value'); if(totalValueEl) totalValueEl.textContent=fmtUSDKRW(res.finalValue);
+  const totalValueEl=document.getElementById('bt-total-value');
+  if(totalValueEl){
+    const lastPoint=res.curve[res.curve.length-1];
+    const valueExDiv=lastPoint?(lastPoint.value-lastPoint.cumDividend):null;
+    totalValueEl.textContent=(valueExDiv!=null && isFinite(valueExDiv))?fmtUSDKRW(valueExDiv):'계산 실패';
+  }
   const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSDKRW(res.finalCost);
   const dv=document.getElementById('bt-dividend'); if(dv) dv.textContent=fmtUSDKRW(res.cumDividend);
 
