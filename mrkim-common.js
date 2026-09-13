@@ -823,7 +823,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
    실제 Yahoo 종가·배당 데이터와 CNN 공포탐욕지수 히스토리로 계산합니다(가상 수치 아님).
    PROXY_BASE 미설정 시 이 데이터들도 연동에 실패할 수 있습니다. */
 const TRADE_TICKERS=['QLD','USD','SCHD'];
-let BACKTEST_START_YEAR=2025; // 2024/2025/2026 중 선택 — 트레이드 탭의 연도 선택 버튼으로 변경됨
+let BACKTEST_START_YEAR=2026; // 2022~2026 중 선택 — 트레이드 탭의 연도 선택 버튼으로 변경됨
 let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_YEAR+'-01-01T00:00:00Z').getTime()/1000);
 
 /* ===================== 한국지수 공포탐욕지수 =====================
@@ -1086,8 +1086,8 @@ async function fgDailyHistory(){
 }
 
 async function runTradeBacktest(){
-  const [qld,usd,schd,qqq,fg]=await Promise.all([
-    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), fgDailyHistory()
+  const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
+    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory()
   ]);
   const missing=[];
   if(!qld) missing.push('QLD 시세(Yahoo)');
@@ -1095,7 +1095,7 @@ async function runTradeBacktest(){
   if(!schd) missing.push('SCHD 시세(Yahoo)');
   if(!fg) missing.push('공포탐욕지수 히스토리(CNN)');
   if(missing.length) return {error:missing};
-  /* QQQ 실패는 벤치마크 비교선만 못 그리는 것이라 백테스트 자체를 막지는 않는다 */
+  /* QQQ/TQQQ 실패는 벤치마크 비교선만 못 그리는 것이라 백테스트 자체를 막지는 않는다 */
 
   const data={QLD:qld, USD:usd, SCHD:schd};
   const tradingTs=qld.series.map(p=>p.t).slice().sort((a,b)=>a-b);
@@ -1103,18 +1103,23 @@ async function runTradeBacktest(){
 
   const priceMap={};
   TRADE_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
-  const qqqPriceMap={};
+  const qqqPriceMap={}, tqqqPriceMap={};
   if(qqq) qqq.series.forEach(p=>{ qqqPriceMap[p.t]=p.close; });
+  if(tqqq) tqqq.series.forEach(p=>{ tqqqPriceMap[p.t]=p.close; });
 
-  const divMap={};
-  TRADE_TICKERS.forEach(t=>{
-    divMap[t]={};
-    data[t].dividends.forEach(d=>{
+  function buildDivMap(dividends){
+    const m={};
+    (dividends||[]).forEach(d=>{
       let mapped=tradingTs.find(ts=>ts>=d.t);
       if(mapped==null) mapped=tradingTs[tradingTs.length-1];
-      divMap[t][mapped]=(divMap[t][mapped]||0)+d.amount;
+      m[mapped]=(m[mapped]||0)+d.amount;
     });
-  });
+    return m;
+  }
+  const divMap={};
+  TRADE_TICKERS.forEach(t=>{ divMap[t]=buildDivMap(data[t].dividends); });
+  const qqqDivMap=qqq?buildDivMap(qqq.dividends):{};
+  const tqqqDivMap=tqqq?buildDivMap(tqqq.dividends):{};
 
   function scoreAt(ts){
     let ans=fg.length?fg[0].score:50;
@@ -1138,14 +1143,24 @@ async function runTradeBacktest(){
     }
   }
 
+  /* 연말 리밸런싱 대상일: 데이터 범위 안에서 "완결된" 연도의 마지막 거래일만(마지막 해는 아직
+     연말이 지나지 않았을 수 있어 제외) — 투자기간이 1년을 넘는 경우에만 자연히 1개 이상 생긴다 */
+  const yearMaxTs={};
+  tradingTs.forEach(ts=>{ const y=new Date(ts).getUTCFullYear(); if(!yearMaxTs[y]||ts>yearMaxTs[y]) yearMaxTs[y]=ts; });
+  const datasetLastTs=tradingTs[tradingTs.length-1];
+  const rebalanceDays=new Set();
+  Object.values(yearMaxTs).forEach(ts=>{ if(ts!==datasetLastTs) rebalanceDays.add(ts); });
+  const REBAL_TARGET={QLD:0.40, USD:0.40, SCHD:0.20};
+
   let shares={QLD:0,USD:0,SCHD:0};
   let cumCost=0, cumDividend=0, buyCount=0;
   const monthly={};
   const curve=[];
   let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
-  /* 벤치마크: 실제 전략이 그날 지출한 것과 동일한 금액을 QQQ·QLD 단독매수에 썼다면(분할매수 대상만 QQQ/QLD로 바꾼 가정) */
-  let bmQqqShares=0, bmQldShares=0;
-  let globalPeak=0; /* 낙폭(underwater) 그래프용 — 월 단위로 리셋되지 않는 전체 기간 누적 최고점 */
+  /* 벤치마크: 실제 전략이 그날 지출한 것과 동일한 금액을 QQQ/QLD/TQQQ 단독매수에 썼다면 가정 */
+  let bmQqqShares=0, bmQldShares=0, bmTqqqShares=0;
+  let bmQqqDiv=0, bmQldDiv=0, bmTqqqDiv=0;
+  let globalPeak=0; /* 낙폭(underwater) 그래프용 — 리셋되지 않는 전체 기간 누적 최고점(배당 포함 총수익 기준) */
 
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
@@ -1158,6 +1173,11 @@ async function runTradeBacktest(){
       const dv=divMap[t][ts];
       if(dv && shares[t]>0){ const amt=dv*shares[t]; cumDividend+=amt; monthly[mk].dividends+=amt; }
     });
+    /* 벤치마크 배당도 동일하게 누적(총수익 비교를 위해) */
+    { const dv=qqqDivMap[ts]; if(dv && bmQqqShares>0) bmQqqDiv+=dv*bmQqqShares; }
+    { const dv=divMap.QLD[ts]; if(dv && bmQldShares>0) bmQldDiv+=dv*bmQldShares; }
+    { const dv=tqqqDivMap[ts]; if(dv && bmTqqqShares>0) bmTqqqDiv+=dv*bmTqqqShares; }
+
     const score=scoreAt(ts);
     let qty=0;
     if(score<25) qty=4;
@@ -1178,22 +1198,49 @@ async function runTradeBacktest(){
     if(dailySpend>0){
       const qqqPx=qqqPriceMap[ts]; if(qqqPx) bmQqqShares+=dailySpend/qqqPx;
       const qldPx=priceMap.QLD[ts]; if(qldPx) bmQldShares+=dailySpend/qldPx;
+      const tqqqPx=tqqqPriceMap[ts]; if(tqqqPx) bmTqqqShares+=dailySpend/tqqqPx;
     }
+
     let value=0;
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
-    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts];
-    globalPeak=Math.max(globalPeak,value);
-    const dd=globalPeak>0?(globalPeak-value)/globalPeak*100:0;
+
+    /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분 */
+    if(rebalanceDays.has(ts) && value>0){
+      TRADE_TICKERS.forEach(t=>{
+        const px=priceMap[t][ts]; if(px==null) return;
+        shares[t]=(value*REBAL_TARGET[t])/px;
+      });
+      value=0;
+      TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
+    }
+
+    const totalValue=value+cumDividend; // 평가금(배당 포함 총수익)
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts];
+    globalPeak=Math.max(globalPeak,totalValue);
+    const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
     curve.push({
-      t:ts, cost:cumCost, value, dd,
-      bmQqq: qqqPxNow!=null?bmQqqShares*qqqPxNow:null,
-      bmQld: qldPxNow!=null?bmQldShares*qldPxNow:null
+      t:ts, cost:cumCost, value:totalValue, dd,
+      bmQqq: qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null,
+      bmQld: qldPxNow!=null?(bmQldShares*qldPxNow+bmQldDiv):null,
+      bmTqqq: tqqqPxNow!=null?(bmTqqqShares*tqqqPxNow+bmTqqqDiv):null,
+      rebalanced: rebalanceDays.has(ts)
     });
     const mObj=monthly[mk];
-    mObj.endValue=value; mObj.endCost=cumCost;
-    mObj.peak=Math.max(mObj.peak,value);
-    if(mObj.peak>0){ const mdd_=(mObj.peak-value)/mObj.peak; if(mdd_>mObj.mdd) mObj.mdd=mdd_; }
-    monthStartValue=value; monthStartCost=cumCost;
+    mObj.endValue=totalValue; mObj.endCost=cumCost;
+    mObj.peak=Math.max(mObj.peak,totalValue);
+    if(mObj.peak>0){ const mdd_=(mObj.peak-totalValue)/mObj.peak; if(mdd_>mObj.mdd) mObj.mdd=mdd_; }
+    monthStartValue=totalValue; monthStartCost=cumCost;
+  });
+
+  /* 연도별 집계(월별 데이터를 연 단위로 묶음) */
+  const yearly={};
+  Object.keys(monthly).sort().forEach(mk=>{
+    const y=mk.slice(0,4);
+    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0};
+    yearly[y].endValue=monthly[mk].endValue;
+    yearly[y].endCost=monthly[mk].endCost;
+    yearly[y].dividends+=monthly[mk].dividends;
+    yearly[y].buys+=monthly[mk].buys;
   });
 
   /* 다음 예상 배당: 종목별 최근 두 배당의 간격·금액과 현재 보유 수량으로 단순 추정 */
@@ -1210,7 +1257,11 @@ async function runTradeBacktest(){
     else if(nextDiv && Math.abs(nextDate-nextDiv.date)<3*86400000) nextDiv.amount+=nextAmt; // 비슷한 시기면 합산
   });
 
-  return {curve, monthly, buyCount, cumDividend, finalCost:cumCost, finalValue:curve.length?curve[curve.length-1].value:0, nextDiv};
+  return {
+    curve, monthly, yearly, buyCount, cumDividend,
+    finalCost:cumCost, finalValue:curve.length?curve[curve.length-1].value:0,
+    nextDiv, didRebalance:rebalanceDays.size>0
+  };
 }
 
 function fmtUSD(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
@@ -1224,13 +1275,27 @@ function renderBacktest(res){
   }
   if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
+  const rebalNoteEl=document.getElementById('bt-rebal-note');
+  if(rebalNoteEl) rebalNoteEl.textContent=res.didRebalance
+    ? '📌 투자기간이 1년을 초과해 매년 마지막 거래일에 QLD 40% · USD 40% · SCHD 20%로 리밸런싱이 반영되었습니다.'
+    : '';
+
+  function fmtUSDKRW(usd){
+    const krw=fmtKRW(usd);
+    return krw ? fmtUSD(usd)+' ('+krw+')' : fmtUSD(usd);
+  }
+
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
-  const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSD(res.finalCost);
-  const costKrwEl=document.getElementById('bt-cost-krw');
-  if(costKrwEl){ const krw=fmtKRW(res.finalCost); costKrwEl.textContent=krw?'원화 환산 '+krw:'환율 연동 실패로 원화 환산 불가'; }
-  const dv=document.getElementById('bt-dividend'); if(dv) dv.textContent=fmtUSD(res.cumDividend);
-  const dvKrwEl=document.getElementById('bt-dividend-krw');
-  if(dvKrwEl){ const krw=fmtKRW(res.cumDividend); dvKrwEl.textContent=(krw?'원화 환산 '+krw+' · ':'')+'보유 종목 합산, 세전 기준'; }
+  const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSDKRW(res.finalCost);
+  const dv=document.getElementById('bt-dividend'); if(dv) dv.textContent=fmtUSDKRW(res.cumDividend);
+
+  /* 원금 대비 배당률 = 누적 배당금 ÷ 누적원금 */
+  const divYieldEl=document.getElementById('bt-div-yield');
+  if(divYieldEl){
+    const dy=res.finalCost>0?(res.cumDividend/res.finalCost*100):0;
+    divYieldEl.textContent=dy.toFixed(2)+'%';
+  }
+
   const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
   const roiEl=document.getElementById('bt-roi');
   if(roiEl){
@@ -1238,20 +1303,17 @@ function renderBacktest(res){
     roiEl.className='big '+(roi>=0?'up':'down');
   }
   const roiSub=document.getElementById('bt-roi-sub');
-  if(roiSub) roiSub.textContent='원금 '+fmtUSD(res.finalCost)+' · 평가금 '+fmtUSD(res.finalValue);
+  if(roiSub) roiSub.innerHTML='원금 '+fmtUSDKRW(res.finalCost)+'<br>· 평가금 '+fmtUSDKRW(res.finalValue);
 
-  /* 현재 평가수익금 = 평가금 - 누적원금 */
+  /* 현재 평가수익금(배당 포함) = 평가금 - 누적원금 */
   const profitAmt=res.finalValue-res.finalCost;
   const profitEl=document.getElementById('bt-profit');
   if(profitEl){
-    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSD(Math.abs(profitAmt));
+    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW(Math.abs(profitAmt));
     profitEl.className='big '+(profitAmt>=0?'up':'down');
   }
   const profitKrwEl=document.getElementById('bt-profit-krw');
-  if(profitKrwEl){
-    const krw=fmtKRW(Math.abs(profitAmt));
-    profitKrwEl.textContent=krw?'원화 환산 '+(profitAmt>=0?'+':'-')+krw:'평가금 - 누적원금';
-  }
+  if(profitKrwEl) profitKrwEl.textContent='평가금(배당포함) - 누적원금';
 
   /* 수익률 곡선 SVG */
   const curveEl=document.getElementById('bt-curve');
@@ -1259,7 +1321,8 @@ function renderBacktest(res){
     const w=700,h=240,padL=56,padR=56,padTop=10,padBottom=36;
     const bmQqqVals=res.curve.map(p=>p.bmQqq).filter(v=>v!=null);
     const bmQldVals=res.curve.map(p=>p.bmQld).filter(v=>v!=null);
-    const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value)).concat(bmQqqVals).concat(bmQldVals);
+    const bmTqqqVals=res.curve.map(p=>p.bmTqqq).filter(v=>v!=null);
+    const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value)).concat(bmQqqVals).concat(bmQldVals).concat(bmTqqqVals);
     const min=Math.min(...all,0), max=Math.max(...all,1);
     const n=res.curve.length;
     const stepX=n>1?(w-padL-padR)/(n-1):0;
@@ -1268,6 +1331,7 @@ function renderBacktest(res){
     const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
     const ptsQqq=res.curve.map((p,i)=>p.bmQqq!=null?[padL+i*stepX,yOf(p.bmQqq)]:null).filter(Boolean);
     const ptsQld=res.curve.map((p,i)=>p.bmQld!=null?[padL+i*stepX,yOf(p.bmQld)]:null).filter(Boolean);
+    const ptsTqqq=res.curve.map((p,i)=>p.bmTqqq!=null?[padL+i*stepX,yOf(p.bmTqqq)]:null).filter(Boolean);
     const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
     const profit=res.finalValue>=res.finalCost;
     const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+
@@ -1285,17 +1349,23 @@ function renderBacktest(res){
       yAxis+='<text x="'+(w-padR+8)+'" y="'+(y+3).toFixed(1)+'" font-size="9.5" fill="var(--tx2)" text-anchor="start">'+lbl+'</text>';
     }
 
-    /* 월별 세로 점선 + 라벨: 각 월의 첫 거래일 위치에 표시 */
+    /* 월별 세로 점선 + 라벨: 2년(24개월) 초과 시에는 라벨이 겹쳐 깨지므로 몇 개월 단위로만 표시 */
     let gridLines='', monthLabels='';
-    let prevMk=null;
+    let prevMk=null, monthIdx=0;
+    const monthMarks=[];
     res.curve.forEach((p,i)=>{
       const d=new Date(p.t);
       const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
-      if(mk!==prevMk){
-        const x=(padL+i*stepX).toFixed(1);
-        gridLines+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>';
-        monthLabels+='<text x="'+x+'" y="'+(h-padBottom+16)+'" font-size="10" fill="var(--tx2)" text-anchor="start">'+(d.getUTCMonth()+1)+'월</text>';
-        prevMk=mk;
+      if(mk!==prevMk){ monthMarks.push({i,d}); prevMk=mk; }
+    });
+    const totalMonths=monthMarks.length;
+    const labelEvery=totalMonths>24?3:(totalMonths>12?2:1); // 2년 초과: 3개월마다, 1~2년: 2개월마다, 1년 이하: 매월
+    monthMarks.forEach((m,idx)=>{
+      const x=(padL+m.i*stepX).toFixed(1);
+      gridLines+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3" opacity="'+(idx%labelEvery===0?1:0.35)+'"/>';
+      if(idx%labelEvery===0){
+        const lbl=(m.d.getUTCMonth()===0)?(m.d.getUTCFullYear()+"'"):(m.d.getUTCMonth()+1)+'월';
+        monthLabels+='<text x="'+x+'" y="'+(h-padBottom+16)+'" font-size="10" fill="var(--tx2)" text-anchor="start">'+lbl+'</text>';
       }
     });
 
@@ -1306,15 +1376,17 @@ function renderBacktest(res){
       '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
       (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
+      (ptsTqqq.length?'<path d="'+pathOf(ptsTqqq)+'" fill="none" stroke="#facc15" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
       '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
       '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
       monthLabels+
       '</svg>'+
-      '<div class="mut" style="margin-top:6px;font-size:12px;line-height:1.8">'+
-      '<span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(실제 전략) &nbsp; '+
-      '<span style="color:var(--tx2)">┄</span> 누적 원금 &nbsp; '+
-      '<span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 매수 시 &nbsp; '+
-      '<span style="color:#c084fc">┄</span> 동일 금액 QLD 매수 시'+
+      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:10px;font-size:12px;color:var(--tx2);min-width:0">'+
+      '<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(배당포함, 실제 전략)</span>'+
+      '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
+      '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
+      '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD(배당포함)</span>'+
+      '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ(배당포함)</span>'+
       '</div>';
   }
 
@@ -1350,6 +1422,25 @@ function renderBacktest(res){
       '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
       '</svg>'+
       '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 최대 -'+worstDD+'%</div>';
+  }
+
+  /* 연도별 수익률 */
+  const yearlyEl=document.getElementById('bt-yearly-return');
+  if(yearlyEl){
+    const years=Object.keys(res.yearly||{}).sort();
+    yearlyEl.innerHTML=years.map(y=>{
+      const yr=res.yearly[y];
+      const contrib=yr.endCost-yr.startCost;
+      const denom=yr.startValue+contrib;
+      const profitYen=yr.endValue-yr.startValue-contrib;
+      const yret=denom>0?profitYen/denom*100:0;
+      return '<tr><td>'+y+'</td>'+
+        '<td class="num">'+fmtUSD(contrib)+'</td>'+
+        '<td class="num">'+fmtUSD(yr.endCost)+'</td>'+
+        '<td class="num">'+yr.buys+'회</td>'+
+        '<td class="num">'+fmtUSD(yr.dividends)+'</td>'+
+        '<td class="num '+(yret>=0?'up':'down')+'">'+(yret>=0?'+':'')+yret.toFixed(1)+'%</td></tr>';
+    }).join('');
   }
 
   /* 월별 매매기록: 투입원금·누적원금·매수횟수·MDD·월 수익금·월 수익률·연환산 순 */
