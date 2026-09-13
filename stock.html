@@ -27,7 +27,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{font-size:10.5px}}
+@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
   color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px}
@@ -441,7 +441,7 @@ if(evMonthTabs){
 
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
 
 renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','d');
 renderCapShareChart('us-cap-chart', US_CAP_DATA);

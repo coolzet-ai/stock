@@ -1375,7 +1375,10 @@ async function fgDailyHistory(){
   return out.length?out:null;
 }
 
-async function runTradeBacktest(){
+async function runTradeBacktest(opts){
+  opts = opts || {};
+  const principalRecoveryMode = !!opts.principalRecovery;
+  const dualSniperMode = !!opts.dualSniper;
   const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
     yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory()
   ]);
@@ -1454,17 +1457,29 @@ async function runTradeBacktest(){
   let bmQldPeak=0, bmTqqqPeak=0, bmQqqPeak=0; /* QQQ·QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
   let principalRecoveredTs=null; /* 누적 배당금만으로 누적원금을 회수한 첫 거래일(데이터 구간 내에서 도달 못하면 null) */
 
+  /* [옵션] 원금 100% 회수: 평가금이 원금의 2배에 처음 도달하는 순간, 원금만큼 비례 매도해
+     현금화하고(recoveredCash) 남은 평가금으로 동일 조건 매수를 계속한다. 1회성 이벤트. */
+  let recoveredCash=0, principalRecovered=false;
+
+  /* [옵션] 듀얼스나이퍼: 기본 전략(QLD/USD/SCHD, 배당 포함)만의 낙폭이 15%를 넘으면 매일
+     TQQQ 5,000달러, 30%를 넘으면 매일 TQQQ 10,000달러를 추가 매수한다(중복이 아니라 구간
+     교체). 15% 미만으로 회복하면 매수를 멈춘다. 이 TQQQ 포지션은 연말 리밸런싱에서 제외된다. */
+  let basePeak=0, sniperShares=0, sniperCost=0;
+
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
     const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
     if(mk!==prevMonthKey){
-      monthly[mk]={buys:0, dividends:0, startValue:monthStartValue, startCost:monthStartCost, endValue:0, endCost:0, peak:monthStartValue||0, mdd:0};
+      monthly[mk]={buys:0, dividends:0, startValue:monthStartValue, startCost:monthStartCost, endValue:0, endCost:0, peak:monthStartValue||0, mdd:0, divEvents:[]};
       prevMonthKey=mk;
     }
-    TRADE_TICKERS.forEach(t=>{
-      const dv=divMap[t][ts];
-      if(dv && shares[t]>0){ const amt=dv*shares[t]; cumDividend+=amt; monthly[mk].dividends+=amt; }
-    });
+    { let dayDivAmt=0;
+      TRADE_TICKERS.forEach(t=>{
+        const dv=divMap[t][ts];
+        if(dv && shares[t]>0){ const amt=dv*shares[t]; cumDividend+=amt; monthly[mk].dividends+=amt; dayDivAmt+=amt; }
+      });
+      if(dayDivAmt>0) monthly[mk].divEvents.push({t:ts, amount:dayDivAmt});
+    }
     /* 벤치마크 배당도 동일하게 누적(총수익 비교를 위해) */
     { const dv=qqqDivMap[ts]; if(dv && bmQqqShares>0) bmQqqDiv+=dv*bmQqqShares; }
     { const dv=divMap.QLD[ts]; if(dv && bmQldShares>0) bmQldDiv+=dv*bmQldShares; }
@@ -1496,7 +1511,8 @@ async function runTradeBacktest(){
     let value=0;
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
 
-    /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분 */
+    /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분
+       (스나이퍼 TQQQ 포지션은 이 로직과 완전히 분리되어 있어 자연히 제외된다) */
     if(rebalanceDays.has(ts) && value>0){
       TRADE_TICKERS.forEach(t=>{
         const px=priceMap[t][ts]; if(px==null) return;
@@ -1506,8 +1522,38 @@ async function runTradeBacktest(){
       TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
     }
 
-    const totalValue=value+cumDividend; // 평가금(배당 포함 총수익)
-    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts];
+    const tqqqPxNow0=tqqqPriceMap[ts];
+
+    /* 듀얼스나이퍼: 기본 전략(QLD/USD/SCHD, 배당 포함)만의 낙폭으로 트리거 판단 */
+    const baseTotal=value+cumDividend;
+    basePeak=Math.max(basePeak,baseTotal);
+    const baseDD=basePeak>0?(basePeak-baseTotal)/basePeak*100:0;
+    if(dualSniperMode){
+      const tqDiv=tqqqDivMap[ts];
+      if(tqDiv && sniperShares>0){ const amt=tqDiv*sniperShares; cumDividend+=amt; monthly[mk].dividends+=amt; monthly[mk].divEvents.push({t:ts, amount:amt}); }
+      let sniperBuy=0;
+      if(baseDD>30) sniperBuy=10000;
+      else if(baseDD>15) sniperBuy=5000;
+      if(sniperBuy>0 && tqqqPxNow0){
+        sniperShares+=sniperBuy/tqqqPxNow0;
+        sniperCost+=sniperBuy;
+        cumCost+=sniperBuy; // 실제 투입 자금이므로 누적원금에 포함
+      }
+    }
+
+    /* 원금 100% 회수: 평가금(배당 포함)이 원금의 2배에 처음 도달하면 원금만큼 비례 매도해
+       현금화한다(리밸런싱과 마찬가지로 스나이퍼 TQQQ 포지션은 건드리지 않는다) */
+    if(principalRecoveryMode && !principalRecovered && cumCost>0 && (value+cumDividend)>=2*cumCost){
+      const sellRatio=Math.min(1, cumCost/value);
+      TRADE_TICKERS.forEach(t=>{ shares[t]*=(1-sellRatio); });
+      recoveredCash+=cumCost;
+      value-=cumCost;
+      principalRecovered=true;
+    }
+
+    const sniperValueNow=tqqqPxNow0?sniperShares*tqqqPxNow0:0;
+    const totalValue=value+cumDividend+recoveredCash+sniperValueNow; // 평가금(배당·회수현금·스나이퍼 포함 총수익)
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPxNow0;
     globalPeak=Math.max(globalPeak,totalValue);
     const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
 
@@ -1580,7 +1626,8 @@ async function runTradeBacktest(){
     curve, monthly, yearly, buyCount, cumDividend,
     finalCost:cumCost, finalValue:curve.length?curve[curve.length-1].value:0,
     nextDiv, didRebalance:rebalanceDays.size>0,
-    annualDividendEst, principalRecoveredTs
+    annualDividendEst, principalRecoveredTs,
+    principalRecoveryMode, dualSniperMode, recoveredCash, sniperCost, sniperShares
   };
 }
 
@@ -1663,6 +1710,22 @@ function renderBacktest(res){
     if(!krwDisplayOn) return fmtUSD(usd); // 토글이 꺼져 있으면 달러만(stock.html·crypto.html과 동일 구조)
     const krw=fmtKRW(usd);
     return krw ? fmtUSD(usd)+' ('+krw+')' : fmtUSD(usd);
+  }
+
+  const optSummaryEl=document.getElementById('bt-opt-summary');
+  if(optSummaryEl){
+    const parts=[];
+    if(res.principalRecoveryMode){
+      parts.push(res.recoveredCash>0
+        ? '원금 100% 회수: '+fmtUSDKRW(res.recoveredCash)+' 현금화됨'
+        : '원금 100% 회수: 아직 조건(평가금 ≥ 원금의 2배)에 도달하지 않았습니다');
+    }
+    if(res.dualSniperMode){
+      parts.push(res.sniperCost>0
+        ? '듀얼스나이퍼: 추가 매수 '+fmtUSDKRW(res.sniperCost)+' 집행됨'
+        : '듀얼스나이퍼: 아직 매수 조건이 발동하지 않았습니다');
+    }
+    optSummaryEl.textContent=parts.join(' · ');
   }
 
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
@@ -1876,7 +1939,7 @@ function renderBacktest(res){
       (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
       (ptsQqqDD.length?'<path d="'+pathOf(ptsQqqDD)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
       '</svg>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">낙폭(고점 대비 하락폭) · 전략 최대 -'+worstDD+'%'+
+      '<div class="mut" style="margin-top:4px;font-size:12px">전략 최대 -'+worstDD+'%'+
       (worstQqqDD!=null?' · QQQ 단독매수 최대 -'+worstQqqDD+'%':'')+
       (worstQldDD!=null?' · QLD 단독매수 최대 -'+worstQldDD+'%':'')+
       (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>'+
@@ -2002,15 +2065,26 @@ function renderBacktest(res){
     }).join('');
   }
 
-  /* 월별 배당금: 배당이 있었던 달만 표시, 누적 배당금 병기 */
+  /* 월별 배당금: 배당이 있었던 달만 표시, 누적 배당금 병기, 클릭 시 일자별 세부내용 펼침 */
   const divEl=document.getElementById('bt-monthly-div');
   if(divEl){
     const divMonths=months.filter(mk=>res.monthly[mk].dividends>0);
     let running=0;
-    divEl.innerHTML=divMonths.length?divMonths.map(mk=>{
+    divEl.innerHTML=divMonths.length?divMonths.map((mk,idx)=>{
       const m=res.monthly[mk];
       running+=m.dividends;
-      return '<tr><td>'+mk+'</td><td class="num">'+fmtUSDKRW(m.dividends)+'</td><td class="num">'+fmtUSDKRW(running)+'</td></tr>';
+      const detailId='div-detail-'+idx;
+      const detailRows=(m.divEvents||[]).slice().sort((a,b)=>a.t-b.t).map(ev=>
+        '<div style="display:flex;justify-content:space-between;padding:3px 0">'+
+        '<span class="mut">'+new Date(ev.t).toLocaleDateString('ko-KR')+'</span>'+
+        '<span>'+fmtUSDKRW(ev.amount)+'</span></div>'
+      ).join('');
+      return '<tr style="cursor:pointer" onclick="document.getElementById(\''+detailId+'\').classList.toggle(\'open\')">'+
+          '<td>'+mk+' <span class="mut" style="font-size:11px">(세부내용 보기)</span></td>'+
+          '<td class="num">'+fmtUSDKRW(m.dividends)+'</td><td class="num">'+fmtUSDKRW(running)+'</td></tr>'+
+        '<tr><td colspan="3" style="padding:0;border-bottom:0">'+
+          '<div id="'+detailId+'" class="bt-div-detail">'+(detailRows||'<span class="mut">세부 내역이 없습니다.</span>')+'</div>'+
+        '</td></tr>';
     }).join(''):'<tr><td class="mut" colspan="3">배당이 발생한 달이 없습니다.</td></tr>';
   }
 
@@ -2030,9 +2104,22 @@ let lastBacktestResult=null;
 async function loadTradeBacktest(){
   const statusEl=document.getElementById('bt-status');
   if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
-  const [res]=await Promise.all([runTradeBacktest(), loadFxRate()]);
+  const opts={
+    principalRecovery: !!(document.getElementById('bt-opt-recovery')||{}).checked,
+    dualSniper: !!(document.getElementById('bt-opt-sniper')||{}).checked
+  };
+  const [res]=await Promise.all([runTradeBacktest(opts), loadFxRate()]);
   lastBacktestResult=res;
   renderBacktest(res);
+}
+
+/* 원금 100% 회수·듀얼스나이퍼 체크박스 — 조건 자체가 바뀌므로 표시만 다시 그리지 않고
+   전체를 재계산한다 */
+function initTradeOptionCheckboxes(){
+  ['bt-opt-recovery','bt-opt-sniper'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('change', loadTradeBacktest);
+  });
 }
 
 /* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고

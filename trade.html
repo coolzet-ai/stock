@@ -27,7 +27,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{font-size:10.5px}}
+@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
   color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px}
@@ -136,6 +136,8 @@ td.spark svg{display:block;margin:0 auto}
 #events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
 #events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
 .tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
+.bt-div-detail{display:none;padding:8px 10px;background:var(--panel2);border-radius:8px;font-size:12.5px;margin:2px 0 6px}
+.bt-div-detail.open{display:block}
 
 .plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
 .plan.hi{border-color:rgba(255,176,32,.5);box-shadow:0 0 0 1px rgba(255,176,32,.15)}
@@ -203,6 +205,19 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <p class="sub" id="bt-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
     <p class="mut" id="bt-rebal-note" style="margin-top:6px;font-size:12.5px"></p>
+
+    <div class="card" style="margin-top:16px">
+      <h3>백테스트 옵션 조건</h3>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
+        <input type="checkbox" id="bt-opt-recovery" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
+        <span><b>원금 100% 회수</b> — 평가금이 원금의 2배에 처음 도달하면 원금만큼 비례 매도해 현금화하고, 남은 평가금으로 동일 조건 매수를 계속합니다. 리밸런싱 조건은 동일합니다.</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
+        <input type="checkbox" id="bt-opt-sniper" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
+        <span><b>듀얼스나이퍼</b> — 포트폴리오 손실이 일정 구간을 넘으면 특정 레버리지 상품을 단계적으로 추가 매수하는 방어 전략입니다. 손실 구간이 커질수록 매수 강도가 세지고, 손실이 줄어들면 매수를 멈춥니다. 이 포지션은 연말 리밸런싱에서 제외됩니다. 매수 대상 종목·구체적 금액은 공개하지 않습니다.</span>
+      </label>
+      <p class="mut" style="margin-top:10px;font-size:12px" id="bt-opt-summary"></p>
+    </div>
 
     <div class="grid">
       <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
@@ -321,10 +336,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
 
 loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
+initTradeOptionCheckboxes();
 { const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
   if(_btn && _wrap){
     _btn.addEventListener('click',()=>{
