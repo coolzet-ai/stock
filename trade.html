@@ -257,9 +257,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div id="bt-annual-dividend-diff"></div>
       </div>
       <div class="card" id="bt-realized-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
-        <h3>수익실현금</h3>
-        <div class="big" id="bt-realized" style="font-size:28px">--</div>
-        <p class="mut" style="margin-top:6px;font-size:12px" id="bt-realized-rounds">계산 중…</p>
+        <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(원금회수·듀얼스나이퍼는 서로 독립된 조건입니다)</span></h3>
+        <div id="bt-realized-recovery-block" style="display:none;margin-top:6px">
+          <div class="mut" style="font-size:11px">💰 원금 100% 회수 실현액</div>
+          <div class="big up" id="bt-realized-recovery" style="font-size:22px">--</div>
+        </div>
+        <div id="bt-realized-sniper-block" style="display:none;margin-top:10px">
+          <div class="mut" style="font-size:11px">🎯 듀얼스나이퍼 실현액</div>
+          <div class="big up" id="bt-realized-sniper" style="font-size:22px">--</div>
+        </div>
+        <p class="mut" style="margin-top:8px;font-size:12px" id="bt-realized-rounds">계산 중…</p>
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
@@ -293,8 +300,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <div class="scroll" id="bt-monthly-wrap" style="display:none">
       <table>
-        <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 수익금</th><th class="num">월 수익률</th><th class="num">연환산</th></tr></thead>
-        <tbody id="bt-monthly-return"><tr><td class="mut" colspan="8">계산 중…</td></tr></tbody>
+        <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 평가금</th><th class="num">월 수익금</th><th class="num">월 수익률</th></tr></thead>
+        <tbody id="bt-monthly-return"><tr><td class="mut" colspan="7">계산 중…</td></tr></tbody>
       </table>
     </div>
 
@@ -327,11 +334,25 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
       <p class="mut" style="font-size:12px;margin-bottom:10px">종목별 세부 매수 기록과 듀얼스나이퍼 매수·매도 기록입니다. 일반 화면에는 공개하지 않는 내용입니다.</p>
 
-      <h4 style="font-size:14px;color:var(--tx2);margin-top:18px">종목별 세부 매매기록</h4>
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:18px">전략 조건 세부내용 (비공개)</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th style="width:140px">구분</th><th>세부 조건</th></tr></thead>
+          <tbody>
+            <tr><td><b>기본 매수법</b></td><td class="mut" style="font-size:12.5px">미국지수 공포탐욕 점수 기준 — 점수 25 미만: 매일 QLD·USD·SCHD 각 4주씩 매수 · 매주 금요일에는 점수 45 미만 시 각 2주, 45~55 시 각 1주, 55 초과 시 매수 없음(위 25 미만 조건과 중복 적용되지 않음, 즉 25 미만이면 매일 4주가 우선)</td></tr>
+            <tr><td><b>리밸런싱</b></td><td class="mut" style="font-size:12.5px">투자기간이 1년을 초과하면 매년 마지막 거래일에 QLD 40% · USD 40% · SCHD 20% 비중으로 재배분(듀얼스나이퍼 TQQQ 포지션은 이 리밸런싱에서 완전히 제외)</td></tr>
+            <tr><td><b>원금 100% 회수</b></td><td class="mut" style="font-size:12.5px">평가금(배당 포함)이 그 시점까지의 순원금(누적원금－이미 회수한 금액)의 2배에 처음 도달하는 날, 순원금만큼 비례 매도해 현금화(딱 1회, 반복 없음). 포지션 시가가 순원금보다 작을 경우 시가만큼만 현금화(음수 방지)</td></tr>
+            <tr><td><b>듀얼스나이퍼 매수</b></td><td class="mut" style="font-size:12.5px">기본 전략(QLD/USD/SCHD, 배당 포함) 낙폭이 15% 초과 15%~30% 구간이면 매주 금요일 TQQQ 5,000달러, 30% 초과 구간이면 매주 금요일 TQQQ 10,000달러 매수(중복 아님, 구간별 택1). 낙폭이 15% 미만으로 회복되면 매수 중단</td></tr>
+            <tr><td><b>듀얼스나이퍼 매도</b></td><td class="mut" style="font-size:12.5px">TQQQ 포지션 수익률이 +200%에 처음 도달하면 잔고의 50% 매도, 이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도(매도분만큼 원가도 비례 차감해 잔여 포지션 평단가 유지)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">종목별 세부 매매기록</h4>
       <div class="scroll" style="max-height:400px;overflow-y:auto">
         <table>
-          <thead><tr><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">단가</th><th class="num">매수금액</th></tr></thead>
-          <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+          <thead><tr><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">공포탐욕지수</th></tr></thead>
+          <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="6">데이터 없음</td></tr></tbody>
         </table>
       </div>
 
@@ -342,10 +363,19 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
         </table>
       </div>
+
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">리밸런싱 이력 (매도·매수 현황)</h4>
+      <p class="mut" style="font-size:12px;margin-top:2px">연말 리밸런싱 시 종목별 리밸런싱 전(직전 시가) → 후(재배분 후 시가)를 비교해 실제 매도·매수 방향을 보여줍니다.</p>
+      <div class="scroll" style="max-height:400px;overflow-y:auto">
+        <table>
+          <thead><tr><th>날짜</th><th>종목</th><th class="num">리밸런싱 전</th><th class="num">리밸런싱 후</th><th>구분</th></tr></thead>
+          <tbody id="bt-admin-rebalance"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
     <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
-    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 누적원금 회수 시점은 평가금(배당 포함)이 누적원금의 2배(원금 대비 수익률 100%)에 도달(또는 도달 예상)하는 시점입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
   </div>
 </section>
 
