@@ -1581,6 +1581,7 @@ async function runTradeBacktest(opts){
         value-=netCost;
         recoveredCash+=netCost;
         recoveryEvents.push({t:ts, amount:netCost, round:1});
+        monthly[mk].recovered=(monthly[mk].recovered||0)+netCost; // 이번 달 원금 회수액(월별 수익 계산 보정용)
       }
     }
 
@@ -1625,11 +1626,12 @@ async function runTradeBacktest(opts){
   const yearly={};
   Object.keys(monthly).sort().forEach(mk=>{
     const y=mk.slice(0,4);
-    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0};
+    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0, recovered:0};
     yearly[y].endValue=monthly[mk].endValue;
     yearly[y].endCost=monthly[mk].endCost;
     yearly[y].dividends+=monthly[mk].dividends;
     yearly[y].buys+=monthly[mk].buys;
+    yearly[y].recovered+=(monthly[mk].recovered||0);
   });
 
   /* 다음 예상 배당: 종목별 최근 두 배당의 간격·금액과 현재 보유 수량으로 단순 추정 */
@@ -2096,7 +2098,7 @@ function renderBacktest(res){
     const years=Object.keys(res.yearly||{}).sort();
     const yretList=years.map(y=>{
       const yr=res.yearly[y];
-      const contrib=yr.endCost-yr.startCost;
+      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0); // 원금 회수분은 신규 매수의 반대가 아니므로 보정
       const denom=yr.startValue+contrib;
       const profitYen=yr.endValue-yr.startValue-contrib;
       return denom>0?profitYen/denom*100:0;
@@ -2104,13 +2106,13 @@ function renderBacktest(res){
     const bestYret=Math.max(...yretList), worstYret=Math.min(...yretList);
     yearlyEl.innerHTML=years.map((y,i)=>{
       const yr=res.yearly[y];
-      const contrib=yr.endCost-yr.startCost;
+      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0);
       const yret=yretList[i];
       const isBest=yret===bestYret && yretList.length>1;
       const isWorst=yret===worstYret && yretList.length>1;
       const rowBg='background:'+(yret>=0?'rgba(255,77,79,':'rgba(61,157,255,')+Math.min(Math.abs(yret)/40,1)*0.22+')';
       const badge=isBest?' <span class="tag" style="background:rgba(255,176,32,.18);color:var(--accent)">최고</span>':isWorst?' <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">최저</span>':'';
-      return '<tr style="'+rowBg+'"><td>'+y+badge+'</td>'+
+      return '<tr style="'+rowBg+'"><td>'+y+badge+(yr.recovered?' <span class="mut" style="font-size:11px">(원금 회수 발생)</span>':'')+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(yr.endCost)+'</td>'+
         '<td class="num">'+yr.buys+'회</td>'+
@@ -2125,13 +2127,17 @@ function renderBacktest(res){
   if(trEl){
     trEl.innerHTML=months.map(mk=>{
       const m=res.monthly[mk];
-      const contrib=m.endCost-m.startCost;
+      /* endCost는 "누적원금(회수분 제외)" 표시용이라 회수가 있었던 달은 원가 델타가 실제
+         매수 여부와 무관하게 확 줄어든다. 그 달의 "진짜 신규 매수액"과 "진짜 수익"을
+         구하려면 회수액만큼 다시 더해줘야 한다(회수는 신규 매수의 반대가 아니라 별개의
+         현금 인출이므로). */
+      const contrib=(m.endCost-m.startCost)+(m.recovered||0);
       const denom=m.startValue+contrib;
       const profitYen=m.endValue-m.startValue-contrib;
       const mret=denom>0?profitYen/denom:0;
       const ann=(Math.pow(1+mret,12)-1)*100;
       const mddPct=(m.mdd||0)*100;
-      return '<tr><td>'+mk+'</td>'+
+      return '<tr><td>'+mk+(m.recovered?' <span class="mut" style="font-size:11px">(원금 회수 발생)</span>':'')+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(m.endCost)+'</td>'+
         '<td class="num">'+m.buys+'회</td>'+
