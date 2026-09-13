@@ -1455,7 +1455,7 @@ async function runTradeBacktest(opts){
   const REBAL_TARGET={QLD:0.40, USD:0.40, SCHD:0.20};
 
   let shares={QLD:0,USD:0,SCHD:0};
-  let cumCost=0, cumDividend=0, buyCount=0;
+  let cumCost=0, baseCumCost=0, cumDividend=0, buyCount=0;
   const monthly={};
   const curve=[];
   let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
@@ -1538,7 +1538,7 @@ async function runTradeBacktest(opts){
       let bought=false;
       TRADE_TICKERS.forEach(t=>{
         const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]+=qty; cumCost+=px*qty; dailySpend+=px*qty; bought=true;
+        shares[t]+=qty; cumCost+=px*qty; baseCumCost+=px*qty; dailySpend+=px*qty; bought=true;
         tradeLog.push({t:ts, ticker:t, qty, price:px, amount:px*qty, score});
         shares2[t]+=qty; cumCost2+=px*qty; // "회수 안 했다면" 시나리오도 동일하게 매수
       });
@@ -1628,7 +1628,7 @@ async function runTradeBacktest(opts){
        매도해 현금화한다(스나이퍼 TQQQ 포지션은 건드리지 않음). 이후에는 다시 조건이
        충족되어도 재실행하지 않는다. */
     if(principalRecoveryMode && recoveryEvents.length===0){
-      const netCost=cumCost-recoveredCash;
+      const netCost=baseCumCost-recoveredCash; // [반영] 듀얼스나이퍼 매수원금은 제외하고 기본매수조건 원금만으로 판단
       if(netCost>0 && value>0 && (value+cumDividend)>=2*netCost){
         /* [버그 수정] 배당이 누적돼 "평가금+배당≥원금의 2배" 조건은 충족되지만 포지션 시가(value)
            자체는 원금(netCost)에 못 미치는 경우, 예전 코드는 그래도 netCost 전액을 매도한 것처럼
@@ -1647,7 +1647,7 @@ async function runTradeBacktest(opts){
 
     const sniperValueNow=tqqqPxNow0?sniperShares*tqqqPxNow0:0;
     lastSniperValue=sniperValueNow;
-    const displayCost=cumCost-recoveredCash; // 회수한 원금은 더 이상 투입원금으로 잡지 않는다
+    const displayCost=cumCost-recoveredCash-sniperRealizedCash; // 회수한 원금·듀얼스나이퍼 실현액은 더 이상 투입원금으로 잡지 않는다
     /* [재검토 반영] 원금 회수・듀얼스나이퍼 매도 둘 다 "인출해서 쓴 현금"으로 간주해 이 시점부터는
        포트폴리오 평가금에 더 이상 포함시키지 않는다(recoveredCash·sniperRealizedCash 모두
        totalValue에서 제외). 그래서 두 이벤트 중 무엇이 발생하든 그 순간 평가금 곡선이 실제로
@@ -1671,7 +1671,7 @@ async function runTradeBacktest(opts){
 
 
     curve.push({
-      t:ts, cost:displayCost, value:totalValue, dd, cumDividend, posValue:value,
+      t:ts, cost:displayCost, value:totalValue, dd, cumDividend, posValue:value, sniperVal:sniperValueNow,
       bmQqq: qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null,
       bmQld: bmQldValue, bmTqqq: bmTqqqValue,
       bmQqqDivC: bmQqqDiv, bmQldDivC: bmQldDiv, bmTqqqDivC: bmTqqqDiv,
@@ -1735,7 +1735,7 @@ async function runTradeBacktest(opts){
 
   return {
     curve, monthly, yearly, buyCount, cumDividend,
-    finalCost:cumCost-recoveredCash, finalValue:curve.length?curve[curve.length-1].value:0,
+    finalCost:cumCost-recoveredCash-sniperRealizedCash, finalValue:curve.length?curve[curve.length-1].value:0,
     finalPosValue:curve.length?curve[curve.length-1].posValue:0,
     nextDiv, didRebalance:rebalanceDays.size>0,
     annualDividendEst,
@@ -1810,108 +1810,77 @@ function detectDrawdownEpisodes(curve, threshold){
 /* 원금 100% 회수 이후 구간만 따로 떼어 "그 시점부터 0에서 다시 시작"한 것처럼 리베이스해
    보여준다 — 평가금 증감(전략 vs QQQ/QLD/TQQQ), 낙폭(그 시점부터 새로 계산), 누적 배당금.
    회수가 없으면 섹션 자체를 숨긴다. */
+/* 작은 라인차트 하나를 그리는 범용 헬퍼 — 회수 전/후, 스나이퍼 차수별 비교 패널에서 재사용한다 */
+function miniLineChart(seriesArr, opts){
+  opts=opts||{};
+  const w=opts.w||340, h=opts.h||180, padL=opts.padL!=null?opts.padL:40, padR=opts.padR!=null?opts.padR:8,
+        padTop=opts.padTop!=null?opts.padTop:8, padBottom=opts.padBottom!=null?opts.padBottom:8, zeroLine=!!opts.zeroLine;
+  const allVals=[];
+  seriesArr.forEach(s=>s.values.forEach(v=>{ if(v!=null) allVals.push(v); }));
+  if(zeroLine) allVals.push(0);
+  if(!allVals.length) allVals.push(0,1);
+  const min=Math.min(...allVals), max=Math.max(...allVals,min+1);
+  const n=Math.max.apply(null,seriesArr.map(s=>s.values.length).concat([2]));
+  const stepX=n>1?(w-padL-padR)/(n-1):0;
+  const yOf=v=>h-padBottom-((v-min)/((max-min)||1))*(h-padTop-padBottom);
+  const pathOf=arr=>{
+    const pts=arr.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
+    return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  };
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">';
+  if(zeroLine) svg+='<line x1="'+padL+'" y1="'+yOf(0).toFixed(1)+'" x2="'+(w-padR)+'" y2="'+yOf(0).toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>';
+  seriesArr.forEach(s=>{
+    if(s.area){
+      const pts=s.values.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
+      if(pts.length){
+        const areaPath=pathOf(s.values)+' L'+pts[pts.length-1][0].toFixed(1)+','+yOf(0).toFixed(1)+' L'+pts[0][0].toFixed(1)+','+yOf(0).toFixed(1)+' Z';
+        svg+='<path d="'+areaPath+'" fill="'+s.area+'" stroke="none"/>';
+      }
+    }
+    svg+='<path d="'+pathOf(s.values)+'" fill="none" stroke="'+s.color+'" stroke-width="'+(s.width||2)+'"'+(s.dashed?' stroke-dasharray="5 3"':'')+(s.opacity?' opacity="'+s.opacity+'"':'')+'/>';
+  });
+  svg+='</svg>';
+  const legend=seriesArr.filter(s=>s.label).map(s=>
+    '<span style="white-space:nowrap;font-size:11px;color:var(--tx2)"><span style="color:'+s.color+'">'+(s.dashed?'┄':'■')+'</span> '+s.label+'</span>'
+  ).join('');
+  return svg+(legend?'<div style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:4px">'+legend+'</div>':'');
+}
+
+/* 원금 100% 회수 전/후, 그리고 듀얼스나이퍼 차수별 매도 전/후를 각각 절반씩 나란히 비교한다 */
 function renderPostRecoveryCharts(res){
-  const sectionEl=document.getElementById('bt-post-recovery-section');
-  if(!sectionEl) return;
-  const hasRecovery=res.recoveryEvents && res.recoveryEvents.length>0;
-  if(!hasRecovery){ sectionEl.style.display='none'; return; }
-  sectionEl.style.display='';
   function fmtUSDKRW2(usd){
     if(!krwDisplayOn) return fmtUSD(usd);
     const krw=fmtKRW(usd);
     return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
   }
-  const evT=res.recoveryEvents[0].t;
-  const idx=res.curve.findIndex(p=>p.t>=evT);
-  const curveEl=document.getElementById('bt-post-curve');
-  const ddEl2=document.getElementById('bt-post-drawdown');
-  const divEl2=document.getElementById('bt-post-dividend');
-  if(idx<0 || idx>=res.curve.length-2){
-    if(curveEl) curveEl.innerHTML='<p class="mut" style="font-size:12px">회수 이후 데이터가 아직 충분하지 않습니다.</p>';
-    if(ddEl2) ddEl2.innerHTML='';
-    if(divEl2) divEl2.innerHTML='';
-    return;
-  }
-  const seg=res.curve.slice(idx);
-  const base=seg[0];
-  const n=seg.length;
-  const w=700, padL=56, padR=56, padTop=10, padBottom=36;
-  const stepX=n>1?(w-padL-padR)/(n-1):0;
-  const pathOf=(arr,yOfFn)=>{
-    const pts=arr.map((v,i)=>v!=null?[padL+i*stepX,yOfFn(v)]:null).filter(Boolean);
-    return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  };
-
-  /* ---- 평가금 증감(리베이스) ---- */
-  if(curveEl){
-    const h=220;
-    const rebasedVal=seg.map(p=>p.value-base.value);
-    const rebasedQqq=seg.map(p=>(p.bmQqq!=null && base.bmQqq!=null)?p.bmQqq-base.bmQqq:null);
-    const rebasedQld=seg.map(p=>(p.bmQld!=null && base.bmQld!=null)?p.bmQld-base.bmQld:null);
-    const rebasedTqqq=seg.map(p=>(p.bmTqqq!=null && base.bmTqqq!=null)?p.bmTqqq-base.bmTqqq:null);
-    const allVals=[0].concat(rebasedVal).concat(rebasedQqq.filter(v=>v!=null)).concat(rebasedQld.filter(v=>v!=null)).concat(rebasedTqqq.filter(v=>v!=null));
-    const min=Math.min(...allVals), max=Math.max(...allVals,1);
-    const yOf=v=>h-padBottom-((v-min)/((max-min)||1))*(h-padTop-padBottom);
-    const zeroY=yOf(0).toFixed(1);
-    const profit2=rebasedVal[rebasedVal.length-1]>=0;
-    curveEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:220px;display:block">'+
-      '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>'+
-      (rebasedQqq.some(v=>v!=null)?'<path d="'+pathOf(rebasedQqq,yOf)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (rebasedQld.some(v=>v!=null)?'<path d="'+pathOf(rebasedQld,yOf)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (rebasedTqqq.some(v=>v!=null)?'<path d="'+pathOf(rebasedTqqq,yOf)+'" fill="none" stroke="#facc15" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      '<path d="'+pathOf(rebasedVal,yOf)+'" fill="none" stroke="'+(profit2?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
-      '</svg>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
-      '<span style="white-space:nowrap"><span style="color:'+(profit2?'var(--up)':'var(--down)')+'">■</span> 남은 전략(배당 포함)</span>'+
-      '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ</span>'+
-      '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD</span>'+
-      '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ</span>'+
-      '</div>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">회수 시점 이후 증감: <b class="'+(profit2?'up':'down')+'">'+(profit2?'+':'')+fmtUSDKRW2(rebasedVal[rebasedVal.length-1])+'</b></div>';
-  }
-
-  /* ---- 낙폭(회수 이후 새로 계산) ---- */
-  if(ddEl2){
-    const ddH=140;
-    let peak2=0;
-    const ddSeg=seg.map(p=>{ peak2=Math.max(peak2,p.value); return peak2>0?(peak2-p.value)/peak2*100:0; });
-    const maxDD2=Math.max(...ddSeg,1);
-    const yOfDD=v=>padTop+(v/maxDD2)*(ddH-padTop-14);
-    const ddPts=ddSeg.map((v,i)=>[padL+i*stepX,yOfDD(v)]);
-    const ddPathStr=ddPts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const ddArea=ddPts.length?ddPathStr+' L'+ddPts[ddPts.length-1][0].toFixed(1)+','+padTop+' L'+ddPts[0][0].toFixed(1)+','+padTop+' Z':'';
-    ddEl2.innerHTML='<svg viewBox="0 0 '+w+' '+ddH+'" style="width:100%;height:140px;display:block">'+
-      '<path d="'+ddArea+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
-      '<path d="'+ddPathStr+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
-      '</svg>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">회수 이후 최대 낙폭 -'+maxDD2.toFixed(1)+'%</div>';
-  }
-
-  /* ---- 누적 배당금(회수 이후) — 기본전략 vs QQQ/QLD/TQQQ 벤치마킹 비교 ---- */
-  if(divEl2){
-    const divH=160;
-    const divSeg=seg.map(p=>p.cumDividend-base.cumDividend);
-    const qqqDivSeg=seg.map(p=>(p.bmQqqDivC!=null && base.bmQqqDivC!=null)?p.bmQqqDivC-base.bmQqqDivC:null);
-    const qldDivSeg=seg.map(p=>(p.bmQldDivC!=null && base.bmQldDivC!=null)?p.bmQldDivC-base.bmQldDivC:null);
-    const tqqqDivSeg=seg.map(p=>(p.bmTqqqDivC!=null && base.bmTqqqDivC!=null)?p.bmTqqqDivC-base.bmTqqqDivC:null);
-    const allDivVals=[0].concat(divSeg).concat(qqqDivSeg.filter(v=>v!=null)).concat(qldDivSeg.filter(v=>v!=null)).concat(tqqqDivSeg.filter(v=>v!=null));
-    const maxDiv=Math.max(...allDivVals,1);
-    const yOfDiv=v=>divH-30-((v/maxDiv))*(divH-30-14);
-    const divPts=divSeg.map((v,i)=>[padL+i*stepX,yOfDiv(v)]);
-    const divPathStr=divPts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    divEl2.innerHTML='<svg viewBox="0 0 '+w+' '+divH+'" style="width:100%;height:160px;display:block">'+
-      (qqqDivSeg.some(v=>v!=null)?'<path d="'+pathOf(qqqDivSeg,yOfDiv)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (qldDivSeg.some(v=>v!=null)?'<path d="'+pathOf(qldDivSeg,yOfDiv)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (tqqqDivSeg.some(v=>v!=null)?'<path d="'+pathOf(tqqqDivSeg,yOfDiv)+'" fill="none" stroke="#facc15" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      '<path d="'+divPathStr+'" fill="none" stroke="var(--accent)" stroke-width="2.2"/>'+
-      '</svg>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
-      '<span style="white-space:nowrap"><span style="color:var(--accent)">■</span> 기본전략(QLD/USD/SCHD) 배당</span>'+
-      '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 배당</span>'+
-      '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD 배당</span>'+
-      '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ 배당</span>'+
-      '</div>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">회수 이후 누적 배당금: <b>'+fmtUSDKRW2(divSeg[divSeg.length-1])+'</b></div>';
+  /* ---- 듀얼스나이퍼 차수별(1차/2차…) 매도 전/후 비교 — TQQQ 스나이퍼 포지션 가치만 비교 ---- */
+  const sniperSection=document.getElementById('bt-sniper-rounds-section');
+  const sniperChartsEl=document.getElementById('bt-sniper-rounds-charts');
+  const sells=(res.sniperLog||[]).filter(l=>l.type==='sell');
+  if(sniperSection && sniperChartsEl){
+    if(!sells.length){ sniperSection.style.display='none'; }
+    else{
+      sniperSection.style.display='';
+      let html='';
+      sells.forEach((s,i)=>{
+        const sellIdx=res.curve.findIndex(p=>p.t>=s.t);
+        let prevIdx=i===0?0:res.curve.findIndex(p=>p.t>=sells[i-1].t);
+        if(prevIdx<0) prevIdx=0;
+        let nextIdx=(i+1<sells.length)?res.curve.findIndex(p=>p.t>=sells[i+1].t):res.curve.length-1;
+        if(nextIdx<0) nextIdx=res.curve.length-1;
+        if(sellIdx<0) return;
+        const beforeSeg=res.curve.slice(prevIdx, sellIdx+1);
+        const afterSeg=res.curve.slice(sellIdx, nextIdx+1);
+        const rebase=(seg)=>{ const b=seg[0].sniperVal||0; return seg.map(p=>(p.sniperVal||0)-b); };
+        html+='<div class="card" style="margin-top:10px">'+
+          '<div class="mut" style="font-size:12px;margin-bottom:6px"><b>'+(i+1)+'차 매도</b> · '+new Date(s.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW2(s.amount)+' 실현</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+          '<div><div class="mut" style="font-size:11px;margin-bottom:4px">이번 매도 전</div>'+miniLineChart([{values:rebase(beforeSeg), color:'#facc15', width:2, zeroLine:true}],{h:140,zeroLine:true})+'</div>'+
+          '<div><div class="mut" style="font-size:11px;margin-bottom:4px">이번 매도 후</div>'+miniLineChart([{values:rebase(afterSeg), color:'#facc15', width:2, zeroLine:true}],{h:140,zeroLine:true})+'</div>'+
+          '</div></div>';
+      });
+      sniperChartsEl.innerHTML=html;
+    }
   }
 }
 
@@ -2108,28 +2077,66 @@ function renderBacktest(res){
   diffNote(profitAmt, res.noRecoveryTotalValue-res.noRecoveryCost, 'bt-profit-diff');
 
   /* 수익률 곡선 SVG */
+  /* 평가금 곡선 패널 하나를 그린다 — 회수 전/후 두 패널이 완전히 동일한 축척(scaleMin~scaleMax)과
+     동일한 벤치마크 정의를 쓰도록 공유해서, 나란히 놓았을 때 크기 비교가 왜곡되지 않게 한다. */
+  function buildEquityPanel(seg, scaleMin, scaleMax, w, h, events){
+    const padL=48,padR=14,padTop=10,padBottom=30;
+    const n=seg.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
+    const ptsCost=seg.map((p,i)=>[padL+i*stepX,yOf(p.cost)]);
+    const ptsVal=seg.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
+    const ptsQqq=seg.map((p,i)=>p.bmQqq!=null?[padL+i*stepX,yOf(p.bmQqq)]:null).filter(Boolean);
+    const ptsQld=seg.map((p,i)=>p.bmQld!=null?[padL+i*stepX,yOf(p.bmQld)]:null).filter(Boolean);
+    const ptsTqqq=seg.map((p,i)=>p.bmTqqq!=null?[padL+i*stepX,yOf(p.bmTqqq)]:null).filter(Boolean);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const profit=seg[seg.length-1].value>=seg[seg.length-1].cost;
+    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
+    }
+    let markers='';
+    if(events.recoveryTs!=null){
+      const idx=seg.findIndex(p=>p.t>=events.recoveryTs);
+      if(idx>=0){
+        const x=(padL+idx*stepX).toFixed(1);
+        markers+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--accent)" stroke-width="2"/>'+
+          '<text x="'+x+'" y="'+(padTop+10)+'" font-size="9" fill="var(--accent)" text-anchor="middle">💰</text>';
+      }
+    }
+    (events.sniperSells||[]).forEach((sl,i)=>{
+      const idx=seg.findIndex(p=>p.t>=sl.t);
+      if(idx>=0){
+        const x=(padL+idx*stepX).toFixed(1);
+        markers+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="#facc15" stroke-width="1.6" stroke-dasharray="3 2"/>'+
+          '<text x="'+x+'" y="'+(h-padBottom-3)+'" font-size="8.5" fill="#facc15" text-anchor="middle">'+(events.sniperOffset?events.sniperOffset+i:i+1)+'차</text>';
+      }
+    });
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+markers+
+      '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
+      (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      (ptsTqqq.length?'<path d="'+pathOf(ptsTqqq)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
+      '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2"/>'+
+      '</svg>';
+  }
+
   const curveEl=document.getElementById('bt-curve');
+  const splitNoteEl=document.getElementById('bt-curve-split-note');
   if(curveEl){
-    const w=700,h=240,padL=56,padR=56,padTop=10,padBottom=36;
     const bmQqqVals=res.curve.map(p=>p.bmQqq).filter(v=>v!=null);
     const bmQldVals=res.curve.map(p=>p.bmQld).filter(v=>v!=null);
     const bmTqqqVals=res.curve.map(p=>p.bmTqqq).filter(v=>v!=null);
     const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value)).concat(bmQqqVals).concat(bmQldVals).concat(bmTqqqVals);
-    const min=Math.min(...all,0), max=Math.max(...all,1);
-    const n=res.curve.length;
-    const stepX=n>1?(w-padL-padR)/(n-1):0;
-    const yOf=v=>h-padBottom-((v-min)/((max-min)||1))*(h-padTop-padBottom);
-    const ptsCost=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.cost)]);
-    const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
-    const ptsQqq=res.curve.map((p,i)=>p.bmQqq!=null?[padL+i*stepX,yOf(p.bmQqq)]:null).filter(Boolean);
-    const ptsQld=res.curve.map((p,i)=>p.bmQld!=null?[padL+i*stepX,yOf(p.bmQld)]:null).filter(Boolean);
-    const ptsTqqq=res.curve.map((p,i)=>p.bmTqqq!=null?[padL+i*stepX,yOf(p.bmTqqq)]:null).filter(Boolean);
-    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const profit=res.finalValue>=res.finalCost;
-    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+
-        ' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
+    const scaleMin=Math.min(...all,0), scaleMax=Math.max(...all,1);
 
-    /* 기간 중 최고 수익률(원금 대비 평가금, 배당 포함) 시점 탐색 */
+    /* 기간 중 최고 수익률(원금 대비 평가금, 배당 포함) 시점 탐색 — 전체 기간 기준, 분할 여부와 무관 */
     let maxRoi=-Infinity, maxRoiTs=null;
     res.curve.forEach(p=>{
       if(p.cost>0){
@@ -2139,144 +2146,97 @@ function renderBacktest(res){
     });
     if(maxRoi===-Infinity) maxRoi=0;
 
-    /* 좌우 Y축 눈금(4단계) — 금액 기준선 */
-    let yAxis='';
-    const tickN=4;
-    for(let ti=0;ti<=tickN;ti++){
-      const val=min+(max-min)*(ti/tickN);
-      const y=yOf(val);
-      const lbl=fmtUSD(val);
-      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.45"/>';
-      yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="9.5" fill="var(--tx2)" text-anchor="end">'+lbl+'</text>';
-      yAxis+='<text x="'+(w-padR+8)+'" y="'+(y+3).toFixed(1)+'" font-size="9.5" fill="var(--tx2)" text-anchor="start">'+lbl+'</text>';
-    }
+    const hasRec=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdx=hasRec?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    const sniperSells=(res.sniperLog||[]).filter(l=>l.type==='sell');
 
-    /* 월별 세로 점선 + 라벨: 2년(24개월) 초과 시에는 라벨이 겹쳐 깨지므로 몇 개월 단위로만 표시 */
-    let gridLines='', monthLabels='';
-    let prevMk=null, monthIdx=0;
-    const monthMarks=[];
-    res.curve.forEach((p,i)=>{
-      const d=new Date(p.t);
-      const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
-      if(mk!==prevMk){ monthMarks.push({i,d}); prevMk=mk; }
-    });
-    const totalMonths=monthMarks.length;
-    const labelEvery=totalMonths>24?3:(totalMonths>12?2:1); // 2년 초과: 3개월마다, 1~2년: 2개월마다, 1년 이하: 매월
-    monthMarks.forEach((m,idx)=>{
-      const x=(padL+m.i*stepX).toFixed(1);
-      gridLines+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3" opacity="'+(idx%labelEvery===0?1:0.35)+'"/>';
-      if(idx%labelEvery===0){
-        const lbl=(m.d.getUTCMonth()===0)?(m.d.getUTCFullYear()+"'"):(m.d.getUTCMonth()+1)+'월';
-        monthLabels+='<text x="'+x+'" y="'+(h-padBottom+16)+'" font-size="10" fill="var(--tx2)" text-anchor="start">'+lbl+'</text>';
-      }
-    });
-
-    curveEl.innerHTML=
-      '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:240px;display:block">'+
-      yAxis+
-      gridLines+
-      (res.recoveryEvents && res.recoveryEvents.length ? (()=>{
-        const evT=res.recoveryEvents[0].t;
-        const idx=res.curve.findIndex(p=>p.t>=evT);
-        if(idx<0) return '';
-        const x=(padL+idx*stepX).toFixed(1);
-        return '<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--accent)" stroke-width="2"/>'+
-          '<text x="'+x+'" y="'+(padTop+11)+'" font-size="9.5" fill="var(--accent)" text-anchor="middle">💰원금회수</text>';
-      })():'')+
-      (res.sniperLog && res.sniperLog.length ? res.sniperLog.filter(l=>l.type==='sell').map((sl,i)=>{
-        const idx=res.curve.findIndex(p=>p.t>=sl.t);
-        if(idx<0) return '';
-        const x=(padL+idx*stepX).toFixed(1);
-        const labelY=h-padBottom-4-(i%3)*11; // 매도가 여러 차수 겹칠 때 라벨을 3단으로 순환 배치해 겹침 방지
-        return '<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="#facc15" stroke-width="2" stroke-dasharray="3 2"/>'+
-          '<text x="'+x+'" y="'+labelY+'" font-size="9.5" fill="#facc15" text-anchor="middle">🎯'+(i+1)+'차</text>';
-      }).join(''):'')+
-      '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
-      (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      (ptsTqqq.length?'<path d="'+pathOf(ptsTqqq)+'" fill="none" stroke="#facc15" stroke-width="1.6" stroke-dasharray="6 3"/>':'')+
-      '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
-      /* [시각화 개선] 원금 회수가 있었으면 평가금 선을 "회수 전(실선)"과 "회수 후(점선, 옅게)"로
-         나눠 그려서 그 시점부터 포지션이 줄어든 상태로 이어진다는 걸 자연스럽게 보여준다. */
-      (()=>{
-        const evT=(res.recoveryEvents && res.recoveryEvents.length)?res.recoveryEvents[0].t:null;
-        const recIdx=evT!=null?res.curve.findIndex(p=>p.t>=evT):-1;
-        if(recIdx>0 && recIdx<ptsVal.length-1){
-          const pre=ptsVal.slice(0,recIdx+1), post=ptsVal.slice(recIdx);
-          return '<path d="'+pathOf(pre)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>'+
-            '<path d="'+pathOf(post)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2" stroke-dasharray="5 3" opacity="0.7"/>';
-        }
-        return '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2.2"/>';
-      })()+
-      monthLabels+
-      '</svg>'+
-      '<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2);min-width:0">'+
-      '<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금(배당포함, 회수 전)</span>'+
-      (res.recoveryEvents && res.recoveryEvents.length?'<span style="white-space:nowrap"><span style="color:'+(profit?'var(--up)':'var(--down)')+';opacity:.7">┄</span> 평가금(회수 후, 축소된 포지션)</span>':'')+
+    const legendHtml='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2);min-width:0">'+
+      '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 평가금(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ(배당포함)</span>'+
-      (res.recoveryEvents && res.recoveryEvents.length?'<span style="white-space:nowrap"><span style="color:var(--accent)">┃</span> 원금 100% 회수 시점</span>':'')+
-      (res.sniperLog && res.sniperLog.some(l=>l.type==='sell')?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 매도(차수별)</span>':'')+
+      (hasRec?'<span style="white-space:nowrap"><span style="color:var(--accent)">┃</span> 원금 100% 회수 시점</span>':'')+
+      (sniperSells.length?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 매도(차수별)</span>':'')+
       '</div>';
+    const roiSummary='<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>';
+
+    if(hasRec && recIdx>0 && recIdx<res.curve.length-1){
+      if(splitNoteEl) splitNoteEl.textContent='— 원금 회수 시점 기준 전/후로 나눠 표시(같은 축척)';
+      const pre=res.curve.slice(0,recIdx+1), post=res.curve.slice(recIdx);
+      const evT=res.recoveryEvents[0].t;
+      const preSells=sniperSells.filter(s=>s.t<=evT);
+      const postSells=sniperSells.filter(s=>s.t>=evT);
+      curveEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildEquityPanel(pre,scaleMin,scaleMax,340,220,{recoveryTs:evT, sniperSells:preSells})+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildEquityPanel(post,scaleMin,scaleMax,340,220,{recoveryTs:null, sniperSells:postSells, sniperOffset:preSells.length+1})+'</div>'+
+        '</div>'+roiSummary+legendHtml;
+    }else{
+      if(splitNoteEl) splitNoteEl.textContent='';
+      curveEl.innerHTML=buildEquityPanel(res.curve,scaleMin,scaleMax,700,240,{recoveryTs:hasRec?res.recoveryEvents[0].t:null, sniperSells})+roiSummary+legendHtml;
+    }
   }
 
   /* 낙폭(underwater) 그래프 — 전체 기간 누적 최고점 대비 낙폭(%)을 아래로 그린다 */
+  function buildDrawdownPanel(seg, maxDD, w, h){
+    const padL=48,padR=14,padTop=10;
+    const n=seg.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const yOf=v=>padTop+(v/maxDD)*(h-padTop-14);
+    const pts=seg.map((p,i)=>[padL+i*stepX,yOf(p.dd||0)]);
+    const ptsQldDD=seg.map((p,i)=>p.bmQldDD!=null?[padL+i*stepX,yOf(p.bmQldDD)]:null).filter(Boolean);
+    const ptsTqqqDD=seg.map((p,i)=>p.bmTqqqDD!=null?[padL+i*stepX,yOf(p.bmTqqqDD)]:null).filter(Boolean);
+    const ptsQqqDD=seg.map((p,i)=>p.bmQqqDD!=null?[padL+i*stepX,yOf(p.bmQqqDD)]:null).filter(Boolean);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=maxDD*ti/3;
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
+    }
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+
+      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
+      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
+      (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
+      (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
+      (ptsQqqDD.length?'<path d="'+pathOf(ptsQqqDD)+'" fill="none" stroke="#2dd4bf" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
+      '</svg>';
+  }
+
   const ddEl=document.getElementById('bt-drawdown');
   if(ddEl){
-    const w=700,h=110,padL=56,padR=56,padTop=10;
-    const n=res.curve.length;
-    const stepX=n>1?(w-padL-padR)/(n-1):0;
     const qldDDVals=res.curve.map(p=>p.bmQldDD).filter(v=>v!=null);
     const tqqqDDVals=res.curve.map(p=>p.bmTqqqDD).filter(v=>v!=null);
     const qqqDDVals=res.curve.map(p=>p.bmQqqDD).filter(v=>v!=null);
     const maxDD=Math.max(...res.curve.map(p=>p.dd||0), ...qldDDVals, ...tqqqDDVals, ...qqqDDVals, 1);
-    const yOf=v=>padTop+ (v/maxDD)*(h-padTop-14);
-    const pts=res.curve.map((p,i)=>[padL+i*stepX, yOf(p.dd||0)]);
-    const ptsQldDD=res.curve.map((p,i)=>p.bmQldDD!=null?[padL+i*stepX,yOf(p.bmQldDD)]:null).filter(Boolean);
-    const ptsTqqqDD=res.curve.map((p,i)=>p.bmTqqqDD!=null?[padL+i*stepX,yOf(p.bmTqqqDD)]:null).filter(Boolean);
-    const ptsQqqDD=res.curve.map((p,i)=>p.bmQqqDD!=null?[padL+i*stepX,yOf(p.bmQqqDD)]:null).filter(Boolean);
-    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
     const worstDD=maxDD.toFixed(1);
     const worstQldDD=qldDDVals.length?Math.max(...qldDDVals).toFixed(1):null;
     const worstTqqqDD=tqqqDDVals.length?Math.max(...tqqqDDVals).toFixed(1):null;
     const worstQqqDD=qqqDDVals.length?Math.max(...qqqDDVals).toFixed(1):null;
-
-    /* 좌우 Y축 눈금(0%, 중간, 최대낙폭%) */
-    let yAxis='';
-    const tickN=3;
-    for(let ti=0;ti<=tickN;ti++){
-      const val=(maxDD*ti/tickN);
-      const y=yOf(val);
-      const lbl='-'+val.toFixed(1)+'%';
-      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.45"/>';
-      yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="9.5" fill="var(--tx2)" text-anchor="end">'+lbl+'</text>';
-      yAxis+='<text x="'+(w-padR+8)+'" y="'+(y+3).toFixed(1)+'" font-size="9.5" fill="var(--tx2)" text-anchor="start">'+lbl+'</text>';
-    }
-
-    ddEl.innerHTML=
-      '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:110px;display:block">'+
-      yAxis+
-      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
-      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.8"/>'+
-      (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
-      (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
-      (ptsQqqDD.length?'<path d="'+pathOf(ptsQqqDD)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="5 3"/>':'')+
-      '</svg>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">전략 최대 -'+worstDD+'%'+
+    const summary='<div class="mut" style="margin-top:4px;font-size:12px">전략 최대 -'+worstDD+'%'+
       (worstQqqDD!=null?' · QQQ 단독매수 최대 -'+worstQqqDD+'%':'')+
       (worstQldDD!=null?' · QLD 단독매수 최대 -'+worstQldDD+'%':'')+
-      (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
+      (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>';
+    const ddLegend='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
       '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 전략(배당 포함 평가금 기준)</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> QQQ 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> QLD 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> TQQQ 단독매수</span>'+
       '</div>';
-
+    const hasRecDD=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdxDD=hasRecDD?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    if(hasRecDD && recIdxDD>0 && recIdxDD<res.curve.length-1){
+      const preDD=res.curve.slice(0,recIdxDD+1), postDD=res.curve.slice(recIdxDD);
+      ddEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDrawdownPanel(preDD,maxDD,340,110)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildDrawdownPanel(postDD,maxDD,340,110)+'</div>'+
+        '</div>'+summary+ddLegend;
+    }else{
+      ddEl.innerHTML=buildDrawdownPanel(res.curve,maxDD,700,110)+summary+ddLegend;
+    }
     /* 연도별 최고 낙폭 박스 — 전략·QQQ·QLD·TQQQ 를 연도마다 나란히 비교 */
     const ddYearBoxEl=document.getElementById('bt-drawdown-yearly');
     if(ddYearBoxEl){
@@ -2351,6 +2311,61 @@ function renderBacktest(res){
             '<div class="mut" style="font-size:12px">'+epsHtml+'</div></div>';
         }).join('')+
         '</div>';
+    }
+  }
+
+  /* ---- 배당금 곡선(누적) — 기본전략 vs QQQ/QLD/TQQQ, 원금회수 시 전/후 동일 축척으로 분할 ---- */
+  function buildDividendPanel(seg, scaleMax, w, h){
+    const padL=48,padR=14,padTop=10,padBottom=26;
+    const n=seg.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const yOf=v=>h-padBottom-((v)/(scaleMax||1))*(h-padTop-padBottom);
+    const pathOf=(arr)=>{
+      const pts=arr.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
+      return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    };
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=scaleMax*ti/3;
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
+    }
+    const div=seg.map(p=>p.cumDividend);
+    const qqqDiv=seg.map(p=>p.bmQqqDivC!=null?p.bmQqqDivC:null);
+    const qldDiv=seg.map(p=>p.bmQldDivC!=null?p.bmQldDivC:null);
+    const tqqqDiv=seg.map(p=>p.bmTqqqDivC!=null?p.bmTqqqDivC:null);
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+
+      (qqqDiv.some(v=>v!=null)?'<path d="'+pathOf(qqqDiv)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      (qldDiv.some(v=>v!=null)?'<path d="'+pathOf(qldDiv)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      (tqqqDiv.some(v=>v!=null)?'<path d="'+pathOf(tqqqDiv)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
+      '<path d="'+pathOf(div)+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+
+      '</svg>';
+  }
+  const divCurveEl=document.getElementById('bt-dividend-curve');
+  if(divCurveEl){
+    const allDivVals=res.curve.map(p=>p.cumDividend)
+      .concat(res.curve.map(p=>p.bmQqqDivC).filter(v=>v!=null))
+      .concat(res.curve.map(p=>p.bmQldDivC).filter(v=>v!=null))
+      .concat(res.curve.map(p=>p.bmTqqqDivC).filter(v=>v!=null));
+    const divScaleMax=Math.max(...allDivVals,1);
+    const divLegend='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
+      '<span style="white-space:nowrap"><span style="color:var(--accent)">■</span> 기본전략(QLD/USD/SCHD) 배당</span>'+
+      '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 배당</span>'+
+      '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD 배당</span>'+
+      '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ 배당</span>'+
+      '</div>';
+    const hasRecDiv=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdxDiv=hasRecDiv?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    if(hasRecDiv && recIdxDiv>0 && recIdxDiv<res.curve.length-1){
+      const preDiv=res.curve.slice(0,recIdxDiv+1), postDiv=res.curve.slice(recIdxDiv);
+      divCurveEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDividendPanel(preDiv,divScaleMax,340,180)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildDividendPanel(postDiv,divScaleMax,340,180)+'</div>'+
+        '</div>'+divLegend;
+    }else{
+      divCurveEl.innerHTML=buildDividendPanel(res.curve,divScaleMax,700,200)+divLegend;
     }
   }
 

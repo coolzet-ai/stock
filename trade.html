@@ -72,6 +72,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
   .btn{padding:11px 18px;font-size:13.5px}
   .band{padding:28px 16px}
   .band h2{font-size:20px}
+  .fx-2col{grid-template-columns:1fr !important}
 }
 
 section{padding:56px 0;border-top:1px solid var(--line)}
@@ -282,7 +283,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div>
 
-    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선 — 원금 대비 평가금(배당 포함)</h3>
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선 — 원금 대비 평가금(배당 포함) <span class="mut" style="font-size:12px;font-weight:400" id="bt-curve-split-note"></span></h3>
     <div class="card" style="margin-top:12px">
       <div id="bt-curve"></div>
     </div>
@@ -292,20 +293,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div id="bt-drawdown-events" style="margin-top:10px"></div>
     </div>
 
-    <div id="bt-post-recovery-section" style="display:none;margin-top:32px">
-      <h3 style="font-size:16px;color:var(--tx2)">원금 회수 이후 성과 <span class="mut" style="font-size:12px;font-weight:400">(회수 시점부터 0에서 다시 시작해서 비교)</span></h3>
-      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
-        <div class="mut" style="font-size:12px;margin-bottom:8px">평가금 증감(회수 시점 = 0)</div>
-        <div id="bt-post-curve"></div>
-      </div>
-      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
-        <div class="mut" style="font-size:12px;margin-bottom:8px">낙폭(회수 시점부터 새로 계산)</div>
-        <div id="bt-post-drawdown"></div>
-      </div>
-      <div class="card" style="margin-top:12px;border:2px solid var(--accent)">
-        <div class="mut" style="font-size:12px;margin-bottom:8px">누적 배당금(회수 시점부터)</div>
-        <div id="bt-post-dividend"></div>
-      </div>
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">배당금 곡선(누적)</h3>
+    <div class="card" style="margin-top:12px">
+      <div id="bt-dividend-curve"></div>
+    </div>
+
+    <div id="bt-sniper-rounds-section" style="display:none;margin-top:32px">
+      <h3 style="font-size:16px;color:var(--tx2)">듀얼스나이퍼 차수별 전/후 비교</h3>
+      <div id="bt-sniper-rounds-charts" style="margin-top:12px"></div>
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">연도별 수익률</h3>
