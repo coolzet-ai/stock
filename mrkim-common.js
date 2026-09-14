@@ -1388,8 +1388,8 @@ async function runTradeBacktest(opts){
   opts = opts || {};
   const principalRecoveryMode = !!opts.principalRecovery;
   const dualSniperMode = !!opts.dualSniper;
-  const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
-    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory()
+  const [qld,usd,schd,qqq,tqqq,fg,soxl]=await Promise.all([
+    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory(), yDailySeries('SOXL')
   ]);
   const missing=[];
   if(!qld) missing.push('QLD 시세(Yahoo)');
@@ -1405,9 +1405,10 @@ async function runTradeBacktest(opts){
 
   const priceMap={};
   TRADE_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
-  const qqqPriceMap={}, tqqqPriceMap={};
+  const qqqPriceMap={}, tqqqPriceMap={}, soxlPriceMap={};
   if(qqq) qqq.series.forEach(p=>{ qqqPriceMap[p.t]=p.close; });
   if(tqqq) tqqq.series.forEach(p=>{ tqqqPriceMap[p.t]=p.close; });
+  if(soxl) soxl.series.forEach(p=>{ soxlPriceMap[p.t]=p.close; });
 
   function buildDivMap(dividends){
     const m={};
@@ -1422,6 +1423,7 @@ async function runTradeBacktest(opts){
   TRADE_TICKERS.forEach(t=>{ divMap[t]=buildDivMap(data[t].dividends); });
   const qqqDivMap=qqq?buildDivMap(qqq.dividends):{};
   const tqqqDivMap=tqqq?buildDivMap(tqqq.dividends):{};
+  const soxlDivMap=soxl?buildDivMap(soxl.dividends):{};
 
   function scoreAt(ts){
     let ans=fg.length?fg[0].score:50;
@@ -1493,13 +1495,13 @@ async function runTradeBacktest(opts){
      끝까지 동일하게 흘러간다(계산은 하되 화면에는 옵션이 켜져 있을 때만 표시). */
   let shares2={QLD:0,USD:0,SCHD:0}, cumCost2=0, cumDividend2=0, value2=0;
 
-  /* [옵션] 듀얼스나이퍼 매수 조건: 기본 전략(QLD/USD/SCHD, 배당 포함)만의 낙폭이 15%를 초과하는
-     구간에서는 매주 금요일마다 TQQQ 5,000달러, 30%를 초과하는 구간에서는 매주 금요일마다
-     TQQQ 10,000달러를 추가 매수한다(중복이 아니라 구간 교체, 매일이 아니라 금요일 1회).
-     15% 미만으로 회복하면 매수를 멈춘다. 이 TQQQ 포지션은 연말 리밸런싱에서 완전히 제외된다.
-     매도 조건: 포지션 수익률이 +200%에 처음 도달하면 잔고의 50%를 매도하고, 이후 +100%p
-     구간마다(300%,400%…) 잔고의 25%씩 매도한다(매도분 원가도 비례 차감). */
-  let basePeak=0, sniperShares=0, sniperCost=0, sniperRealizedCash=0, sniperNextSellPct=200, sniperSellCount=0;
+  /* [옵션] 듀얼스나이퍼 매수 조건: 미국지수 공포탐욕 점수 기준으로 SOXL을 단계적으로 매수한다.
+     점수 25 미만이면 매주 금요일 2,500달러, 20 미만이면 매주 금요일 5,000달러, 15 미만이면
+     매주 금요일 7,500달러, 10 미만이면 매일 10,000달러(중복이 아니라 구간 교체 — 가장 낮은
+     점수 구간이 우선 적용됨). 이 SOXL 포지션은 연말 리밸런싱에서 완전히 제외된다.
+     매도 조건은 이전과 동일: 포지션 수익률이 +200%에 처음 도달하면 잔고의 50%를 매도하고,
+     이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도한다(매도분 원가도 비례 차감). */
+  let sniperShares=0, sniperCost=0, sniperRealizedCash=0, sniperNextSellPct=200, sniperSellCount=0;
   let lastSniperValue=0;
   const sniperLog=[]; // {t, type:'buy'|'sell', qty, price, amount} — 관리자 히든페이지용
   const monthlySniper={}; // mk -> {buys, spend, sells:[{t,amount}]}
@@ -1554,7 +1556,7 @@ async function runTradeBacktest(opts){
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
 
     /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분
-       (스나이퍼 TQQQ 포지션은 이 로직과 완전히 분리되어 있어 자연히 제외된다) */
+       (스나이퍼 SOXL 포지션은 이 로직과 완전히 분리되어 있어 자연히 제외된다) */
     if(rebalanceDays.has(ts) && value>0){
       const beforeVals={}, priceAtRebal={};
       TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; beforeVals[t]=px!=null?shares[t]*px:0; priceAtRebal[t]=px; });
@@ -1581,42 +1583,41 @@ async function runTradeBacktest(opts){
       value2=value2now;
     }
 
-    const tqqqPxNow0=tqqqPriceMap[ts];
+    const soxlPxNow0=soxlPriceMap[ts];
 
-    /* 듀얼스나이퍼: 기본 전략(QLD/USD/SCHD, 배당 포함)만의 낙폭으로 매수 트리거 판단 */
-    const baseTotal=value+cumDividend;
-    basePeak=Math.max(basePeak,baseTotal);
-    const baseDD=basePeak>0?(basePeak-baseTotal)/basePeak*100:0;
     if(dualSniperMode){
-      const tqDiv=tqqqDivMap[ts];
-      if(tqDiv && sniperShares>0){ const amt=tqDiv*sniperShares; cumDividend+=amt; monthly[mk].dividends+=amt; monthly[mk].divEvents.push({t:ts, amount:amt}); }
+      const soxlDiv=soxlDivMap[ts];
+      if(soxlDiv && sniperShares>0){ const amt=soxlDiv*sniperShares; cumDividend+=amt; monthly[mk].dividends+=amt; monthly[mk].divEvents.push({t:ts, amount:amt}); }
+      /* 공포탐욕 점수 기준 — 가장 낮은(가장 공포스러운) 구간이 우선 적용된다 */
       let sniperBuy=0;
-      if(fridayBuyDays.has(ts)){
-        if(baseDD>30) sniperBuy=10000;
-        else if(baseDD>15) sniperBuy=5000;
+      if(score<10){ sniperBuy=10000; } // 매일
+      else if(fridayBuyDays.has(ts)){
+        if(score<15) sniperBuy=7500;
+        else if(score<20) sniperBuy=5000;
+        else if(score<25) sniperBuy=2500;
       }
-      if(sniperBuy>0 && tqqqPxNow0){
-        sniperShares+=sniperBuy/tqqqPxNow0;
+      if(sniperBuy>0 && soxlPxNow0){
+        sniperShares+=sniperBuy/soxlPxNow0;
         sniperCost+=sniperBuy;
         cumCost+=sniperBuy; // 실제 투입 자금이므로 누적원금에 포함
-        sniperLog.push({t:ts, type:'buy', qty:sniperBuy/tqqqPxNow0, price:tqqqPxNow0, amount:sniperBuy});
+        sniperLog.push({t:ts, type:'buy', qty:sniperBuy/soxlPxNow0, price:soxlPxNow0, amount:sniperBuy, score});
         monthlySniper[mk].buys++; monthlySniper[mk].spend+=sniperBuy;
       }
       /* 스나이퍼 매도: 포지션 수익률이 +200%에 처음 도달하면 잔고의 50%, 이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도 */
-      if(sniperShares>0 && tqqqPxNow0 && sniperCost>0){
-        const sniperValueChk=sniperShares*tqqqPxNow0;
+      if(sniperShares>0 && soxlPxNow0 && sniperCost>0){
+        const sniperValueChk=sniperShares*soxlPxNow0;
         const sniperProfitPct=(sniperValueChk/sniperCost-1)*100;
         if(sniperProfitPct>=sniperNextSellPct){
           const sellFrac=sniperSellCount===0?0.5:0.25;
           const soldShares=sniperShares*sellFrac;
-          const soldValue=soldShares*tqqqPxNow0;
+          const soldValue=soldShares*soxlPxNow0;
           const costBasisSold=sniperCost*sellFrac; // 매도분에 해당하는 원가(수익금 계산용)
           sniperShares-=soldShares;
           sniperCost*=(1-sellFrac); // 매도분만큼 원가도 비례 차감(잔여 포지션 평단가 유지)
           sniperRealizedCash+=soldValue;
           sniperNextSellPct+=100;
           sniperSellCount++;
-          sniperLog.push({t:ts, type:'sell', qty:soldShares, price:tqqqPxNow0, amount:soldValue, profit:soldValue-costBasisSold});
+          sniperLog.push({t:ts, type:'sell', qty:soldShares, price:soxlPxNow0, amount:soldValue, profit:soldValue-costBasisSold});
           monthlySniper[mk].sells.push({t:ts, amount:soldValue});
           sellFromBenchmarks(soldValue, ts); // 벤치마크도 동일 금액만큼 매도(공정 비교)
         }
@@ -1625,7 +1626,7 @@ async function runTradeBacktest(opts){
 
     /* 원금 100% 회수: 포트폴리오 시작 시점 기준으로 딱 1회만 수행한다고 가정한다.
        평가금(배당 포함)이 최초 순원금의 2배에 처음 도달하는 순간, 그 순원금만큼 비례
-       매도해 현금화한다(스나이퍼 TQQQ 포지션은 건드리지 않음). 이후에는 다시 조건이
+       매도해 현금화한다(스나이퍼 SOXL 포지션은 건드리지 않음). 이후에는 다시 조건이
        충족되어도 재실행하지 않는다. */
     if(principalRecoveryMode && recoveryEvents.length===0){
       const netCost=baseCumCost-recoveredCash; // [반영] 듀얼스나이퍼 매수원금은 제외하고 기본매수조건 원금만으로 판단
@@ -1853,7 +1854,7 @@ function renderPostRecoveryCharts(res){
     const krw=fmtKRW(usd);
     return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
   }
-  /* ---- 듀얼스나이퍼 차수별(1차/2차…) 매도 전/후 비교 — TQQQ 스나이퍼 포지션 가치만 비교 ---- */
+  /* ---- 듀얼스나이퍼 차수별(1차/2차…) 매도 전/후 비교 — SOXL 스나이퍼 포지션 가치만 비교 ---- */
   const sniperSection=document.getElementById('bt-sniper-rounds-section');
   const sniperChartsEl=document.getElementById('bt-sniper-rounds-charts');
   const sells=(res.sniperLog||[]).filter(l=>l.type==='sell');
@@ -2100,14 +2101,6 @@ function renderBacktest(res){
       yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
     }
     let markers='';
-    if(events.recoveryTs!=null){
-      const idx=seg.findIndex(p=>p.t>=events.recoveryTs);
-      if(idx>=0){
-        const x=(padL+idx*stepX).toFixed(1);
-        markers+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="var(--accent)" stroke-width="2"/>'+
-          '<text x="'+x+'" y="'+(padTop+10)+'" font-size="9" fill="var(--accent)" text-anchor="middle">💰</text>';
-      }
-    }
     (events.sniperSells||[]).forEach((sl,i)=>{
       const idx=seg.findIndex(p=>p.t>=sl.t);
       if(idx>=0){
@@ -2150,13 +2143,12 @@ function renderBacktest(res){
     const recIdx=hasRec?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
     const sniperSells=(res.sniperLog||[]).filter(l=>l.type==='sell');
 
-    const legendHtml='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2);min-width:0">'+
+    const legendHtml='<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;font-size:12px;color:var(--tx2);min-width:0">'+
       '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 평가금(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ(배당포함)</span>'+
-      (hasRec?'<span style="white-space:nowrap"><span style="color:var(--accent)">┃</span> 원금 100% 회수 시점</span>':'')+
       (sniperSells.length?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 매도(차수별)</span>':'')+
       '</div>';
     const roiSummary='<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>';
@@ -2168,22 +2160,26 @@ function renderBacktest(res){
       const preSells=sniperSells.filter(s=>s.t<=evT);
       const postSells=sniperSells.filter(s=>s.t>=evT);
       curveEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
-        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildEquityPanel(pre,scaleMin,scaleMax,340,220,{recoveryTs:evT, sniperSells:preSells})+'</div>'+
-        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildEquityPanel(post,scaleMin,scaleMax,340,220,{recoveryTs:null, sniperSells:postSells, sniperOffset:preSells.length+1})+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildEquityPanel(pre,scaleMin,scaleMax,340,220,{sniperSells:preSells})+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildEquityPanel(post,scaleMin,scaleMax,340,220,{sniperSells:postSells, sniperOffset:preSells.length+1})+'</div>'+
         '</div>'+roiSummary+legendHtml;
     }else{
       if(splitNoteEl) splitNoteEl.textContent='';
-      curveEl.innerHTML=buildEquityPanel(res.curve,scaleMin,scaleMax,700,240,{recoveryTs:hasRec?res.recoveryEvents[0].t:null, sniperSells})+roiSummary+legendHtml;
+      curveEl.innerHTML=buildEquityPanel(res.curve,scaleMin,scaleMax,700,240,{sniperSells})+roiSummary+legendHtml;
     }
   }
 
   /* 낙폭(underwater) 그래프 — 전체 기간 누적 최고점 대비 낙폭(%)을 아래로 그린다 */
-  function buildDrawdownPanel(seg, maxDD, w, h){
+  function buildDrawdownPanel(seg, maxDD, w, h, rebase){
     const padL=48,padR=14,padTop=10;
     const n=seg.length;
     const stepX=n>1?(w-padL-padR)/(n-1):0;
     const yOf=v=>padTop+(v/maxDD)*(h-padTop-14);
-    const pts=seg.map((p,i)=>[padL+i*stepX,yOf(p.dd||0)]);
+    /* [회수 후 기준점 변경] rebase가 true면 그 구간 시작 시점을 새 최고점(0%)으로 놓고
+       낙폭을 처음부터 다시 계산한다 — "0부터 시작"하는 것처럼 보이게 하기 위함이다. */
+    const ddVals=rebase?(()=>{ let peak=0; return seg.map(p=>{ peak=Math.max(peak,p.value); return peak>0?(peak-p.value)/peak*100:0; }); })()
+                        :seg.map(p=>p.dd||0);
+    const pts=ddVals.map((v,i)=>[padL+i*stepX,yOf(v)]);
     const ptsQldDD=seg.map((p,i)=>p.bmQldDD!=null?[padL+i*stepX,yOf(p.bmQldDD)]:null).filter(Boolean);
     const ptsTqqqDD=seg.map((p,i)=>p.bmTqqqDD!=null?[padL+i*stepX,yOf(p.bmTqqqDD)]:null).filter(Boolean);
     const ptsQqqDD=seg.map((p,i)=>p.bmQqqDD!=null?[padL+i*stepX,yOf(p.bmQqqDD)]:null).filter(Boolean);
@@ -2220,7 +2216,7 @@ function renderBacktest(res){
       (worstQqqDD!=null?' · QQQ 단독매수 최대 -'+worstQqqDD+'%':'')+
       (worstQldDD!=null?' · QLD 단독매수 최대 -'+worstQldDD+'%':'')+
       (worstTqqqDD!=null?' · TQQQ 단독매수 최대 -'+worstTqqqDD+'%':'')+'</div>';
-    const ddLegend='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
+    const ddLegend='<div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
       '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 전략(배당 포함 평가금 기준)</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> QQQ 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> QLD 단독매수</span>'+
@@ -2230,12 +2226,16 @@ function renderBacktest(res){
     const recIdxDD=hasRecDD?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
     if(hasRecDD && recIdxDD>0 && recIdxDD<res.curve.length-1){
       const preDD=res.curve.slice(0,recIdxDD+1), postDD=res.curve.slice(recIdxDD);
+      /* 회수 후 패널은 0%부터 다시 시작하므로, 축 스케일도 그 구간에서 실제로 필요한 만큼(전체
+         스케일과 그 구간 자체 최대낙폭 중 더 큰 값)으로 잡아 값이 잘리지 않게 한다 */
+      let postPeak=0; const postDDVals=postDD.map(p=>{ postPeak=Math.max(postPeak,p.value); return postPeak>0?(postPeak-p.value)/postPeak*100:0; });
+      const postMaxDD=Math.max(maxDD, ...postDDVals, 1);
       ddEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
-        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDrawdownPanel(preDD,maxDD,340,110)+'</div>'+
-        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildDrawdownPanel(postDD,maxDD,340,110)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDrawdownPanel(preDD,maxDD,340,110,false)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후(0%부터 재시작)</div>'+buildDrawdownPanel(postDD,postMaxDD,340,110,true)+'</div>'+
         '</div>'+summary+ddLegend;
     }else{
-      ddEl.innerHTML=buildDrawdownPanel(res.curve,maxDD,700,110)+summary+ddLegend;
+      ddEl.innerHTML=buildDrawdownPanel(res.curve,maxDD,700,110,false)+summary+ddLegend;
     }
     /* 연도별 최고 낙폭 박스 — 전략·QQQ·QLD·TQQQ 를 연도마다 나란히 비교 */
     const ddYearBoxEl=document.getElementById('bt-drawdown-yearly');
@@ -2350,7 +2350,7 @@ function renderBacktest(res){
       .concat(res.curve.map(p=>p.bmQldDivC).filter(v=>v!=null))
       .concat(res.curve.map(p=>p.bmTqqqDivC).filter(v=>v!=null));
     const divScaleMax=Math.max(...allDivVals,1);
-    const divLegend='<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
+    const divLegend='<div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
       '<span style="white-space:nowrap"><span style="color:var(--accent)">■</span> 기본전략(QLD/USD/SCHD) 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD 배당</span>'+
