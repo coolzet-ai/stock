@@ -210,19 +210,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="sub" id="bt-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
     <p class="mut" id="bt-rebal-note" style="margin-top:6px;font-size:12.5px"></p>
 
-    <div class="card" style="margin-top:16px">
-      <h3>백테스트 옵션 조건</h3>
-      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
-        <input type="checkbox" id="bt-opt-recovery" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
-        <span><b>원금 100% 회수</b></span>
-      </label>
-      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;font-size:13.5px">
-        <input type="checkbox" id="bt-opt-sniper" style="accent-color:var(--accent);cursor:pointer;margin-top:3px">
-        <span><b>듀얼스나이퍼</b></span>
-      </label>
-      <p class="mut" style="margin-top:10px;font-size:12px" id="bt-opt-summary"></p>
-    </div>
-
     <div class="grid">
       <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
         <h3>누적원금</h3>
@@ -257,24 +244,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
         <div id="bt-annual-dividend-diff"></div>
       </div>
-      <div class="card" id="bt-realized-recovery-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
-        <h3>원금 100% 회수 — 수익실현금</h3>
-        <div id="bt-realized-recovery-block" style="display:none;margin-top:6px">
-          <div class="big up" id="bt-realized-recovery" style="font-size:22px">--</div>
-          <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-recovery-detail"></p>
-        </div>
-        <div id="bt-realized-recovery-projected-block" style="display:none;margin-top:6px">
-          <div class="mut" style="font-size:11px">아직 도달 전 — 예상치</div>
-          <div id="bt-realized-recovery-projected" style="font-size:13px;line-height:1.7;margin-top:2px">--</div>
-        </div>
-      </div>
-      <div class="card" id="bt-realized-sniper-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
-        <h3>듀얼스나이퍼 — 수익실현금</h3>
-        <div id="bt-realized-sniper-block" style="display:none;margin-top:6px">
-          <div class="big up" id="bt-realized-sniper" style="font-size:22px">--</div>
-          <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-sniper-detail"></p>
-        </div>
-      </div>
       <div class="card" id="bt-realized-main-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
         <h3>기본 매도규칙 — 수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
         <div class="big up" id="bt-realized-main" style="font-size:22px">--</div>
@@ -303,11 +272,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div id="bt-dividend-curve"></div>
     </div>
 
-    <div id="bt-sniper-rounds-section" style="display:none;margin-top:32px">
-      <h3 style="font-size:16px;color:var(--tx2)">듀얼스나이퍼 차수별 전/후 비교</h3>
-      <div id="bt-sniper-rounds-charts" style="margin-top:12px"></div>
-    </div>
-
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">연도별 수익률</h3>
     <div class="scroll">
       <table>
@@ -325,17 +289,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">누적원금</th><th class="num">매수횟수</th><th class="num">MDD</th><th class="num">월 평가금</th><th class="num">월 수익금</th><th class="num">월 수익률</th></tr></thead>
         <tbody id="bt-monthly-return"><tr><td class="mut" colspan="7">계산 중…</td></tr></tbody>
       </table>
-    </div>
-
-    <div id="bt-sniper-monthly-section" style="display:none">
-      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">듀얼스나이퍼 월별 매매기록</h3>
-      <p class="mut" style="font-size:12.5px;margin-top:4px">공포탐욕 점수 구간에 따라 별도로 추가 매수한 SOXL 포지션만의 월별 기록입니다 · 매도가 발생한 달은 하이라이트 표시됩니다</p>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>월</th><th class="num">투입원금(누적)</th><th class="num">매수횟수</th><th>매도</th></tr></thead>
-          <tbody id="bt-sniper-monthly"><tr><td class="mut" colspan="4">계산 중…</td></tr></tbody>
-        </table>
-      </div>
     </div>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">배당금 지급 내역</h3>
@@ -446,16 +399,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </table>
       </div>
 
-      <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">듀얼스나이퍼 매매기록</h4>
-      <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
-        <table style="table-layout:fixed;width:100%">
-          <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">수량</th><th class="num">누적수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">누적매수금액</th><th class="num">매도시 수익금</th></tr></thead>
-          <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="8">데이터 없음</td></tr></tbody>
-        </table>
-      </div>
-
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">기본 매도규칙 매매기록 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h4>
-      <p class="mut" style="font-size:12px;margin-top:2px">정규 매수분(스나이퍼 제외) 기준 수익률 200% 최초 도달 시 원금 매도, 이후 100%p 구간마다 잔고 25% 매도.</p>
+      <p class="mut" style="font-size:12px;margin-top:2px">정규 매수분 기준 수익률 200% 최초 도달 시 원금 매도, 이후 100%p 구간마다 잔고 25% 매도.</p>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
         <table style="table-layout:fixed;width:100%">
           <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">매도금액</th><th class="num">누적매도금액</th><th class="num">도달 수익률</th></tr></thead>
@@ -510,7 +455,6 @@ const now=new Date();
 
 loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
-initTradeOptionCheckboxes();
 initTradeAdminPanel();
 { const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
   if(_btn && _wrap){
