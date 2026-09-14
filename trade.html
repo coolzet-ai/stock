@@ -27,7 +27,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
+@media(max-width:640px){.updated-top{display:none}}
 .btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
   color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px}
@@ -275,6 +275,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-sniper-detail"></p>
         </div>
       </div>
+      <div class="card" id="bt-realized-main-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+        <h3>기본 매도규칙 — 수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
+        <div class="big up" id="bt-realized-main" style="font-size:22px">--</div>
+        <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-main-detail"></p>
+      </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
         <div class="big" id="bt-roi" style="font-size:28px">--</div>
@@ -446,6 +451,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <table style="table-layout:fixed;width:100%">
           <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">수량</th><th class="num">누적수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">누적매수금액</th><th class="num">매도시 수익금</th></tr></thead>
           <tbody id="bt-admin-sniperlog"><tr><td class="mut" colspan="8">데이터 없음</td></tr></tbody>
+        </table>
+      </div>
+
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">기본 매도규칙 매매기록 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h4>
+      <p class="mut" style="font-size:12px;margin-top:2px">정규 매수분(스나이퍼 제외) 기준 수익률 200% 최초 도달 시 원금 매도, 이후 100%p 구간마다 잔고 25% 매도.</p>
+      <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
+        <table style="table-layout:fixed;width:100%">
+          <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">매도금액</th><th class="num">누적매도금액</th><th class="num">도달 수익률</th></tr></thead>
+          <tbody id="bt-admin-mainsell"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
         </table>
       </div>
 

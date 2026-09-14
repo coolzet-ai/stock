@@ -1485,6 +1485,15 @@ async function runTradeBacktest(opts){
   let recoveredCash=0;
   const recoveryEvents=[]; // 항상 0개 또는 1개 — {t, amount, round:1}
 
+  /* [매도조건 신설] 정규 매매법 자체에 내장된 매도 규칙(체크박스와 무관하게 항상 작동):
+     정규 매수분(스나이퍼 제외) 기준 수익률이 200%에 처음 도달하면 투자원금만큼 매도하고,
+     이후 수익률 100%p 구간마다(300%,400%…) 잔고의 25%를 추가로 매도한다. "회수 안 했다면"
+     비교 시나리오(shares2)에도 동일하게 적용해야 공정한 비교가 된다 — 두 시나리오는 원금
+     100% 회수 시점부터 갈라지므로 임계치도 각자 따로 추적한다. */
+  let mainSellCumCost=0, mainSellNextPct=200, mainSellRealized=0;
+  let mainSellCumCost2=0, mainSellNextPct2=200, mainSellRealized2=0;
+  const mainSellEvents=[]; // {t, amount, type:'principal'|'partial', pct}
+
   /* [관리자 전용 상세 기록] 종목별 실제 매수 로그 — 화면에는 공개하지 않고 관리자 히든페이지에서만 사용 */
   const tradeLog=[]; // {t, ticker, qty, price, amount, score}
   const rebalanceLog=[]; // {t, before:{QLD,USD,SCHD}, after:{QLD,USD,SCHD}} — 관리자 히든페이지용
@@ -1529,7 +1538,13 @@ async function runTradeBacktest(opts){
 
     const score=scoreAt(ts);
     let qty=0;
-    if(score<25) qty=4;
+    /* 극심한 공포 구간: 지수가 낮아질수록 매일 매수량이 배로 늘어난다(5→32, 10→16, 15→8, 20→4).
+       20~25 구간(과거 "극도공포 4주" 규칙)은 매일이 아니라 금요일에만 4주 매수. */
+    if(score<=5) qty=32;
+    else if(score<=10) qty=16;
+    else if(score<=15) qty=8;
+    else if(score<=20) qty=4;
+    else if(score<25 && fridayBuyDays.has(ts)) qty=4;
     else if(fridayBuyDays.has(ts)){
       if(score<45) qty=2;
       else if(score<=55) qty=1;
@@ -1540,9 +1555,9 @@ async function runTradeBacktest(opts){
       let bought=false;
       TRADE_TICKERS.forEach(t=>{
         const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]+=qty; cumCost+=px*qty; baseCumCost+=px*qty; dailySpend+=px*qty; bought=true;
+        shares[t]+=qty; cumCost+=px*qty; baseCumCost+=px*qty; mainSellCumCost+=px*qty; dailySpend+=px*qty; bought=true;
         tradeLog.push({t:ts, ticker:t, qty, price:px, amount:px*qty, score});
-        shares2[t]+=qty; cumCost2+=px*qty; // "회수 안 했다면" 시나리오도 동일하게 매수
+        shares2[t]+=qty; cumCost2+=px*qty; mainSellCumCost2+=px*qty; // "회수 안 했다면" 시나리오도 동일하게 매수
       });
       if(bought){ buyCount++; monthly[mk].buys++; }
     }
@@ -1646,15 +1661,49 @@ async function runTradeBacktest(opts){
       }
     }
 
-    const sniperValueNow=tqqqPxNow0?sniperShares*tqqqPxNow0:0;
+    /* [매도조건 신설] 정규 매매법 내장 매도 규칙 — 옵션 체크박스와 무관하게 항상 작동.
+       실제 시나리오(shares/value)와 "회수 안 했다면" 비교 시나리오(shares2/value2)에
+       동일하게 적용하되, 원금 회수 이후 두 시나리오의 포지션 크기가 달라지므로 임계치는
+       각자 따로 추적한다. */
+    if(mainSellCumCost>0 && value>0){
+      const pft=(value/mainSellCumCost-1)*100;
+      if(pft>=mainSellNextPct){
+        const isFirst=(mainSellNextPct===200);
+        const sellRatio=isFirst?Math.min(1, mainSellCumCost/value):0.25;
+        const sellAmt=value*sellRatio;
+        TRADE_TICKERS.forEach(t=>{ shares[t]*=(1-sellRatio); });
+        value-=sellAmt;
+        mainSellCumCost*=(1-sellRatio);
+        mainSellRealized+=sellAmt;
+        mainSellEvents.push({t:ts, amount:sellAmt, type:isFirst?'principal':'partial', pct:mainSellNextPct});
+        monthly[mk].mainSold=(monthly[mk].mainSold||0)+sellAmt;
+        mainSellNextPct+=100;
+        sellFromBenchmarks(sellAmt, ts); // 벤치마크도 동일 금액만큼 매도(공정 비교)
+      }
+    }
+    if(mainSellCumCost2>0 && value2>0){
+      const pft2=(value2/mainSellCumCost2-1)*100;
+      if(pft2>=mainSellNextPct2){
+        const isFirst2=(mainSellNextPct2===200);
+        const sellRatio2=isFirst2?Math.min(1, mainSellCumCost2/value2):0.25;
+        const sellAmt2=value2*sellRatio2;
+        TRADE_TICKERS.forEach(t=>{ shares2[t]*=(1-sellRatio2); });
+        value2-=sellAmt2;
+        mainSellCumCost2*=(1-sellRatio2);
+        mainSellRealized2+=sellAmt2;
+        mainSellNextPct2+=100;
+      }
+    }
+
+    const sniperValueNow=soxlPxNow0?sniperShares*soxlPxNow0:0; // [버그 수정] 스나이퍼가 SOXL로 바뀌었는데 미정의 변수(tqqqPxNow0)를 참조하고 있었음
     lastSniperValue=sniperValueNow;
-    const displayCost=cumCost-recoveredCash-sniperRealizedCash; // 회수한 원금·듀얼스나이퍼 실현액은 더 이상 투입원금으로 잡지 않는다
-    /* [재검토 반영] 원금 회수・듀얼스나이퍼 매도 둘 다 "인출해서 쓴 현금"으로 간주해 이 시점부터는
-       포트폴리오 평가금에 더 이상 포함시키지 않는다(recoveredCash·sniperRealizedCash 모두
-       totalValue에서 제외). 그래서 두 이벤트 중 무엇이 발생하든 그 순간 평가금 곡선이 실제로
-       팔린 금액만큼 한 단계 내려가고, 그 뒤로는 남은(줄어든) 포지션만으로 계속 성장한다. */
+    const displayCost=cumCost-recoveredCash-sniperRealizedCash-mainSellRealized; // 회수한 원금·듀얼스나이퍼 실현액·기본매도규칙 실현액은 더 이상 투입원금으로 잡지 않는다
+    /* [재검토 반영] 원금 회수・듀얼스나이퍼 매도・기본 매도규칙 모두 "인출해서 쓴 현금"으로 간주해
+       이 시점부터는 포트폴리오 평가금에 더 이상 포함시키지 않는다(totalValue에서 전부 제외).
+       그래서 이벤트가 발생하는 순간 평가금 곡선이 실제로 팔린 금액만큼 한 단계 내려가고,
+       그 뒤로는 남은(줄어든) 포지션만으로 계속 성장한다. */
     const totalValue=value+cumDividend+sniperValueNow; // 평가금(배당 포함, 회수·실현된 현금은 모두 제외)
-    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPxNow0;
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts]; // [버그 수정] 벤치마크용 TQQQ 가격은 tqqqPriceMap에서 직접 조회(스나이퍼와 무관)
     globalPeak=Math.max(globalPeak,totalValue);
     const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
 
@@ -1690,12 +1739,13 @@ async function runTradeBacktest(opts){
   const yearly={};
   Object.keys(monthly).sort().forEach(mk=>{
     const y=mk.slice(0,4);
-    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0, recovered:0};
+    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0, recovered:0, mainSold:0};
     yearly[y].endValue=monthly[mk].endValue;
     yearly[y].endCost=monthly[mk].endCost;
     yearly[y].dividends+=monthly[mk].dividends;
     yearly[y].buys+=monthly[mk].buys;
     yearly[y].recovered+=(monthly[mk].recovered||0);
+    yearly[y].mainSold+=(monthly[mk].mainSold||0);
   });
 
   /* 다음 예상 배당: 종목별 최근 두 배당의 간격·금액과 현재 보유 수량으로 단순 추정 */
@@ -1742,8 +1792,9 @@ async function runTradeBacktest(opts){
     annualDividendEst,
     principalRecoveryMode, dualSniperMode, recoveredCash, recoveryEvents,
     sniperCost, sniperShares, sniperRealizedCash, sniperLog, monthlySniper, tradeLog, rebalanceLog, finalPrices,
-    noRecoveryCost:cumCost2, noRecoveryDividend:cumDividend2,
-    noRecoveryAnnualDividendEst:annualDividendEst2, noRecoveryTotalValue
+    noRecoveryCost:cumCost2-mainSellRealized2, noRecoveryDividend:cumDividend2,
+    noRecoveryAnnualDividendEst:annualDividendEst2, noRecoveryTotalValue,
+    mainSellRealized, mainSellEvents, mainSellRealized2
   };
 }
 
@@ -1990,6 +2041,26 @@ function renderBacktest(res){
       }
     }else{
       sniperCardEl2.style.display='none';
+    }
+  }
+
+  /* [매도조건 신설] 기본 매매법에 내장된 매도규칙 — 체크박스와 무관하게 항상 작동하므로,
+     실현된 금액이 있으면 위 두 카드와 같은 방식으로 항상 표시한다. */
+  const mainCardEl2=document.getElementById('bt-realized-main-card');
+  const hasMainRealized=res.mainSellEvents && res.mainSellEvents.length>0;
+  if(mainCardEl2){
+    if(hasMainRealized){
+      mainCardEl2.style.display='';
+      const mainEl2=document.getElementById('bt-realized-main');
+      const mainDetailEl=document.getElementById('bt-realized-main-detail');
+      if(mainEl2) mainEl2.textContent=fmtUSDKRW(res.mainSellRealized);
+      if(mainDetailEl){
+        mainDetailEl.innerHTML=res.mainSellEvents.map((s,i)=>
+          '<b>'+(i+1)+'차('+(s.type==='principal'?'원금':s.pct+'%')+')</b> '+fmtUSDKRW(s.amount)+'<br><span style="font-size:11px">'+new Date(s.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,s.t).toLocaleString('ko-KR')+'일)</span>'
+        ).join('<div style="margin:6px 0;border-top:1px dashed var(--line)"></div>');
+      }
+    }else{
+      mainCardEl2.style.display='none';
     }
   }
 
@@ -2377,7 +2448,7 @@ function renderBacktest(res){
     const years=Object.keys(res.yearly||{}).sort();
     const yretList=years.map(y=>{
       const yr=res.yearly[y];
-      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0); // 원금 회수분은 신규 매수의 반대가 아니므로 보정
+      const contrib=yr.endCost-yr.startCost; // [버그 수정] 위 월별 표와 동일한 이유로 recovered 보정을 제거
       const denom=yr.startValue+contrib;
       const profitYen=yr.endValue-yr.startValue-contrib;
       return denom>0?profitYen/denom*100:0;
@@ -2385,13 +2456,13 @@ function renderBacktest(res){
     const bestYret=Math.max(...yretList), worstYret=Math.min(...yretList);
     yearlyEl.innerHTML=years.map((y,i)=>{
       const yr=res.yearly[y];
-      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0);
+      const contrib=yr.endCost-yr.startCost;
       const yret=yretList[i];
       const isBest=yret===bestYret && yretList.length>1;
       const isWorst=yret===worstYret && yretList.length>1;
       const rowBg='background:'+(yret>=0?'rgba(255,77,79,':'rgba(61,157,255,')+Math.min(Math.abs(yret)/40,1)*0.22+')';
       const badge=isBest?' <span class="tag" style="background:rgba(255,176,32,.18);color:var(--accent)">최고</span>':isWorst?' <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">최저</span>':'';
-      return '<tr style="'+rowBg+'"><td>'+y+badge+(yr.recovered?' <span class="mut" style="font-size:11px">(원금 회수 발생)</span>':'')+'</td>'+
+      return '<tr style="'+rowBg+'"><td>'+y+badge+((yr.recovered||yr.mainSold)?' <span class="mut" style="font-size:11px">💰 회수/매도 발생</span>':'')+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(yr.endCost)+'</td>'+
         '<td class="num">'+yr.buys+'회</td>'+
@@ -2406,17 +2477,20 @@ function renderBacktest(res){
   if(trEl){
     trEl.innerHTML=months.map(mk=>{
       const m=res.monthly[mk];
-      /* endCost는 "누적원금(회수분 제외)" 표시용이라 회수가 있었던 달은 원가 델타가 실제
-         매수 여부와 무관하게 확 줄어든다. 그 달의 "진짜 신규 매수액"과 "진짜 수익"을
-         구하려면 회수액만큼 다시 더해줘야 한다(회수는 신규 매수의 반대가 아니라 별개의
-         현금 인출이므로). */
-      const contrib=(m.endCost-m.startCost)+(m.recovered||0);
+      /* [버그 수정] 이 파일의 현재 설계는 회수·매도로 실현된 현금을 평가금(totalValue)에서
+         아예 제외한다(더 이상 "인출해서 쓴 현금"으로 취급). 그 결과 회수/매도 이벤트 자체는
+         원가와 평가금을 정확히 같은 금액만큼 같이 줄이므로, 보정 없이 단순 델타만 써도
+         수익 계산이 이미 맞다 — 예전에는 평가금에 회수액을 포함시켰던 구조라 보정이
+         필요했지만, 지금 구조에서 그 보정(+recovered)을 그대로 두면 회수·매도 자체가
+         가짜 손실처럼 잡히는 반대 방향 버그가 생긴다(실제 계산으로 확인). */
+      const contrib=m.endCost-m.startCost;
       const denom=m.startValue+contrib;
       const profitYen=m.endValue-m.startValue-contrib;
       const mret=denom>0?profitYen/denom:0;
       const mddPct=(m.mdd||0)*100;
-      const rowStyle=m.recovered?' style="background:rgba(255,176,32,.14)"':'';
-      return '<tr'+rowStyle+'><td>'+mk+(m.recovered?' <span class="mut" style="font-size:11px">💰 원금 회수 발생</span>':'')+'</td>'+
+      const rowStyle=(m.recovered||m.mainSold)?' style="background:rgba(255,176,32,.14)"':'';
+      const evTag=(m.recovered?' <span class="mut" style="font-size:11px">💰 원금 회수 발생</span>':'')+(m.mainSold?' <span class="mut" style="font-size:11px">💰 기본 매도규칙 발생</span>':'');
+      return '<tr'+rowStyle+'><td>'+mk+evTag+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(m.endCost)+'</td>'+
         '<td class="num">'+m.buys+'회</td>'+
@@ -2528,6 +2602,19 @@ function renderAdminTables(res){
       '<td class="num">'+(r.type==='buy'?fmtUSD(cumAmt2):'<span class="mut">--</span>')+'</td>'+
       '<td class="num '+(r.type==='sell'?'up':'')+'">'+(r.type==='sell' && r.profit!=null?(r.profit>=0?'+':'-')+fmtUSD(Math.abs(r.profit)):'<span class="mut">--</span>')+'</td></tr>';
     }).join(''):'<tr><td class="mut" colspan="8">듀얼스나이퍼 옵션이 꺼져 있거나 아직 매매 기록이 없습니다.</td></tr>';
+  }
+  const msBody=document.getElementById('bt-admin-mainsell');
+  if(msBody){
+    const rows=res.mainSellEvents||[];
+    let cumMs=0;
+    msBody.innerHTML=rows.length?rows.map(r=>{
+      cumMs+=r.amount;
+      return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td>'+
+        '<td>'+(r.type==='principal'?'원금 매도':'잔고 25% 매도')+'</td>'+
+        '<td class="num">'+fmtUSD(r.amount)+'</td>'+
+        '<td class="num">'+fmtUSD(cumMs)+'</td>'+
+        '<td class="num">'+r.pct+'%</td></tr>';
+    }).join(''):'<tr><td class="mut" colspan="5">아직 매도 조건이 발동하지 않았습니다.</td></tr>';
   }
   const rbBody=document.getElementById('bt-admin-rebalance');
   if(rbBody){
