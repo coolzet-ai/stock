@@ -307,19 +307,39 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="sec-h" style="align-items:baseline">
         <h3 style="font-size:16px;color:var(--tx2)">🔒 관리자 페이지 — 세부 백테스트 결과</h3>
       </div>
-      <p class="mut" style="font-size:12px;margin-bottom:10px">종목별 세부 매수 기록과 듀얼스나이퍼 매수·매도 기록입니다. 일반 화면에는 공개하지 않는 내용입니다.</p>
+      <p class="mut" style="font-size:12px;margin-bottom:10px">종목별 세부 매수·매도 기록입니다. 일반 화면에는 공개하지 않는 내용입니다.</p>
 
       <h4 style="font-size:14px;color:var(--tx2);margin-top:18px">전략 조건 세부내용 (비공개)</h4>
 
       <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기본 매수법 — 미국지수 공포탐욕 점수 기준</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">점수 &lt; 25</span>
+          <span class="tag" style="background:rgba(255,77,79,.28);color:#ff4d4f;min-width:110px;text-align:center">점수 ≤ 5</span>
           <span class="mut">→</span>
-          <span>매일 QLD·USD·SCHD 각 <b>4주</b></span>
+          <span><b>매일</b> QLD·USD·SCHD 각 <b>32주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">금요일 &amp; &lt;45</span>
+          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">점수 ≤ 10</span>
+          <span class="mut">→</span>
+          <span><b>매일</b> 각 <b>16주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.28);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 15</span>
+          <span class="mut">→</span>
+          <span><b>매일</b> 각 <b>8주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 20</span>
+          <span class="mut">→</span>
+          <span><b>매일</b> 각 <b>4주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(159,176,201,.2);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;25</span>
+          <span class="mut">→</span>
+          <span>각 <b>4주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;45</span>
           <span class="mut">→</span>
           <span>각 <b>2주</b></span>
         </div>
@@ -334,7 +354,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <span>매수 없음</span>
         </div>
       </div>
-      <p class="mut" style="font-size:11px;margin-top:6px">※ 25 미만 조건이 우선 적용되며(매일), 나머지는 금요일에만 평가됩니다.</p>
+      <p class="mut" style="font-size:11px;margin-top:6px">※ 지수가 낮을수록(공포가 심할수록) 우선 적용되는 매일 매수 구간이 먼저 평가되고, 20 초과 구간은 금요일에만 평가됩니다.</p>
 
       <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">리밸런싱 — 매년 마지막 거래일</div>
       <div style="display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:6px;max-width:420px">
@@ -342,46 +362,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div style="width:40%;background:#c084fc;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">USD 40%</div>
         <div style="width:20%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">SCHD 20%</div>
       </div>
-      <p class="mut" style="font-size:11.5px;margin-top:6px">보유 3종목 시가(배당 제외)를 위 비중으로 재배분(듀얼스나이퍼 SOXL 포지션은 완전히 제외)</p>
+      <p class="mut" style="font-size:11.5px;margin-top:6px">보유 3종목 시가(배당 제외)를 위 비중으로 재배분</p>
 
-      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">원금 100% 회수</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;margin-top:6px">
-        <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:170px;text-align:center">평가금(배당포함) ≥ 순원금×2</span>
-        <span class="mut">→</span>
-        <span>순원금만큼 비례 매도(현금화, <b>1회성</b>) · 시가가 부족하면 시가만큼만</span>
-      </div>
-
-      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">듀얼스나이퍼 매수 — 미국지수 공포탐욕 점수 기준(SOXL)</div>
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">기본 매도규칙 — 항상 작동</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2);min-width:110px;text-align:center">점수 &lt; 25</span>
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">+200% 최초</span>
           <span class="mut">→</span>
-          <span>매주 금요일 SOXL <b>$2,500</b></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">점수 &lt; 20</span>
-          <span class="mut">→</span>
-          <span>매주 금요일 SOXL <b>$5,000</b></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">점수 &lt; 15</span>
-          <span class="mut">→</span>
-          <span>매주 금요일 SOXL <b>$7,500</b></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.28);color:#ff4d4f;min-width:110px;text-align:center">점수 &lt; 10</span>
-          <span class="mut">→</span>
-          <span><b>매일</b> SOXL <b>$10,000</b></span>
-        </div>
-      </div>
-      <p class="mut" style="font-size:11px;margin-top:6px">※ 가장 낮은(가장 공포스러운) 구간이 우선 적용되며, 10 미만은 요일 상관없이 매일 매수합니다.</p>
-
-      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">듀얼스나이퍼 매도 — SOXL 포지션 수익률 기준</div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">+200% 최초</span>
-          <span class="mut">→</span>
-          <span>잔고의 <b>50%</b> 매도</span>
+          <span>투자원금만큼 매도(현금화) · 시가가 부족하면 시가만큼만</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
           <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">+100%p마다</span>

@@ -1835,6 +1835,22 @@ function renderBacktest(res){
   /* 수익률 곡선 SVG */
   /* 평가금 곡선 패널 하나를 그린다 — 회수 전/후 두 패널이 완전히 동일한 축척(scaleMin~scaleMax)과
      동일한 벤치마크 정의를 쓰도록 공유해서, 나란히 놓았을 때 크기 비교가 왜곡되지 않게 한다. */
+  /* 수익률·낙폭·배당 곡선 공통 — 연도가 바뀌는 지점마다 세로 구분선과 연도 라벨을 그린다 */
+  function yearDividerLines(seg, padL, stepX, yTop, yBottom, labelY){
+    let html='';
+    let prevYear=null;
+    seg.forEach((p,i)=>{
+      const y=new Date(p.t).getUTCFullYear();
+      if(prevYear!==null && y!==prevYear){
+        const x=(padL+i*stepX).toFixed(1);
+        html+='<line x1="'+x+'" y1="'+yTop+'" x2="'+x+'" y2="'+yBottom+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>';
+        if(labelY!=null) html+='<text x="'+(+x+3)+'" y="'+labelY+'" font-size="8.5" fill="var(--tx2)" text-anchor="start">'+y+'</text>';
+      }
+      prevYear=y;
+    });
+    return html;
+  }
+
   function buildEquityPanel(seg, scaleMin, scaleMax, w, h, events){
     const padL=48,padR=14,padTop=10,padBottom=30;
     const n=seg.length;
@@ -1855,7 +1871,7 @@ function renderBacktest(res){
       yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
       yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
     }
-    let markers='';
+    let markers=yearDividerLines(seg, padL, stepX, padTop, h-padBottom, h-padBottom+11);
 
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
       yAxis+markers+
@@ -1924,7 +1940,7 @@ function renderBacktest(res){
       yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
     }
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+
+      yAxis+yearDividerLines(seg, padL, stepX, padTop, h-14, h-4)+
       '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
       '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
       (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
@@ -2053,11 +2069,11 @@ function renderBacktest(res){
     const qldDiv=seg.map(p=>p.bmQldDivC!=null?p.bmQldDivC:null);
     const tqqqDiv=seg.map(p=>p.bmTqqqDivC!=null?p.bmTqqqDivC:null);
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+
+      yAxis+yearDividerLines(seg, padL, stepX, padTop, h-padBottom, h-padBottom+11)+
       (qqqDiv.some(v=>v!=null)?'<path d="'+pathOf(qqqDiv)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (qldDiv.some(v=>v!=null)?'<path d="'+pathOf(qldDiv)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (tqqqDiv.some(v=>v!=null)?'<path d="'+pathOf(tqqqDiv)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
-      '<path d="'+pathOf(div)+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+
+      '<path d="'+pathOf(div)+'" fill="none" stroke="var(--up)" stroke-width="2"/>'+
       '</svg>';
   }
   const divCurveEl=document.getElementById('bt-dividend-curve');
@@ -2068,7 +2084,7 @@ function renderBacktest(res){
       .concat(res.curve.map(p=>p.bmTqqqDivC).filter(v=>v!=null));
     const divScaleMax=Math.max(...allDivVals,1);
     const divLegend='<div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
-      '<span style="white-space:nowrap"><span style="color:var(--accent)">■</span> 기본전략(QLD/USD/SCHD) 배당</span>'+
+      '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 기본 전략 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ 배당</span>'+
