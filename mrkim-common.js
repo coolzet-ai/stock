@@ -1384,6 +1384,95 @@ async function fgDailyHistory(){
   return out.length?out:null;
 }
 
+/* ============ 추가매매법(떨어지면 매수·오르면 매도) — SOXL 6분할 티어 전략 ============
+   [비공개] 실제 종목명(SOXL)과 티어 배분·매수/매도/손절 기준은 공개 화면에 노출하지 않는다.
+   관리자 히든페이지에서만 정확한 수치를 확인할 수 있다. */
+const ALT_PROFILES={
+  defense:{ tiers:[5,10,15,20,25,25], buyPct:0.01, sellPct:0.01, stopDays:10, label:'수비' },
+  neutral:{ tiers:[10,15,20,25,20,10], buyPct:0.01, sellPct:1.5, stopDays:10, label:'중립' },
+  offense:{ tiers:[16.7,16.7,16.7,16.7,16.7,16.7], buyPct:0.1, sellPct:2, stopDays:12, label:'공격' }
+};
+
+async function runAltTradeBacktest(profile, baseCapital){
+  const cfg=ALT_PROFILES[profile];
+  if(!cfg) return {error:['알 수 없는 투자 성향']};
+  const soxl=await yDailySeries('SOXL');
+  if(!soxl) return {error:['기초자산 시세(Yahoo)']};
+  const series=soxl.series.slice().sort((a,b)=>a.t-b.t);
+  if(!series.length) return {error:['기초자산 시세(거래일 없음)']};
+
+  /* 티어별로 배정된 자본금(고정) 안에서 반복 매수·매도한다. 매도로 남긴 손익은 그 티어의
+     누적 실현손익(realizedPnL)으로 따로 쌓이고, 다음 매수는 항상 같은 배정 자본금을
+     그대로 다시 쓴다(수익을 재투자해 포지션을 불리지 않는, 고정 배팅 방식). */
+  const tiers=cfg.tiers.map(pct=>({
+    pct, capital: baseCapital*pct/100,
+    holding:false, shares:0, entryPrice:null, entryDay:null, refPrice:null,
+    realizedPnL:0
+  }));
+
+  let buyCount=0, stopLossCount=0;
+  const curve=[];
+  const monthly={};
+  const tradeLog=[]; // {t, tierPct, type:'buy'|'sell'|'stoploss', price, amount}
+  let prevMonthKey=null, monthStartValue=baseCapital;
+  let globalPeak=baseCapital;
+
+  series.forEach((p,dayIdx)=>{
+    const ts=p.t, price=p.close;
+    const d=new Date(ts);
+    const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+    if(mk!==prevMonthKey){
+      monthly[mk]={buys:0, stopLosses:0, startValue:monthStartValue, endValue:0};
+      prevMonthKey=mk;
+    }
+
+    tiers.forEach(t=>{
+      if(t.refPrice==null) t.refPrice=price; // 첫날 기준가 설정
+
+      if(!t.holding){
+        if(price<=t.refPrice*(1-cfg.buyPct/100)){
+          t.shares=t.capital/price;
+          t.holding=true;
+          t.entryPrice=price;
+          t.entryDay=dayIdx;
+          buyCount++; monthly[mk].buys++;
+          tradeLog.push({t:ts, tierPct:t.pct, type:'buy', price, amount:t.capital});
+        }
+      }else{
+        const daysHeld=dayIdx-t.entryDay;
+        if(price>=t.entryPrice*(1+cfg.sellPct/100)){
+          const proceeds=t.shares*price;
+          t.realizedPnL+=proceeds-t.capital;
+          t.holding=false; t.shares=0; t.refPrice=price;
+          tradeLog.push({t:ts, tierPct:t.pct, type:'sell', price, amount:proceeds});
+        }else if(daysHeld>=cfg.stopDays){
+          /* 손절: 그날 가격으로 매도해 손실 확정 후, 같은 날 즉시 같은 자본금으로 재매수한다
+             ("손절일도 매수") — 현금이 하루도 비지 않도록 바로 다음 사이클을 시작한다. */
+          const proceeds=t.shares*price;
+          t.realizedPnL+=proceeds-t.capital;
+          stopLossCount++; monthly[mk].stopLosses++;
+          tradeLog.push({t:ts, tierPct:t.pct, type:'stoploss', price, amount:proceeds});
+          t.shares=t.capital/price;
+          t.entryPrice=price; t.entryDay=dayIdx; t.refPrice=price;
+          buyCount++; monthly[mk].buys++;
+          tradeLog.push({t:ts, tierPct:t.pct, type:'buy', price, amount:t.capital});
+        }
+      }
+    });
+
+    let totalValue=0;
+    tiers.forEach(t=>{ totalValue+=t.realizedPnL+(t.holding?t.shares*price:t.capital); });
+    globalPeak=Math.max(globalPeak,totalValue);
+    const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
+    curve.push({t:ts, value:totalValue, cost:baseCapital, dd});
+    monthly[mk].endValue=totalValue;
+    monthStartValue=totalValue;
+  });
+
+  const finalValue=curve.length?curve[curve.length-1].value:baseCapital;
+  return {curve, monthly, buyCount, stopLossCount, baseCapital, finalValue, profile, tradeLog};
+}
+
 async function runTradeBacktest(opts){
   opts = opts || {};
   const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
@@ -2194,6 +2283,118 @@ function fgScoreState(score){
   return '탐욕';
 }
 
+/* 추가매매법(떨사오팔) 결과 렌더링 — 현재매매법과 같은 카드·차트 구조를 재사용한다 */
+function renderAltBacktest(res){
+  const statusEl=document.getElementById('bt2-status');
+  if(!res || res.error || !res.curve || !res.curve.length){
+    const reason=(res&&res.error)?res.error.join(', ')+' 연동 실패':'알 수 없는 오류';
+    if(statusEl) statusEl.textContent='⚠ '+reason;
+    return;
+  }
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+
+  function fmtUSDKRW2(usd){
+    if(!krwDisplayOn) return fmtUSD(usd);
+    const krw=fmtKRW(usd);
+    return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
+  }
+  const capEl=document.getElementById('bt2-capital'); if(capEl) capEl.textContent=fmtUSDKRW2(res.baseCapital);
+  const bcEl=document.getElementById('bt2-buycount'); if(bcEl) bcEl.textContent=res.buyCount+'회';
+  const slEl=document.getElementById('bt2-stoploss'); if(slEl) slEl.textContent=res.stopLossCount+'회';
+  const valEl=document.getElementById('bt2-value'); if(valEl) valEl.textContent=fmtUSDKRW2(res.finalValue);
+
+  const profitAmt=res.finalValue-res.baseCapital;
+  const profitEl=document.getElementById('bt2-profit');
+  if(profitEl){
+    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW2(Math.abs(profitAmt));
+    profitEl.className='big '+(profitAmt>=0?'up':'down');
+  }
+  const roi=res.baseCapital>0?(res.finalValue/res.baseCapital-1)*100:0;
+  const roiEl=document.getElementById('bt2-roi');
+  if(roiEl){
+    roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
+    roiEl.className='big '+(roi>=0?'up':'down');
+  }
+
+  /* 수익률 곡선 — 기본투자금(점선) 대비 평가금(빨간/파란 실선), 연도 구분선 포함 */
+  const curveEl=document.getElementById('bt2-curve');
+  if(curveEl){
+    const w=700,h=240,padL=56,padR=20,padTop=10,padBottom=30;
+    const n=res.curve.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const allVals=res.curve.map(p=>p.value).concat([res.baseCapital]);
+    const scaleMin=Math.min(...allVals,0), scaleMax=Math.max(...allVals,1);
+    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
+    const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const profit=res.finalValue>=res.baseCapital;
+    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
+    }
+    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-padBottom, h-padBottom+11);
+    const baseY=yOf(res.baseCapital).toFixed(1);
+    curveEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+yearLines+
+      '<line x1="'+padL+'" y1="'+baseY+'" x2="'+(w-padR)+'" y2="'+baseY+'" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
+      '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
+      '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2"/>'+
+      '</svg>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2)">'+
+      '<span><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금</span>'+
+      '<span><span style="color:var(--tx2)">┄</span> 기본투자금</span>'+
+      '</div>';
+  }
+
+  /* 낙폭(고점 대비 하락폭) */
+  const ddEl=document.getElementById('bt2-drawdown');
+  if(ddEl){
+    const w=700,h=110,padL=56,padR=20,padTop=10;
+    const n=res.curve.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const maxDD=Math.max(...res.curve.map(p=>p.dd||0),1);
+    const yOf=v=>padTop+(v/maxDD)*(h-padTop-14);
+    const pts=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.dd||0)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=maxDD*ti/3;
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
+    }
+    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-14, h-4);
+    ddEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+yearLines+
+      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
+      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
+      '</svg>'+
+      '<div class="mut" style="margin-top:4px;font-size:12px">최대 낙폭 -'+maxDD.toFixed(1)+'%</div>';
+  }
+
+  /* 월별 매매기록 */
+  const monthlyEl=document.getElementById('bt2-monthly');
+  if(monthlyEl){
+    const months=Object.keys(res.monthly).sort();
+    monthlyEl.innerHTML=months.map(mk=>{
+      const m=res.monthly[mk];
+      const profitYen=m.endValue-m.startValue;
+      const mret=m.startValue>0?profitYen/m.startValue*100:0;
+      const rowStyle=m.stopLosses>0?' style="background:rgba(61,157,255,.12)"':'';
+      return '<tr'+rowStyle+'><td>'+mk+(m.stopLosses>0?' <span class="mut" style="font-size:11px">🔵 손절 발생</span>':'')+'</td>'+
+        '<td class="num">'+m.buys+'회</td>'+
+        '<td class="num">'+m.stopLosses+'회</td>'+
+        '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW2(Math.abs(profitYen))+'</td>'+
+        '<td class="num '+(mret>=0?'up':'down')+'">'+(mret>=0?'+':'')+mret.toFixed(2)+'%</td></tr>';
+    }).join('');
+  }
+}
+
 function renderAdminTables(res){
   const tlBody=document.getElementById('bt-admin-tradelog');
   if(tlBody){
@@ -2252,25 +2453,60 @@ function renderAdminTables(res){
 }
 
 /* 관리자 페이지 버튼 — 비밀번호(coolzet***) 확인 후에만 히든 섹션을 보여준다.
-   클라이언트 사이드 체크일 뿐이라 실제 보안 기능은 아니며, 화면 노출만 막는 용도다. */
+   클라이언트 사이드 체크일 뿐이라 실제 보안 기능은 아니며, 화면 노출만 막는 용도다.
+   현재매매법·추가매매법 화면 양쪽에 각자 버튼이 있지만 같은 패널을 공유한다. */
 const ADMIN_PASSWORD='coolzet***';
 function initTradeAdminPanel(){
-  const btn=document.getElementById('bt-admin-btn');
   const panel=document.getElementById('bt-admin-panel');
-  if(!btn || !panel) return;
-  btn.addEventListener('click',()=>{
-    if(panel.style.display!=='none'){ panel.style.display='none'; btn.textContent='관리자 페이지'; return; }
-    const pw=prompt('관리자 비밀번호를 입력하세요');
-    if(pw===null) return;
-    if(pw===ADMIN_PASSWORD){
-      panel.style.display='';
-      btn.textContent='관리자 페이지 닫기';
-      if(lastBacktestResult) renderAdminTables(lastBacktestResult);
-      panel.scrollIntoView({behavior:'smooth', block:'start'});
-    }else{
-      alert('비밀번호가 올바르지 않습니다.');
-    }
+  if(!panel) return;
+  ['bt-admin-btn','bt-admin-btn-2'].forEach(btnId=>{
+    const btn=document.getElementById(btnId);
+    if(!btn) return;
+    btn.addEventListener('click',()=>{
+      const otherBtn=document.getElementById(btnId==='bt-admin-btn'?'bt-admin-btn-2':'bt-admin-btn');
+      if(panel.style.display!=='none'){
+        panel.style.display='none';
+        btn.textContent='관리자 페이지';
+        if(otherBtn) otherBtn.textContent='관리자 페이지';
+        return;
+      }
+      const pw=prompt('관리자 비밀번호를 입력하세요');
+      if(pw===null) return;
+      if(pw===ADMIN_PASSWORD){
+        panel.style.display='';
+        btn.textContent='관리자 페이지 닫기';
+        if(otherBtn) otherBtn.textContent='관리자 페이지 닫기';
+        if(btnId==='bt-admin-btn-2'){
+          if(lastAltBacktestResult) renderAltAdminLog(lastAltBacktestResult);
+        }else if(lastBacktestResult){
+          renderAdminTables(lastBacktestResult);
+        }
+        panel.scrollIntoView({behavior:'smooth', block:'start'});
+      }else{
+        alert('비밀번호가 올바르지 않습니다.');
+      }
+    });
   });
+}
+
+/* 추가매매법(떨사오팔)의 티어별 매수·매도·손절 기록 — 기존 종목별 매매기록 표를 그대로
+   재사용하되, 열 구성이 다르므로(종목 대신 티어%, 매수/매도/손절 구분 등) 헤더와 본문을
+   이 전용 함수에서 새로 그린다. */
+function renderAltAdminLog(res){
+  const tbl=document.getElementById('bt-admin-tradelog');
+  if(!tbl) return;
+  const table=tbl.closest('table');
+  const thead=table?table.querySelector('thead'):null;
+  if(thead) thead.innerHTML='<tr><th>날짜</th><th>티어</th><th>구분</th><th class="num">가격</th><th class="num">금액</th></tr>';
+  const rows=(res.tradeLog||[]).slice(-500);
+  const typeLabel={buy:'매수', sell:'매도', stoploss:'손절매도'};
+  tbl.innerHTML=rows.length?rows.map(r=>{
+    const cls=r.type==='buy'?'':(r.type==='stoploss'?'down':'up');
+    return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td><td>'+r.tierPct+'%</td>'+
+      '<td class="'+cls+'">'+(typeLabel[r.type]||r.type)+'</td>'+
+      '<td class="num">'+fmtUSD(r.price)+'</td>'+
+      '<td class="num">'+fmtUSD(r.amount)+'</td></tr>';
+  }).join(''):'<tr><td class="mut" colspan="5">데이터 없음</td></tr>';
 }
 
 let lastBacktestResult=null;
@@ -2280,6 +2516,65 @@ async function loadTradeBacktest(){
   const [res]=await Promise.all([runTradeBacktest(), loadFxRate()]);
   lastBacktestResult=res;
   renderBacktest(res);
+}
+
+let lastAltBacktestResult=null;
+let altProfile='defense', altCapital=10000;
+async function loadAltTradeBacktest(){
+  const statusEl=document.getElementById('bt2-status');
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  const [res]=await Promise.all([runAltTradeBacktest(altProfile, altCapital), loadFxRate()]);
+  lastAltBacktestResult=res;
+  renderAltBacktest(res);
+}
+
+/* 매매법 선택 탭(현재매매법/추가매매법) — 화면 전환만 하고, 추가매매법을 처음 열 때만
+   데이터를 불러온다(불필요한 재계산 방지) */
+let altLoaded=false;
+function initTradeMethodTabs(){
+  const tabs=document.getElementById('bt-method-tabs');
+  const wrap1=document.getElementById('bt-method1-wrap');
+  const wrap2=document.getElementById('bt-method2-wrap');
+  if(!tabs || !wrap1 || !wrap2) return;
+  tabs.addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    const m=b.dataset.method;
+    if(m==='1'){ wrap1.style.display=''; wrap2.style.display='none'; }
+    else{
+      wrap1.style.display='none'; wrap2.style.display='';
+      if(!altLoaded){ altLoaded=true; loadAltTradeBacktest(); }
+    }
+  });
+}
+
+/* 추가매매법 전용 컨트롤 — 기본투자금 선택, 투자 성향(수비/중립/공격) 탭, 연도 탭 */
+function initAltTradeControls(){
+  const capSel=document.getElementById('bt2-capital-select');
+  if(capSel){
+    capSel.addEventListener('change', ()=>{
+      altCapital=+capSel.value;
+      loadAltTradeBacktest();
+    });
+  }
+  const profTabs=document.getElementById('bt2-profile-tabs');
+  if(profTabs){
+    profTabs.addEventListener('click', e=>{
+      const b=e.target.closest('button'); if(!b) return;
+      profTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      altProfile=b.dataset.profile;
+      loadAltTradeBacktest();
+    });
+  }
+  const yearTabs2=document.getElementById('bt2-year-tabs');
+  if(yearTabs2){
+    yearTabs2.addEventListener('click', e=>{
+      const b=e.target.closest('button'); if(!b) return;
+      setBacktestYear(+b.dataset.year);
+    });
+  }
 }
 
 /* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고
@@ -2300,7 +2595,11 @@ function setBacktestYear(year){
   BACKTEST_START_TS=Math.floor(new Date(year+'-01-01T00:00:00Z').getTime()/1000);
   const btns=document.querySelectorAll('#bt-year-tabs button');
   btns.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
+  /* 추가매매법 연도 탭도 같은 BACKTEST_START_TS를 공유하므로 함께 맞춰준다 */
+  const btns2=document.querySelectorAll('#bt2-year-tabs button');
+  btns2.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
   loadTradeBacktest();
+  if(altLoaded) loadAltTradeBacktest();
 }
 const btYearTabs=document.getElementById('bt-year-tabs');
 if(btYearTabs){

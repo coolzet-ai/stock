@@ -196,7 +196,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p class="mut">본 매매법의 매수·매도 세부 규칙은 공개하지 않습니다. 아래 백테스트 결과는 실제 규칙을 적용해 계산한 성과입니다.</p>
     </div>
 
-    <div class="sec-h" style="margin-top:44px;align-items:baseline">
+    <div class="tabs" id="bt-method-tabs" style="margin-top:24px">
+      <button class="on" data-method="1">현재매매법</button>
+      <button data-method="2">추가매매법</button>
+    </div>
+
+    <div id="bt-method1-wrap">
+    <div class="sec-h" style="margin-top:24px;align-items:baseline">
       <h2 style="font-size:21px;margin:0">매매법 백테스트</h2>
       <button class="btn sm ghost" id="bt-admin-btn" type="button">관리자 페이지</button>
     </div>
@@ -302,6 +308,95 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h3>다음 예상 배당</h3>
       <p class="mut" id="bt-next-div">계산 중…</p>
     </div>
+    </div><!-- /bt-method1-wrap -->
+
+    <div id="bt-method2-wrap" style="display:none">
+      <div class="sec-h" style="margin-top:24px;align-items:baseline">
+        <h2 style="font-size:21px;margin:0">매매법 백테스트</h2>
+        <button class="btn sm ghost" id="bt-admin-btn-2" type="button">관리자 페이지</button>
+      </div>
+      <p class="sub" style="margin-top:6px">가격이 떨어지면 매수, 오르면 매도하는 방식의 별도 전략입니다. 매수·매도 세부 규칙은 공개하지 않습니다.</p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-top:16px">
+        <div>
+          <div class="mut" style="font-size:12.5px;margin-bottom:6px">기본투자금</div>
+          <select id="bt2-capital-select" class="tabs" style="padding:8px 12px;background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-weight:700">
+            <option value="10000" selected>$10,000</option>
+            <option value="20000">$20,000</option>
+            <option value="30000">$30,000</option>
+            <option value="50000">$50,000</option>
+            <option value="100000">$100,000</option>
+          </select>
+        </div>
+        <div>
+          <div class="mut" style="font-size:12.5px;margin-bottom:6px">투자 성향</div>
+          <div class="tabs" id="bt2-profile-tabs">
+            <button class="on" data-profile="defense">수비</button>
+            <button data-profile="neutral">중립</button>
+            <button data-profile="offense">공격</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs" id="bt2-year-tabs" style="margin-top:16px">
+        <button data-year="2022">2022년부터</button>
+        <button data-year="2023">2023년부터</button>
+        <button data-year="2024">2024년부터</button>
+        <button data-year="2025">2025년부터</button>
+        <button class="on" data-year="2026">2026년부터</button>
+      </div>
+      <p class="sub" id="bt2-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
+
+      <div class="grid">
+        <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+          <h3>기본투자금</h3>
+          <div class="big" id="bt2-capital" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">6개 티어로 분할 배분, 세전 기준</p>
+        </div>
+        <div class="card">
+          <h3>누적 매수 횟수</h3>
+          <div class="big" id="bt2-buycount" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px">티어·수량 세부내용은 비공개입니다</p>
+        </div>
+        <div class="card">
+          <h3>손절 횟수</h3>
+          <div class="big" id="bt2-stoploss" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">손절 즉시 재매수합니다</p>
+        </div>
+        <div class="card">
+          <h3>현재 평가금</h3>
+          <div class="big" id="bt2-value" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">보유 중인 티어 시가 + 실현손익 합산</p>
+        </div>
+        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+          <h3>현재 평가수익금</h3>
+          <div class="big" id="bt2-profit" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px" id="bt2-profit-sub">평가금 - 기본투자금</p>
+        </div>
+        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+          <h3>수익률</h3>
+          <div class="big" id="bt2-roi" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">기본투자금 대비</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선</h3>
+      <div class="card" style="margin-top:12px">
+        <div id="bt2-curve"></div>
+      </div>
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">낙폭(고점 대비 하락폭)</h3>
+      <div class="card" style="margin-top:12px">
+        <div id="bt2-drawdown"></div>
+      </div>
+
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>월</th><th class="num">매수횟수</th><th class="num">손절횟수</th><th class="num">월 손익</th><th class="num">월 수익률</th></tr></thead>
+          <tbody id="bt2-monthly"><tr><td class="mut" colspan="5">계산 중…</td></tr></tbody>
+        </table>
+      </div>
+    </div><!-- /bt-method2-wrap -->
 
     <div id="bt-admin-panel" style="display:none;margin-top:32px">
       <div class="sec-h" style="align-items:baseline">
@@ -379,6 +474,23 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
       <p class="mut" style="font-size:11px;margin-top:6px">매도분만큼 원가도 비례 차감해 잔여 포지션 평단가를 유지합니다.</p>
 
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:28px;padding-top:18px;border-top:1px solid var(--line)">추가매매법(떨사오팔) — 전략 조건 세부내용 (비공개)</h4>
+      <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기초자산</div>
+      <p style="font-size:13px;margin-top:4px"><b>SOXL</b> (필라델피아 반도체지수 3배 레버리지 ETF)</p>
+
+      <div class="mut" style="font-size:12px;margin-top:16px;font-weight:700">6분할 티어 배분 · 투자 성향별 매수·매도·손절 기준</div>
+      <div class="scroll" style="margin-top:8px">
+        <table style="font-size:12.5px">
+          <thead><tr><th>성향</th><th class="num">티어 배분(6단계)</th><th class="num">매수 기준</th><th class="num">매도 기준</th><th class="num">손절</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">수비</span></td><td class="num">5% · 10% · 15% · 20% · 25% · 25%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +0.01%</td><td class="num">10일</td></tr>
+            <tr><td><span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2)">중립</span></td><td class="num">10% · 15% · 20% · 25% · 20% · 10%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +1.5%</td><td class="num">10일</td></tr>
+            <tr><td><span class="tag" style="background:rgba(255,77,79,.15);color:var(--up)">공격</span></td><td class="num">16.7% × 6등분</td><td class="num">전일 대비 -0.1%</td><td class="num">진입가 대비 +2%</td><td class="num">12일</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mut" style="font-size:11px;margin-top:6px">각 티어는 배정된 자본금 한도 내에서 독립적으로 매수·매도를 반복합니다(수익 재투자 없이 항상 같은 배정 자본금으로 재매수) · 손절 발생일에도 같은 날 즉시 재매수합니다("손절일도 매수") · 실현손익은 티어별로 누적되어 평가금에 합산됩니다.</p>
+
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">종목별 세부 매매기록</h4>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
         <table style="table-layout:fixed;width:100%">
@@ -444,6 +556,8 @@ const now=new Date();
 loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
 initTradeAdminPanel();
+initTradeMethodTabs();
+initAltTradeControls();
 { const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
   if(_btn && _wrap){
     _btn.addEventListener('click',()=>{
