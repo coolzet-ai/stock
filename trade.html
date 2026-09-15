@@ -197,8 +197,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <div class="tabs" id="bt-method-tabs" style="margin-top:24px">
-      <button class="on" data-method="1">현재매매법</button>
-      <button data-method="2">추가매매법</button>
+      <button class="on" data-method="1" style="border-bottom:3px solid var(--accent)">삼사원팔</button>
+      <button data-method="2" style="border-bottom:3px solid #3d9dff">떨사오팔</button>
+      <button data-method="3" style="border-bottom:3px solid #a78bfa">추가매매법(스나이퍼)</button>
     </div>
 
     <div id="bt-method1-wrap">
@@ -398,6 +399,73 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div><!-- /bt-method2-wrap -->
 
+    <div id="bt-method3-wrap" style="display:none">
+      <div class="sec-h" style="margin-top:24px;align-items:baseline">
+        <h2 style="font-size:21px;margin:0">매매법 백테스트</h2>
+        <button class="btn sm ghost" id="bt-admin-btn-3" type="button">관리자 페이지</button>
+      </div>
+      <p class="sub" style="margin-top:6px">공포탐욕지수 기반의 별도 3종목 분할매수 전략입니다. 종목명·매수·리밸런싱·매도 세부 규칙은 공개하지 않습니다.</p>
+
+      <div class="tabs" id="bt3-year-tabs" style="margin-top:16px">
+        <button data-year="2022">2022년부터</button>
+        <button data-year="2023">2023년부터</button>
+        <button data-year="2024">2024년부터</button>
+        <button data-year="2025">2025년부터</button>
+        <button class="on" data-year="2026">2026년부터</button>
+      </div>
+      <p class="sub" id="bt3-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
+
+      <div class="grid">
+        <div class="card" style="border:1px solid #a78bfa;background:rgba(167,139,250,.08)">
+          <h3>누적원금</h3>
+          <div class="big" id="bt3-cost" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">3종목 분할매수·리밸런싱 반영, 세전 기준</p>
+        </div>
+        <div class="card">
+          <h3>누적 매수 횟수</h3>
+          <div class="big" id="bt3-buycount" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px">종목·수량 세부내용은 비공개입니다</p>
+        </div>
+        <div class="card" style="border:1px solid #a78bfa;background:rgba(167,139,250,.08)">
+          <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
+          <div class="big" id="bt3-realized" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">종목별 수익률 200% 도달 시 원금 매도, 이후 100%p마다 잔고 25% 매도</p>
+        </div>
+        <div class="card">
+          <h3>현재 평가금</h3>
+          <div class="big" id="bt3-value" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가 합산(실현 현금 제외)</p>
+        </div>
+        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+          <h3>현재 평가수익금</h3>
+          <div class="big" id="bt3-profit" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px">평가금 - 누적원금</p>
+        </div>
+        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+          <h3>수익률</h3>
+          <div class="big" id="bt3-roi" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">누적원금 대비</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선</h3>
+      <div class="card" style="margin-top:12px">
+        <div id="bt3-curve"></div>
+      </div>
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">낙폭(고점 대비 하락폭)</h3>
+      <div class="card" style="margin-top:12px">
+        <div id="bt3-drawdown"></div>
+      </div>
+
+      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>월</th><th class="num">투입원금</th><th class="num">매수횟수</th><th class="num">월 손익</th><th class="num">월 수익률</th></tr></thead>
+          <tbody id="bt3-monthly"><tr><td class="mut" colspan="5">계산 중…</td></tr></tbody>
+        </table>
+      </div>
+    </div><!-- /bt-method3-wrap -->
+
     <div id="bt-admin-panel" style="display:none;margin-top:32px">
       <div class="sec-h" style="align-items:baseline">
         <h3 style="font-size:16px;color:var(--tx2)">🔒 관리자 페이지 — 세부 백테스트 결과</h3>
@@ -491,6 +559,53 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
       <p class="mut" style="font-size:11px;margin-top:6px">각 티어는 배정된 자본금 한도 내에서 독립적으로 매수·매도를 반복합니다(수익 재투자 없이 항상 같은 배정 자본금으로 재매수) · 손절 발생일에도 같은 날 즉시 재매수합니다("손절일도 매수") · 실현손익은 티어별로 누적되어 평가금에 합산됩니다.</p>
 
+      <h4 style="font-size:14px;color:var(--tx2);margin-top:28px;padding-top:18px;border-top:1px solid var(--line)">추가매매법(스나이퍼) — 전략 조건 세부내용 (비공개)</h4>
+      <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기초자산 3종목</div>
+      <p style="font-size:13px;margin-top:4px"><b>TQQQ</b>(나스닥100 3배) · <b>TECL</b>(테크셀렉트섹터 3배) · <b>SOXL</b>(필라델피아 반도체지수 3배)</p>
+
+      <div class="mut" style="font-size:12px;margin-top:16px;font-weight:700">매수 — 공포탐욕지수 기준(3종목 동시, 매일)</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">지수 ≤ 15</span>
+          <span class="mut">→</span>
+          <span>매일 3종목 각 <b>10주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">지수 ≤ 10</span>
+          <span class="mut">→</span>
+          <span>매일 3종목 각 <b>20주</b></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(255,77,79,.28);color:#ff4d4f;min-width:110px;text-align:center">지수 ≤ 5</span>
+          <span class="mut">→</span>
+          <span>매일 3종목 각 <b>30주</b></span>
+        </div>
+      </div>
+      <p class="mut" style="font-size:11px;margin-top:6px">※ 지수 15 초과 구간은 매수하지 않습니다. 가장 낮은(가장 공포스러운) 구간이 우선 적용됩니다.</p>
+
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">리밸런싱 — 매년 마지막 거래일의 "다음" 거래일(새해 첫 거래일)</div>
+      <div style="display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:6px;max-width:420px">
+        <div style="width:30%;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">TQQQ 30%</div>
+        <div style="width:35%;background:var(--up);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff">TECL 35%</div>
+        <div style="width:35%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a1206">SOXL 35%</div>
+      </div>
+      <p class="mut" style="font-size:11.5px;margin-top:6px">보유 3종목 시가를 위 비중으로 재배분(연말 당일이 아니라 새해 첫 거래일에 실시)</p>
+
+      <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">매도 — 종목별 독립 적용</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(167,139,250,.2);color:#a78bfa;min-width:110px;text-align:center">+200% 최초</span>
+          <span class="mut">→</span>
+          <span>그 종목 투자원금만큼 매도</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
+          <span class="tag" style="background:rgba(167,139,250,.2);color:#a78bfa;min-width:110px;text-align:center">+100%p마다</span>
+          <span class="mut">→</span>
+          <span>그 종목 잔고의 <b>25%</b>씩 매도(300%,400%…)</span>
+        </div>
+      </div>
+      <p class="mut" style="font-size:11px;margin-top:6px">TQQQ·TECL·SOXL 각각 독립적으로 판단합니다(한 종목이 200%에 도달해도 다른 종목엔 영향 없음) · 매도분만큼 원가도 비례 차감.</p>
+
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">종목별 세부 매매기록</h4>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
         <table style="table-layout:fixed;width:100%">
@@ -558,6 +673,7 @@ initTradeKrwToggle('#krw-toggle');
 initTradeAdminPanel();
 initTradeMethodTabs();
 initAltTradeControls();
+initSniperTradeControls();
 { const _btn=document.getElementById('bt-monthly-toggle'), _wrap=document.getElementById('bt-monthly-wrap');
   if(_btn && _wrap){
     _btn.addEventListener('click',()=>{

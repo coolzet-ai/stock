@@ -1473,6 +1473,144 @@ async function runAltTradeBacktest(profile, baseCapital){
   return {curve, monthly, buyCount, stopLossCount, baseCapital, finalValue, profile, tradeLog};
 }
 
+/* ============ 추가매매법(스나이퍼) — TQQQ·TECL·SOXL 3종목, 공포탐욕 점수 기반 ============
+   [비공개] 실제 종목명과 매수·리밸런싱·매도 세부 기준은 공개 화면에 노출하지 않는다.
+   관리자 히든페이지에서만 정확한 수치를 확인할 수 있다. */
+const SNIPER_TICKERS=['TQQQ','TECL','SOXL'];
+const SNIPER_REBAL_TARGET={TQQQ:0.30, TECL:0.35, SOXL:0.35};
+async function runSniperTradeBacktest(){
+  const [tqqq,tecl,soxl,fg]=await Promise.all([
+    yDailySeries('TQQQ'), yDailySeries('TECL'), yDailySeries('SOXL'), fgDailyHistory()
+  ]);
+  const missing=[];
+  if(!tqqq) missing.push('TQQQ 시세(Yahoo)');
+  if(!tecl) missing.push('TECL 시세(Yahoo)');
+  if(!soxl) missing.push('SOXL 시세(Yahoo)');
+  if(!fg) missing.push('공포탐욕지수 히스토리(CNN)');
+  if(missing.length) return {error:missing};
+
+  const data={TQQQ:tqqq, TECL:tecl, SOXL:soxl};
+  const tradingTs=tqqq.series.map(p=>p.t).slice().sort((a,b)=>a-b);
+  if(!tradingTs.length) return {error:['TQQQ 시세(거래일 없음)']};
+
+  const priceMap={};
+  SNIPER_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
+
+  function scoreAt(ts){
+    let ans=fg.length?fg[0].score:50;
+    for(let i=0;i<fg.length;i++){ if(fg[i].t<=ts) ans=fg[i].score; else break; }
+    return ans;
+  }
+
+  /* 리밸런싱: 연말 마지막 거래일이 아니라 "그 다음 거래일"(새해 첫 거래일)에 실시한다 */
+  const yearMaxTs={};
+  tradingTs.forEach(ts=>{ const y=new Date(ts).getUTCFullYear(); if(!yearMaxTs[y]||ts>yearMaxTs[y]) yearMaxTs[y]=ts; });
+  const datasetLastTs=tradingTs[tradingTs.length-1];
+  const rebalanceDays=new Set();
+  Object.values(yearMaxTs).forEach(ts=>{
+    if(ts===datasetLastTs) return; // 아직 끝나지 않은 마지막 해는 제외
+    const idx=tradingTs.indexOf(ts);
+    if(idx>=0 && idx+1<tradingTs.length) rebalanceDays.add(tradingTs[idx+1]);
+  });
+
+  let shares={TQQQ:0,TECL:0,SOXL:0};
+  let cumCost=0, buyCount=0;
+  const monthly={};
+  const curve=[];
+  let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
+  let globalPeak=0;
+  const tradeLog=[];
+  const rebalanceLog=[];
+
+  /* 자산별로 완전히 독립된 매도규칙 — 종목 하나가 200%/300%… 도달해도 다른 종목엔 영향 없음 */
+  const sellState={}; SNIPER_TICKERS.forEach(t=>{ sellState[t]={cumCost:0, nextPct:200, realized:0}; });
+  const sellEvents=[]; // {t, ticker, amount, type, pct}
+
+  tradingTs.forEach(ts=>{
+    const d=new Date(ts);
+    const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+    if(mk!==prevMonthKey){
+      monthly[mk]={buys:0, sold:0, startValue:monthStartValue, startCost:monthStartCost, endValue:0, endCost:0, peak:monthStartValue||0, mdd:0};
+      prevMonthKey=mk;
+    }
+
+    const score=scoreAt(ts);
+    let qty=0;
+    if(score<=5) qty=30;
+    else if(score<=10) qty=20;
+    else if(score<=15) qty=10;
+
+    if(qty>0){
+      let bought=false;
+      SNIPER_TICKERS.forEach(t=>{
+        const px=priceMap[t][ts]; if(px==null) return;
+        shares[t]+=qty; cumCost+=px*qty; sellState[t].cumCost+=px*qty; bought=true;
+        tradeLog.push({t:ts, ticker:t, qty, price:px, amount:px*qty, score});
+      });
+      if(bought){ buyCount++; monthly[mk].buys++; }
+    }
+
+    let value=0;
+    SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
+
+    if(rebalanceDays.has(ts) && value>0){
+      const beforeVals={}, priceAtRebal={};
+      SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; beforeVals[t]=px!=null?shares[t]*px:0; priceAtRebal[t]=px; });
+      SNIPER_TICKERS.forEach(t=>{
+        const px=priceMap[t][ts]; if(px==null) return;
+        shares[t]=(value*SNIPER_REBAL_TARGET[t])/px;
+      });
+      value=0;
+      const afterVals={};
+      SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null){ value+=shares[t]*px; afterVals[t]=shares[t]*px; } });
+      rebalanceLog.push({t:ts, before:beforeVals, after:afterVals, priceAtRebal});
+    }
+
+    /* 자산별 독립 매도: 종목별 수익률 200% 최초 도달 시 그 종목 투자원금만큼 매도,
+       이후 100%p 구간마다 그 종목 잔고의 25%씩 매도 */
+    SNIPER_TICKERS.forEach(t=>{
+      const px=priceMap[t][ts]; if(px==null) return;
+      const tVal=shares[t]*px;
+      const st=sellState[t];
+      if(st.cumCost>0 && tVal>0){
+        const pft=(tVal/st.cumCost-1)*100;
+        if(pft>=st.nextPct){
+          const isFirst=(st.nextPct===200);
+          const sellRatio=isFirst?Math.min(1, st.cumCost/tVal):0.25;
+          const sellAmt=tVal*sellRatio;
+          shares[t]*=(1-sellRatio);
+          st.cumCost*=(1-sellRatio);
+          st.realized+=sellAmt;
+          sellEvents.push({t:ts, ticker:t, amount:sellAmt, type:isFirst?'principal':'partial', pct:st.nextPct});
+          monthly[mk].sold+=sellAmt;
+          st.nextPct+=100;
+        }
+      }
+    });
+
+    value=0;
+    SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
+
+    const totalRealized=SNIPER_TICKERS.reduce((s,t)=>s+sellState[t].realized,0);
+    const displayCost=cumCost-totalRealized;
+    globalPeak=Math.max(globalPeak,value);
+    const dd=globalPeak>0?(globalPeak-value)/globalPeak*100:0;
+
+    curve.push({t:ts, cost:displayCost, value, dd});
+    const mObj=monthly[mk];
+    mObj.endValue=value; mObj.endCost=displayCost;
+    mObj.peak=Math.max(mObj.peak,value);
+    if(mObj.peak>0){ const mdd_=(mObj.peak-value)/mObj.peak; if(mdd_>mObj.mdd) mObj.mdd=mdd_; }
+    monthStartValue=value; monthStartCost=displayCost;
+  });
+
+  const totalRealizedFinal=SNIPER_TICKERS.reduce((s,t)=>s+sellState[t].realized,0);
+  const finalValue=curve.length?curve[curve.length-1].value:0;
+  const finalCost=cumCost-totalRealizedFinal;
+
+  return {curve, monthly, buyCount, finalCost, finalValue, tradeLog, rebalanceLog, sellEvents, totalRealized:totalRealizedFinal};
+}
+
 async function runTradeBacktest(opts){
   opts = opts || {};
   const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
@@ -2395,6 +2533,141 @@ function renderAltBacktest(res){
   }
 }
 
+/* 추가매매법(스나이퍼) 결과 렌더링 — 떨사오팔과 같은 카드·차트 구조를 재사용한다 */
+function renderSniperBacktest(res){
+  const statusEl=document.getElementById('bt3-status');
+  if(!res || res.error || !res.curve || !res.curve.length){
+    const reason=(res&&res.error)?res.error.join(', ')+' 연동 실패':'알 수 없는 오류';
+    if(statusEl) statusEl.textContent='⚠ '+reason;
+    return;
+  }
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+
+  function fmtUSDKRW3(usd){
+    if(!krwDisplayOn) return fmtUSD(usd);
+    const krw=fmtKRW(usd);
+    return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
+  }
+  const costEl=document.getElementById('bt3-cost'); if(costEl) costEl.textContent=fmtUSDKRW3(res.finalCost);
+  const bcEl=document.getElementById('bt3-buycount'); if(bcEl) bcEl.textContent=res.buyCount+'회';
+  const realizedEl=document.getElementById('bt3-realized'); if(realizedEl) realizedEl.textContent=res.totalRealized>0?fmtUSDKRW3(res.totalRealized):'--';
+  const valEl=document.getElementById('bt3-value'); if(valEl) valEl.textContent=fmtUSDKRW3(res.finalValue);
+
+  const profitAmt=res.finalValue-res.finalCost;
+  const profitEl=document.getElementById('bt3-profit');
+  if(profitEl){
+    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW3(Math.abs(profitAmt));
+    profitEl.className='big '+(profitAmt>=0?'up':'down');
+  }
+  const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
+  const roiEl=document.getElementById('bt3-roi');
+  if(roiEl){
+    roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
+    roiEl.className='big '+(roi>=0?'up':'down');
+  }
+
+  /* 수익률 곡선 */
+  const curveEl=document.getElementById('bt3-curve');
+  if(curveEl){
+    const w=700,h=240,padL=56,padR=20,padTop=10,padBottom=30;
+    const n=res.curve.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const allVals=res.curve.map(p=>p.value).concat(res.curve.map(p=>p.cost));
+    const scaleMin=Math.min(...allVals,0), scaleMax=Math.max(...allVals,1);
+    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
+    const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
+    const ptsCost=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.cost)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const profit=res.finalValue>=res.finalCost;
+    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
+    }
+    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-padBottom, h-padBottom+11);
+    curveEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+yearLines+
+      '<path d="'+areaPath+'" fill="'+(profit?'rgba(167,139,250,.15)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
+      '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
+      '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'#a78bfa':'var(--down)')+'" stroke-width="2"/>'+
+      '</svg>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2)">'+
+      '<span><span style="color:'+(profit?'#a78bfa':'var(--down)')+'">■</span> 평가금</span>'+
+      '<span><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
+      '</div>';
+  }
+
+  /* 낙폭(고점 대비 하락폭) */
+  const ddEl=document.getElementById('bt3-drawdown');
+  if(ddEl){
+    const w=700,h=110,padL=56,padR=20,padTop=10;
+    const n=res.curve.length;
+    const stepX=n>1?(w-padL-padR)/(n-1):0;
+    const maxDD=Math.max(...res.curve.map(p=>p.dd||0),1);
+    const yOf=v=>padTop+(v/maxDD)*(h-padTop-14);
+    const pts=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.dd||0)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=maxDD*ti/3;
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
+    }
+    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-14, h-4);
+    ddEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+yearLines+
+      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
+      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
+      '</svg>'+
+      '<div class="mut" style="margin-top:4px;font-size:12px">최대 낙폭 -'+maxDD.toFixed(1)+'%</div>';
+  }
+
+  /* 월별 매매기록 */
+  const monthlyEl=document.getElementById('bt3-monthly');
+  if(monthlyEl){
+    const months=Object.keys(res.monthly).sort();
+    monthlyEl.innerHTML=months.map(mk=>{
+      const m=res.monthly[mk];
+      const contrib=m.endCost-m.startCost;
+      const profitYen=m.endValue-m.startValue-contrib;
+      const denom=m.startValue+contrib;
+      const mret=denom>0?profitYen/denom*100:0;
+      const rowStyle=m.sold>0?' style="background:rgba(167,139,250,.14)"':'';
+      return '<tr'+rowStyle+'><td>'+mk+(m.sold>0?' <span class="mut" style="font-size:11px">💰 매도 발생</span>':'')+'</td>'+
+        '<td class="num">'+fmtUSDKRW3(contrib)+'</td>'+
+        '<td class="num">'+m.buys+'회</td>'+
+        '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW3(Math.abs(profitYen))+'</td>'+
+        '<td class="num '+(mret>=0?'up':'down')+'">'+(mret>=0?'+':'')+mret.toFixed(2)+'%</td></tr>';
+    }).join('');
+  }
+}
+
+/* 추가매매법(스나이퍼)의 자산별 매수·매도 기록 — 관리자 페이지 전용 */
+function renderSniperAdminLog(res){
+  const tbl=document.getElementById('bt-admin-tradelog');
+  if(!tbl) return;
+  const table=tbl.closest('table');
+  const thead=table?table.querySelector('thead'):null;
+  if(thead) thead.innerHTML='<tr><th>날짜</th><th>종목</th><th>구분</th><th class="num">가격</th><th class="num">금액</th><th class="num">공포탐욕</th></tr>';
+  const buyRows=(res.tradeLog||[]).map(r=>({...r, kind:'buy'}));
+  const sellRows=(res.sellEvents||[]).map(r=>({t:r.t, ticker:r.ticker, price:null, amount:r.amount, kind:r.type==='principal'?'principal':'partial'}));
+  const rows=buyRows.concat(sellRows).sort((a,b)=>a.t-b.t).slice(-500);
+  const typeLabel={buy:'매수', principal:'매도(원금)', partial:'매도(잔고25%)'};
+  tbl.innerHTML=rows.length?rows.map(r=>{
+    const cls=r.kind==='buy'?'':'up';
+    return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td><td>'+r.ticker+'</td>'+
+      '<td class="'+cls+'">'+(typeLabel[r.kind]||r.kind)+'</td>'+
+      '<td class="num">'+(r.price!=null?fmtUSD(r.price):'<span class="mut">--</span>')+'</td>'+
+      '<td class="num">'+fmtUSD(r.amount)+'</td>'+
+      '<td class="num">'+(r.score!=null?r.score.toFixed(1):'<span class="mut">--</span>')+'</td></tr>';
+  }).join(''):'<tr><td class="mut" colspan="6">데이터 없음</td></tr>';
+}
+
 function renderAdminTables(res){
   const tlBody=document.getElementById('bt-admin-tradelog');
   if(tlBody){
@@ -2459,25 +2732,26 @@ const ADMIN_PASSWORD='coolzet***';
 function initTradeAdminPanel(){
   const panel=document.getElementById('bt-admin-panel');
   if(!panel) return;
-  ['bt-admin-btn','bt-admin-btn-2'].forEach(btnId=>{
+  const btnIds=['bt-admin-btn','bt-admin-btn-2','bt-admin-btn-3'];
+  const allBtns=btnIds.map(id=>document.getElementById(id)).filter(Boolean);
+  btnIds.forEach(btnId=>{
     const btn=document.getElementById(btnId);
     if(!btn) return;
     btn.addEventListener('click',()=>{
-      const otherBtn=document.getElementById(btnId==='bt-admin-btn'?'bt-admin-btn-2':'bt-admin-btn');
       if(panel.style.display!=='none'){
         panel.style.display='none';
-        btn.textContent='관리자 페이지';
-        if(otherBtn) otherBtn.textContent='관리자 페이지';
+        allBtns.forEach(b=>b.textContent='관리자 페이지');
         return;
       }
       const pw=prompt('관리자 비밀번호를 입력하세요');
       if(pw===null) return;
       if(pw===ADMIN_PASSWORD){
         panel.style.display='';
-        btn.textContent='관리자 페이지 닫기';
-        if(otherBtn) otherBtn.textContent='관리자 페이지 닫기';
+        allBtns.forEach(b=>b.textContent='관리자 페이지 닫기');
         if(btnId==='bt-admin-btn-2'){
           if(lastAltBacktestResult) renderAltAdminLog(lastAltBacktestResult);
+        }else if(btnId==='bt-admin-btn-3'){
+          if(lastSniperBacktestResult) renderSniperAdminLog(lastSniperBacktestResult);
         }else if(lastBacktestResult){
           renderAdminTables(lastBacktestResult);
         }
@@ -2528,25 +2802,38 @@ async function loadAltTradeBacktest(){
   renderAltBacktest(res);
 }
 
-/* 매매법 선택 탭(현재매매법/추가매매법) — 화면 전환만 하고, 추가매매법을 처음 열 때만
-   데이터를 불러온다(불필요한 재계산 방지) */
-let altLoaded=false;
+let lastSniperBacktestResult=null;
+async function loadSniperTradeBacktest(){
+  const statusEl=document.getElementById('bt3-status');
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  const [res]=await Promise.all([runSniperTradeBacktest(), loadFxRate()]);
+  lastSniperBacktestResult=res;
+  renderSniperBacktest(res);
+}
+
+/* 매매법 선택 탭(삼사원팔/떨사오팔/스나이퍼) — 화면 전환만 하고, 각 매매법을 처음 열 때만
+   데이터를 불러온다(불필요한 재계산 방지). 탭마다 고유 색상(주황/파랑/보라)을 배경에도
+   반영해 지금 어떤 매매법을 보고 있는지 한눈에 구분되게 한다. */
+let altLoaded=false, sniperLoaded=false;
+const METHOD_COLORS={1:'var(--accent)', 2:'#3d9dff', 3:'#a78bfa'};
 function initTradeMethodTabs(){
   const tabs=document.getElementById('bt-method-tabs');
-  const wrap1=document.getElementById('bt-method1-wrap');
-  const wrap2=document.getElementById('bt-method2-wrap');
-  if(!tabs || !wrap1 || !wrap2) return;
+  const wraps={1:document.getElementById('bt-method1-wrap'), 2:document.getElementById('bt-method2-wrap'), 3:document.getElementById('bt-method3-wrap')};
+  if(!tabs || !wraps[1] || !wraps[2] || !wraps[3]) return;
   tabs.addEventListener('click', e=>{
     const b=e.target.closest('button'); if(!b) return;
-    tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    tabs.querySelectorAll('button').forEach(x=>{ x.classList.remove('on'); x.style.background=''; x.style.color=''; });
     b.classList.add('on');
+    b.style.background=METHOD_COLORS[b.dataset.method];
+    b.style.color='#1a1206';
     const m=b.dataset.method;
-    if(m==='1'){ wrap1.style.display=''; wrap2.style.display='none'; }
-    else{
-      wrap1.style.display='none'; wrap2.style.display='';
-      if(!altLoaded){ altLoaded=true; loadAltTradeBacktest(); }
-    }
+    Object.keys(wraps).forEach(k=>{ wraps[k].style.display=(k===m)?'':'none'; });
+    if(m==='2' && !altLoaded){ altLoaded=true; loadAltTradeBacktest(); }
+    if(m==='3' && !sniperLoaded){ sniperLoaded=true; loadSniperTradeBacktest(); }
   });
+  // 초기 활성 탭 배경도 맞춰준다
+  const onBtn=tabs.querySelector('button.on');
+  if(onBtn){ onBtn.style.background=METHOD_COLORS[onBtn.dataset.method]; onBtn.style.color='#1a1206'; }
 }
 
 /* 추가매매법 전용 컨트롤 — 기본투자금 선택, 투자 성향(수비/중립/공격) 탭, 연도 탭 */
@@ -2577,6 +2864,17 @@ function initAltTradeControls(){
   }
 }
 
+/* 추가매매법(스나이퍼) 전용 컨트롤 — 연도 탭만 있음(자체 옵션 없음) */
+function initSniperTradeControls(){
+  const yearTabs3=document.getElementById('bt3-year-tabs');
+  if(yearTabs3){
+    yearTabs3.addEventListener('click', e=>{
+      const b=e.target.closest('button'); if(!b) return;
+      setBacktestYear(+b.dataset.year);
+    });
+  }
+}
+
 /* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고
    이미 계산해둔 결과(lastBacktestResult)를 다시 그린다(재계산 없이 즉시 반영) */
 function initTradeKrwToggle(sel){
@@ -2598,8 +2896,11 @@ function setBacktestYear(year){
   /* 추가매매법 연도 탭도 같은 BACKTEST_START_TS를 공유하므로 함께 맞춰준다 */
   const btns2=document.querySelectorAll('#bt2-year-tabs button');
   btns2.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
+  const btns3=document.querySelectorAll('#bt3-year-tabs button');
+  btns3.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
   loadTradeBacktest();
   if(altLoaded) loadAltTradeBacktest();
+  if(sniperLoaded) loadSniperTradeBacktest();
 }
 const btYearTabs=document.getElementById('bt-year-tabs');
 if(btYearTabs){
