@@ -199,7 +199,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="tabs" id="bt-method-tabs" style="margin-top:24px">
       <button class="on" data-method="1" style="border-bottom:3px solid var(--accent)">삼사원팔</button>
       <button data-method="2" style="border-bottom:3px solid #3d9dff">떨사오팔</button>
-      <button data-method="3" style="border-bottom:3px solid #a78bfa">추가매매법(스나이퍼)</button>
+      <button data-method="3" style="border-bottom:3px solid #a78bfa">스나이퍼</button>
     </div>
 
     <div id="bt-method1-wrap">
@@ -378,6 +378,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <h3>수익률</h3>
           <div class="big" id="bt2-roi" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">기본투자금 대비</p>
+        </div>
+        <div class="card" id="bt2-realized-card" style="display:none;border:1px solid #3d9dff;background:rgba(61,157,255,.08)">
+          <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
+          <div class="big up" id="bt2-realized" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt2-realized-detail"></p>
+        </div>
+        <div class="card">
+          <h3>실현수익률</h3>
+          <div class="big" id="bt2-realized-roi" style="font-size:28px">--</div>
+          <p class="mut" style="margin-top:6px;font-size:12px">실현손익 ÷ 기본투자금(확정된 수익만)</p>
         </div>
       </div>
 

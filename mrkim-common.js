@@ -1470,7 +1470,8 @@ async function runAltTradeBacktest(profile, baseCapital){
   });
 
   const finalValue=curve.length?curve[curve.length-1].value:baseCapital;
-  return {curve, monthly, buyCount, stopLossCount, baseCapital, finalValue, profile, tradeLog};
+  const totalRealizedPnL=tiers.reduce((s,t)=>s+t.realizedPnL,0);
+  return {curve, monthly, buyCount, stopLossCount, baseCapital, finalValue, profile, tradeLog, totalRealizedPnL};
 }
 
 /* ============ 추가매매법(스나이퍼) — TQQQ·TECL·SOXL 3종목, 공포탐욕 점수 기반 ============
@@ -2452,6 +2453,35 @@ function renderAltBacktest(res){
   if(roiEl){
     roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
     roiEl.className='big '+(roi>=0?'up':'down');
+  }
+
+  /* 수익실현금 — 삼사원팔과 동일한 방식으로 매도(수익실현) 이벤트를 차수별로 나열한다.
+     손절매도는 손실 확정이라 "수익 실현"이 아니므로 이 목록에서는 제외한다. */
+  const realizedCardEl2=document.getElementById('bt2-realized-card');
+  const sellOnly=(res.tradeLog||[]).filter(r=>r.type==='sell');
+  if(realizedCardEl2){
+    if(sellOnly.length){
+      realizedCardEl2.style.display='';
+      const realizedEl2=document.getElementById('bt2-realized');
+      const detailEl2=document.getElementById('bt2-realized-detail');
+      const totalSellAmt=sellOnly.reduce((s,r)=>s+r.amount,0);
+      if(realizedEl2) realizedEl2.textContent=fmtUSDKRW2(totalSellAmt);
+      if(detailEl2){
+        const shown=sellOnly.slice(-20); // 너무 길어지지 않게 최근 20건만(전체는 관리자 페이지에서)
+        detailEl2.innerHTML=(sellOnly.length>20?'최근 20건만 표시(전체 '+sellOnly.length+'건) · ':'')+
+          shown.map((r,i)=>(sellOnly.length-shown.length+i+1)+'차: '+new Date(r.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW2(r.amount)).join('<br>');
+      }
+    }else{
+      realizedCardEl2.style.display='none';
+    }
+  }
+  /* 실현수익률 — 확정된(매도·손절 포함) 손익만 기본투자금 대비 비율로 표시. 아직 보유 중인
+     포지션의 평가손익은 포함하지 않는다(그건 "수익률" 카드가 이미 다룬다). */
+  const realizedRoiEl=document.getElementById('bt2-realized-roi');
+  if(realizedRoiEl){
+    const rr=res.baseCapital>0?(res.totalRealizedPnL||0)/res.baseCapital*100:0;
+    realizedRoiEl.textContent=(rr>=0?'+':'')+rr.toFixed(1)+'%';
+    realizedRoiEl.className='big '+(rr>=0?'up':'down');
   }
 
   /* 수익률 곡선 — 기본투자금(점선) 대비 평가금(빨간/파란 실선), 연도 구분선 포함 */
