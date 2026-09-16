@@ -1442,16 +1442,18 @@ async function runAltTradeBacktest(profile, baseCapital){
         const daysHeld=dayIdx-t.entryDay;
         if(price>=t.entryPrice*(1+cfg.sellPct/100)){
           const proceeds=t.shares*price;
-          t.realizedPnL+=proceeds-t.capital;
+          const pnl=proceeds-t.capital;
+          t.realizedPnL+=pnl;
+          tradeLog.push({t:ts, tierPct:t.pct, type:'sell', price, amount:proceeds, entryT:series[t.entryDay].t, entryPrice:t.entryPrice, holdDays:daysHeld, pnl});
           t.holding=false; t.shares=0; t.refPrice=price;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'sell', price, amount:proceeds});
         }else if(daysHeld>=cfg.stopDays){
           /* 손절: 그날 가격으로 매도해 손실 확정 후, 같은 날 즉시 같은 자본금으로 재매수한다
              ("손절일도 매수") — 현금이 하루도 비지 않도록 바로 다음 사이클을 시작한다. */
           const proceeds=t.shares*price;
-          t.realizedPnL+=proceeds-t.capital;
+          const pnl=proceeds-t.capital;
+          t.realizedPnL+=pnl;
           stopLossCount++; monthly[mk].stopLosses++;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'stoploss', price, amount:proceeds});
+          tradeLog.push({t:ts, tierPct:t.pct, type:'stoploss', price, amount:proceeds, entryT:series[t.entryDay].t, entryPrice:t.entryPrice, holdDays:daysHeld, pnl});
           t.shares=t.capital/price;
           t.entryPrice=price; t.entryDay=dayIdx; t.refPrice=price;
           buyCount++; monthly[mk].buys++;
@@ -2484,16 +2486,17 @@ function renderAltBacktest(res){
     realizedRoiEl.className='big '+(rr>=0?'up':'down');
   }
 
-  /* 수익률 곡선 — 기본투자금(점선) 대비 평가금(빨간/파란 실선), 연도 구분선 포함 */
+  /* 수익률 곡선 — 떨사오팔은 삼사원팔과 달리 금액이 아니라 "누적 수익률(%)"로 표현한다
+     (0%선 = 기본투자금 본전, 그 위/아래로 수익률 변화를 직접 보여줌) */
   const curveEl=document.getElementById('bt2-curve');
   if(curveEl){
     const w=700,h=240,padL=56,padR=20,padTop=10,padBottom=30;
     const n=res.curve.length;
     const stepX=n>1?(w-padL-padR)/(n-1):0;
-    const allVals=res.curve.map(p=>p.value).concat([res.baseCapital]);
-    const scaleMin=Math.min(...allVals,0), scaleMax=Math.max(...allVals,1);
+    const retCurve=res.curve.map(p=>res.baseCapital>0?(p.value/res.baseCapital-1)*100:0);
+    const scaleMin=Math.min(...retCurve,0), scaleMax=Math.max(...retCurve,1);
     const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
-    const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
+    const ptsVal=retCurve.map((v,i)=>[padL+i*stepX,yOf(v)]);
     const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
     const profit=res.finalValue>=res.baseCapital;
     const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
@@ -2502,19 +2505,19 @@ function renderAltBacktest(res){
       const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
       const y=yOf(val);
       yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
-      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
+      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+(val>=0?'+':'')+val.toFixed(0)+'%</text>';
     }
     const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-padBottom, h-padBottom+11);
-    const baseY=yOf(res.baseCapital).toFixed(1);
+    const zeroY=yOf(0).toFixed(1);
     curveEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
       yAxis+yearLines+
-      '<line x1="'+padL+'" y1="'+baseY+'" x2="'+(w-padR)+'" y2="'+baseY+'" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
+      '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
       '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
       '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'var(--up)':'var(--down)')+'" stroke-width="2"/>'+
       '</svg>'+
       '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2)">'+
-      '<span><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 평가금</span>'+
-      '<span><span style="color:var(--tx2)">┄</span> 기본투자금</span>'+
+      '<span><span style="color:'+(profit?'var(--up)':'var(--down)')+'">■</span> 누적 수익률</span>'+
+      '<span><span style="color:var(--tx2)">┄</span> 0%(기본투자금 본전)</span>'+
       '</div>';
   }
 
@@ -2891,6 +2894,36 @@ function initAltTradeControls(){
       const b=e.target.closest('button'); if(!b) return;
       setBacktestYear(+b.dataset.year);
     });
+  }
+
+  /* 수익실현금 카드 클릭 → 티어·진입일·실현일·보유기간·손익 세부내역 모달 */
+  const realizedCard=document.getElementById('bt2-realized-card');
+  const modal=document.getElementById('bt2-realized-modal');
+  const modalClose=document.getElementById('bt2-realized-modal-close');
+  if(realizedCard && modal){
+    realizedCard.addEventListener('click', ()=>{
+      const body=document.getElementById('bt2-realized-modal-body');
+      if(body){
+        const events=(lastAltBacktestResult&&lastAltBacktestResult.tradeLog||[]).filter(r=>r.type==='sell'||r.type==='stoploss').sort((a,b)=>a.t-b.t);
+        body.innerHTML=events.length?events.map(r=>{
+          const holdTxt=r.holdDays!=null?r.holdDays+'일':'<span class="mut">--</span>';
+          const pnlCls=r.pnl!=null?(r.pnl>=0?'up':'down'):'';
+          const pnlTxt=r.pnl!=null?(r.pnl>=0?'+':'-')+fmtUSD(Math.abs(r.pnl)):'<span class="mut">--</span>';
+          return '<tr><td>'+r.tierPct+'%'+(r.type==='stoploss'?' <span class="mut" style="font-size:10.5px">(손절)</span>':'')+'</td>'+
+            '<td>'+(r.entryT!=null?new Date(r.entryT).toLocaleDateString('ko-KR'):'<span class="mut">--</span>')+'</td>'+
+            '<td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td>'+
+            '<td class="num">'+holdTxt+'</td>'+
+            '<td class="num '+pnlCls+'">'+pnlTxt+'</td></tr>';
+        }).join(''):'<tr><td class="mut" colspan="5">아직 실현된 거래가 없습니다.</td></tr>';
+      }
+      modal.style.display='flex';
+    });
+  }
+  if(modalClose && modal){
+    modalClose.addEventListener('click', ()=>{ modal.style.display='none'; });
+  }
+  if(modal){
+    modal.addEventListener('click', e=>{ if(e.target===modal) modal.style.display='none'; });
   }
 }
 
