@@ -2450,7 +2450,10 @@ function renderAltBacktest(res){
     profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW2(Math.abs(profitAmt));
     profitEl.className='big '+(profitAmt>=0?'up':'down');
   }
-  const roi=res.baseCapital>0?(res.finalValue/res.baseCapital-1)*100:0;
+  /* [재검토 반영] "수익률"은 기본투자금 대비 총 평가금(미실현 포함) 기준이 아니라, 사용자가
+     명시한 대로 "기본투자금 대비 수익실현금"으로 계산한다 — 실현수익률 카드와 같은 정의를
+     쓰되, 여기서는 메인 지표로 강조해서 보여준다. */
+  const roi=res.baseCapital>0?(res.totalRealizedPnL||0)/res.baseCapital*100:0;
   const roiEl=document.getElementById('bt2-roi');
   if(roiEl){
     roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
