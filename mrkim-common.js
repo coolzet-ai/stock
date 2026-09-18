@@ -832,8 +832,13 @@ document.querySelectorAll('.tabs').forEach(box=>{
    실제 Yahoo 종가·배당 데이터와 CNN 공포탐욕지수 히스토리로 계산합니다(가상 수치 아님).
    PROXY_BASE 미설정 시 이 데이터들도 연동에 실패할 수 있습니다. */
 const TRADE_TICKERS=['QLD','USD','SCHD'];
-let BACKTEST_START_YEAR=2026; // 2022~2026 중 선택 — 트레이드 탭의 연도 선택 버튼으로 변경됨
-let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_YEAR+'-01-01T00:00:00Z').getTime()/1000);
+/* [변경] 연도 선택 버튼 대신 날짜를 직접 입력받는다. 데이터가 있는 범위(임베딩된 공포탐욕지수
+   구간)로만 입력을 제한한다 — 그보다 이전 날짜를 고르면 그 이전 구간의 공포탐욕 점수를 알 수
+   없어 매수 판단 자체가 불가능하다. */
+const BACKTEST_MIN_DATE='2022-01-03';
+function backtestMaxDate(){ return new Date().toISOString().slice(0,10); } // 오늘(항상 최신 기준)
+let BACKTEST_START_DATE='2026-01-01';
+let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_DATE+'T00:00:00Z').getTime()/1000);
 
 /* ===================== 한국지수 공포탐욕지수 =====================
    미국지수와 동일한 CNN 7개 세부지표 방식으로 설계했으나, 시장 모멘텀(1번)만
@@ -1990,7 +1995,7 @@ function renderBacktest(res){
     if(statusEl) statusEl.textContent='⚠ '+reason+' — PROXY_BASE에 설정한 Worker 주소가 살아있는지, 코드가 정확히 배포됐는지 확인해주세요.';
     return;
   }
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
   const rebalNoteEl=document.getElementById('bt-rebal-note');
   if(rebalNoteEl) rebalNoteEl.textContent=res.didRebalance
@@ -2432,7 +2437,7 @@ function renderAltBacktest(res){
     if(statusEl) statusEl.textContent='⚠ '+reason;
     return;
   }
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
   function fmtUSDKRW2(usd){
     if(!krwDisplayOn) return fmtUSD(usd);
@@ -2577,7 +2582,7 @@ function renderSniperBacktest(res){
     if(statusEl) statusEl.textContent='⚠ '+reason;
     return;
   }
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
   function fmtUSDKRW3(usd){
     if(!krwDisplayOn) return fmtUSD(usd);
@@ -2822,7 +2827,7 @@ function renderAltAdminLog(res){
 let lastBacktestResult=null;
 async function loadTradeBacktest(){
   const statusEl=document.getElementById('bt-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
   const [res]=await Promise.all([runTradeBacktest(), loadFxRate()]);
   lastBacktestResult=res;
   renderBacktest(res);
@@ -2832,7 +2837,7 @@ let lastAltBacktestResult=null;
 let altProfile='defense', altCapital=10000;
 async function loadAltTradeBacktest(){
   const statusEl=document.getElementById('bt2-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
   const [res]=await Promise.all([runAltTradeBacktest(altProfile, altCapital), loadFxRate()]);
   lastAltBacktestResult=res;
   renderAltBacktest(res);
@@ -2841,7 +2846,7 @@ async function loadAltTradeBacktest(){
 let lastSniperBacktestResult=null;
 async function loadSniperTradeBacktest(){
   const statusEl=document.getElementById('bt3-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
   const [res]=await Promise.all([runSniperTradeBacktest(), loadFxRate()]);
   lastSniperBacktestResult=res;
   renderSniperBacktest(res);
@@ -2891,13 +2896,6 @@ function initAltTradeControls(){
       loadAltTradeBacktest();
     });
   }
-  const yearTabs2=document.getElementById('bt2-year-tabs');
-  if(yearTabs2){
-    yearTabs2.addEventListener('click', e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      setBacktestYear(+b.dataset.year);
-    });
-  }
 
   /* 수익실현금 카드 클릭 → 티어·진입일·실현일·보유기간·손익 세부내역 모달 */
   const realizedCard=document.getElementById('bt2-realized-card');
@@ -2930,15 +2928,8 @@ function initAltTradeControls(){
   }
 }
 
-/* 추가매매법(스나이퍼) 전용 컨트롤 — 연도 탭만 있음(자체 옵션 없음) */
+/* 추가매매법(스나이퍼) 전용 컨트롤 — 자체 옵션 없음(날짜 입력은 initBacktestDateInputs가 공통 처리) */
 function initSniperTradeControls(){
-  const yearTabs3=document.getElementById('bt3-year-tabs');
-  if(yearTabs3){
-    yearTabs3.addEventListener('click', e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      setBacktestYear(+b.dataset.year);
-    });
-  }
 }
 
 /* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고
@@ -2952,27 +2943,36 @@ function initTradeKrwToggle(sel){
   });
 }
 
-/* 연도 선택 버튼(2024/2025/2026년부터) — 클릭 시 시작일을 바꾸고 백테스트 전체를 다시 계산 */
-function setBacktestYear(year){
-  if(BACKTEST_START_YEAR===year) return;
-  BACKTEST_START_YEAR=year;
-  BACKTEST_START_TS=Math.floor(new Date(year+'-01-01T00:00:00Z').getTime()/1000);
-  const btns=document.querySelectorAll('#bt-year-tabs button');
-  btns.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
-  /* 추가매매법 연도 탭도 같은 BACKTEST_START_TS를 공유하므로 함께 맞춰준다 */
-  const btns2=document.querySelectorAll('#bt2-year-tabs button');
-  btns2.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
-  const btns3=document.querySelectorAll('#bt3-year-tabs button');
-  btns3.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
+/* 날짜 직접입력 — 값이 바뀌면 시작일을 바꾸고 세 매매법 전체를 다시 계산한다.
+   min/max 범위 밖의 값은 입력 자체가 막히지만(HTML min/max 속성), 혹시 모를 우회 입력에
+   대비해 여기서도 한 번 더 범위를 강제로 맞춘다. */
+function setBacktestDate(dateStr){
+  const min=BACKTEST_MIN_DATE, max=backtestMaxDate();
+  if(dateStr<min) dateStr=min;
+  if(dateStr>max) dateStr=max;
+  if(BACKTEST_START_DATE===dateStr) return;
+  BACKTEST_START_DATE=dateStr;
+  BACKTEST_START_TS=Math.floor(new Date(dateStr+'T00:00:00Z').getTime()/1000);
+  ['bt-start-date','bt2-start-date','bt3-start-date'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value=dateStr;
+  });
   loadTradeBacktest();
   if(altLoaded) loadAltTradeBacktest();
   if(sniperLoaded) loadSniperTradeBacktest();
 }
-const btYearTabs=document.getElementById('bt-year-tabs');
-if(btYearTabs){
-  btYearTabs.addEventListener('click',e=>{
-    const b=e.target.closest('button'); if(!b) return;
-    setBacktestYear(+b.dataset.year);
+/* 세 군데(삼사원팔·떨사오팔·스나이퍼)의 날짜 입력 필드에 min/max 제약과 change 이벤트를 건다 */
+function initBacktestDateInputs(){
+  ['bt-start-date','bt2-start-date','bt3-start-date'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.min=BACKTEST_MIN_DATE;
+    el.max=backtestMaxDate();
+    el.value=BACKTEST_START_DATE;
+    el.addEventListener('change', ()=>{
+      if(!el.value) return; // 입력을 지운 경우 무시(직전 값 유지)
+      setBacktestDate(el.value);
+    });
   });
 }
 

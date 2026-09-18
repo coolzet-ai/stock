@@ -207,13 +207,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h2 style="font-size:21px;margin:0">매매법 백테스트</h2>
       <button class="btn sm ghost" id="bt-admin-btn" type="button">관리자 페이지</button>
     </div>
-    <div class="tabs" id="bt-year-tabs">
-      <button data-year="2022">2022년부터</button>
-      <button data-year="2023">2023년부터</button>
-      <button data-year="2024">2024년부터</button>
-      <button data-year="2025">2025년부터</button>
-      <button class="on" data-year="2026">2026년부터</button>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px">
+      <label for="bt-start-date" class="mut" style="font-size:13px">백테스트 시작일</label>
+      <input type="date" id="bt-start-date" style="background:var(--panel);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px">
     </div>
+    <p class="mut" style="margin-top:6px;font-size:11.5px">입력 가능 범위: 2022-01-03 ~ 오늘(그 이전은 공포탐욕지수 데이터가 없어 계산할 수 없습니다)</p>
     <p class="sub" id="bt-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
     <p class="mut" id="bt-rebal-note" style="margin-top:6px;font-size:12.5px"></p>
 
@@ -336,13 +334,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </div>
       </div>
 
-      <div class="tabs" id="bt2-year-tabs" style="margin-top:16px">
-        <button data-year="2022">2022년부터</button>
-        <button data-year="2023">2023년부터</button>
-        <button data-year="2024">2024년부터</button>
-        <button data-year="2025">2025년부터</button>
-        <button class="on" data-year="2026">2026년부터</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <label for="bt2-start-date" class="mut" style="font-size:13px">백테스트 시작일</label>
+        <input type="date" id="bt2-start-date" style="background:var(--panel);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px">
       </div>
+      <p class="mut" style="margin-top:6px;font-size:11.5px">입력 가능 범위: 2022-01-03 ~ 오늘</p>
       <p class="sub" id="bt2-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
 
       <div class="grid">
@@ -413,13 +409,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
       <p class="sub" style="margin-top:6px">공포탐욕지수 기반의 별도 3종목 분할매수 전략입니다. 종목명·매수·리밸런싱·매도 세부 규칙은 공개하지 않습니다.</p>
 
-      <div class="tabs" id="bt3-year-tabs" style="margin-top:16px">
-        <button data-year="2022">2022년부터</button>
-        <button data-year="2023">2023년부터</button>
-        <button data-year="2024">2024년부터</button>
-        <button data-year="2025">2025년부터</button>
-        <button class="on" data-year="2026">2026년부터</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <label for="bt3-start-date" class="mut" style="font-size:13px">백테스트 시작일</label>
+        <input type="date" id="bt3-start-date" style="background:var(--panel);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px">
       </div>
+      <p class="mut" style="margin-top:6px;font-size:11.5px">입력 가능 범위: 2022-01-03 ~ 오늘</p>
       <p class="sub" id="bt3-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
 
       <div class="grid">
@@ -641,7 +635,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
-    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 투자기간이 1년을 초과하면(2022~2025년 시작 옵션) 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 투자기간이 1년을 초과하면 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
   </div>
 
   <!-- 떨사오팔 수익실현금 세부내역 모달 -->
@@ -697,6 +691,7 @@ loadTradeBacktest();
 initTradeKrwToggle('#krw-toggle');
 initTradeAdminPanel();
 initTradeMethodTabs();
+initBacktestDateInputs();
 initAltTradeControls();
 initSniperTradeControls();
 
