@@ -7,11 +7,11 @@ const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
 function label(v){
-  if(v<25)return['극단적 공포','#ff4d4f'];
-  if(v<45)return['공포','#ff8a00'];
-  if(v<=55)return['중립','#9fb0c9'];
-  if(v<=75)return['탐욕','#a3e635'];
-  return['극단적 탐욕','#22c55e'];
+  if(v<25)return['극단적 공포','#c82014'];
+  if(v<45)return['공포','#a6720c'];
+  if(v<=55)return['중립','#6b6459'];
+  if(v<=75)return['탐욕','#5c8a0a'];
+  return['극단적 탐욕','#15803d'];
 }
 function paint(pre,v,note){
   const [t,c]=label(v);
@@ -2806,7 +2806,7 @@ async function loadSniperTradeBacktest(){
    데이터를 불러온다(불필요한 재계산 방지). 탭마다 고유 색상(주황/파랑/보라)을 배경에도
    반영해 지금 어떤 매매법을 보고 있는지 한눈에 구분되게 한다. */
 let altLoaded=false, sniperLoaded=false;
-const METHOD_COLORS={1:'var(--accent)', 2:'#3d9dff', 3:'#a78bfa'};
+const METHOD_COLORS={1:'var(--accent)', 2:'#1a6fa8', 3:'#a78bfa'};
 function initTradeMethodTabs(){
   const tabs=document.getElementById('bt-method-tabs');
   const wraps={1:document.getElementById('bt-method1-wrap'), 2:document.getElementById('bt-method2-wrap'), 3:document.getElementById('bt-method3-wrap')};

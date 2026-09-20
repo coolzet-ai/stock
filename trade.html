@@ -127,7 +127,7 @@ td.fund-src a.news-link{color:#0d5a9e}
 .t-h{background:rgba(200,32,20,.15);color:#a01810}
 .t-m{background:rgba(0,117,74,.15);color:var(--accent)}
 .t-l{background:rgba(0,0,0,.13);color:var(--tx2)}
-.scroll{overflow-x:auto}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 td.spark{width:100px;text-align:center}
 td.spark svg{display:block;margin:0 auto}
 
@@ -202,7 +202,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="tabs" id="bt-method-tabs" style="margin-top:24px">
       <button class="on" data-method="1" style="border-bottom:3px solid var(--accent)">2배김군</button>
-      <button data-method="2" style="border-bottom:3px solid #3d9dff">떨사오팔</button>
+      <button data-method="2" style="border-bottom:3px solid #1a6fa8">떨사오팔</button>
       <button data-method="3" style="border-bottom:3px solid #a78bfa">스나이퍼</button>
     </div>
 
@@ -222,45 +222,45 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="grid">
       <div class="card" style="border:1px solid var(--accent);background:rgba(0,117,74,.06)">
         <h3>누적원금</h3>
-        <div class="big" id="bt-cost" style="font-size:28px">--</div>
+        <div class="big" id="bt-cost" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">신규 매수·리밸런싱 반영, 세전 기준</p>
         <div id="bt-cost-diff"></div>
       </div>
       <div class="card">
         <h3>누적 매수 횟수</h3>
-        <div class="big" id="bt-buycount" style="font-size:28px">--</div>
+        <div class="big" id="bt-buycount" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px">수량·종목별 세부내용은 비공개입니다</p>
       </div>
       <div class="card">
         <h3>현재 평가금 <span class="mut" style="font-size:11px;font-weight:400">(배당 제외)</span></h3>
-        <div class="big" id="bt-total-value" style="font-size:28px">--</div>
+        <div class="big" id="bt-total-value" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가만(배당·회수·실현 현금 제외)</p>
       </div>
       <div class="card">
         <h3>누적 배당금</h3>
-        <div class="big" id="bt-dividend" style="font-size:28px">--</div>
+        <div class="big" id="bt-dividend" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px" id="bt-dividend-krw">보유 종목 합산, 세전 기준</p>
         <div id="bt-dividend-diff"></div>
       </div>
       <div class="card">
         <h3>원금 대비 배당률</h3>
-        <div class="big" id="bt-div-yield" style="font-size:28px">--</div>
+        <div class="big" id="bt-div-yield" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">누적 배당금 ÷ 누적원금</p>
       </div>
       <div class="card">
         <h3>연간 예상 수령 배당금</h3>
-        <div class="big" id="bt-annual-dividend" style="font-size:28px">--</div>
+        <div class="big" id="bt-annual-dividend" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
         <div id="bt-annual-dividend-diff"></div>
       </div>
       <div class="card" id="bt-realized-main-card" style="display:none;border:1px solid var(--accent);background:rgba(0,117,74,.06)">
         <h3>기본 매도규칙 — 수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
-        <div class="big up" id="bt-realized-main" style="font-size:22px">--</div>
+        <div class="big up" id="bt-realized-main" style="font-size:clamp(16px,4.5vw,22px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-main-detail"></p>
       </div>
       <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
-        <div class="big" id="bt-roi" style="font-size:28px">--</div>
+        <div class="big" id="bt-roi" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
         <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 --<br>· 평가금 --</p>
         <div id="bt-roi-diff"></div>
       </div>
@@ -348,42 +348,42 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="grid">
         <div class="card" style="border:1px solid var(--accent);background:rgba(0,117,74,.06)">
           <h3>기본투자금</h3>
-          <div class="big" id="bt2-capital" style="font-size:28px">--</div>
+          <div class="big" id="bt2-capital" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">6개 티어로 분할 배분, 세전 기준</p>
         </div>
         <div class="card">
           <h3>누적 매수 횟수</h3>
-          <div class="big" id="bt2-buycount" style="font-size:28px">--</div>
+          <div class="big" id="bt2-buycount" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px">티어·수량 세부내용은 비공개입니다</p>
         </div>
         <div class="card">
           <h3>손절 횟수</h3>
-          <div class="big" id="bt2-stoploss" style="font-size:28px">--</div>
+          <div class="big" id="bt2-stoploss" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">손절 즉시 재매수합니다</p>
         </div>
         <div class="card">
           <h3>현재 평가금</h3>
-          <div class="big" id="bt2-value" style="font-size:28px">--</div>
+          <div class="big" id="bt2-value" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">보유 중인 티어 시가 + 실현손익 합산</p>
         </div>
         <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>현재 평가수익금</h3>
-          <div class="big" id="bt2-profit" style="font-size:28px">--</div>
+          <div class="big" id="bt2-profit" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px" id="bt2-profit-sub">평가금 - 기본투자금</p>
         </div>
         <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>수익률</h3>
-          <div class="big" id="bt2-roi" style="font-size:28px">--</div>
+          <div class="big" id="bt2-roi" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">기본투자금 대비 수익실현금(확정된 수익만, 미실현 포지션 제외)</p>
         </div>
-        <div class="card" id="bt2-realized-card" style="display:none;border:1px solid #3d9dff;background:rgba(26,111,168,.08);cursor:pointer" title="클릭하면 티어별·건별 세부내역을 볼 수 있습니다">
+        <div class="card" id="bt2-realized-card" style="display:none;border:1px solid #1a6fa8;background:rgba(26,111,168,.08);cursor:pointer" title="클릭하면 티어별·건별 세부내역을 볼 수 있습니다">
           <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동, 클릭 시 세부내역)</span></h3>
-          <div class="big up" id="bt2-realized" style="font-size:28px">--</div>
+          <div class="big up" id="bt2-realized" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt2-realized-detail"></p>
         </div>
         <div class="card">
           <h3>실현수익률</h3>
-          <div class="big" id="bt2-realized-roi" style="font-size:28px">--</div>
+          <div class="big" id="bt2-realized-roi" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">실현손익 ÷ 기본투자금(확정된 수익만)</p>
         </div>
       </div>
@@ -414,32 +414,32 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="grid">
         <div class="card" style="border:1px solid #a78bfa;background:rgba(167,139,250,.08)">
           <h3>누적원금</h3>
-          <div class="big" id="bt3-cost" style="font-size:28px">--</div>
+          <div class="big" id="bt3-cost" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">3종목 분할매수·리밸런싱 반영, 세전 기준</p>
         </div>
         <div class="card">
           <h3>누적 매수 횟수</h3>
-          <div class="big" id="bt3-buycount" style="font-size:28px">--</div>
+          <div class="big" id="bt3-buycount" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px">종목·수량 세부내용은 비공개입니다</p>
         </div>
         <div class="card" style="border:1px solid #a78bfa;background:rgba(167,139,250,.08)">
           <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
-          <div class="big" id="bt3-realized" style="font-size:28px">--</div>
+          <div class="big" id="bt3-realized" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">종목별 수익률 200% 도달 시 원금 매도, 이후 100%p마다 잔고 25% 매도</p>
         </div>
         <div class="card">
           <h3>현재 평가금</h3>
-          <div class="big" id="bt3-value" style="font-size:28px">--</div>
+          <div class="big" id="bt3-value" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가 합산(실현 현금 제외)</p>
         </div>
         <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>현재 평가수익금</h3>
-          <div class="big" id="bt3-profit" style="font-size:28px">--</div>
+          <div class="big" id="bt3-profit" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px">평가금 - 누적원금</p>
         </div>
         <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>수익률</h3>
-          <div class="big" id="bt3-roi" style="font-size:28px">--</div>
+          <div class="big" id="bt3-roi" style="font-size:clamp(18px,5vw,28px);word-break:break-word">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">누적원금 대비</p>
         </div>
       </div>
@@ -473,7 +473,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기본 매수법 — 미국지수 공포탐욕 점수 기준</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(200,32,20,.28);color:#ff4d4f;min-width:110px;text-align:center">점수 ≤ 5</span>
+          <span class="tag" style="background:rgba(200,32,20,.28);color:#c82014;min-width:110px;text-align:center">점수 ≤ 5</span>
           <span class="mut">→</span>
           <span><b>매일</b> QLD·USD·SCHD 각 <b>32주</b></span>
         </div>
@@ -572,7 +572,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <span>매일 3종목 각 <b>20주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(200,32,20,.28);color:#ff4d4f;min-width:110px;text-align:center">지수 ≤ 5</span>
+          <span class="tag" style="background:rgba(200,32,20,.28);color:#c82014;min-width:110px;text-align:center">지수 ≤ 5</span>
           <span class="mut">→</span>
           <span>매일 3종목 각 <b>30주</b></span>
         </div>
@@ -604,7 +604,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">종목별 세부 매매기록</h4>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
-        <table style="table-layout:fixed;width:100%">
+        <table style="min-width:640px;width:100%">
           <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>종목</th><th class="num">수량</th><th class="num">누적수량</th><th class="num">단가</th><th class="num">매수금액</th><th class="num">누적매수금액</th><th class="num">공포탐욕지수</th></tr></thead>
           <tbody id="bt-admin-tradelog"><tr><td class="mut" colspan="8">데이터 없음</td></tr></tbody>
         </table>
@@ -613,7 +613,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">기본 매도규칙 매매기록 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h4>
       <p class="mut" style="font-size:12px;margin-top:2px">정규 매수분 기준 수익률 200% 최초 도달 시 원금 매도, 이후 100%p 구간마다 잔고 25% 매도.</p>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
-        <table style="table-layout:fixed;width:100%">
+        <table style="min-width:420px;width:100%">
           <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>구분</th><th class="num">매도금액</th><th class="num">누적매도금액</th><th class="num">도달 수익률</th></tr></thead>
           <tbody id="bt-admin-mainsell"><tr><td class="mut" colspan="5">데이터 없음</td></tr></tbody>
         </table>
@@ -622,7 +622,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <h4 style="font-size:14px;color:var(--tx2);margin-top:24px">리밸런싱 이력 (매도·매수 현황)</h4>
       <p class="mut" style="font-size:12px;margin-top:2px">연말 리밸런싱 시 종목별 리밸런싱 전(직전 시가) → 후(재배분 후 시가)를 비교해 실제 매도·매수 방향을 보여줍니다. "평가"는 그 리밸런싱 이후 현재까지 해당 종목 주가가 어떻게 움직였는지를 참고용으로 보여줍니다(그 리밸런싱 판단이 결과적으로 유리했는지 가늠하는 용도).</p>
       <div class="scroll" style="max-height:400px;overflow-y:auto;max-width:100%">
-        <table style="table-layout:fixed;width:100%">
+        <table style="min-width:480px;width:100%">
           <thead><tr style="position:sticky;top:0;background:var(--panel);z-index:1"><th>날짜</th><th>종목</th><th class="num">리밸런싱 전</th><th class="num">리밸런싱 후</th><th>구분</th><th>평가</th></tr></thead>
           <tbody id="bt-admin-rebalance"><tr><td class="mut" colspan="6">데이터 없음</td></tr></tbody>
         </table>
