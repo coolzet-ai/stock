@@ -3,21 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <title>Mr.Kim Signal — 매매김군</title>
 <style>
 :root{
-  --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
-  --tx:#e8edf6; --tx2:#9fb0c9; --accent:#ffb020; --accent2:#ff8a00;
-  --up:#ff4d4f; --down:#3d9dff; --ok:#22c55e;
+  --bg:#f2f0eb; --panel:#ffffff; --panel2:#edebe9; --line:#e3ddd0;
+  --tx:rgba(0,0,0,.87); --tx2:rgba(0,0,0,.58); --accent:#00754A; --accent2:#006241;
+  --up:#c82014; --down:#1a6fa8; --ok:#1E3932; --house:#1E3932; --gold:#cba258;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);
-  font-family:system-ui,'Apple SD Gothic Neo','Nanum Gothic',sans-serif;line-height:1.6;
-  -webkit-font-smoothing:antialiased}
+  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.6;
+  letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{color:inherit}
-header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--line)}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  box-shadow:0 1px 3px rgba(0,0,0,.1),0 2px 2px rgba(0,0,0,.06),0 0 2px rgba(0,0,0,.07)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
 .logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
 .logo span{color:var(--accent)}
@@ -28,10 +31,11 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
 @media(max-width:640px){.updated-top{display:none}}
-.btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
-  border:0;cursor:pointer;font-size:15px}
+.btn{display:inline-block;background:var(--accent);
+  color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
 .btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.95)}
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
@@ -48,9 +52,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-fi
 
 /* hero */
 .hero{padding:70px 0 50px;text-align:center;
-  background:radial-gradient(900px 380px at 50% -60px,rgba(255,176,32,.16),transparent 70%)}
-.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(255,176,32,.35);
-  background:rgba(255,176,32,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+  background:radial-gradient(900px 380px at 50% -60px,rgba(0,117,74,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(0,117,74,.3);
+  background:rgba(0,117,74,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
 .hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
@@ -84,11 +88,11 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
 .tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
   padding:8px 15px;border-radius:7px;font-family:inherit}
-.tabs button.on{background:var(--accent);color:#1a1206}
+.tabs button.on{background:var(--accent);color:#ffffff}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 0 .5px rgba(0,0,0,.14),0 1px 1px rgba(0,0,0,.24)}
 .card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
 .big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
 .mut{color:var(--tx2);font-size:13px}
@@ -98,7 +102,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 /* gauge */
 .gauge{display:flex;align-items:center;gap:18px}
 .dial{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;
-  background:conic-gradient(var(--g,#666) var(--p,0%),#222c3c 0)}
+  background:conic-gradient(var(--g,#666) var(--p,0%),#e3ddd0 0)}
 .dial b{width:82px;height:82px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
   font-size:27px;font-weight:800}
 .state{font-size:19px;font-weight:800}
@@ -118,11 +122,11 @@ th.fund-th{white-space:nowrap}
 td.fund-src{text-align:center;width:150px;white-space:nowrap}
 td.fund-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:14px;margin:0 3px}
 td.fund-src a.ts-link{color:var(--tx2)}
-td.fund-src a.news-link{color:#7cc4ff}
+td.fund-src a.news-link{color:#0d5a9e}
 .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
-.t-h{background:rgba(255,77,79,.15);color:#ff7a7c}
-.t-m{background:rgba(255,176,32,.15);color:var(--accent)}
-.t-l{background:rgba(159,176,201,.13);color:var(--tx2)}
+.t-h{background:rgba(200,32,20,.15);color:#a01810}
+.t-m{background:rgba(0,117,74,.15);color:var(--accent)}
+.t-l{background:rgba(0,0,0,.13);color:var(--tx2)}
 .scroll{overflow-x:auto}
 td.spark{width:100px;text-align:center}
 td.spark svg{display:block;margin:0 auto}
@@ -134,22 +138,22 @@ td.spark svg{display:block;margin:0 auto}
 #events-tbl-wrap col.ev-src{width:56px}
 #events-tbl-wrap td.ev-src{text-align:center}
 #events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
-#events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
-#events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
-.tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
+#events-tbl tr.ev-hi{background:rgba(200,32,20,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
+.tag.t-close{background:rgba(0,0,0,.18);color:var(--tx)}
 .bt-div-detail{display:none;padding:8px 10px;background:var(--panel2);border-radius:8px;font-size:12.5px;margin:2px 0 6px}
 .bt-div-detail.open{display:block}
 
 .plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
-.plan.hi{border-color:rgba(255,176,32,.5);box-shadow:0 0 0 1px rgba(255,176,32,.15)}
+.plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
 .plan h3{font-size:18px;margin-bottom:6px}
 .plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
 .plan li{padding:6px 0 6px 22px;position:relative}
 .plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
 .soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
 
-.band{text-align:center;background:linear-gradient(135deg,rgba(255,176,32,.12),rgba(255,138,0,.05));
-  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(255,176,32,.25)}
+.band{text-align:center;background:linear-gradient(135deg,rgba(0,117,74,.12),rgba(0,98,65,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(0,117,74,.25)}
 .band h2{font-size:29px}
 .band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
 
@@ -197,7 +201,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <div class="tabs" id="bt-method-tabs" style="margin-top:24px">
-      <button class="on" data-method="1" style="border-bottom:3px solid var(--accent)">삼사원팔</button>
+      <button class="on" data-method="1" style="border-bottom:3px solid var(--accent)">2배김군</button>
       <button data-method="2" style="border-bottom:3px solid #3d9dff">떨사오팔</button>
       <button data-method="3" style="border-bottom:3px solid #a78bfa">스나이퍼</button>
     </div>
@@ -216,7 +220,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="mut" id="bt-rebal-note" style="margin-top:6px;font-size:12.5px"></p>
 
     <div class="grid">
-      <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+      <div class="card" style="border:1px solid var(--accent);background:rgba(0,117,74,.06)">
         <h3>누적원금</h3>
         <div class="big" id="bt-cost" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px">신규 매수·리밸런싱 반영, 세전 기준</p>
@@ -249,12 +253,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <p class="mut" style="margin-top:6px;font-size:12px">현재 보유 수량 × 최근 12개월 배당 기준</p>
         <div id="bt-annual-dividend-diff"></div>
       </div>
-      <div class="card" id="bt-realized-main-card" style="display:none;border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+      <div class="card" id="bt-realized-main-card" style="display:none;border:1px solid var(--accent);background:rgba(0,117,74,.06)">
         <h3>기본 매도규칙 — 수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동)</span></h3>
         <div class="big up" id="bt-realized-main" style="font-size:22px">--</div>
         <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt-realized-main-detail"></p>
       </div>
-      <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+      <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
         <h3>원금 대비 평가금 수익률 <span class="mut" style="font-size:11px;font-weight:400">(배당 포함)</span></h3>
         <div class="big" id="bt-roi" style="font-size:28px">--</div>
         <p class="mut" style="margin-top:6px" id="bt-roi-sub">원금 --<br>· 평가금 --</p>
@@ -342,7 +346,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p class="sub" id="bt2-status" style="margin-top:12px">데이터를 불러와 시뮬레이션하는 중…</p>
 
       <div class="grid">
-        <div class="card" style="border:1px solid var(--accent);background:rgba(255,176,32,.06)">
+        <div class="card" style="border:1px solid var(--accent);background:rgba(0,117,74,.06)">
           <h3>기본투자금</h3>
           <div class="big" id="bt2-capital" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">6개 티어로 분할 배분, 세전 기준</p>
@@ -362,17 +366,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <div class="big" id="bt2-value" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">보유 중인 티어 시가 + 실현손익 합산</p>
         </div>
-        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+        <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>현재 평가수익금</h3>
           <div class="big" id="bt2-profit" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px" id="bt2-profit-sub">평가금 - 기본투자금</p>
         </div>
-        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+        <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>수익률</h3>
           <div class="big" id="bt2-roi" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">기본투자금 대비 수익실현금(확정된 수익만, 미실현 포지션 제외)</p>
         </div>
-        <div class="card" id="bt2-realized-card" style="display:none;border:1px solid #3d9dff;background:rgba(61,157,255,.08);cursor:pointer" title="클릭하면 티어별·건별 세부내역을 볼 수 있습니다">
+        <div class="card" id="bt2-realized-card" style="display:none;border:1px solid #3d9dff;background:rgba(26,111,168,.08);cursor:pointer" title="클릭하면 티어별·건별 세부내역을 볼 수 있습니다">
           <h3>수익실현금 <span class="mut" style="font-size:11px;font-weight:400">(항상 작동, 클릭 시 세부내역)</span></h3>
           <div class="big up" id="bt2-realized" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px;line-height:1.7" id="bt2-realized-detail"></p>
@@ -382,15 +386,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <div class="big" id="bt2-realized-roi" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">실현손익 ÷ 기본투자금(확정된 수익만)</p>
         </div>
-      </div>
-
-      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">수익률 곡선</h3>
-      <div class="card" style="margin-top:12px">
-        <div id="bt2-curve"></div>
-      </div>
-      <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">낙폭(고점 대비 하락폭)</h3>
-      <div class="card" style="margin-top:12px">
-        <div id="bt2-drawdown"></div>
       </div>
 
       <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">월별 매매기록</h3>
@@ -437,12 +432,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <div class="big" id="bt3-value" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">보유 포지션 시가 합산(실현 현금 제외)</p>
         </div>
-        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+        <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>현재 평가수익금</h3>
           <div class="big" id="bt3-profit" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px">평가금 - 누적원금</p>
         </div>
-        <div class="card" style="border:2px solid var(--up);background:rgba(255,77,79,.06)">
+        <div class="card" style="border:2px solid var(--up);background:rgba(200,32,20,.06)">
           <h3>수익률</h3>
           <div class="big" id="bt3-roi" style="font-size:28px">--</div>
           <p class="mut" style="margin-top:6px;font-size:12px">누적원금 대비</p>
@@ -478,42 +473,42 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="mut" style="font-size:12px;margin-top:10px;font-weight:700">기본 매수법 — 미국지수 공포탐욕 점수 기준</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.28);color:#ff4d4f;min-width:110px;text-align:center">점수 ≤ 5</span>
+          <span class="tag" style="background:rgba(200,32,20,.28);color:#ff4d4f;min-width:110px;text-align:center">점수 ≤ 5</span>
           <span class="mut">→</span>
           <span><b>매일</b> QLD·USD·SCHD 각 <b>32주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">점수 ≤ 10</span>
+          <span class="tag" style="background:rgba(200,32,20,.15);color:var(--up);min-width:110px;text-align:center">점수 ≤ 10</span>
           <span class="mut">→</span>
           <span><b>매일</b> 각 <b>16주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.28);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 15</span>
+          <span class="tag" style="background:rgba(0,117,74,.28);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 15</span>
           <span class="mut">→</span>
           <span><b>매일</b> 각 <b>8주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 20</span>
+          <span class="tag" style="background:rgba(0,117,74,.15);color:var(--accent);min-width:110px;text-align:center">점수 ≤ 20</span>
           <span class="mut">→</span>
           <span><b>매일</b> 각 <b>4주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(159,176,201,.2);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;25</span>
+          <span class="tag" style="background:rgba(0,0,0,.2);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;25</span>
           <span class="mut">→</span>
           <span>각 <b>4주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;45</span>
+          <span class="tag" style="background:rgba(0,0,0,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; &lt;45</span>
           <span class="mut">→</span>
           <span>각 <b>2주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; 45~55</span>
+          <span class="tag" style="background:rgba(0,0,0,.15);color:var(--tx2);min-width:110px;text-align:center">금요일 &amp; 45~55</span>
           <span class="mut">→</span>
           <span>각 <b>1주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down);min-width:110px;text-align:center">금요일 &amp; &gt;55</span>
+          <span class="tag" style="background:rgba(26,111,168,.15);color:var(--down);min-width:110px;text-align:center">금요일 &amp; &gt;55</span>
           <span class="mut">→</span>
           <span>매수 없음</span>
         </div>
@@ -531,12 +526,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="mut" style="font-size:12px;margin-top:18px;font-weight:700">기본 매도규칙 — 항상 작동</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">+200% 최초</span>
+          <span class="tag" style="background:rgba(0,117,74,.15);color:var(--accent);min-width:110px;text-align:center">+200% 최초</span>
           <span class="mut">→</span>
           <span>투자원금만큼 매도(현금화) · 시가가 부족하면 시가만큼만</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">+100%p마다</span>
+          <span class="tag" style="background:rgba(0,117,74,.15);color:var(--accent);min-width:110px;text-align:center">+100%p마다</span>
           <span class="mut">→</span>
           <span>잔고의 <b>25%</b>씩 매도(300%,400%…)</span>
         </div>
@@ -552,9 +547,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <table style="font-size:12.5px">
           <thead><tr><th>성향</th><th class="num">티어 배분(6단계)</th><th class="num">매수 기준</th><th class="num">매도 기준</th><th class="num">손절</th></tr></thead>
           <tbody>
-            <tr><td><span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">수비</span></td><td class="num">5% · 10% · 15% · 20% · 25% · 25%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +0.01%</td><td class="num">10일</td></tr>
-            <tr><td><span class="tag" style="background:rgba(159,176,201,.15);color:var(--tx2)">중립</span></td><td class="num">10% · 15% · 20% · 25% · 20% · 10%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +1.5%</td><td class="num">10일</td></tr>
-            <tr><td><span class="tag" style="background:rgba(255,77,79,.15);color:var(--up)">공격</span></td><td class="num">16.7% × 6등분</td><td class="num">전일 대비 -0.1%</td><td class="num">진입가 대비 +2%</td><td class="num">12일</td></tr>
+            <tr><td><span class="tag" style="background:rgba(26,111,168,.15);color:var(--down)">수비</span></td><td class="num">5% · 10% · 15% · 20% · 25% · 25%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +0.01%</td><td class="num">10일</td></tr>
+            <tr><td><span class="tag" style="background:rgba(0,0,0,.15);color:var(--tx2)">중립</span></td><td class="num">10% · 15% · 20% · 25% · 20% · 10%</td><td class="num">전일 대비 -0.01%</td><td class="num">진입가 대비 +1.5%</td><td class="num">10일</td></tr>
+            <tr><td><span class="tag" style="background:rgba(200,32,20,.15);color:var(--up)">공격</span></td><td class="num">16.7% × 6등분</td><td class="num">전일 대비 -0.1%</td><td class="num">진입가 대비 +2%</td><td class="num">12일</td></tr>
           </tbody>
         </table>
       </div>
@@ -567,17 +562,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div class="mut" style="font-size:12px;margin-top:16px;font-weight:700">매수 — 공포탐욕지수 기준(3종목 동시, 매일)</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,176,32,.15);color:var(--accent);min-width:110px;text-align:center">지수 ≤ 15</span>
+          <span class="tag" style="background:rgba(0,117,74,.15);color:var(--accent);min-width:110px;text-align:center">지수 ≤ 15</span>
           <span class="mut">→</span>
           <span>매일 3종목 각 <b>10주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.15);color:var(--up);min-width:110px;text-align:center">지수 ≤ 10</span>
+          <span class="tag" style="background:rgba(200,32,20,.15);color:var(--up);min-width:110px;text-align:center">지수 ≤ 10</span>
           <span class="mut">→</span>
           <span>매일 3종목 각 <b>20주</b></span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;font-size:12.5px">
-          <span class="tag" style="background:rgba(255,77,79,.28);color:#ff4d4f;min-width:110px;text-align:center">지수 ≤ 5</span>
+          <span class="tag" style="background:rgba(200,32,20,.28);color:#ff4d4f;min-width:110px;text-align:center">지수 ≤ 5</span>
           <span class="mut">→</span>
           <span>매일 3종목 각 <b>30주</b></span>
         </div>
@@ -634,7 +629,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div>
 
-    <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(61,157,255,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
+    <p class="mut" style="margin-top:16px;font-size:14px;font-weight:800;color:var(--down);background:rgba(26,111,168,.1);padding:10px 14px;border-radius:8px">⚠ 과거 성과가 미래 수익을 보장하지 않습니다.</p>
     <p class="mut" style="margin-top:10px;font-size:12px">배당 재투자를 반영하지 않은 단순 누적 방식이며, 실제 체결가·슬리피지·세금·수수료는 반영되지 않은 추정치입니다<br>· 월 수익률은 해당 월 신규 매수금을 월초 투자로 가정한 근사치입니다<br>· MDD·낙폭은 배당 포함 평가금 기준입니다<br>· 배당금 현황은 배당이 있었던 달만 표시합니다<br>· 다음 예상 배당은 최근 두 차례 배당 간격·금액과 현재 보유 수량을 바탕으로 한 단순 추정치이며 실제 배당과 다를 수 있습니다<br>· 연간 예상 수령 배당금은 현재 보유 수량 기준 최근 12개월 배당 지급분을 그대로 연간화한 추정치입니다<br>· 투자기간이 1년을 초과하면 매년 마지막 거래일에 리밸런싱을 실시합니다(종목·비중은 비공개).</p>
   </div>
 
