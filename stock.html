@@ -272,6 +272,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div>
 
+    <div id="us-next-event" style="display:none;margin-top:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
+
     <h2 id="tickers" style="font-size:21px;margin-top:44px">김군 관심종목</h2>
     <p class="sub">기간별 등락률 비교</p>
     <div class="tabs" data-group="tick">
@@ -526,6 +528,7 @@ if(evMonthTabs){
   if(defBtn) defBtn.classList.add('on');
   renderEvents(defMonth);
 }
+renderNextEventBanner('us-next-event', MONTH_EVENTS, {excludeHoliday:true});
 
 
 const now=new Date();

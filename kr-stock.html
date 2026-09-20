@@ -248,6 +248,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div>
 
+    <div id="kr-next-event" style="display:none;margin-top:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
+
     <h2 style="font-size:21px;margin-top:44px">시가총액 TOP 10 (코스피)</h2>
     <p class="sub">코스피 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 11일 기준 순위)</p>
     <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
@@ -399,6 +401,7 @@ if(krEvMonthTabs){
   if(defBtnKr) defBtnKr.classList.add('on');
   renderKrEvents(defMonthKr);
 }
+renderNextEventBanner('kr-next-event', KR_MONTH_EVENTS, {excludeHoliday:true});
 
 
 const now=new Date();

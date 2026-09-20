@@ -250,6 +250,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </div>
     </div>
 
+    <div id="crypto-next-event" style="display:none;margin-top:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
+
     <h2 style="font-size:21px;margin-top:44px">주요 코인 가격 — BTC · ETH · SOL · XRP</h2>
     <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률</p>
 
@@ -335,6 +337,7 @@ if(cryptoEvMonthTabs){
   if(defBtnCrypto) defBtnCrypto.classList.add('on');
   renderCryptoEvents(defMonthCrypto);
 }
+renderNextEventBanner('crypto-next-event', CRYPTO_MONTH_EVENTS, {excludeHoliday:true});
 
 
 const now=new Date();

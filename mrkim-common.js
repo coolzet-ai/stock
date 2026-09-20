@@ -460,6 +460,39 @@ const MONTH_EVENTS={
   ]
 };
 
+/* 바쁜 직장인 투자자를 위한 "다가오는 주요 일정" 요약 — 전체 달력을 스크롤해서 찾지 않아도
+   가장 가까운 고중요도(g:'h') 일정을 게이지 바로 아래에서 바로 보여준다. 고중요도 일정이
+   당장 없으면 그다음으로 가까운 일정(중요도 무관)을 대신 보여준다. */
+function findNextEvent(monthEvents, opts){
+  opts=opts||{};
+  const now=new Date();
+  const year=now.getFullYear();
+  const all=[];
+  Object.keys(monthEvents).forEach(m=>{
+    monthEvents[m].forEach(e=>{
+      if(opts.excludeHoliday && e.hol) return;
+      const dt=new Date(year, +m-1, e.d);
+      if(dt>=new Date(now.getFullYear(),now.getMonth(),now.getDate())) all.push({...e, date:dt});
+    });
+  });
+  all.sort((a,b)=>a.date-b.date);
+  if(!all.length) return null;
+  const highSoon=all.filter(e=>e.g==='h' && (e.date-now)<=14*86400000);
+  return highSoon[0]||all[0];
+}
+function renderNextEventBanner(elId, monthEvents, opts){
+  const el=document.getElementById(elId); if(!el) return;
+  const ev=findNextEvent(monthEvents, opts);
+  if(!ev){ el.style.display='none'; return; }
+  const dday=Math.round((new Date(ev.date.getFullYear(),ev.date.getMonth(),ev.date.getDate())-new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);
+  const ddayTxt=dday===0?'오늘':'D-'+dday;
+  const TAGLABEL={h:'최상',m:'중',l:'참고'}, TAGCLASS={h:'t-h',m:'t-m',l:'t-l'};
+  el.style.display='flex';
+  el.innerHTML='<span class="tag '+TAGCLASS[ev.g]+'" style="flex:none">'+ddayTxt+'</span>'+
+    '<span style="flex:1;min-width:0"><b>'+ev.t+'</b> <span class="mut">· '+ev.date.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})+' · '+ev.c+'</span></span>'+
+    (ev.s?'<a href="'+ev.s+'" target="_blank" rel="noopener" style="flex:none;font-weight:800;color:var(--accent);text-decoration:none" title="출처 보기">자세히 →</a>':'');
+}
+
 function renderEvents(m){
   const tbody=document.getElementById('events-tbl'); if(!tbody)return;
   const all=(MONTH_EVENTS[m]||[]).slice().sort((a,b)=>a.d-b.d);
