@@ -493,6 +493,121 @@ function renderNextEventBanner(elId, monthEvents, opts){
     (ev.s?'<a href="'+ev.s+'" target="_blank" rel="noopener" style="flex:none;font-weight:800;color:var(--accent);text-decoration:none" title="출처 보기">자세히 →</a>':'');
 }
 
+/* ===== 공포탐욕지수 옆 매크로 지표 탭: 금리점도표 · 유동성(TGA잔고) ===== */
+function initMacroViewTabs(){
+  const tabs=document.getElementById('macro-view-tabs');
+  const views={fg:document.getElementById('macro-view-fg'), dot:document.getElementById('macro-view-dot'), tga:document.getElementById('macro-view-tga')};
+  if(!tabs || !views.fg) return;
+  tabs.addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    const v=b.dataset.view;
+    Object.keys(views).forEach(k=>{ if(views[k]) views[k].style.display=(k===v)?'':'none'; });
+    if(v==='dot') renderDotPlot();
+    if(v==='tga' && !window.__tgaLoaded){ window.__tgaLoaded=true; loadTgaBalance(); }
+  });
+}
+
+/* [비실시간] FOMC 점도표는 분기(3·6·9·12월)마다만 갱신되는 발표 자료라 실시간 API가 없다.
+   연준 공식 SEP(2026-09-16 발표) 기준 연도별 "중앙값"만 단순화해서 보여준다 — 위원별 개별
+   점(18~19개)까지 보려면 출처 링크의 공식 PDF를 확인해야 한다. */
+const DOT_PLOT_DATA={
+  asOf:'2026-09-16',
+  points:[
+    {label:'2026년 말', value:4.10},
+    {label:'2027년 말', value:4.10},
+    {label:'장기(Longer-run)', value:3.25}
+  ],
+  comment:'2026년 9월 SEP(점도표)에서 2026년 말 중앙값이 6월 3.80%→4.10%로 상향 조정되며 매파적으로 변경됐습니다. 2027년 말도 동일한 4.10%로, 위원들은 예상보다 오래 높은 금리가 유지될 것으로 보고 있습니다. 다음 발표는 12월 FOMC 직후입니다.'
+};
+function renderDotPlot(){
+  const chartEl=document.getElementById('dot-chart');
+  const commentEl=document.getElementById('dot-comment');
+  if(!chartEl) return;
+  const d=DOT_PLOT_DATA;
+  const w=700,h=220,padL=60,padR=30,padTop=20,padBottom=40;
+  const vals=d.points.map(p=>p.value);
+  const scaleMin=Math.min(...vals)-0.5, scaleMax=Math.max(...vals)+0.5;
+  const stepX=(w-padL-padR)/(d.points.length-1||1);
+  const yOf=v=>h-padBottom-((v-scaleMin)/(scaleMax-scaleMin))*(h-padTop-padBottom);
+  let yAxis='';
+  for(let ti=0;ti<=4;ti++){
+    const val=scaleMin+(scaleMax-scaleMin)*(ti/4);
+    const y=yOf(val);
+    yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
+    yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="10" fill="var(--tx2)" text-anchor="end">'+val.toFixed(2)+'%</text>';
+  }
+  const pts=d.points.map((p,i)=>[padL+i*stepX, yOf(p.value)]);
+  const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  let dots='', labels='';
+  d.points.forEach((p,i)=>{
+    const x=padL+i*stepX, y=yOf(p.value);
+    dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="6" fill="var(--accent)" stroke="#fff" stroke-width="2"/>';
+    dots+='<text x="'+x.toFixed(1)+'" y="'+(y-14).toFixed(1)+'" font-size="13" font-weight="800" fill="var(--tx)" text-anchor="middle">'+p.value.toFixed(2)+'%</text>';
+    labels+='<text x="'+x.toFixed(1)+'" y="'+(h-14)+'" font-size="11" fill="var(--tx2)" text-anchor="middle">'+p.label+'</text>';
+  });
+  chartEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+    yAxis+'<path d="'+pathOf(pts)+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>'+dots+labels+
+    '</svg>';
+  if(commentEl) commentEl.innerHTML='<b>'+d.asOf+' 발표 기준</b><br>'+d.comment;
+}
+
+/* [실시간] 미 재무부 Fiscal Data API — TGA(Treasury General Account) 최근 90일 잔고 */
+async function loadTgaBalance(){
+  const chartEl=document.getElementById('tga-chart');
+  const commentEl=document.getElementById('tga-comment');
+  const dateEl=document.getElementById('tga-latest-date');
+  try{
+    /* 필드 안내(dataFormats)상 close_today_bal은 "백만 달러" 단위로 내려온다(예: 700000 = 7,000억 달러).
+       서버 쪽 filter·sort 파라미터가 프록시 환경에 따라 무시될 가능성에 대비해, account_type과
+       날짜 정렬을 클라이언트에서도 한 번 더 확실하게 강제한다. */
+    const url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance'
+      +'?fields=record_date,account_type,close_today_bal'
+      +'&filter=account_type:eq:'+encodeURIComponent('Treasury General Account (TGA)')
+      +'&sort=-record_date&page[size]=90';
+    const j=await getJSON(url);
+    let rows=(j&&j.data||[]).filter(r=>r.account_type==='Treasury General Account (TGA)');
+    rows=rows.slice().sort((a,b)=>a.record_date<b.record_date?-1:1); // 오래된 날짜 → 최신 날짜 순
+    if(rows.length>90) rows=rows.slice(rows.length-90); // 최근 90개만
+    if(!rows.length) throw new Error('데이터 없음(계정 필터 결과 0건)');
+    const series=rows.map(r=>({t:r.record_date, v:parseFloat(r.close_today_bal)*1e6})).filter(p=>isFinite(p.v)); // 백만 달러 → 달러
+    if(!series.length) throw new Error('파싱 실패');
+
+    const w=700,h=220,padL=70,padR=20,padTop=20,padBottom=30;
+    const vals=series.map(p=>p.v);
+    const scaleMin=Math.min(...vals)*0.95, scaleMax=Math.max(...vals)*1.05;
+    const stepX=series.length>1?(w-padL-padR)/(series.length-1):0;
+    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
+    const pts=series.map((p,i)=>[padL+i*stepX, yOf(p.v)]);
+    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaPath=pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+pts[0][0].toFixed(1)+','+(h-padBottom)+' Z';
+    let yAxis='';
+    for(let ti=0;ti<=3;ti++){
+      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
+      const y=yOf(val);
+      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
+      yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="10" fill="var(--tx2)" text-anchor="end">$'+(val/1e9).toFixed(0)+'B</text>';
+    }
+    chartEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
+      yAxis+'<path d="'+areaPath+'" fill="rgba(0,117,74,.12)" stroke="none"/>'+
+      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+
+      '</svg>';
+
+    const latest=series[series.length-1], prev=series[Math.max(0,series.length-6)];
+    const chg=latest.v-prev.v;
+    const chgPctTxt=(chg>=0?'+':'-')+'$'+(Math.abs(chg)/1e9).toFixed(1)+'B';
+    const dir=chg>=0?'증가(유동성 흡수 쪽)':'감소(유동성 공급 쪽)';
+    if(dateEl) dateEl.textContent='· '+new Date(latest.t).toLocaleDateString('ko-KR')+' 기준';
+    if(commentEl) commentEl.innerHTML='최근 잔고 <b>$'+(latest.v/1e9).toFixed(0)+'B</b> · 최근 5영업일 대비 <b>'+chgPctTxt+'</b> '+dir+
+      '<br>잔고가 빠르게 늘면 국채 발행이 시중 자금을 흡수해 단기적으로 유동성이 타이트해질 수 있고, 빠르게 줄면 정부 지출로 시중에 자금이 풀리는 효과가 있습니다.';
+  }catch(e){
+    if(chartEl) chartEl.innerHTML='<p class="mut">⚠ TGA 데이터를 불러오지 못했습니다('+e.message+'). 출처 링크에서 직접 확인해주세요.</p>';
+    if(commentEl) commentEl.innerHTML='';
+    console.error('TGA 데이터 로드 실패:', e);
+  }
+}
+
 function renderEvents(m){
   const tbody=document.getElementById('events-tbl'); if(!tbody)return;
   const all=(MONTH_EVENTS[m]||[]).slice().sort((a,b)=>a.d-b.d);

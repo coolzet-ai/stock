@@ -32,7 +32,8 @@ const ALLOW = [
   'production.dataviz.cnn.io',
   'ecos.bok.or.kr',
   'data-dbg.krx.co.kr',
-  'opendart.fss.or.kr'
+  'opendart.fss.or.kr',
+  'api.fiscaldata.treasury.gov'
 ];
 
 /* OpenDART(전자공시) 인증키 — ECOS와 같은 방식(URL 쿼리파라미터)이지만, 페이지 소스에

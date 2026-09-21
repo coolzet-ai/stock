@@ -239,12 +239,18 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h2>미국지수 공포탐욕지수</h2>
         <p class="sub">CNN Business Fear &amp; Greed Index 공식 데이터 연동 · 0 극단적 공포 ~ 100 극단적 탐욕</p>
       </div>
-      <div class="tabs" data-group="us">
-        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
-        <button data-p="m">월간</button><button data-p="y">연간</button>
+      <div class="tabs" id="macro-view-tabs">
+        <button class="on" data-view="fg">공포탐욕지수</button>
+        <button data-view="dot">금리점도표</button>
+        <button data-view="tga">유동성(TGA잔고)</button>
       </div>
     </div>
 
+    <div id="macro-view-fg">
+    <div class="tabs" data-group="us" style="margin-bottom:16px">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
     <div class="grid">
       <div class="card">
         <h3>현재 지수 <span id="us-per" class="mut">· 일간</span></h3>
@@ -269,6 +275,29 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h3>CNN 7개 세부지표</h3>
         <table><tbody id="us-sub"><tr><td class="mut">불러오는 중…</td></tr></tbody></table>
         <p class="mut" id="us-src" style="margin-top:10px;font-size:12px"></p>
+      </div>
+    </div>
+    </div>
+
+    <div id="macro-view-dot" style="display:none">
+      <div class="grid">
+        <div class="card" style="grid-column:1/-1">
+          <h3>FOMC 점도표 — 연도별 정책금리 중앙값 전망</h3>
+          <div id="dot-chart"></div>
+          <div class="mut" id="dot-comment" style="margin-top:12px;font-size:13.5px;line-height:1.7"></div>
+          <p class="mut" style="margin-top:10px;font-size:12px">⚠ 각 점은 개별 위원 전망이 아니라 <b>중앙값</b>만 단순화해 보여줍니다(실제 점도표는 위원별 18~19개 점으로 구성) · 분기별(3·6·9·12월 FOMC 직후) 갱신 · 출처: <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">연방준비제도(Federal Reserve) SEP 공식 발표 →</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="macro-view-tga" style="display:none">
+      <div class="grid">
+        <div class="card" style="grid-column:1/-1">
+          <h3>미국 재무부 TGA 잔고 <span class="mut" id="tga-latest-date" style="font-size:12px;font-weight:400"></span></h3>
+          <div id="tga-chart"></div>
+          <div class="mut" id="tga-comment" style="margin-top:12px;font-size:13.5px;line-height:1.7">불러오는 중…</div>
+          <p class="mut" style="margin-top:10px;font-size:12px">⚠ TGA(Treasury General Account)는 미 재무부가 연준에 보유한 계좌 잔고입니다 — 잔고가 늘면(국채 발행 등으로 자금을 흡수) 시중 유동성이 줄고, 줄면(정부 지출로 자금 방출) 시중 유동성이 느는 경향이 있어 유동성 지표로 참고됩니다 · 매 영업일 갱신 · 출처: <a href="https://fiscaldata.treasury.gov/datasets/daily-treasury-statement/operating-cash-balance" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">미 재무부 Fiscal Data(Daily Treasury Statement) →</a></p>
+        </div>
       </div>
     </div>
 
@@ -529,6 +558,7 @@ if(evMonthTabs){
   renderEvents(defMonth);
 }
 renderNextEventBanner('us-next-event', MONTH_EVENTS, {excludeHoliday:true});
+initMacroViewTabs();
 
 
 const now=new Date();
