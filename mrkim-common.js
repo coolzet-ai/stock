@@ -1,17 +1,18 @@
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d'};
+const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
+  usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
 const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
 function label(v){
-  if(v<25)return['극단적 공포','#c82014'];
-  if(v<45)return['공포','#a6720c'];
-  if(v<=55)return['중립','#6b6459'];
-  if(v<=75)return['탐욕','#5c8a0a'];
-  return['극단적 탐욕','#15803d'];
+  if(v<25)return['극단적 공포','#ff4d4f'];
+  if(v<45)return['공포','#ff8a00'];
+  if(v<=55)return['중립','#9fb0c9'];
+  if(v<=75)return['탐욕','#a3e635'];
+  return['극단적 탐욕','#22c55e'];
 }
 function paint(pre,v,note){
   const [t,c]=label(v);
@@ -270,6 +271,210 @@ const KRKQ_CAP_DATA=[
   {label:'원익IPS',cap:5.8},{label:'이오테크닉스',cap:5.6},{label:'리노공업',cap:5.3},{label:'심텍',cap:5.1},{label:'로보티즈',cap:4.7}
 ];
 
+/* ================= 상대수익률 비교 차트 (raoni.xyz 스타일 시각화 구체화) =================
+   여러 종목·지수의 첫 값을 100으로 맞춰(rebase) 정규화하면, 절대 가격 단위가 달라도
+   기간 내 상대적인 강약(어느 자산이 더 잘 버텼는지)을 한 차트에서 바로 비교할 수 있다.
+   기존 yclose()로 이미 받아온 종가 배열과 miniLineChart()를 그대로 재사용한다. */
+function rebase100(arr){
+  if(!arr) return null;
+  const first=arr.find(v=>v!=null);
+  if(!first) return null;
+  return arr.map(v=>v!=null?+(v/first*100).toFixed(3):null);
+}
+const REL_PERIOD_DAYS={'1m':21,'3m':63,'6m':126,'1y':252};
+function relReturnChart(elId, series){
+  const el=document.getElementById(elId); if(!el) return;
+  const built=series.map(s=>{
+    const reb=s.values?rebase100(s.values):null;
+    let last=null;
+    if(reb) for(let i=reb.length-1;i>=0;i--){ if(reb[i]!=null){ last=reb[i]; break; } }
+    const chg=last!=null?last-100:null;
+    return {values:reb||[], color:s.color, width:s.width||2.2,
+      label:s.label+(chg!=null?' '+sign(chg):' --')};
+  }).filter(s=>s.values.length>1);
+  if(!built.length){ el.innerHTML='<p class="mut" style="font-size:12.5px">데이터를 불러오는 중…</p>'; return; }
+  el.innerHTML=miniLineChart(built,{h:230,padL:4,padR:4,padTop:10,padBottom:6});
+}
+/* 시가총액 TOP10 카드(cap/krcap)의 순위·색상 순서를 그대로 상대수익률 비교 시리즈로 변환 */
+function capRelDefsFromGroup(group, capData){
+  const cfg=TICKGROUPS[group]; if(!cfg) return [];
+  return cfg.list.map((t,i)=>({t, label:(capData[i]?capData[i].label:t), color:CAP_COLORS10[i%10]}));
+}
+function renderCapRelCompare(elId, group, capData, period){
+  const defs=capRelDefsFromGroup(group, capData);
+  const days=REL_PERIOD_DAYS[period]||126;
+  const series=defs.map(d=>({label:d.label, color:d.color, values:tickData[d.t]?tickData[d.t].slice(-days):null}));
+  relReturnChart(elId, series);
+}
+
+/* 미국 주요 지수 ETF 상대수익률 비교 (S&P500·나스닥100·다우존스·러셀2000·반도체) */
+const IDXREL_DEFS_US=[
+  {t:'SPY', label:'S&P500(SPY)', color:'#ffb020'},
+  {t:'QQQ', label:'나스닥100(QQQ)', color:'#3d9dff'},
+  {t:'DIA', label:'다우존스(DIA)', color:'#22c55e'},
+  {t:'IWM', label:'러셀2000(IWM)', color:'#ff4d4f'},
+  {t:'SOXX', label:'반도체(SOXX)', color:'#c084fc'}
+];
+const idxRelDataUS={};
+async function loadIdxRelUS(){
+  await Promise.all(IDXREL_DEFS_US.map(async d=>{
+    if(idxRelDataUS[d.t]===undefined) idxRelDataUS[d.t]=await yclose(d.t,'1y');
+  }));
+  renderIdxRelUS(curPer.usrel);
+}
+function renderIdxRelUS(period){
+  const days=REL_PERIOD_DAYS[period]||126;
+  const series=IDXREL_DEFS_US.map(d=>({label:d.label, color:d.color, values:idxRelDataUS[d.t]?idxRelDataUS[d.t].slice(-days):null}));
+  relReturnChart('us-idxrel-chart', series);
+}
+
+/* 한국 지수·대표종목 상대수익률 비교 (코스피·코스닥·삼성전자·SK하이닉스) */
+const IDXREL_DEFS_KR=[
+  {t:'^KS11', label:'코스피(KOSPI)', color:'#ffb020'},
+  {t:'^KQ11', label:'코스닥(KOSDAQ)', color:'#3d9dff'},
+  {t:'005930.KS', label:'삼성전자', color:'#22c55e'},
+  {t:'000660.KS', label:'SK하이닉스', color:'#ff4d4f'}
+];
+const idxRelDataKR={};
+async function loadIdxRelKR(){
+  await Promise.all(IDXREL_DEFS_KR.map(async d=>{
+    if(idxRelDataKR[d.t]===undefined) idxRelDataKR[d.t]=await yclose(d.t,'1y');
+  }));
+  renderIdxRelKR(curPer.krrel);
+}
+function renderIdxRelKR(period){
+  const days=REL_PERIOD_DAYS[period]||126;
+  const series=IDXREL_DEFS_KR.map(d=>({label:d.label, color:d.color, values:idxRelDataKR[d.t]?idxRelDataKR[d.t].slice(-days):null}));
+  relReturnChart('kr-idxrel-chart', series);
+}
+
+/* 한국 수급 플로우 시각화 — Worker가 코스피·코스닥 전종목을 집계한 상승/하락 거래대금 비율과
+   52주 신고가/신저가 종목수를, 숫자(스코어) 하나로만 보여주던 기존 표에 더해 막대그래프로도
+   보여준다(raoni.xyz의 수급 흐름 표시를 참고해 구체화). */
+function renderBreadthFlow(elId, breadth){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!breadth || (!breadth.breadth && !breadth.strength)){
+    el.innerHTML='<p class="mut" style="font-size:12px">코스피·코스닥 전종목 수급 데이터 준비 중입니다(Worker가 매일 1회 자동 집계).</p>';
+    return;
+  }
+  let html='';
+  if(breadth.breadth){
+    const {advVol,declVol}=breadth.breadth;
+    const total=(advVol||0)+(declVol||0)||1;
+    const advPct=(advVol||0)/total*100, declPct=100-advPct;
+    html+='<div style="margin-bottom:14px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:5px">'+
+        '<span style="color:var(--up);font-weight:700">▲ 상승종목 거래대금 '+advPct.toFixed(1)+'%</span>'+
+        '<span style="color:var(--down);font-weight:700">▼ 하락종목 거래대금 '+declPct.toFixed(1)+'%</span></div>'+
+      '<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--panel2)">'+
+        '<div style="width:'+advPct.toFixed(2)+'%;background:var(--up)"></div>'+
+        '<div style="width:'+declPct.toFixed(2)+'%;background:var(--down)"></div>'+
+      '</div></div>';
+  }
+  if(breadth.strength){
+    const {highs,lows}=breadth.strength;
+    const total=(highs||0)+(lows||0)||1;
+    const hiPct=(highs||0)/total*100, loPct=100-hiPct;
+    html+='<div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:5px">'+
+        '<span style="color:var(--ok);font-weight:700">52주 신고가 '+(highs||0)+'종목 ('+hiPct.toFixed(1)+'%)</span>'+
+        '<span style="color:var(--tx2);font-weight:700">52주 신저가 '+(lows||0)+'종목 ('+loPct.toFixed(1)+'%)</span></div>'+
+      '<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--panel2)">'+
+        '<div style="width:'+hiPct.toFixed(2)+'%;background:var(--ok)"></div>'+
+        '<div style="width:'+loPct.toFixed(2)+'%;background:#5b6b85"></div>'+
+      '</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+/* ================= 자산간 상관관계 (야선지지 매크로 대시보드 스타일 시각화 구체화) =================
+   지수·금리·환율·원자재 등 서로 다른 자산의 일간 수익률로 피어슨 상관계수를 계산해,
+   숫자 하나가 아니라 -1~+1 구간을 양방향으로 채우는 막대로 보여준다. avg()·yclose()를 재사용한다. */
+function pctReturns(closes){
+  const r=[];
+  for(let i=1;i<closes.length;i++){
+    r.push((closes[i]!=null && closes[i-1])?closes[i]/closes[i-1]-1:null);
+  }
+  return r;
+}
+function pearsonCorr(a,b){
+  const n=Math.min(a.length,b.length);
+  const xs=[],ys=[];
+  for(let i=0;i<n;i++){ if(a[i]!=null&&b[i]!=null){ xs.push(a[i]); ys.push(b[i]); } }
+  if(xs.length<10) return null;
+  const mx=avg(xs), my=avg(ys);
+  let num=0,dx2=0,dy2=0;
+  for(let i=0;i<xs.length;i++){ const dx=xs[i]-mx, dy=ys[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+  const den=Math.sqrt(dx2*dy2);
+  return den?num/den:null;
+}
+function corrColor(r){
+  if(r==null) return 'var(--tx2)';
+  if(r>=0.5) return 'var(--ok)';
+  if(r>=0.2) return '#8fd19e';
+  if(r>-0.2) return 'var(--tx2)';
+  if(r>-0.5) return '#7cc4ff';
+  return 'var(--down)';
+}
+const corrDataCache={};
+async function loadCorrSeries(tickers){
+  await Promise.all(tickers.map(async t=>{
+    if(corrDataCache[t]===undefined) corrDataCache[t]=await yclose(t,'6mo');
+  }));
+}
+function renderCorrGrid(elId, pairs){
+  const el=document.getElementById(elId); if(!el) return;
+  const rows=pairs.map(p=>{
+    const ca=corrDataCache[p.a.t], cb=corrDataCache[p.b.t];
+    if(!ca||!cb) return {p, r:null};
+    const ra=pctReturns(ca.slice(-91)), rb=pctReturns(cb.slice(-91));
+    return {p, r:pearsonCorr(ra,rb)};
+  });
+  const body=rows.map(({p,r})=>{
+    const pct=r==null?50:((r+1)/2*100);
+    const col=corrColor(r);
+    const barStyle=(r!=null&&r>=0)
+      ? 'left:50%;width:'+Math.max(0,pct-50).toFixed(1)+'%'
+      : 'right:50%;width:'+Math.max(0,50-pct).toFixed(1)+'%';
+    return '<div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">'+
+        '<span>'+p.a.label+' ↔ '+p.b.label+'</span>'+
+        '<span style="font-weight:800;color:'+col+'">'+(r==null?'--':(r>=0?'+':'')+r.toFixed(2))+'</span></div>'+
+      '<div style="height:8px;border-radius:4px;background:var(--panel2);position:relative">'+
+        '<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div>'+
+        '<div style="position:absolute;top:0;bottom:0;'+barStyle+';background:'+col+';border-radius:4px"></div>'+
+      '</div></div>';
+  }).join('');
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px">'+body+'</div>'+
+    '<p class="mut" style="font-size:11px;margin-top:10px">최근 90거래일 일간 수익률 기준 피어슨 상관계수 · +1에 가까울수록 같은 방향, -1에 가까울수록 반대 방향으로 움직이는 경향(참고용 통계치이며 인과관계를 의미하지 않습니다)</p>';
+}
+
+/* 미국지수 페이지: S&P500 vs VIX·금·달러인덱스·비트코인 상관관계 */
+const US_CORR_PAIRS=[
+  {a:{t:'SPY',label:'S&P500'}, b:{t:'^VIX',label:'VIX(변동성)'}},
+  {a:{t:'SPY',label:'S&P500'}, b:{t:'GLD',label:'금(GLD)'}},
+  {a:{t:'SPY',label:'S&P500'}, b:{t:'DX-Y.NYB',label:'달러인덱스'}},
+  {a:{t:'SPY',label:'S&P500'}, b:{t:'BTC-USD',label:'비트코인'}}
+];
+async function loadUSCorr(){
+  const tickers=[...new Set(US_CORR_PAIRS.flatMap(p=>[p.a.t,p.b.t]))];
+  await loadCorrSeries(tickers);
+  renderCorrGrid('us-corr-grid', US_CORR_PAIRS);
+}
+
+/* 한국지수 페이지: 코스피 vs 원/달러 환율·S&P500·VIX·반도체(SOXX) 상관관계 */
+const KR_CORR_PAIRS=[
+  {a:{t:'^KS11',label:'코스피'}, b:{t:'KRW=X',label:'원/달러 환율'}},
+  {a:{t:'^KS11',label:'코스피'}, b:{t:'SPY',label:'S&P500'}},
+  {a:{t:'^KS11',label:'코스피'}, b:{t:'^VIX',label:'VIX(변동성)'}},
+  {a:{t:'^KS11',label:'코스피'}, b:{t:'SOXX',label:'반도체(SOXX)'}}
+];
+async function loadKRCorr(){
+  const tickers=[...new Set(KR_CORR_PAIRS.flatMap(p=>[p.a.t,p.b.t]))];
+  await loadCorrSeries(tickers);
+  renderCorrGrid('kr-corr-grid', KR_CORR_PAIRS);
+}
+
 function renderMcapChart(){
   const el=document.getElementById('mcap-chart'); if(!el) return;
   const ids=['bitcoin','ethereum','solana','ripple'].map(id=>{
@@ -459,154 +664,6 @@ const MONTH_EVENTS={
     {d:25,t:'Christmas Day — 증시 휴장',c:'전일 휴장',g:'h',s:NYSE_CAL,hol:1}
   ]
 };
-
-/* 바쁜 직장인 투자자를 위한 "다가오는 주요 일정" 요약 — 전체 달력을 스크롤해서 찾지 않아도
-   가장 가까운 고중요도(g:'h') 일정을 게이지 바로 아래에서 바로 보여준다. 고중요도 일정이
-   당장 없으면 그다음으로 가까운 일정(중요도 무관)을 대신 보여준다. */
-function findNextEvent(monthEvents, opts){
-  opts=opts||{};
-  const now=new Date();
-  const year=now.getFullYear();
-  const all=[];
-  Object.keys(monthEvents).forEach(m=>{
-    monthEvents[m].forEach(e=>{
-      if(opts.excludeHoliday && e.hol) return;
-      const dt=new Date(year, +m-1, e.d);
-      if(dt>=new Date(now.getFullYear(),now.getMonth(),now.getDate())) all.push({...e, date:dt});
-    });
-  });
-  all.sort((a,b)=>a.date-b.date);
-  if(!all.length) return null;
-  const highSoon=all.filter(e=>e.g==='h' && (e.date-now)<=14*86400000);
-  return highSoon[0]||all[0];
-}
-function renderNextEventBanner(elId, monthEvents, opts){
-  const el=document.getElementById(elId); if(!el) return;
-  const ev=findNextEvent(monthEvents, opts);
-  if(!ev){ el.style.display='none'; return; }
-  const dday=Math.round((new Date(ev.date.getFullYear(),ev.date.getMonth(),ev.date.getDate())-new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400000);
-  const ddayTxt=dday===0?'오늘':'D-'+dday;
-  const TAGLABEL={h:'최상',m:'중',l:'참고'}, TAGCLASS={h:'t-h',m:'t-m',l:'t-l'};
-  el.style.display='flex';
-  el.innerHTML='<span class="tag '+TAGCLASS[ev.g]+'" style="flex:none">'+ddayTxt+'</span>'+
-    '<span style="flex:1;min-width:0"><b>'+ev.t+'</b> <span class="mut">· '+ev.date.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})+' · '+ev.c+'</span></span>'+
-    (ev.s?'<a href="'+ev.s+'" target="_blank" rel="noopener" style="flex:none;font-weight:800;color:var(--accent);text-decoration:none" title="출처 보기">자세히 →</a>':'');
-}
-
-/* ===== 공포탐욕지수 옆 매크로 지표 탭: 금리점도표 · 유동성(TGA잔고) ===== */
-function initMacroViewTabs(){
-  const tabs=document.getElementById('macro-view-tabs');
-  const views={fg:document.getElementById('macro-view-fg'), dot:document.getElementById('macro-view-dot'), tga:document.getElementById('macro-view-tga')};
-  if(!tabs || !views.fg) return;
-  tabs.addEventListener('click', e=>{
-    const b=e.target.closest('button'); if(!b) return;
-    tabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    const v=b.dataset.view;
-    Object.keys(views).forEach(k=>{ if(views[k]) views[k].style.display=(k===v)?'':'none'; });
-    if(v==='dot') renderDotPlot();
-    if(v==='tga' && !window.__tgaLoaded){ window.__tgaLoaded=true; loadTgaBalance(); }
-  });
-}
-
-/* [비실시간] FOMC 점도표는 분기(3·6·9·12월)마다만 갱신되는 발표 자료라 실시간 API가 없다.
-   연준 공식 SEP(2026-09-16 발표) 기준 연도별 "중앙값"만 단순화해서 보여준다 — 위원별 개별
-   점(18~19개)까지 보려면 출처 링크의 공식 PDF를 확인해야 한다. */
-const DOT_PLOT_DATA={
-  asOf:'2026-09-16',
-  points:[
-    {label:'2026년 말', value:4.10},
-    {label:'2027년 말', value:4.10},
-    {label:'장기(Longer-run)', value:3.25}
-  ],
-  comment:'2026년 9월 SEP(점도표)에서 2026년 말 중앙값이 6월 3.80%→4.10%로 상향 조정되며 매파적으로 변경됐습니다. 2027년 말도 동일한 4.10%로, 위원들은 예상보다 오래 높은 금리가 유지될 것으로 보고 있습니다. 다음 발표는 12월 FOMC 직후입니다.'
-};
-function renderDotPlot(){
-  const chartEl=document.getElementById('dot-chart');
-  const commentEl=document.getElementById('dot-comment');
-  if(!chartEl) return;
-  const d=DOT_PLOT_DATA;
-  const w=700,h=220,padL=60,padR=30,padTop=20,padBottom=40;
-  const vals=d.points.map(p=>p.value);
-  const scaleMin=Math.min(...vals)-0.5, scaleMax=Math.max(...vals)+0.5;
-  const stepX=(w-padL-padR)/(d.points.length-1||1);
-  const yOf=v=>h-padBottom-((v-scaleMin)/(scaleMax-scaleMin))*(h-padTop-padBottom);
-  let yAxis='';
-  for(let ti=0;ti<=4;ti++){
-    const val=scaleMin+(scaleMax-scaleMin)*(ti/4);
-    const y=yOf(val);
-    yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
-    yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="10" fill="var(--tx2)" text-anchor="end">'+val.toFixed(2)+'%</text>';
-  }
-  const pts=d.points.map((p,i)=>[padL+i*stepX, yOf(p.value)]);
-  const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  let dots='', labels='';
-  d.points.forEach((p,i)=>{
-    const x=padL+i*stepX, y=yOf(p.value);
-    dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="6" fill="var(--accent)" stroke="#fff" stroke-width="2"/>';
-    dots+='<text x="'+x.toFixed(1)+'" y="'+(y-14).toFixed(1)+'" font-size="13" font-weight="800" fill="var(--tx)" text-anchor="middle">'+p.value.toFixed(2)+'%</text>';
-    labels+='<text x="'+x.toFixed(1)+'" y="'+(h-14)+'" font-size="11" fill="var(--tx2)" text-anchor="middle">'+p.label+'</text>';
-  });
-  chartEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-    yAxis+'<path d="'+pathOf(pts)+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>'+dots+labels+
-    '</svg>';
-  if(commentEl) commentEl.innerHTML='<b>'+d.asOf+' 발표 기준</b><br>'+d.comment;
-}
-
-/* [실시간] 미 재무부 Fiscal Data API — TGA(Treasury General Account) 최근 90일 잔고 */
-async function loadTgaBalance(){
-  const chartEl=document.getElementById('tga-chart');
-  const commentEl=document.getElementById('tga-comment');
-  const dateEl=document.getElementById('tga-latest-date');
-  try{
-    /* 필드 안내(dataFormats)상 close_today_bal은 "백만 달러" 단위로 내려온다(예: 700000 = 7,000억 달러).
-       서버 쪽 filter·sort 파라미터가 프록시 환경에 따라 무시될 가능성에 대비해, account_type과
-       날짜 정렬을 클라이언트에서도 한 번 더 확실하게 강제한다. */
-    const url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance'
-      +'?fields=record_date,account_type,close_today_bal'
-      +'&filter=account_type:eq:'+encodeURIComponent('Treasury General Account (TGA)')
-      +'&sort=-record_date&page[size]=90';
-    const j=await getJSON(url);
-    let rows=(j&&j.data||[]).filter(r=>r.account_type==='Treasury General Account (TGA)');
-    rows=rows.slice().sort((a,b)=>a.record_date<b.record_date?-1:1); // 오래된 날짜 → 최신 날짜 순
-    if(rows.length>90) rows=rows.slice(rows.length-90); // 최근 90개만
-    if(!rows.length) throw new Error('데이터 없음(계정 필터 결과 0건)');
-    const series=rows.map(r=>({t:r.record_date, v:parseFloat(r.close_today_bal)*1e6})).filter(p=>isFinite(p.v)); // 백만 달러 → 달러
-    if(!series.length) throw new Error('파싱 실패');
-
-    const w=700,h=220,padL=70,padR=20,padTop=20,padBottom=30;
-    const vals=series.map(p=>p.v);
-    const scaleMin=Math.min(...vals)*0.95, scaleMax=Math.max(...vals)*1.05;
-    const stepX=series.length>1?(w-padL-padR)/(series.length-1):0;
-    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
-    const pts=series.map((p,i)=>[padL+i*stepX, yOf(p.v)]);
-    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const areaPath=pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+pts[0][0].toFixed(1)+','+(h-padBottom)+' Z';
-    let yAxis='';
-    for(let ti=0;ti<=3;ti++){
-      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
-      const y=yOf(val);
-      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>';
-      yAxis+='<text x="'+(padL-8)+'" y="'+(y+3).toFixed(1)+'" font-size="10" fill="var(--tx2)" text-anchor="end">$'+(val/1e9).toFixed(0)+'B</text>';
-    }
-    chartEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+'<path d="'+areaPath+'" fill="rgba(0,117,74,.12)" stroke="none"/>'+
-      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+
-      '</svg>';
-
-    const latest=series[series.length-1], prev=series[Math.max(0,series.length-6)];
-    const chg=latest.v-prev.v;
-    const chgPctTxt=(chg>=0?'+':'-')+'$'+(Math.abs(chg)/1e9).toFixed(1)+'B';
-    const dir=chg>=0?'증가(유동성 흡수 쪽)':'감소(유동성 공급 쪽)';
-    if(dateEl) dateEl.textContent='· '+new Date(latest.t).toLocaleDateString('ko-KR')+' 기준';
-    if(commentEl) commentEl.innerHTML='최근 잔고 <b>$'+(latest.v/1e9).toFixed(0)+'B</b> · 최근 5영업일 대비 <b>'+chgPctTxt+'</b> '+dir+
-      '<br>잔고가 빠르게 늘면 국채 발행이 시중 자금을 흡수해 단기적으로 유동성이 타이트해질 수 있고, 빠르게 줄면 정부 지출로 시중에 자금이 풀리는 효과가 있습니다.';
-  }catch(e){
-    if(chartEl) chartEl.innerHTML='<p class="mut">⚠ TGA 데이터를 불러오지 못했습니다('+e.message+'). 출처 링크에서 직접 확인해주세요.</p>';
-    if(commentEl) commentEl.innerHTML='';
-    console.error('TGA 데이터 로드 실패:', e);
-  }
-}
 
 function renderEvents(m){
   const tbody=document.getElementById('events-tbl'); if(!tbody)return;
@@ -973,6 +1030,10 @@ document.querySelectorAll('.tabs').forEach(box=>{
     else if(g==='cf') renderCF(p);
     else if(g==='coin') renderCoin(p);
     else if(g==='fx') renderFxWatchlist(p);
+    else if(g==='usrel') renderIdxRelUS(p);
+    else if(g==='caprel') renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,p);
+    else if(g==='krrel') renderIdxRelKR(p);
+    else if(g==='krcaprel') renderCapRelCompare('krcap-caprel-chart','krcap',KRCAP_CAP_DATA,p);
   });
 });
 
@@ -980,13 +1041,8 @@ document.querySelectorAll('.tabs').forEach(box=>{
    실제 Yahoo 종가·배당 데이터와 CNN 공포탐욕지수 히스토리로 계산합니다(가상 수치 아님).
    PROXY_BASE 미설정 시 이 데이터들도 연동에 실패할 수 있습니다. */
 const TRADE_TICKERS=['QLD','USD','SCHD'];
-/* [변경] 연도 선택 버튼 대신 날짜를 직접 입력받는다. 데이터가 있는 범위(임베딩된 공포탐욕지수
-   구간)로만 입력을 제한한다 — 그보다 이전 날짜를 고르면 그 이전 구간의 공포탐욕 점수를 알 수
-   없어 매수 판단 자체가 불가능하다. */
-const BACKTEST_MIN_DATE='2022-01-03';
-function backtestMaxDate(){ return new Date().toISOString().slice(0,10); } // 오늘(항상 최신 기준)
-let BACKTEST_START_DATE='2026-01-01';
-let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_DATE+'T00:00:00Z').getTime()/1000);
+let BACKTEST_START_YEAR=2026; // 2022~2026 중 선택 — 트레이드 탭의 연도 선택 버튼으로 변경됨
+let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_YEAR+'-01-01T00:00:00Z').getTime()/1000);
 
 /* ===================== 한국지수 공포탐욕지수 =====================
    미국지수와 동일한 CNN 7개 세부지표 방식으로 설계했으나, 시장 모멘텀(1번)만
@@ -1233,8 +1289,8 @@ function renderFxWatchlist(p){
     const rsiTxt=rsi!=null?rsi.toFixed(1):'--';
     const rsiNote=rsi!=null?(rsi>=70?' <span class="mut" style="font-size:11px">(과매수)</span>':rsi<=30?' <span class="mut" style="font-size:11px">(과매도)</span>':''):'';
     const ma200Badge=above200==null?'<span class="mut">--</span>'
-      :(above200?'<span class="tag" style="background:rgba(200,32,20,.15);color:var(--up)">200일선 위</span>'
-                :'<span class="tag" style="background:rgba(26,111,168,.15);color:var(--down)">200일선 아래</span>');
+      :(above200?'<span class="tag" style="background:rgba(255,77,79,.15);color:var(--up)">200일선 위</span>'
+                :'<span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">200일선 아래</span>');
     return '<tr>'+nameCell+
       '<td class="num">'+priceStr+'</td>'+
       '<td class="num '+dir+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</td>'+
@@ -1442,6 +1498,7 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     return '<tr><td>'+n+'</td><td class="num">'+v.toFixed(1)+'</td>'+
       '<td class="num"><span class="tag '+(v<45?'t-h':v<=55?'t-l':'t-m')+'">'+t+'</span></td></tr>';
   }).join('');
+  renderBreadthFlow('kr-breadth-flow', breadth);
 }
 
 /* 현재 기준 USD/KRW 환율 (Yahoo KRW=X) — 백테스트 원금·배당금 원화 병기용 */
@@ -1520,7 +1577,7 @@ async function yDailySeries(sym){
    2022~2026년 시작 옵션을 이 구간이 전부 커버하므로, 백테스트용 공포탐욕지수는
    더 이상 라이브 CNN 연동에 의존하지 않는다(실패해도 항상 정확한 값 사용, 겹치는 날짜는
    이 xlsx 값이 우선). 대시보드 상단의 실시간 현재 지수 표시만 별도로 라이브 데이터를 쓴다. */
-const FG_XLS_DATA=[["2011-01-03",68.0],["2011-01-04",68.0],["2011-01-05",67.0],["2011-01-06",64.0],["2011-01-07",63.0],["2011-01-10",58.0],["2011-01-11",58.0],["2011-01-12",58.0],["2011-01-13",58.0],["2011-01-14",60.0],["2011-01-18",56.0],["2011-01-19",55.0],["2011-01-20",54.0],["2011-01-21",47.0],["2011-01-24",45.0],["2011-01-25",43.0],["2011-01-26",43.0],["2011-01-27",43.0],["2011-01-28",43.0],["2011-01-31",41.0],["2011-02-01",41.0],["2011-02-02",46.0],["2011-02-03",47.0],["2011-02-04",49.0],["2011-02-07",56.0],["2011-02-08",56.0],["2011-02-09",56.0],["2011-02-10",56.0],["2011-02-11",56.0],["2011-02-14",61.0],["2011-02-15",61.0],["2011-02-16",61.0],["2011-02-17",61.0],["2011-02-18",56.0],["2011-02-22",42.0],["2011-02-23",42.0],["2011-02-24",42.0],["2011-02-25",42.0],["2011-02-28",43.0],["2011-03-01",43.0],["2011-03-02",42.0],["2011-03-03",41.0],["2011-03-04",39.0],["2011-03-07",35.0],["2011-03-08",27.0],["2011-03-09",26.0],["2011-03-10",26.0],["2011-03-11",26.0],["2011-03-14",13.0],["2011-03-15",13.0],["2011-03-16",11.0],["2011-03-17",9.0],["2011-03-18",9.0],["2011-03-21",14.0],["2011-03-22",15.0],["2011-03-23",16.0],["2011-03-24",16.0],["2011-03-25",19.0],["2011-03-28",23.0],["2011-03-29",23.0],["2011-03-30",24.0],["2011-03-31",24.0],["2011-04-01",27.0],["2011-04-04",31.0],["2011-04-05",35.0],["2011-04-06",37.0],["2011-04-07",37.0],["2011-04-08",37.0],["2011-04-11",34.0],["2011-04-12",33.0],["2011-04-13",33.0],["2011-04-14",30.0],["2011-04-15",28.0],["2011-04-18",24.0],["2011-04-19",24.0],["2011-04-20",25.0],["2011-04-21",30.0],["2011-04-25",35.0],["2011-04-26",36.0],["2011-04-27",37.0],["2011-04-28",37.0],["2011-04-29",41.0],["2011-05-02",36.0],["2011-05-03",31.0],["2011-05-04",30.0],["2011-05-05",29.0],["2011-05-06",27.0],["2011-05-09",28.0],["2011-05-10",31.0],["2011-05-11",31.0],["2011-05-12",32.0],["2011-05-13",32.0],["2011-05-16",27.0],["2011-05-17",27.0],["2011-05-18",25.0],["2011-05-19",23.0],["2011-05-20",22.0],["2011-05-23",16.0],["2011-05-24",13.0],["2011-05-25",13.0],["2011-05-26",15.0],["2011-05-27",16.0],["2011-05-31",16.0],["2011-06-01",15.0],["2011-06-02",12.0],["2011-06-03",9.0],["2011-06-06",6.0],["2011-06-07",6.0],["2011-06-08",6.0],["2011-06-09",6.0],["2011-06-10",5.0],["2011-06-13",6.0],["2011-06-14",5.0],["2011-06-15",5.0],["2011-06-16",6.0],["2011-06-17",7.0],["2011-06-20",9.0],["2011-06-21",9.0],["2011-06-22",10.0],["2011-06-23",10.0],["2011-06-24",11.0],["2011-06-27",25.0],["2011-06-28",29.0],["2011-06-29",30.0],["2011-06-30",32.0],["2011-07-01",34.0],["2011-07-05",51.0],["2011-07-06",52.0],["2011-07-07",48.0],["2011-07-08",43.0],["2011-07-11",35.0],["2011-07-12",31.0],["2011-07-13",31.0],["2011-07-14",31.0],["2011-07-15",32.0],["2011-07-18",44.0],["2011-07-19",44.0],["2011-07-20",47.0],["2011-07-21",48.0],["2011-07-22",51.0],["2011-07-25",38.0],["2011-07-26",35.0],["2011-07-27",27.0],["2011-07-28",27.0],["2011-07-29",16.0],["2011-08-01",10.0],["2011-08-02",8.0],["2011-08-03",2.0],["2011-08-04",5.0],["2011-08-05",5.0],["2011-08-08",1.0],["2011-08-09",2.0],["2011-08-10",2.0],["2011-08-11",3.0],["2011-08-12",6.0],["2011-08-15",7.0],["2011-08-16",11.0],["2011-08-17",7.0],["2011-08-18",7.0],["2011-08-19",6.0],["2011-08-22",7.0],["2011-08-23",9.0],["2011-08-24",8.0],["2011-08-25",11.0],["2011-08-26",12.0],["2011-08-29",22.0],["2011-08-30",22.0],["2011-08-31",28.0],["2011-09-01",26.0],["2011-09-02",26.0],["2011-09-06",27.0],["2011-09-07",28.0],["2011-09-08",25.0],["2011-09-09",25.0],["2011-09-12",31.0],["2011-09-13",31.0],["2011-09-14",31.0],["2011-09-15",33.0],["2011-09-16",38.0],["2011-09-19",39.0],["2011-09-20",32.0],["2011-09-21",31.0],["2011-09-22",28.0],["2011-09-23",28.0],["2011-09-26",26.0],["2011-09-27",25.0],["2011-09-28",27.0],["2011-09-29",23.0],["2011-09-30",22.0],["2011-10-03",20.0],["2011-10-04",23.0],["2011-10-05",27.0],["2011-10-06",33.0],["2011-10-07",31.0],["2011-10-10",41.0],["2011-10-11",41.0],["2011-10-12",42.0],["2011-10-13",42.0],["2011-10-14",41.0],["2011-10-17",48.0],["2011-10-18",48.0],["2011-10-19",48.0],["2011-10-20",54.0],["2011-10-21",66.0],["2011-10-24",62.0],["2011-10-25",62.0],["2011-10-26",71.0],["2011-10-27",67.0],["2011-10-28",66.0],["2011-10-31",62.0],["2011-11-01",62.0],["2011-11-02",62.0],["2011-11-03",63.0],["2011-11-04",60.0],["2011-11-07",65.0],["2011-11-08",65.0],["2011-11-09",59.0],["2011-11-10",60.0],["2011-11-11",60.0],["2011-11-14",54.0],["2011-11-15",54.0],["2011-11-16",55.0],["2011-11-17",52.0],["2011-11-18",46.0],["2011-11-21",43.0],["2011-11-22",41.0],["2011-11-23",39.0],["2011-11-25",51.0],["2011-11-28",57.0],["2011-11-29",62.0],["2011-11-30",67.0],["2011-12-01",61.0],["2011-12-02",67.0],["2011-12-05",66.0],["2011-12-06",66.0],["2011-12-07",66.0],["2011-12-08",66.0],["2011-12-09",65.0],["2011-12-12",62.0],["2011-12-13",56.0],["2011-12-14",61.0],["2011-12-15",61.0],["2011-12-16",60.0],["2011-12-19",74.0],["2011-12-20",74.0],["2011-12-21",74.0],["2011-12-22",78.0],["2011-12-23",77.0],["2011-12-27",75.0],["2011-12-28",75.0],["2011-12-29",75.0],["2011-12-30",75.0],["2012-01-03",77.0],["2012-01-04",77.0],["2012-01-05",78.0],["2012-01-06",78.0],["2012-01-09",81.0],["2012-01-10",82.0],["2012-01-11",83.0],["2012-01-12",83.0],["2012-01-13",83.0],["2012-01-17",88.0],["2012-01-18",90.0],["2012-01-19",89.0],["2012-01-20",88.0],["2012-01-23",87.0],["2012-01-24",87.0],["2012-01-25",84.0],["2012-01-26",82.0],["2012-01-27",82.0],["2012-01-30",82.0],["2012-01-31",85.0],["2012-02-01",87.0],["2012-02-02",88.0],["2012-02-03",88.0],["2012-02-06",88.0],["2012-02-07",86.0],["2012-02-08",86.0],["2012-02-09",85.0],["2012-02-10",83.0],["2012-02-13",83.0],["2012-02-14",81.0],["2012-02-15",82.0],["2012-02-16",81.0],["2012-02-17",80.0],["2012-02-21",79.0],["2012-02-22",78.0],["2012-02-23",79.0],["2012-02-24",79.0],["2012-02-27",75.0],["2012-02-28",75.0],["2012-02-29",72.0],["2012-03-01",70.0],["2012-03-02",68.0],["2012-03-05",66.0],["2012-03-06",63.0],["2012-03-07",62.0],["2012-03-08",63.0],["2012-03-09",70.0],["2012-03-12",74.0],["2012-03-13",79.0],["2012-03-14",79.0],["2012-03-15",79.0],["2012-03-16",77.0],["2012-03-19",73.0],["2012-03-20",73.0],["2012-03-21",71.0],["2012-03-22",66.0],["2012-03-23",71.0],["2012-03-26",66.0],["2012-03-27",66.0],["2012-03-28",62.0],["2012-03-29",62.0],["2012-03-30",63.0],["2012-04-02",63.0],["2012-04-03",61.0],["2012-04-04",63.0],["2012-04-05",55.0],["2012-04-09",46.0],["2012-04-10",39.0],["2012-04-11",39.0],["2012-04-12",38.0],["2012-04-13",38.0],["2012-04-16",37.0],["2012-04-17",37.0],["2012-04-18",36.0],["2012-04-19",35.0],["2012-04-20",35.0],["2012-04-23",34.0],["2012-04-24",34.0],["2012-04-25",38.0],["2012-04-26",40.0],["2012-04-27",41.0],["2012-04-30",43.0],["2012-05-01",42.0],["2012-05-02",42.0],["2012-05-03",41.0],["2012-05-04",41.0],["2012-05-07",38.0],["2012-05-08",32.0],["2012-05-09",32.0],["2012-05-10",32.0],["2012-05-11",25.0],["2012-05-14",23.0],["2012-05-15",20.0],["2012-05-16",14.0],["2012-05-17",12.0],["2012-05-18",12.0],["2012-05-21",16.0],["2012-05-22",15.0],["2012-05-23",15.0],["2012-05-24",14.0],["2012-05-25",13.0],["2012-05-29",14.0],["2012-05-30",12.0],["2012-05-31",10.0],["2012-06-01",10.0],["2012-06-04",14.0],["2012-06-05",14.0],["2012-06-06",15.0],["2012-06-07",16.0],["2012-06-08",19.0],["2012-06-11",20.0],["2012-06-12",22.0],["2012-06-13",19.0],["2012-06-14",27.0],["2012-06-15",35.0],["2012-06-18",36.0],["2012-06-19",36.0],["2012-06-20",36.0],["2012-06-21",33.0],["2012-06-22",33.0],["2012-06-25",39.0],["2012-06-26",41.0],["2012-06-27",41.0],["2012-06-28",48.0],["2012-06-29",53.0],["2012-07-02",56.0],["2012-07-03",59.0],["2012-07-05",55.0],["2012-07-06",51.0],["2012-07-09",46.0],["2012-07-10",48.0],["2012-07-11",44.0],["2012-07-12",44.0],["2012-07-13",45.0],["2012-07-16",48.0],["2012-07-17",52.0],["2012-07-18",52.0],["2012-07-19",51.0],["2012-07-20",51.0],["2012-07-23",47.0],["2012-07-24",41.0],["2012-07-25",51.0],["2012-07-26",55.0],["2012-07-27",61.0],["2012-07-30",57.0],["2012-07-31",55.0],["2012-08-01",55.0],["2012-08-02",49.0],["2012-08-03",63.0],["2012-08-06",71.0],["2012-08-07",70.0],["2012-08-08",73.0],["2012-08-09",75.0],["2012-08-10",70.0],["2012-08-13",75.0],["2012-08-14",74.0],["2012-08-15",72.0],["2012-08-16",78.0],["2012-08-17",79.0],["2012-08-20",75.0],["2012-08-21",74.0],["2012-08-22",74.0],["2012-08-23",72.0],["2012-08-24",70.0],["2012-08-27",68.0],["2012-08-28",68.0],["2012-08-29",63.0],["2012-08-30",63.0],["2012-08-31",59.0],["2012-09-04",71.0],["2012-09-05",74.0],["2012-09-06",76.0],["2012-09-07",83.0],["2012-09-10",78.0],["2012-09-11",86.0],["2012-09-12",84.0],["2012-09-13",91.0],["2012-09-14",93.0],["2012-09-17",92.0],["2012-09-18",92.0],["2012-09-19",92.0],["2012-09-20",93.0],["2012-09-21",93.0],["2012-09-24",81.0],["2012-09-25",81.0],["2012-09-26",70.0],["2012-09-27",76.0],["2012-09-28",71.0],["2012-10-01",72.0],["2012-10-02",75.0],["2012-10-03",76.0],["2012-10-04",77.0],["2012-10-05",78.0],["2012-10-08",72.0],["2012-10-09",66.0],["2012-10-10",59.0],["2012-10-11",56.0],["2012-10-12",56.0],["2012-10-15",54.0],["2012-10-16",63.0],["2012-10-17",61.0],["2012-10-18",53.0],["2012-10-19",56.0],["2012-10-22",56.0],["2012-10-23",42.0],["2012-10-24",45.0],["2012-10-25",41.0],["2012-10-26",40.0],["2012-10-31",45.0],["2012-11-01",50.0],["2012-11-02",50.0],["2012-11-05",46.0],["2012-11-06",47.0],["2012-11-07",45.0],["2012-11-08",40.0],["2012-11-09",39.0],["2012-11-12",35.0],["2012-11-13",37.0],["2012-11-14",31.0],["2012-11-15",28.0],["2012-11-16",28.0],["2012-11-19",38.0],["2012-11-20",42.0],["2012-11-21",39.0],["2012-11-23",47.0],["2012-11-26",47.0],["2012-11-27",49.0],["2012-11-28",49.0],["2012-11-29",52.0],["2012-11-30",50.0],["2012-12-03",45.0],["2012-12-04",45.0],["2012-12-05",45.0],["2012-12-06",45.0],["2012-12-07",51.0],["2012-12-10",55.0],["2012-12-11",55.0],["2012-12-12",58.0],["2012-12-13",60.0],["2012-12-14",57.0],["2012-12-17",64.0],["2012-12-18",67.0],["2012-12-19",64.0],["2012-12-20",59.0],["2012-12-21",56.0],["2012-12-24",51.0],["2012-12-26",58.0],["2012-12-27",58.0],["2012-12-28",66.0],["2012-12-31",66.0],["2013-01-02",68.0],["2013-01-03",69.0],["2013-01-04",82.0],["2013-01-07",82.0],["2013-01-08",80.0],["2013-01-09",81.0],["2013-01-10",85.0],["2013-01-11",85.0],["2013-01-14",86.0],["2013-01-15",89.0],["2013-01-16",85.0],["2013-01-17",86.0],["2013-01-18",89.0],["2013-01-22",89.0],["2013-01-23",92.0],["2013-01-24",92.0],["2013-01-25",91.0],["2013-01-28",93.0],["2013-01-29",94.0],["2013-01-30",93.0],["2013-01-31",89.0],["2013-02-01",88.0],["2013-02-04",80.0],["2013-02-05",88.0],["2013-02-06",81.0],["2013-02-07",85.0],["2013-02-08",83.0],["2013-02-11",82.0],["2013-02-12",82.0],["2013-02-13",83.0],["2013-02-14",87.0],["2013-02-15",84.0],["2013-02-19",81.0],["2013-02-20",79.0],["2013-02-21",68.0],["2013-02-22",78.0],["2013-02-25",62.0],["2013-02-26",61.0],["2013-02-27",56.0],["2013-02-28",61.0],["2013-03-01",60.0],["2013-03-04",60.0],["2013-03-05",71.0],["2013-03-06",69.0],["2013-03-07",73.0],["2013-03-08",82.0],["2013-03-11",79.0],["2013-03-12",77.0],["2013-03-13",77.0],["2013-03-14",79.0],["2013-03-15",77.0],["2013-03-18",70.0],["2013-03-19",73.0],["2013-03-20",69.0],["2013-03-21",69.0],["2013-03-22",69.0],["2013-03-25",70.0],["2013-03-26",68.0],["2013-03-27",70.0],["2013-03-28",72.0],["2013-04-01",63.0],["2013-04-02",63.0],["2013-04-03",59.0],["2013-04-04",55.0],["2013-04-05",52.0],["2013-04-08",53.0],["2013-04-09",56.0],["2013-04-10",56.0],["2013-04-11",57.0],["2013-04-12",57.0],["2013-04-15",41.0],["2013-04-16",52.0],["2013-04-17",47.0],["2013-04-18",35.0],["2013-04-19",41.0],["2013-04-22",42.0],["2013-04-23",46.0],["2013-04-24",48.0],["2013-04-25",53.0],["2013-04-26",53.0],["2013-04-29",60.0],["2013-04-30",61.0],["2013-05-01",62.0],["2013-05-02",63.0],["2013-05-03",64.0],["2013-05-06",73.0],["2013-05-07",78.0],["2013-05-08",77.0],["2013-05-09",76.0],["2013-05-10",77.0],["2013-05-13",80.0],["2013-05-14",86.0],["2013-05-15",87.0],["2013-05-16",85.0],["2013-05-17",91.0],["2013-05-20",83.0],["2013-05-21",83.0],["2013-05-22",83.0],["2013-05-23",80.0],["2013-05-24",75.0],["2013-05-28",67.0],["2013-05-29",66.0],["2013-05-30",72.0],["2013-05-31",60.0],["2013-06-03",55.0],["2013-06-04",48.0],["2013-06-05",32.0],["2013-06-06",34.0],["2013-06-07",40.0],["2013-06-10",34.0],["2013-06-11",31.0],["2013-06-12",30.0],["2013-06-13",30.0],["2013-06-14",29.0],["2013-06-17",24.0],["2013-06-18",24.0],["2013-06-19",21.0],["2013-06-20",19.0],["2013-06-21",19.0],["2013-06-24",18.0],["2013-06-25",19.0],["2013-06-26",20.0],["2013-06-27",21.0],["2013-06-28",22.0],["2013-07-01",25.0],["2013-07-02",29.0],["2013-07-03",30.0],["2013-07-05",38.0],["2013-07-08",40.0],["2013-07-09",48.0],["2013-07-10",49.0],["2013-07-11",51.0],["2013-07-12",61.0],["2013-07-15",60.0],["2013-07-16",62.0],["2013-07-17",57.0],["2013-07-18",62.0],["2013-07-19",68.0],["2013-07-22",63.0],["2013-07-23",65.0],["2013-07-24",64.0],["2013-07-25",62.0],["2013-07-26",64.0],["2013-07-29",59.0],["2013-07-30",62.0],["2013-07-31",61.0],["2013-08-01",68.0],["2013-08-02",62.0],["2013-08-05",61.0],["2013-08-06",54.0],["2013-08-07",47.0],["2013-08-08",52.0],["2013-08-09",44.0],["2013-08-12",50.0],["2013-08-13",50.0],["2013-08-14",46.0],["2013-08-15",43.0],["2013-08-16",39.0],["2013-08-19",32.0],["2013-08-20",26.0],["2013-08-21",26.0],["2013-08-22",32.0],["2013-08-23",27.0],["2013-08-26",25.0],["2013-08-27",18.0],["2013-08-28",24.0],["2013-08-29",23.0],["2013-08-30",20.0],["2013-09-03",17.0],["2013-09-04",28.0],["2013-09-05",33.0],["2013-09-06",36.0],["2013-09-09",43.0],["2013-09-10",52.0],["2013-09-11",47.0],["2013-09-12",46.0],["2013-09-13",48.0],["2013-09-16",50.0],["2013-09-17",54.0],["2013-09-18",56.0],["2013-09-19",62.0],["2013-09-20",57.0],["2013-09-23",49.0],["2013-09-24",48.0],["2013-09-25",47.0],["2013-09-26",39.0],["2013-09-27",41.0],["2013-09-30",35.0],["2013-10-01",40.0],["2013-10-02",35.0],["2013-10-03",29.0],["2013-10-04",34.0],["2013-10-07",27.0],["2013-10-08",20.0],["2013-10-09",29.0],["2013-10-10",35.0],["2013-10-11",31.0],["2013-10-14",39.0],["2013-10-15",39.0],["2013-10-16",46.0],["2013-10-17",48.0],["2013-10-18",56.0],["2013-10-21",53.0],["2013-10-22",55.0],["2013-10-23",61.0],["2013-10-24",62.0],["2013-10-25",62.0],["2013-10-28",64.0],["2013-10-29",64.0],["2013-10-30",64.0],["2013-10-31",66.0],["2013-11-01",67.0],["2013-11-04",68.0],["2013-11-05",68.0],["2013-11-06",68.0],["2013-11-07",68.0],["2013-11-08",68.0],["2013-11-11",67.0],["2013-11-12",69.0],["2013-11-13",70.0],["2013-11-14",70.0],["2013-11-15",71.0],["2013-11-18",71.0],["2013-11-19",67.0],["2013-11-20",68.0],["2013-11-21",68.0],["2013-11-22",68.0],["2013-11-25",66.0],["2013-11-26",64.0],["2013-11-27",67.0],["2013-11-29",70.0],["2013-12-02",66.0],["2013-12-03",65.0],["2013-12-04",65.0],["2013-12-05",57.0],["2013-12-06",63.0],["2013-12-09",53.0],["2013-12-10",52.0],["2013-12-11",51.0],["2013-12-12",43.0],["2013-12-13",38.0],["2013-12-16",45.0],["2013-12-17",38.0],["2013-12-18",49.0],["2013-12-19",50.0],["2013-12-20",52.0],["2013-12-23",61.0],["2013-12-24",66.0],["2013-12-26",63.0],["2013-12-27",72.0],["2013-12-30",70.0],["2013-12-31",77.0],["2014-01-02",71.0],["2014-01-03",66.0],["2014-01-06",64.0],["2014-01-07",67.0],["2014-01-08",64.0],["2014-01-09",68.0],["2014-01-10",66.0],["2014-01-13",61.0],["2014-01-14",68.0],["2014-01-15",65.0],["2014-01-16",63.0],["2014-01-17",59.0],["2014-01-21",62.0],["2014-01-22",45.0],["2014-01-23",46.0],["2014-01-24",27.0],["2014-01-27",25.0],["2014-01-28",29.0],["2014-01-29",20.0],["2014-01-30",18.0],["2014-01-31",20.0],["2014-02-03",13.0],["2014-02-04",15.0],["2014-02-05",20.0],["2014-02-06",17.0],["2014-02-07",22.0],["2014-02-10",28.0],["2014-02-11",29.0],["2014-02-12",32.0],["2014-02-13",32.0],["2014-02-14",30.0],["2014-02-18",42.0],["2014-02-19",39.0],["2014-02-20",45.0],["2014-02-21",48.0],["2014-02-24",55.0],["2014-02-25",57.0],["2014-02-26",58.0],["2014-02-27",62.0],["2014-02-28",56.0],["2014-03-03",63.0],["2014-03-04",66.0],["2014-03-05",78.0],["2014-03-06",80.0],["2014-03-07",81.0],["2014-03-10",81.0],["2014-03-11",76.0],["2014-03-12",57.0],["2014-03-13",49.0],["2014-03-14",44.0],["2014-03-17",49.0],["2014-03-18",51.0],["2014-03-19",53.0],["2014-03-20",54.0],["2014-03-21",56.0],["2014-03-24",49.0],["2014-03-25",43.0],["2014-03-26",43.0],["2014-03-27",34.0],["2014-03-28",36.0],["2014-03-31",50.0],["2014-04-01",51.0],["2014-04-02",53.0],["2014-04-03",51.0],["2014-04-04",49.0],["2014-04-07",35.0],["2014-04-08",34.0],["2014-04-09",31.0],["2014-04-10",31.0],["2014-04-11",21.0],["2014-04-14",23.0],["2014-04-15",23.0],["2014-04-16",28.0],["2014-04-17",28.0],["2014-04-21",38.0],["2014-04-22",40.0],["2014-04-23",40.0],["2014-04-24",39.0],["2014-04-25",35.0],["2014-04-28",34.0],["2014-04-29",34.0],["2014-04-30",33.0],["2014-05-01",30.0],["2014-05-02",32.0],["2014-05-05",34.0],["2014-05-06",34.0],["2014-05-07",33.0],["2014-05-08",33.0],["2014-05-09",42.0],["2014-05-12",45.0],["2014-05-13",39.0],["2014-05-14",38.0],["2014-05-15",28.0],["2014-05-16",28.0],["2014-05-19",26.0],["2014-05-20",21.0],["2014-05-21",29.0],["2014-05-22",36.0],["2014-05-23",37.0],["2014-05-27",40.0],["2014-05-28",42.0],["2014-05-29",42.0],["2014-05-30",45.0],["2014-06-02",58.0],["2014-06-03",66.0],["2014-06-04",66.0],["2014-06-05",81.0],["2014-06-06",81.0],["2014-06-09",89.0],["2014-06-10",90.0],["2014-06-11",88.0],["2014-06-12",83.0],["2014-06-13",85.0],["2014-06-16",87.0],["2014-06-17",88.0],["2014-06-18",94.0],["2014-06-19",95.0],["2014-06-20",95.0],["2014-06-23",93.0],["2014-06-24",83.0],["2014-06-25",83.0],["2014-06-26",77.0],["2014-06-27",76.0],["2014-06-30",87.0],["2014-07-01",87.0],["2014-07-02",87.0],["2014-07-03",86.0],["2014-07-07",68.0],["2014-07-08",74.0],["2014-07-09",62.0],["2014-07-10",56.0],["2014-07-11",57.0],["2014-07-14",59.0],["2014-07-15",56.0],["2014-07-16",55.0],["2014-07-17",32.0],["2014-07-18",46.0],["2014-07-21",37.0],["2014-07-22",38.0],["2014-07-23",39.0],["2014-07-24",42.0],["2014-07-25",34.0],["2014-07-28",34.0],["2014-07-29",31.0],["2014-07-30",26.0],["2014-07-31",10.0],["2014-08-01",5.0],["2014-08-04",5.0],["2014-08-05",5.0],["2014-08-06",5.0],["2014-08-07",5.0],["2014-08-08",10.0],["2014-08-11",7.0],["2014-08-12",8.0],["2014-08-13",13.0],["2014-08-14",16.0],["2014-08-15",14.0],["2014-08-18",26.0],["2014-08-19",31.0],["2014-08-20",37.0],["2014-08-21",36.0],["2014-08-22",37.0],["2014-08-25",35.0],["2014-08-26",36.0],["2014-08-27",33.0],["2014-08-28",33.0],["2014-08-29",41.0],["2014-09-02",48.0],["2014-09-03",48.0],["2014-09-04",47.0],["2014-09-05",50.0],["2014-09-08",47.0],["2014-09-09",42.0],["2014-09-10",45.0],["2014-09-11",44.0],["2014-09-12",43.0],["2014-09-15",38.0],["2014-09-16",37.0],["2014-09-17",42.0],["2014-09-18",37.0],["2014-09-19",36.0],["2014-09-22",22.0],["2014-09-23",18.0],["2014-09-24",17.0],["2014-09-25",8.0],["2014-09-26",13.0],["2014-09-29",11.0],["2014-09-30",12.0],["2014-10-01",7.0],["2014-10-02",3.0],["2014-10-03",5.0],["2014-10-06",5.0],["2014-10-07",6.0],["2014-10-08",4.0],["2014-10-09",3.0],["2014-10-10",1.0],["2014-10-13",0.0],["2014-10-14",2.0],["2014-10-15",1.0],["2014-10-16",2.0],["2014-10-17",7.0],["2014-10-20",5.0],["2014-10-21",7.0],["2014-10-22",8.0],["2014-10-23",11.0],["2014-10-24",13.0],["2014-10-27",16.0],["2014-10-28",21.0],["2014-10-29",25.0],["2014-10-30",31.0],["2014-10-31",32.0],["2014-11-03",40.0],["2014-11-04",40.0],["2014-11-05",49.0],["2014-11-06",49.0],["2014-11-07",55.0],["2014-11-10",57.0],["2014-11-11",58.0],["2014-11-12",56.0],["2014-11-13",54.0],["2014-11-14",53.0],["2014-11-17",53.0],["2014-11-18",54.0],["2014-11-19",55.0],["2014-11-20",59.0],["2014-11-21",59.0],["2014-11-24",62.0],["2014-11-25",62.0],["2014-11-26",63.0],["2014-11-28",59.0],["2014-12-01",55.0],["2014-12-02",55.0],["2014-12-03",59.0],["2014-12-04",59.0],["2014-12-05",61.0],["2014-12-08",55.0],["2014-12-09",46.0],["2014-12-10",41.0],["2014-12-11",37.0],["2014-12-12",31.0],["2014-12-15",22.0],["2014-12-16",19.0],["2014-12-17",21.0],["2014-12-18",33.0],["2014-12-19",33.0],["2014-12-22",43.0],["2014-12-23",45.0],["2014-12-24",47.0],["2014-12-26",48.0],["2014-12-29",47.0],["2014-12-30",47.0],["2014-12-31",45.0],["2015-01-02",37.0],["2015-01-05",30.0],["2015-01-06",21.0],["2015-01-07",21.0],["2015-01-08",28.0],["2015-01-09",29.0],["2015-01-12",30.0],["2015-01-13",29.0],["2015-01-14",30.0],["2015-01-15",30.0],["2015-01-16",26.0],["2015-01-20",25.0],["2015-01-21",28.0],["2015-01-22",32.0],["2015-01-23",31.0],["2015-01-26",28.0],["2015-01-27",28.0],["2015-01-28",26.0],["2015-01-29",26.0],["2015-01-30",25.0],["2015-02-02",30.0],["2015-02-03",46.0],["2015-02-04",42.0],["2015-02-05",50.0],["2015-02-06",52.0],["2015-02-09",52.0],["2015-02-10",54.0],["2015-02-11",61.0],["2015-02-12",64.0],["2015-02-13",73.0],["2015-02-17",77.0],["2015-02-18",79.0],["2015-02-19",77.0],["2015-02-20",80.0],["2015-02-23",77.0],["2015-02-24",75.0],["2015-02-25",77.0],["2015-02-26",78.0],["2015-02-27",74.0],["2015-03-02",74.0],["2015-03-03",66.0],["2015-03-04",66.0],["2015-03-05",65.0],["2015-03-06",58.0],["2015-03-09",58.0],["2015-03-10",52.0],["2015-03-11",44.0],["2015-03-12",46.0],["2015-03-13",39.0],["2015-03-16",42.0],["2015-03-17",40.0],["2015-03-18",39.0],["2015-03-19",43.0],["2015-03-20",43.0],["2015-03-23",48.0],["2015-03-24",44.0],["2015-03-25",44.0],["2015-03-26",37.0],["2015-03-27",36.0],["2015-03-30",37.0],["2015-03-31",37.0],["2015-04-01",35.0],["2015-04-02",40.0],["2015-04-06",43.0],["2015-04-07",48.0],["2015-04-08",48.0],["2015-04-09",56.0],["2015-04-10",56.0],["2015-04-13",60.0],["2015-04-14",60.0],["2015-04-15",60.0],["2015-04-16",57.0],["2015-04-17",57.0],["2015-04-20",55.0],["2015-04-21",59.0],["2015-04-22",59.0],["2015-04-23",64.0],["2015-04-24",66.0],["2015-04-27",59.0],["2015-04-28",61.0],["2015-04-29",61.0],["2015-04-30",53.0],["2015-05-01",61.0],["2015-05-04",61.0],["2015-05-05",58.0],["2015-05-06",58.0],["2015-05-07",53.0],["2015-05-08",58.0],["2015-05-11",53.0],["2015-05-12",49.0],["2015-05-13",55.0],["2015-05-14",57.0],["2015-05-15",57.0],["2015-05-18",62.0],["2015-05-19",62.0],["2015-05-20",64.0],["2015-05-21",64.0],["2015-05-22",60.0],["2015-05-26",50.0],["2015-05-27",47.0],["2015-05-28",47.0],["2015-05-29",43.0],["2015-06-01",40.0],["2015-06-02",43.0],["2015-06-03",45.0],["2015-06-04",44.0],["2015-06-05",40.0],["2015-06-08",36.0],["2015-06-09",36.0],["2015-06-10",37.0],["2015-06-11",41.0],["2015-06-12",30.0],["2015-06-15",26.0],["2015-06-16",27.0],["2015-06-17",26.0],["2015-06-18",34.0],["2015-06-19",30.0],["2015-06-22",42.0],["2015-06-23",49.0],["2015-06-24",36.0],["2015-06-25",34.0],["2015-06-26",33.0],["2015-06-29",8.0],["2015-06-30",11.0],["2015-07-01",18.0],["2015-07-02",16.0],["2015-07-06",13.0],["2015-07-07",13.0],["2015-07-08",9.0],["2015-07-09",12.0],["2015-07-10",14.0],["2015-07-13",24.0],["2015-07-14",24.0],["2015-07-15",30.0],["2015-07-16",30.0],["2015-07-17",34.0],["2015-07-20",34.0],["2015-07-21",25.0],["2015-07-22",20.0],["2015-07-23",15.0],["2015-07-24",15.0],["2015-07-27",7.0],["2015-07-28",17.0],["2015-07-29",21.0],["2015-07-30",21.0],["2015-07-31",20.0],["2015-08-03",24.0],["2015-08-04",28.0],["2015-08-05",21.0],["2015-08-06",18.0],["2015-08-07",10.0],["2015-08-10",9.0],["2015-08-11",12.0],["2015-08-12",9.0],["2015-08-13",11.0],["2015-08-14",11.0],["2015-08-17",14.0],["2015-08-18",13.0],["2015-08-19",13.0],["2015-08-20",8.0],["2015-08-21",8.0],["2015-08-24",3.0],["2015-08-25",9.0],["2015-08-26",12.0],["2015-08-27",13.0],["2015-08-28",14.0],["2015-08-31",14.0],["2015-09-01",9.0],["2015-09-02",13.0],["2015-09-03",11.0],["2015-09-04",10.0],["2015-09-08",13.0],["2015-09-09",13.0],["2015-09-10",15.0],["2015-09-11",14.0],["2015-09-14",13.0],["2015-09-15",16.0],["2015-09-16",16.0],["2015-09-17",16.0],["2015-09-18",18.0],["2015-09-21",23.0],["2015-09-22",31.0],["2015-09-23",31.0],["2015-09-24",22.0],["2015-09-25",18.0],["2015-09-28",15.0],["2015-09-29",13.0],["2015-09-30",21.0],["2015-10-01",18.0],["2015-10-02",24.0],["2015-10-05",31.0],["2015-10-06",36.0],["2015-10-07",37.0],["2015-10-08",42.0],["2015-10-09",43.0],["2015-10-12",41.0],["2015-10-13",35.0],["2015-10-14",35.0],["2015-10-15",41.0],["2015-10-16",45.0],["2015-10-19",47.0],["2015-10-20",51.0],["2015-10-21",50.0],["2015-10-22",55.0],["2015-10-23",59.0],["2015-10-26",61.0],["2015-10-27",69.0],["2015-10-28",69.0],["2015-10-29",71.0],["2015-10-30",70.0],["2015-11-02",73.0],["2015-11-03",73.0],["2015-11-04",72.0],["2015-11-05",73.0],["2015-11-06",71.0],["2015-11-09",67.0],["2015-11-10",66.0],["2015-11-11",63.0],["2015-11-12",55.0],["2015-11-13",45.0],["2015-11-16",50.0],["2015-11-17",48.0],["2015-11-18",53.0],["2015-11-19",52.0],["2015-11-20",54.0],["2015-11-23",53.0],["2015-11-24",58.0],["2015-11-25",59.0],["2015-11-27",58.0],["2015-11-30",58.0],["2015-12-01",60.0],["2015-12-02",55.0],["2015-12-03",49.0],["2015-12-04",58.0],["2015-12-07",47.0],["2015-12-08",38.0],["2015-12-09",35.0],["2015-12-10",36.0],["2015-12-11",24.0],["2015-12-14",29.0],["2015-12-15",35.0],["2015-12-16",44.0],["2015-12-17",34.0],["2015-12-18",29.0],["2015-12-21",32.0],["2015-12-22",36.0],["2015-12-23",42.0],["2015-12-24",42.0],["2015-12-28",44.0],["2015-12-29",51.0],["2015-12-30",47.0],["2015-12-31",45.0],["2016-01-04",40.0],["2016-01-05",41.0],["2016-01-06",34.0],["2016-01-07",25.0],["2016-01-08",17.0],["2016-01-11",18.0],["2016-01-12",17.0],["2016-01-13",14.0],["2016-01-14",18.0],["2016-01-15",10.0],["2016-01-19",11.0],["2016-01-20",9.0],["2016-01-21",13.0],["2016-01-22",14.0],["2016-01-25",15.0],["2016-01-26",18.0],["2016-01-27",19.0],["2016-01-28",21.0],["2016-01-29",27.0],["2016-02-01",27.0],["2016-02-02",23.0],["2016-02-03",25.0],["2016-02-04",25.0],["2016-02-05",17.0],["2016-02-08",14.0],["2016-02-09",20.0],["2016-02-10",16.0],["2016-02-11",18.0],["2016-02-12",24.0],["2016-02-16",34.0],["2016-02-17",45.0],["2016-02-18",47.0],["2016-02-19",50.0],["2016-02-22",51.0],["2016-02-23",51.0],["2016-02-24",49.0],["2016-02-25",54.0],["2016-02-26",57.0],["2016-02-29",53.0],["2016-03-01",64.0],["2016-03-02",66.0],["2016-03-03",69.0],["2016-03-04",71.0],["2016-03-07",73.0],["2016-03-08",70.0],["2016-03-09",71.0],["2016-03-10",71.0],["2016-03-11",75.0],["2016-03-14",73.0],["2016-03-15",73.0],["2016-03-16",75.0],["2016-03-17",78.0],["2016-03-18",79.0],["2016-03-21",78.0],["2016-03-22",78.0],["2016-03-23",70.0],["2016-03-24",66.0],["2016-03-28",64.0],["2016-03-29",68.0],["2016-03-30",71.0],["2016-03-31",73.0],["2016-04-01",78.0],["2016-04-04",74.0],["2016-04-05",67.0],["2016-04-06",77.0],["2016-04-07",66.0],["2016-04-08",68.0],["2016-04-11",64.0],["2016-04-12",68.0],["2016-04-13",71.0],["2016-04-14",72.0],["2016-04-15",70.0],["2016-04-18",75.0],["2016-04-19",75.0],["2016-04-20",76.0],["2016-04-21",74.0],["2016-04-22",74.0],["2016-04-25",70.0],["2016-04-26",72.0],["2016-04-27",72.0],["2016-04-28",69.0],["2016-04-29",63.0],["2016-05-02",71.0],["2016-05-03",63.0],["2016-05-04",57.0],["2016-05-05",58.0],["2016-05-06",61.0],["2016-05-09",60.0],["2016-05-10",67.0],["2016-05-11",60.0],["2016-05-12",61.0],["2016-05-13",54.0],["2016-05-16",62.0],["2016-05-17",53.0],["2016-05-18",55.0],["2016-05-19",51.0],["2016-05-20",56.0],["2016-05-23",54.0],["2016-05-24",65.0],["2016-05-25",73.0],["2016-05-26",74.0],["2016-05-27",78.0],["2016-05-31",75.0],["2016-06-01",78.0],["2016-06-02",79.0],["2016-06-03",75.0],["2016-06-06",80.0],["2016-06-07",81.0],["2016-06-08",80.0],["2016-06-09",79.0],["2016-06-10",61.0],["2016-06-13",53.0],["2016-06-14",50.0],["2016-06-15",50.0],["2016-06-16",51.0],["2016-06-17",53.0],["2016-06-20",62.0],["2016-06-21",67.0],["2016-06-22",57.0],["2016-06-23",77.0],["2016-06-24",42.0],["2016-06-27",37.0],["2016-06-28",47.0],["2016-06-29",60.0],["2016-06-30",64.0],["2016-07-01",71.0],["2016-07-05",67.0],["2016-07-06",70.0],["2016-07-07",69.0],["2016-07-08",78.0],["2016-07-11",83.0],["2016-07-12",88.0],["2016-07-13",86.0],["2016-07-14",90.0],["2016-07-15",89.0],["2016-07-18",91.0],["2016-07-19",87.0],["2016-07-20",90.0],["2016-07-21",85.0],["2016-07-22",86.0],["2016-07-25",85.0],["2016-07-26",85.0],["2016-07-27",82.0],["2016-07-28",82.0],["2016-07-29",79.0],["2016-08-01",77.0],["2016-08-02",77.0],["2016-08-03",81.0],["2016-08-04",80.0],["2016-08-05",86.0],["2016-08-08",84.0],["2016-08-09",80.0],["2016-08-10",74.0],["2016-08-11",80.0],["2016-08-12",75.0],["2016-08-15",81.0],["2016-08-16",77.0],["2016-08-17",76.0],["2016-08-18",78.0],["2016-08-19",77.0],["2016-08-22",72.0],["2016-08-23",76.0],["2016-08-24",69.0],["2016-08-25",66.0],["2016-08-26",63.0],["2016-08-29",64.0],["2016-08-30",64.0],["2016-08-31",61.0],["2016-09-01",62.0],["2016-09-02",65.0],["2016-09-06",65.0],["2016-09-07",65.0],["2016-09-08",70.0],["2016-09-09",43.0],["2016-09-12",58.0],["2016-09-13",35.0],["2016-09-14",33.0],["2016-09-15",43.0],["2016-09-16",43.0],["2016-09-19",44.0],["2016-09-20",45.0],["2016-09-21",56.0],["2016-09-22",60.0],["2016-09-23",54.0],["2016-09-26",41.0],["2016-09-27",45.0],["2016-09-28",51.0],["2016-09-29",37.0],["2016-09-30",49.0],["2016-10-03",45.0],["2016-10-04",43.0],["2016-10-05",51.0],["2016-10-06",53.0],["2016-10-07",51.0],["2016-10-10",57.0],["2016-10-11",43.0],["2016-10-12",45.0],["2016-10-13",34.0],["2016-10-14",41.0],["2016-10-17",33.0],["2016-10-18",40.0],["2016-10-19",39.0],["2016-10-20",38.0],["2016-10-21",43.0],["2016-10-24",53.0],["2016-10-25",48.0],["2016-10-26",43.0],["2016-10-27",46.0],["2016-10-28",32.0],["2016-10-31",30.0],["2016-11-01",21.0],["2016-11-02",17.0],["2016-11-03",14.0],["2016-11-04",14.0],["2016-11-07",33.0],["2016-11-08",33.0],["2016-11-09",43.0],["2016-11-10",45.0],["2016-11-11",48.0],["2016-11-14",53.0],["2016-11-15",63.0],["2016-11-16",60.0],["2016-11-17",63.0],["2016-11-18",61.0],["2016-11-21",67.0],["2016-11-22",67.0],["2016-11-23",70.0],["2016-11-25",72.0],["2016-11-28",70.0],["2016-11-29",71.0],["2016-11-30",73.0],["2016-12-01",71.0],["2016-12-02",71.0],["2016-12-05",75.0],["2016-12-06",77.0],["2016-12-07",83.0],["2016-12-08",85.0],["2016-12-09",87.0],["2016-12-12",87.0],["2016-12-13",88.0],["2016-12-14",86.0],["2016-12-15",86.0],["2016-12-16",84.0],["2016-12-19",82.0],["2016-12-20",79.0],["2016-12-21",74.0],["2016-12-22",71.0],["2016-12-23",66.0],["2016-12-27",70.0],["2016-12-28",64.0],["2016-12-29",64.0],["2016-12-30",58.0],["2017-01-03",71.0],["2017-01-04",71.0],["2017-01-05",68.0],["2017-01-06",70.0],["2017-01-09",66.0],["2017-01-10",62.0],["2017-01-11",61.0],["2017-01-12",55.0],["2017-01-13",57.0],["2017-01-17",57.0],["2017-01-18",56.0],["2017-01-19",53.0],["2017-01-20",54.0],["2017-01-23",49.0],["2017-01-24",54.0],["2017-01-25",62.0],["2017-01-26",57.0],["2017-01-27",59.0],["2017-01-30",53.0],["2017-01-31",54.0],["2017-02-01",53.0],["2017-02-02",51.0],["2017-02-03",60.0],["2017-02-06",56.0],["2017-02-07",56.0],["2017-02-08",61.0],["2017-02-09",69.0],["2017-02-10",69.0],["2017-02-13",74.0],["2017-02-14",79.0],["2017-02-15",80.0],["2017-02-16",78.0],["2017-02-17",77.0],["2017-02-21",83.0],["2017-02-22",80.0],["2017-02-23",75.0],["2017-02-24",68.0],["2017-02-27",71.0],["2017-02-28",64.0],["2017-03-01",81.0],["2017-03-02",75.0],["2017-03-03",74.0],["2017-03-06",69.0],["2017-03-07",70.0],["2017-03-08",62.0],["2017-03-09",62.0],["2017-03-10",66.0],["2017-03-13",64.0],["2017-03-14",51.0],["2017-03-15",53.0],["2017-03-16",51.0],["2017-03-17",45.0],["2017-03-20",42.0],["2017-03-21",36.0],["2017-03-22",32.0],["2017-03-23",30.0],["2017-03-24",30.0],["2017-03-27",29.0],["2017-03-28",34.0],["2017-03-29",34.0],["2017-03-30",43.0],["2017-03-31",47.0],["2017-04-03",46.0],["2017-04-04",46.0],["2017-04-05",43.0],["2017-04-06",43.0],["2017-04-07",40.0],["2017-04-10",37.0],["2017-04-11",31.0],["2017-04-12",28.0],["2017-04-13",25.0],["2017-04-17",30.0],["2017-04-18",30.0],["2017-04-19",30.0],["2017-04-20",34.0],["2017-04-21",35.0],["2017-04-24",39.0],["2017-04-25",46.0],["2017-04-26",48.0],["2017-04-27",50.0],["2017-04-28",50.0],["2017-05-01",49.0],["2017-05-02",51.0],["2017-05-03",47.0],["2017-05-04",45.0],["2017-05-05",47.0],["2017-05-08",49.0],["2017-05-09",50.0],["2017-05-10",61.0],["2017-05-11",63.0],["2017-05-12",62.0],["2017-05-15",64.0],["2017-05-16",66.0],["2017-05-17",45.0],["2017-05-18",43.0],["2017-05-19",49.0],["2017-05-22",50.0],["2017-05-23",45.0],["2017-05-24",54.0],["2017-05-25",57.0],["2017-05-26",58.0],["2017-05-30",53.0],["2017-05-31",50.0],["2017-06-01",58.0],["2017-06-02",57.0],["2017-06-05",58.0],["2017-06-06",55.0],["2017-06-07",55.0],["2017-06-08",55.0],["2017-06-09",54.0],["2017-06-12",55.0],["2017-06-13",55.0],["2017-06-14",52.0],["2017-06-15",52.0],["2017-06-16",50.0],["2017-06-19",57.0],["2017-06-20",48.0],["2017-06-21",42.0],["2017-06-22",50.0],["2017-06-23",52.0],["2017-06-26",53.0],["2017-06-27",48.0],["2017-06-28",60.0],["2017-06-29",47.0],["2017-06-30",49.0],["2017-07-03",54.0],["2017-07-05",57.0],["2017-07-06",44.0],["2017-07-07",49.0],["2017-07-10",46.0],["2017-07-11",41.0],["2017-07-12",47.0],["2017-07-13",54.0],["2017-07-14",64.0],["2017-07-17",67.0],["2017-07-18",62.0],["2017-07-19",74.0],["2017-07-20",76.0],["2017-07-21",73.0],["2017-07-24",72.0],["2017-07-25",81.0],["2017-07-26",78.0],["2017-07-27",73.0],["2017-07-28",70.0],["2017-07-31",70.0],["2017-08-01",65.0],["2017-08-02",67.0],["2017-08-03",59.0],["2017-08-04",64.0],["2017-08-07",63.0],["2017-08-08",61.0],["2017-08-09",54.0],["2017-08-10",31.0],["2017-08-11",28.0],["2017-08-14",39.0],["2017-08-15",36.0],["2017-08-16",34.0],["2017-08-17",19.0],["2017-08-18",17.0],["2017-08-21",15.0],["2017-08-22",23.0],["2017-08-23",19.0],["2017-08-24",22.0],["2017-08-25",27.0],["2017-08-28",29.0],["2017-08-29",28.0],["2017-08-30",35.0],["2017-08-31",43.0],["2017-09-01",50.0],["2017-09-05",35.0],["2017-09-06",41.0],["2017-09-07",38.0],["2017-09-08",38.0],["2017-09-11",53.0],["2017-09-12",63.0],["2017-09-13",68.0],["2017-09-14",68.0],["2017-09-15",77.0],["2017-09-18",80.0],["2017-09-19",81.0],["2017-09-20",79.0],["2017-09-21",73.0],["2017-09-22",70.0],["2017-09-25",65.0],["2017-09-26",67.0],["2017-09-27",78.0],["2017-09-28",79.0],["2017-09-29",85.0],["2017-10-02",89.0],["2017-10-03",92.0],["2017-10-04",91.0],["2017-10-05",95.0],["2017-10-06",92.0],["2017-10-09",84.0],["2017-10-10",85.0],["2017-10-11",83.0],["2017-10-12",77.0],["2017-10-13",73.0],["2017-10-16",78.0],["2017-10-17",78.0],["2017-10-18",82.0],["2017-10-19",83.0],["2017-10-20",90.0],["2017-10-23",85.0],["2017-10-24",87.0],["2017-10-25",75.0],["2017-10-26",71.0],["2017-10-27",73.0],["2017-10-30",74.0],["2017-10-31",65.0],["2017-11-01",72.0],["2017-11-02",69.0],["2017-11-03",66.0],["2017-11-06",68.0],["2017-11-07",58.0],["2017-11-08",54.0],["2017-11-09",54.0],["2017-11-10",54.0],["2017-11-13",53.0],["2017-11-14",49.0],["2017-11-15",36.0],["2017-11-16",50.0],["2017-11-17",44.0],["2017-11-20",50.0],["2017-11-21",54.0],["2017-11-22",54.0],["2017-11-24",59.0],["2017-11-27",51.0],["2017-11-28",64.0],["2017-11-29",67.0],["2017-11-30",73.0],["2017-12-01",70.0],["2017-12-04",64.0],["2017-12-05",63.0],["2017-12-06",60.0],["2017-12-07",60.0],["2017-12-08",64.0],["2017-12-11",62.0],["2017-12-12",66.0],["2017-12-13",67.0],["2017-12-14",66.0],["2017-12-15",68.0],["2017-12-18",74.0],["2017-12-19",73.0],["2017-12-20",72.0],["2017-12-21",68.0],["2017-12-22",66.0],["2017-12-26",64.0],["2017-12-27",61.0],["2017-12-28",62.0],["2017-12-29",53.0],["2018-01-02",63.0],["2018-01-03",67.0],["2018-01-04",72.0],["2018-01-05",75.0],["2018-01-08",75.0],["2018-01-09",76.0],["2018-01-10",75.0],["2018-01-11",77.0],["2018-01-12",79.0],["2018-01-16",75.0],["2018-01-17",75.0],["2018-01-18",72.0],["2018-01-19",80.0],["2018-01-22",79.0],["2018-01-23",78.0],["2018-01-24",78.0],["2018-01-25",77.0],["2018-01-26",79.0],["2018-01-29",68.0],["2018-01-30",62.0],["2018-01-31",61.0],["2018-02-01",58.0],["2018-02-02",40.0],["2018-02-05",17.0],["2018-02-06",18.0],["2018-02-07",16.0],["2018-02-08",8.0],["2018-02-09",10.0],["2018-02-12",12.0],["2018-02-13",13.0],["2018-02-14",11.0],["2018-02-15",15.0],["2018-02-16",18.0],["2018-02-20",17.0],["2018-02-21",18.0],["2018-02-22",15.0],["2018-02-23",18.0],["2018-02-26",20.0],["2018-02-27",17.0],["2018-02-28",12.0],["2018-03-01",8.0],["2018-03-02",10.0],["2018-03-05",14.0],["2018-03-06",26.0],["2018-03-07",20.0],["2018-03-08",20.0],["2018-03-09",44.0],["2018-03-12",40.0],["2018-03-13",36.0],["2018-03-14",30.0],["2018-03-15",21.0],["2018-03-16",19.0],["2018-03-19",14.0],["2018-03-20",15.0],["2018-03-21",16.0],["2018-03-22",9.0],["2018-03-23",7.0],["2018-03-26",8.0],["2018-03-27",7.0],["2018-03-28",6.0],["2018-03-29",8.0],["2018-04-02",7.0],["2018-04-03",9.0],["2018-04-04",11.0],["2018-04-05",13.0],["2018-04-06",9.0],["2018-04-09",12.0],["2018-04-10",17.0],["2018-04-11",17.0],["2018-04-12",22.0],["2018-04-13",23.0],["2018-04-16",25.0],["2018-04-17",28.0],["2018-04-18",32.0],["2018-04-19",32.0],["2018-04-20",38.0],["2018-04-23",40.0],["2018-04-24",33.0],["2018-04-25",38.0],["2018-04-26",42.0],["2018-04-27",40.0],["2018-04-30",42.0],["2018-05-01",42.0],["2018-05-02",38.0],["2018-05-03",32.0],["2018-05-04",40.0],["2018-05-07",44.0],["2018-05-08",41.0],["2018-05-09",49.0],["2018-05-10",54.0],["2018-05-11",55.0],["2018-05-14",54.0],["2018-05-15",52.0],["2018-05-16",55.0],["2018-05-17",55.0],["2018-05-18",52.0],["2018-05-21",56.0],["2018-05-22",59.0],["2018-05-23",54.0],["2018-05-24",48.0],["2018-05-25",44.0],["2018-05-29",34.0],["2018-05-30",42.0],["2018-05-31",43.0],["2018-06-01",52.0],["2018-06-04",55.0],["2018-06-05",58.0],["2018-06-06",65.0],["2018-06-07",62.0],["2018-06-08",63.0],["2018-06-11",65.0],["2018-06-12",65.0],["2018-06-13",63.0],["2018-06-14",63.0],["2018-06-15",61.0],["2018-06-18",61.0],["2018-06-19",53.0],["2018-06-20",57.0],["2018-06-21",52.0],["2018-06-22",53.0],["2018-06-25",42.0],["2018-06-26",47.0],["2018-06-27",36.0],["2018-06-28",39.0],["2018-06-29",34.0],["2018-07-02",35.0],["2018-07-03",32.0],["2018-07-05",33.0],["2018-07-06",40.0],["2018-07-09",47.0],["2018-07-10",49.0],["2018-07-11",41.0],["2018-07-12",49.0],["2018-07-13",47.0],["2018-07-16",45.0],["2018-07-17",49.0],["2018-07-18",56.0],["2018-07-19",50.0],["2018-07-20",53.0],["2018-07-23",58.0],["2018-07-24",64.0],["2018-07-25",70.0],["2018-07-26",72.0],["2018-07-27",67.0],["2018-07-30",64.0],["2018-07-31",66.0],["2018-08-01",66.0],["2018-08-02",68.0],["2018-08-03",71.0],["2018-08-06",72.0],["2018-08-07",73.0],["2018-08-08",74.0],["2018-08-09",70.0],["2018-08-10",60.0],["2018-08-13",56.0],["2018-08-14",58.0],["2018-08-15",46.0],["2018-08-16",51.0],["2018-08-17",54.0],["2018-08-20",55.0],["2018-08-21",61.0],["2018-08-22",61.0],["2018-08-23",59.0],["2018-08-24",68.0],["2018-08-27",77.0],["2018-08-28",74.0],["2018-08-29",78.0],["2018-08-30",73.0],["2018-08-31",71.0],["2018-09-04",67.0],["2018-09-05",62.0],["2018-09-06",53.0],["2018-09-07",52.0],["2018-09-10",56.0],["2018-09-11",59.0],["2018-09-12",59.0],["2018-09-13",72.0],["2018-09-14",73.0],["2018-09-17",67.0],["2018-09-18",73.0],["2018-09-19",71.0],["2018-09-20",74.0],["2018-09-21",75.0],["2018-09-24",70.0],["2018-09-25",64.0],["2018-09-26",53.0],["2018-09-27",48.0],["2018-09-28",47.0],["2018-10-01",49.0],["2018-10-02",45.0],["2018-10-03",51.0],["2018-10-04",43.0],["2018-10-05",33.0],["2018-10-08",28.0],["2018-10-09",23.0],["2018-10-10",8.0],["2018-10-11",5.0],["2018-10-12",11.0],["2018-10-15",11.0],["2018-10-16",13.0],["2018-10-17",14.0],["2018-10-18",12.0],["2018-10-19",14.0],["2018-10-22",16.0],["2018-10-23",12.0],["2018-10-24",6.0],["2018-10-25",9.0],["2018-10-26",7.0],["2018-10-29",7.0],["2018-10-30",10.0],["2018-10-31",7.0],["2018-11-01",6.0],["2018-11-02",8.0],["2018-11-05",9.0],["2018-11-06",12.0],["2018-11-07",25.0],["2018-11-08",29.0],["2018-11-09",18.0],["2018-11-12",11.0],["2018-11-13",10.0],["2018-11-14",7.0],["2018-11-15",10.0],["2018-11-16",10.0],["2018-11-19",8.0],["2018-11-20",7.0],["2018-11-21",13.0],["2018-11-23",9.0],["2018-11-26",17.0],["2018-11-27",19.0],["2018-11-28",23.0],["2018-11-29",23.0],["2018-11-30",22.0],["2018-12-03",32.0],["2018-12-04",20.0],["2018-12-06",15.0],["2018-12-07",11.0],["2018-12-10",9.0],["2018-12-11",8.0],["2018-12-12",10.0],["2018-12-13",11.0],["2018-12-14",8.0],["2018-12-17",10.0],["2018-12-18",8.0],["2018-12-19",8.0],["2018-12-20",5.0],["2018-12-21",3.0],["2018-12-24",2.0],["2018-12-26",4.0],["2018-12-27",8.0],["2018-12-28",12.0],["2018-12-31",12.0],["2019-01-02",12.0],["2019-01-03",10.0],["2019-01-04",16.0],["2019-01-07",19.0],["2019-01-08",24.0],["2019-01-09",27.0],["2019-01-10",31.0],["2019-01-11",30.0],["2019-01-14",28.0],["2019-01-15",31.0],["2019-01-16",38.0],["2019-01-17",44.0],["2019-01-18",51.0],["2019-01-22",51.0],["2019-01-23",55.0],["2019-01-24",58.0],["2019-01-25",58.0],["2019-01-28",55.0],["2019-01-29",55.0],["2019-01-30",58.0],["2019-01-31",60.0],["2019-02-01",61.0],["2019-02-04",64.0],["2019-02-05",64.0],["2019-02-06",65.0],["2019-02-07",62.0],["2019-02-08",61.0],["2019-02-11",62.0],["2019-02-12",67.0],["2019-02-13",67.0],["2019-02-14",65.0],["2019-02-15",70.0],["2019-02-19",68.0],["2019-02-20",70.0],["2019-02-21",68.0],["2019-02-22",69.0],["2019-02-25",70.0],["2019-02-26",70.0],["2019-02-27",72.0],["2019-02-28",72.0],["2019-03-01",72.0],["2019-03-04",66.0],["2019-03-05",66.0],["2019-03-06",63.0],["2019-03-07",59.0],["2019-03-08",55.0],["2019-03-11",59.0],["2019-03-12",58.0],["2019-03-13",60.0],["2019-03-14",60.0],["2019-03-15",65.0],["2019-03-18",65.0],["2019-03-19",67.0],["2019-03-20",62.0],["2019-03-21",68.0],["2019-03-22",59.0],["2019-03-25",56.0],["2019-03-26",54.0],["2019-03-27",51.0],["2019-03-28",48.0],["2019-03-29",49.0],["2019-04-01",54.0],["2019-04-02",56.0],["2019-04-03",62.0],["2019-04-04",70.0],["2019-04-05",74.0],["2019-04-08",74.0],["2019-04-09",70.0],["2019-04-10",69.0],["2019-04-11",68.0],["2019-04-12",74.0],["2019-04-15",68.0],["2019-04-16",70.0],["2019-04-17",71.0],["2019-04-18",70.0],["2019-04-22",71.0],["2019-04-23",75.0],["2019-04-24",70.0],["2019-04-25",71.0],["2019-04-26",72.0],["2019-04-29",71.0],["2019-04-30",66.0],["2019-05-01",62.0],["2019-05-02",59.0],["2019-05-03",60.0],["2019-05-06",55.0],["2019-05-07",40.0],["2019-05-08",42.0],["2019-05-09",40.0],["2019-05-10",44.0],["2019-05-13",32.0],["2019-05-14",35.0],["2019-05-15",35.0],["2019-05-16",39.0],["2019-05-17",36.0],["2019-05-20",34.0],["2019-05-21",34.0],["2019-05-22",32.0],["2019-05-23",28.0],["2019-05-24",27.0],["2019-05-28",25.0],["2019-05-29",23.0],["2019-05-30",24.0],["2019-05-31",24.0],["2019-06-03",23.0],["2019-06-04",26.0],["2019-06-05",29.0],["2019-06-06",29.0],["2019-06-07",32.0],["2019-06-10",37.0],["2019-06-11",36.0],["2019-06-12",34.0],["2019-06-13",39.0],["2019-06-14",38.0],["2019-06-17",37.0],["2019-06-18",44.0],["2019-06-19",42.0],["2019-06-20",45.0],["2019-06-21",50.0],["2019-06-24",50.0],["2019-06-25",44.0],["2019-06-26",48.0],["2019-06-27",47.0],["2019-06-28",50.0],["2019-07-01",55.0],["2019-07-02",56.0],["2019-07-03",63.0],["2019-07-05",61.0],["2019-07-08",59.0],["2019-07-09",56.0],["2019-07-10",58.0],["2019-07-11",62.0],["2019-07-12",64.0],["2019-07-15",57.0],["2019-07-16",55.0],["2019-07-17",47.0],["2019-07-18",47.0],["2019-07-19",44.0],["2019-07-22",44.0],["2019-07-23",50.0],["2019-07-24",57.0],["2019-07-25",55.0],["2019-07-26",60.0],["2019-07-29",58.0],["2019-07-30",53.0],["2019-07-31",48.0],["2019-08-01",43.0],["2019-08-02",36.0],["2019-08-05",22.0],["2019-08-06",27.0],["2019-08-07",25.0],["2019-08-08",25.0],["2019-08-09",25.0],["2019-08-12",23.0],["2019-08-13",27.0],["2019-08-14",21.0],["2019-08-15",19.0],["2019-08-16",20.0],["2019-08-19",26.0],["2019-08-20",23.0],["2019-08-21",25.0],["2019-08-22",25.0],["2019-08-23",18.0],["2019-08-26",19.0],["2019-08-27",16.0],["2019-08-28",18.0],["2019-08-29",26.0],["2019-08-30",23.0],["2019-09-03",25.0],["2019-09-04",28.0],["2019-09-05",39.0],["2019-09-06",35.0],["2019-09-09",45.0],["2019-09-10",55.0],["2019-09-11",57.0],["2019-09-12",65.0],["2019-09-13",68.0],["2019-09-16",67.0],["2019-09-17",66.0],["2019-09-18",66.0],["2019-09-19",63.0],["2019-09-20",58.0],["2019-09-23",59.0],["2019-09-24",54.0],["2019-09-25",59.0],["2019-09-26",57.0],["2019-09-27",52.0],["2019-09-30",54.0],["2019-10-01",48.0],["2019-10-02",34.0],["2019-10-03",29.0],["2019-10-04",32.0],["2019-10-07",30.0],["2019-10-08",29.0],["2019-10-09",30.0],["2019-10-10",36.0],["2019-10-11",42.0],["2019-10-14",42.0],["2019-10-15",42.0],["2019-10-16",47.0],["2019-10-17",50.0],["2019-10-18",50.0],["2019-10-21",56.0],["2019-10-22",59.0],["2019-10-23",55.0],["2019-10-24",57.0],["2019-10-25",62.0],["2019-10-28",67.0],["2019-10-29",71.0],["2019-10-30",75.0],["2019-10-31",72.0],["2019-11-01",80.0],["2019-11-04",86.0],["2019-11-05",89.0],["2019-11-06",88.0],["2019-11-07",91.0],["2019-11-08",91.0],["2019-11-11",89.0],["2019-11-12",88.0],["2019-11-13",87.0],["2019-11-14",83.0],["2019-11-15",87.0],["2019-11-18",83.0],["2019-11-19",80.0],["2019-11-20",74.0],["2019-11-21",70.0],["2019-11-22",69.0],["2019-11-25",70.0],["2019-11-26",69.0],["2019-11-27",78.0],["2019-11-29",78.0],["2019-12-02",74.0],["2019-12-03",63.0],["2019-12-04",67.0],["2019-12-05",67.0],["2019-12-06",70.0],["2019-12-09",68.0],["2019-12-10",65.0],["2019-12-11",61.0],["2019-12-12",74.0],["2019-12-13",75.0],["2019-12-16",82.0],["2019-12-17",85.0],["2019-12-18",87.0],["2019-12-19",90.0],["2019-12-20",91.0],["2019-12-23",92.0],["2019-12-24",91.0],["2019-12-26",93.0],["2019-12-27",91.0],["2019-12-30",90.0],["2019-12-31",93.0],["2020-01-02",97.0],["2020-01-03",93.0],["2020-01-06",93.0],["2020-01-07",89.0],["2020-01-08",92.0],["2020-01-09",93.0],["2020-01-10",91.0],["2020-01-13",90.0],["2020-01-14",90.0],["2020-01-15",86.0],["2020-01-16",89.0],["2020-01-17",89.0],["2020-01-21",81.0],["2020-01-22",74.0],["2020-01-23",68.0],["2020-01-24",62.0],["2020-01-27",47.0],["2020-01-28",53.0],["2020-01-29",52.0],["2020-01-30",56.0],["2020-01-31",44.0],["2020-02-03",46.0],["2020-02-04",55.0],["2020-02-05",60.0],["2020-02-06",63.0],["2020-02-07",57.0],["2020-02-10",57.0],["2020-02-11",56.0],["2020-02-12",60.0],["2020-02-13",58.0],["2020-02-14",55.0],["2020-02-18",51.0],["2020-02-19",53.0],["2020-02-20",49.0],["2020-02-21",44.0],["2020-02-24",29.0],["2020-02-25",22.0],["2020-02-26",21.0],["2020-02-27",13.0],["2020-02-28",10.0],["2020-03-02",12.0],["2020-03-03",10.0],["2020-03-04",15.0],["2020-03-05",9.0],["2020-03-06",6.0],["2020-03-09",3.0],["2020-03-10",6.0],["2020-03-11",4.0],["2020-03-12",2.0],["2020-03-13",5.0],["2020-03-16",3.0],["2020-03-17",5.0],["2020-03-18",5.0],["2020-03-19",7.0],["2020-03-20",8.0],["2020-03-23",5.0],["2020-03-24",13.0],["2020-03-25",17.0],["2020-03-26",22.0],["2020-03-27",23.0],["2020-03-30",25.0],["2020-03-31",25.0],["2020-04-01",22.0],["2020-04-02",22.0],["2020-04-03",22.0],["2020-04-06",32.0],["2020-04-07",26.0],["2020-04-08",33.0],["2020-04-09",43.0],["2020-04-13",36.0],["2020-04-14",45.0],["2020-04-15",41.0],["2020-04-16",42.0],["2020-04-17",44.0],["2020-04-20",41.0],["2020-04-21",40.0],["2020-04-22",41.0],["2020-04-23",40.0],["2020-04-24",39.0],["2020-04-27",43.0],["2020-04-28",41.0],["2020-04-29",46.0],["2020-04-30",47.0],["2020-05-01",42.0],["2020-05-04",44.0],["2020-05-05",44.0],["2020-05-06",40.0],["2020-05-07",41.0],["2020-05-08",45.0],["2020-05-11",44.0],["2020-05-12",38.0],["2020-05-13",38.0],["2020-05-14",39.0],["2020-05-15",39.0],["2020-05-18",49.0],["2020-05-19",47.0],["2020-05-20",53.0],["2020-05-21",52.0],["2020-05-22",50.0],["2020-05-26",51.0],["2020-05-27",54.0],["2020-05-28",50.0],["2020-05-29",52.0],["2020-06-01",58.0],["2020-06-02",58.0],["2020-06-03",61.0],["2020-06-04",62.0],["2020-06-05",66.0],["2020-07-09",53.0],["2020-07-10",59.0],["2020-07-13",53.0],["2020-07-14",62.0],["2020-07-15",63.0],["2020-07-16",62.0],["2020-07-17",63.0],["2020-07-20",66.0],["2020-07-21",65.0],["2020-07-22",65.0],["2020-07-23",68.0],["2020-07-24",63.0],["2020-07-27",66.0],["2020-07-28",62.0],["2020-07-29",65.0],["2020-07-30",61.0],["2020-07-31",65.0],["2020-08-03",67.0],["2020-08-04",68.0],["2020-08-05",70.0],["2020-08-06",74.0],["2020-08-07",72.0],["2020-08-10",75.0],["2020-08-11",71.0],["2020-08-12",74.0],["2020-08-13",72.0],["2020-08-14",72.0],["2020-08-17",71.0],["2020-08-18",70.0],["2020-08-19",68.0],["2020-08-20",70.0],["2020-08-21",70.0],["2020-08-24",73.0],["2020-08-25",74.0],["2020-08-26",75.0],["2020-08-27",76.0],["2020-08-28",78.0],["2020-08-31",74.0],["2020-09-01",77.0],["2020-09-02",78.0],["2020-09-03",58.0],["2020-09-04",59.0],["2020-09-08",54.0],["2020-09-09",66.0],["2020-09-10",59.0],["2020-09-11",58.0],["2020-09-14",59.0],["2020-09-15",59.0],["2020-09-16",56.0],["2020-09-17",53.0],["2020-09-18",52.0],["2020-09-21",51.0],["2020-09-22",52.0],["2020-09-23",46.0],["2020-09-24",48.0],["2020-09-25",49.0],["2020-09-28",50.0],["2020-09-29",44.0],["2020-09-30",45.0],["2020-10-01",41.0],["2020-10-02",40.0],["2020-10-05",45.0],["2020-10-06",44.0],["2020-10-07",51.0],["2020-10-08",53.0],["2020-10-09",55.0],["2020-10-12",60.0],["2020-10-13",56.0],["2020-10-14",55.0],["2020-10-15",59.0],["2020-10-16",62.0],["2020-10-19",59.0],["2020-10-20",58.0],["2020-10-21",63.0],["2020-10-22",69.0],["2020-10-23",67.0],["2020-10-26",44.0],["2020-10-27",47.0],["2020-10-28",33.0],["2020-10-29",33.0],["2020-10-30",29.0],["2020-11-02",25.0],["2020-11-03",32.0],["2020-11-04",36.0],["2020-11-05",41.0],["2020-11-06",40.0],["2020-11-09",54.0],["2020-11-10",58.0],["2020-11-11",66.0],["2020-11-12",55.0],["2020-11-13",59.0],["2020-11-16",71.0],["2020-11-17",67.0],["2020-11-18",63.0],["2020-11-19",64.0],["2020-11-20",62.0],["2020-11-23",75.0],["2020-11-24",88.0],["2020-11-25",91.0],["2020-11-27",92.0],["2020-11-30",88.0],["2020-12-01",85.0],["2020-12-02",87.0],["2020-12-03",85.0],["2020-12-04",89.0],["2020-12-07",88.0],["2020-12-08",82.0],["2020-12-09",80.0],["2020-12-10",77.0],["2020-12-11",76.0],["2020-12-14",69.0],["2020-12-15",69.0],["2020-12-16",69.0],["2020-12-17",71.0],["2020-12-18",63.0],["2020-12-21",63.0],["2020-12-22",59.0],["2020-12-23",57.0],["2020-12-24",54.0],["2020-12-28",54.0],["2020-12-29",52.0],["2020-12-30",50.0],["2020-12-31",51.0],["2021-01-04",52.0],["2021-01-05",53.0],["2021-01-06",59.0],["2021-01-07",66.0],["2021-01-08",71.0],["2021-01-11",65.0],["2021-01-12",69.0],["2021-01-13",70.0],["2021-01-14",67.0],["2021-01-15",60.0],["2021-01-19",61.0],["2021-01-20",69.0],["2021-01-21",63.0],["2021-01-22",69.0],["2021-01-25",66.0],["2021-01-26",62.0],["2021-01-27",40.0],["2021-01-28",45.0],["2021-01-29",38.0],["2021-02-01",43.4],["2021-02-02",60.47],["2021-02-03",59.2],["2021-02-04",61.07],["2021-02-05",68.0],["2021-02-08",72.87],["2021-02-09",75.4],["2021-02-10",75.27],["2021-02-11",76.0],["2021-02-12",77.67],["2021-02-16",73.93],["2021-02-17",70.2],["2021-02-18",62.53],["2021-02-19",56.24],["2021-02-22",52.48],["2021-02-23",50.56],["2021-02-24",63.8],["2021-02-25",46.16],["2021-02-26",53.52],["2021-03-01",58.52],["2021-03-02",50.32],["2021-03-03",43.84],["2021-03-04",37.8],["2021-03-05",41.52],["2021-03-08",39.08],["2021-03-09",43.36],["2021-03-10",45.56],["2021-03-11",50.48],["2021-03-12",53.72],["2021-03-15",56.52],["2021-03-16",54.8],["2021-03-17",57.87],["2021-03-18",52.33],["2021-03-19",50.83],["2021-03-22",50.7],["2021-03-23",41.8],["2021-03-24",37.67],["2021-03-25",37.83],["2021-03-26",37.57],["2021-03-29",39.57],["2021-03-30",42.03],["2021-03-31",44.57],["2021-04-01",46.4],["2021-04-05",54.57],["2021-04-06",53.5],["2021-04-07",52.53],["2021-04-08",48.1],["2021-04-09",47.5],["2021-04-12",43.43],["2021-04-13",43.63],["2021-04-14",39.97],["2021-04-15",47.17],["2021-04-16",51.3],["2021-04-19",45.27],["2021-04-20",42.87],["2021-04-21",49.63],["2021-04-22",46.7],["2021-04-23",47.7],["2021-04-26",50.53],["2021-04-27",54.8],["2021-04-28",52.4],["2021-04-29",56.17],["2021-04-30",46.53],["2021-05-03",47.57],["2021-05-04",43.47],["2021-05-05",43.03],["2021-05-06",43.93],["2021-05-07",48.17],["2021-05-10",44.93],["2021-05-11",42.03],["2021-05-12",26.77],["2021-05-13",34.43],["2021-05-14",36.0],["2021-05-17",36.37],["2021-05-18",34.03],["2021-05-19",32.33],["2021-05-20",32.3],["2021-05-21",29.43],["2021-05-24",29.5],["2021-05-25",26.67],["2021-05-26",28.13],["2021-05-27",30.3],["2021-05-28",31.57],["2021-06-01",35.4],["2021-06-02",42.13],["2021-06-03",40.8],["2021-06-04",41.9],["2021-06-07",44.47],["2021-06-08",46.47],["2021-06-09",48.53],["2021-06-10",48.9],["2021-06-11",51.23],["2021-06-14",54.17],["2021-06-15",52.67],["2021-06-16",44.8],["2021-06-17",42.03],["2021-06-18",31.6],["2021-06-21",32.47],["2021-06-22",32.8],["2021-06-23",33.27],["2021-06-24",36.9],["2021-06-25",41.63],["2021-06-28",41.43],["2021-06-29",39.83],["2021-06-30",38.0],["2021-07-01",38.67],["2021-07-02",38.67],["2021-07-06",33.3],["2021-07-07",33.1],["2021-07-08",26.97],["2021-07-09",31.0],["2021-07-12",31.7],["2021-07-13",31.27],["2021-07-14",29.53],["2021-07-15",27.33],["2021-07-16",26.9],["2021-07-19",8.98],["2021-07-20",20.07],["2021-07-21",24.2],["2021-07-22",24.33],["2021-07-23",28.3],["2021-07-26",30.9],["2021-07-27",27.17],["2021-07-28",27.47],["2021-07-29",29.23],["2021-07-30",25.77],["2021-08-02",25.1],["2021-08-03",29.53],["2021-08-04",28.63],["2021-08-05",29.63],["2021-08-06",31.87],["2021-08-09",32.07],["2021-08-10",34.83],["2021-08-11",37.93],["2021-08-12",43.13],["2021-08-13",47.13],["2021-08-16",44.87],["2021-08-17",31.7],["2021-08-18",18.2],["2021-08-19",14.88],["2021-08-20",23.87],["2021-08-23",30.43],["2021-08-24",34.4],["2021-08-25",36.03],["2021-08-26",36.83],["2021-08-27",47.47],["2021-08-30",47.87],["2021-08-31",47.23],["2021-09-01",43.13],["2021-09-02",44.17],["2021-09-03",44.07],["2021-09-07",41.7],["2021-09-08",38.57],["2021-09-09",33.8],["2021-09-10",20.6],["2021-09-13",28.27],["2021-09-14",24.8],["2021-09-15",31.2],["2021-09-16",31.5],["2021-09-17",17.93],["2021-09-20",11.1],["2021-09-21",11.45],["2021-09-22",20.03],["2021-09-23",24.5],["2021-09-24",23.83],["2021-09-27",24.77],["2021-09-28",12.47],["2021-09-29",12.48],["2021-09-30",9.97],["2021-10-01",18.33],["2021-10-04",9.5],["2021-10-05",18.77],["2021-10-06",20.07],["2021-10-07",24.6],["2021-10-08",25.27],["2021-10-11",25.9],["2021-10-12",22.7],["2021-10-13",24.1],["2021-10-14",31.83],["2021-10-15",43.63],["2021-10-18",46.57],["2021-10-19",53.4],["2021-10-20",56.57],["2021-10-21",60.2],["2021-10-22",59.5],["2021-10-25",62.97],["2021-10-26",63.03],["2021-10-27",58.33],["2021-10-28",64.4],["2021-10-29",65.43],["2021-11-01",66.13],["2021-11-02",68.27],["2021-11-03",72.2],["2021-11-04",72.43],["2021-11-05",73.6],["2021-11-08",74.53],["2021-11-09",77.17],["2021-11-10",73.09],["2021-11-11",72.23],["2021-11-12",74.0],["2021-11-15",71.63],["2021-11-16",72.49],["2021-11-17",69.2],["2021-11-18",70.14],["2021-11-19",62.77],["2021-11-22",60.0],["2021-11-23",60.37],["2021-11-24",56.94],["2021-11-26",31.26],["2021-11-29",38.11],["2021-11-30",24.77],["2021-12-01",25.36],["2021-12-02",22.93],["2021-12-03",20.16],["2021-12-06",21.26],["2021-12-07",37.89],["2021-12-08",41.31],["2021-12-09",36.86],["2021-12-10",42.0],["2021-12-13",35.4],["2021-12-14",31.54],["2021-12-15",37.8],["2021-12-16",33.57],["2021-12-17",32.51],["2021-12-20",29.43],["2021-12-21",34.03],["2021-12-22",39.54],["2021-12-23",50.49],["2021-12-27",56.4],["2021-12-28",62.97],["2021-12-29",64.03],["2021-12-30",63.97],["2021-12-31",62.54],["2022-01-03",65.23],["2022-01-04",64.26],["2022-01-05",51.03],["2022-01-06",52.14],["2022-01-07",49.26],["2022-01-10",51.14],["2022-01-11",56.11],["2022-01-12",55.94],["2022-01-13",52.17],["2022-01-14",55.8],["2022-01-18",53.71],["2022-01-19",44.83],["2022-01-20",39.14],["2022-01-21",26.73],["2022-01-24",23.13],["2022-01-25",20.89],["2022-01-26",19.51],["2022-01-27",18.6],["2022-01-28",23.86],["2022-01-31",29.2],["2022-02-01",30.8],["2022-02-02",28.8],["2022-02-03",26.06],["2022-02-04",27.6],["2022-02-07",27.91],["2022-02-08",28.94],["2022-02-09",32.66],["2022-02-10",33.6],["2022-02-11",28.49],["2022-02-14",25.69],["2022-02-15",29.97],["2022-02-16",32.09],["2022-02-17",32.46],["2022-02-18",29.51],["2022-02-22",28.77],["2022-02-23",18.81],["2022-02-24",21.23],["2022-02-25",28.14],["2022-02-28",25.47],["2022-03-01",22.97],["2022-03-02",17.83],["2022-03-03",21.73],["2022-03-04",18.17],["2022-03-07",16.9],["2022-03-08",16.67],["2022-03-09",18.03],["2022-03-10",17.96],["2022-03-11",19.06],["2022-03-14",17.5],["2022-03-15",21.86],["2022-03-16",25.26],["2022-03-17",33.63],["2022-03-18",38.43],["2022-03-21",40.97],["2022-03-22",44.54],["2022-03-23",45.2],["2022-03-24",46.91],["2022-03-25",49.37],["2022-03-28",51.26],["2022-03-29",52.71],["2022-03-30",52.8],["2022-03-31",59.2],["2022-04-01",59.8],["2022-04-04",61.66],["2022-04-05",47.91],["2022-04-06",46.4],["2022-04-07",46.83],["2022-04-08",46.09],["2022-04-11",43.4],["2022-04-12",42.06],["2022-04-13",41.8],["2022-04-14",39.86],["2022-04-18",37.6],["2022-04-19",39.63],["2022-04-20",43.31],["2022-04-21",38.94],["2022-04-22",31.63],["2022-04-25",29.97],["2022-04-26",17.9],["2022-04-27",16.27],["2022-04-28",24.26],["2022-04-29",14.33],["2022-05-02",13.27],["2022-05-03",30.49],["2022-05-04",22.4],["2022-05-05",13.13],["2022-05-06",12.24],["2022-05-09",8.19],["2022-05-10",7.4],["2022-05-11",4.03],["2022-05-12",3.2],["2022-05-13",11.29],["2022-05-16",11.74],["2022-05-17",15.2],["2022-05-18",6.6],["2022-05-19",13.71],["2022-05-20",12.66],["2022-05-23",17.89],["2022-05-24",16.0],["2022-05-25",17.57],["2022-05-26",24.11],["2022-05-27",29.54],["2022-05-31",40.06],["2022-06-01",40.6],["2022-06-02",44.83],["2022-06-03",35.46],["2022-06-06",42.8],["2022-06-07",45.63],["2022-06-08",48.11],["2022-06-09",47.06],["2022-06-10",40.0],["2022-06-13",25.09],["2022-06-14",20.53],["2022-06-15",29.26],["2022-06-16",17.7],["2022-06-17",16.93],["2022-06-21",19.73],["2022-06-22",26.89],["2022-06-23",26.74],["2022-06-24",30.86],["2022-06-27",30.77],["2022-06-28",28.14],["2022-06-29",26.54],["2022-06-30",24.37],["2022-07-01",24.57],["2022-07-05",22.17],["2022-07-06",22.83],["2022-07-07",27.6],["2022-07-08",31.34],["2022-07-11",30.37],["2022-07-12",30.31],["2022-07-13",27.29],["2022-07-14",26.51],["2022-07-15",33.29],["2022-07-18",35.89],["2022-07-19",39.31],["2022-07-20",44.09],["2022-07-21",48.2],["2022-07-22",42.43],["2022-07-25",42.2],["2022-07-26",42.0],["2022-07-27",46.63],["2022-07-28",48.49],["2022-07-29",52.4],["2022-08-01",59.09],["2022-08-02",57.37],["2022-08-03",60.26],["2022-08-04",61.51],["2022-08-05",63.31],["2022-08-08",64.74],["2022-08-09",64.46],["2022-08-10",65.11],["2022-08-11",65.83],["2022-08-12",68.03],["2022-08-15",66.83],["2022-08-16",67.94],["2022-08-17",67.14],["2022-08-18",66.37],["2022-08-19",63.71],["2022-08-22",60.31],["2022-08-23",57.43],["2022-08-24",57.51],["2022-08-25",58.26],["2022-08-26",55.74],["2022-08-29",54.29],["2022-08-30",49.8],["2022-08-31",52.09],["2022-09-01",49.37],["2022-09-02",42.46],["2022-09-06",40.63],["2022-09-07",39.63],["2022-09-08",40.37],["2022-09-09",43.8],["2022-09-12",47.6],["2022-09-13",36.63],["2022-09-14",41.89],["2022-09-15",40.66],["2022-09-16",35.29],["2022-09-19",36.31],["2022-09-20",36.11],["2022-09-21",27.21],["2022-09-22",24.49],["2022-09-23",21.69],["2022-09-26",17.63],["2022-09-27",16.51],["2022-09-28",17.03],["2022-09-29",13.26],["2022-09-30",16.46],["2022-10-03",20.39],["2022-10-04",27.89],["2022-10-05",29.71],["2022-10-06",23.14],["2022-10-07",19.67],["2022-10-10",19.4],["2022-10-11",16.89],["2022-10-12",15.94],["2022-10-13",19.37],["2022-10-14",16.46],["2022-10-17",23.4],["2022-10-18",28.8],["2022-10-19",29.43],["2022-10-20",39.09],["2022-10-21",43.74],["2022-10-24",47.23],["2022-10-25",51.37],["2022-10-26",53.8],["2022-10-27",54.57],["2022-10-28",57.11],["2022-10-31",64.06],["2022-11-01",63.51],["2022-11-02",55.29],["2022-11-03",55.51],["2022-11-04",56.51],["2022-11-07",59.66],["2022-11-08",57.94],["2022-11-09",54.0],["2022-11-10",60.34],["2022-11-11",63.74],["2022-11-14",62.69],["2022-11-15",66.91],["2022-11-16",65.09],["2022-11-17",61.49],["2022-11-18",60.34],["2022-11-21",60.97],["2022-11-22",60.8],["2022-11-23",64.26],["2022-11-25",63.09],["2022-11-28",59.74],["2022-11-29",58.17],["2022-11-30",73.97],["2022-12-01",75.6],["2022-12-02",68.14],["2022-12-05",65.09],["2022-12-06",61.83],["2022-12-07",58.43],["2022-12-08",55.69],["2022-12-09",52.09],["2022-12-12",57.2],["2022-12-13",59.17],["2022-12-14",60.94],["2022-12-15",60.14],["2022-12-16",44.14],["2022-12-19",39.97],["2022-12-20",38.31],["2022-12-21",38.54],["2022-12-22",37.0],["2022-12-23",39.51],["2022-12-27",39.94],["2022-12-28",35.51],["2022-12-29",37.14],["2022-12-30",36.51],["2023-01-03",36.6],["2023-01-04",39.86],["2023-01-05",44.17],["2023-01-06",45.71],["2023-01-09",47.2],["2023-01-10",49.66],["2023-01-11",54.23],["2023-01-12",56.69],["2023-01-13",61.31],["2023-01-17",64.14],["2023-01-18",58.43],["2023-01-19",55.43],["2023-01-20",58.54],["2023-01-23",63.6],["2023-01-24",63.0],["2023-01-25",63.89],["2023-01-26",68.03],["2023-01-27",69.2],["2023-01-30",67.46],["2023-01-31",70.34],["2023-02-01",82.17],["2023-02-02",75.2],["2023-02-03",76.14],["2023-02-06",75.91],["2023-02-07",76.34],["2023-02-08",74.63],["2023-02-09",72.63],["2023-02-10",72.49],["2023-02-13",71.83],["2023-02-14",73.26],["2023-02-15",73.66],["2023-02-16",70.71],["2023-02-17",69.49],["2023-02-21",65.91],["2023-02-22",64.17],["2023-02-23",62.66],["2023-02-24",60.66],["2023-02-27",61.23],["2023-02-28",61.2],["2023-03-01",65.91],["2023-03-02",52.46],["2023-03-03",55.69],["2023-03-06",55.26],["2023-03-07",48.51],["2023-03-08",49.83],["2023-03-09",37.54],["2023-03-10",26.89],["2023-03-13",23.36],["2023-03-14",25.09],["2023-03-15",22.69],["2023-03-16",32.57],["2023-03-17",27.0],["2023-03-20",30.43],["2023-03-21",43.49],["2023-03-22",41.03],["2023-03-23",38.34],["2023-03-24",37.71],["2023-03-27",40.2],["2023-03-28",39.6],["2023-03-29",41.46],["2023-03-30",45.23],["2023-03-31",49.49],["2023-04-03",61.49],["2023-04-04",50.23],["2023-04-05",52.63],["2023-04-06",55.26],["2023-04-10",57.91],["2023-04-11",58.49],["2023-04-12",60.74],["2023-04-13",63.17],["2023-04-14",65.71],["2023-04-17",67.09],["2023-04-18",65.49],["2023-04-19",67.26],["2023-04-20",64.06],["2023-04-21",63.51],["2023-04-24",63.49],["2023-04-25",57.06],["2023-04-26",52.4],["2023-04-27",58.31],["2023-04-28",59.43],["2023-05-01",59.43],["2023-05-02",55.51],["2023-05-03",54.63],["2023-05-04",49.6],["2023-05-05",53.89],["2023-05-08",57.14],["2023-05-09",59.57],["2023-05-10",59.97],["2023-05-11",59.06],["2023-05-12",57.34],["2023-05-15",57.26],["2023-05-16",55.29],["2023-05-17",60.26],["2023-05-18",64.91],["2023-05-19",65.46],["2023-05-22",67.86],["2023-05-23",65.8],["2023-05-24",61.83],["2023-05-25",62.69],["2023-05-26",65.71],["2023-05-30",66.09],["2023-05-31",64.17],["2023-06-01",68.06],["2023-06-02",75.43],["2023-06-05",69.49],["2023-06-06",73.51],["2023-06-07",74.46],["2023-06-08",75.77],["2023-06-09",76.97],["2023-06-12",78.06],["2023-06-13",79.63],["2023-06-14",79.63],["2023-06-15",80.89],["2023-06-16",81.26],["2023-06-20",80.11],["2023-06-21",80.11],["2023-06-22",80.06],["2023-06-23",75.71],["2023-06-26",73.46],["2023-06-27",75.49],["2023-06-28",76.51],["2023-06-29",79.2],["2023-06-30",79.49],["2023-07-03",82.23],["2023-07-05",79.26],["2023-07-06",77.91],["2023-07-07",77.69],["2023-07-10",76.69],["2023-07-11",78.29],["2023-07-12",78.17],["2023-07-13",79.4],["2023-07-14",79.8],["2023-07-17",80.03],["2023-07-18",81.69],["2023-07-19",82.34],["2023-07-20",80.86],["2023-07-21",81.03],["2023-07-24",82.51],["2023-07-25",81.23],["2023-07-26",80.6],["2023-07-27",77.66],["2023-07-28",76.91],["2023-07-31",77.63],["2023-08-01",77.34],["2023-08-02",77.34],["2023-08-03",73.63],["2023-08-04",64.5],["2023-08-07",72.06],["2023-08-08",69.2],["2023-08-09",67.31],["2023-08-10",66.34],["2023-08-11",65.03],["2023-08-14",66.29],["2023-08-15",54.5],["2023-08-16",49.49],["2023-08-17",46.14],["2023-08-18",43.66],["2023-08-21",43.49],["2023-08-22",43.44],["2023-08-23",50.17],["2023-08-24",40.59],["2023-08-25",47.03],["2023-08-28",45.29],["2023-08-29",49.17],["2023-08-30",50.43],["2023-08-31",52.94],["2023-09-01",55.03],["2023-09-05",59.09],["2023-09-06",56.71],["2023-09-07",53.63],["2023-09-08",51.91],["2023-09-11",52.2],["2023-09-12",51.4],["2023-09-13",51.4],["2023-09-14",54.43],["2023-09-15",52.03],["2023-09-18",49.49],["2023-09-19",49.94],["2023-09-20",48.29],["2023-09-21",37.16],["2023-09-22",33.16],["2023-09-25",38.43],["2023-09-26",24.23],["2023-09-27",22.83],["2023-09-28",29.0],["2023-09-29",28.4],["2023-10-02",28.31],["2023-10-03",20.53],["2023-10-04",20.99],["2023-10-05",20.33],["2023-10-06",27.71],["2023-10-09",29.26],["2023-10-10",32.31],["2023-10-11",34.34],["2023-10-12",35.69],["2023-10-13",26.27],["2023-10-16",35.74],["2023-10-17",39.14],["2023-10-18",30.57],["2023-10-19",29.54],["2023-10-20",22.86],["2023-10-23",25.84],["2023-10-24",33.49],["2023-10-25",25.21],["2023-10-26",22.71],["2023-10-27",21.61],["2023-10-30",29.2],["2023-10-31",30.14],["2023-11-01",32.17],["2023-11-02",37.69],["2023-11-03",36.11],["2023-11-06",38.91],["2023-11-07",39.63],["2023-11-08",39.77],["2023-11-09",41.0],["2023-11-10",41.46],["2023-11-13",39.89],["2023-11-14",46.6],["2023-11-15",52.54],["2023-11-16",55.06],["2023-11-17",58.86],["2023-11-20",61.29],["2023-11-21",61.17],["2023-11-22",65.06],["2023-11-24",66.86],["2023-11-27",65.31],["2023-11-28",65.09],["2023-11-29",63.29],["2023-11-30",64.37],["2023-12-01",64.51],["2023-12-04",63.71],["2023-12-05",65.14],["2023-12-06",63.97],["2023-12-07",66.14],["2023-12-08",65.94],["2023-12-11",67.29],["2023-12-12",67.89],["2023-12-13",67.54],["2023-12-14",70.54],["2023-12-15",69.46],["2023-12-18",70.49],["2023-12-19",82.97],["2023-12-20",75.57],["2023-12-21",77.0],["2023-12-22",79.74],["2023-12-26",81.94],["2023-12-27",81.17],["2023-12-28",81.26],["2023-12-29",80.71],["2024-01-02",79.71],["2024-01-03",76.71],["2024-01-04",78.69],["2024-01-05",75.77],["2024-01-08",76.17],["2024-01-09",75.69],["2024-01-10",76.37],["2024-01-11",74.66],["2024-01-12",73.09],["2024-01-16",72.29],["2024-01-17",57.21],["2024-01-18",66.46],["2024-01-19",72.83],["2024-01-22",72.86],["2024-01-23",70.26],["2024-01-24",72.49],["2024-01-25",73.23],["2024-01-26",73.8],["2024-01-29",74.11],["2024-01-30",74.23],["2024-01-31",64.11],["2024-02-01",72.34],["2024-02-02",74.6],["2024-02-05",73.31],["2024-02-06",73.2],["2024-02-07",73.77],["2024-02-08",74.6],["2024-02-09",75.43],["2024-02-12",75.83],["2024-02-13",66.74],["2024-02-14",67.51],["2024-02-15",73.86],["2024-02-16",73.49],["2024-02-20",63.74],["2024-02-21",63.7],["2024-02-22",73.94],["2024-02-23",73.34],["2024-02-26",71.91],["2024-02-27",75.77],["2024-02-28",76.77],["2024-02-29",77.46],["2024-03-01",76.83],["2024-03-04",79.23],["2024-03-05",76.11],["2024-03-06",72.54],["2024-03-07",73.86],["2024-03-08",70.03],["2024-03-11",62.77],["2024-03-12",72.2],["2024-03-13",71.77],["2024-03-14",70.4],["2024-03-15",68.63],["2024-03-18",70.74],["2024-03-19",70.86],["2024-03-20",69.63],["2024-03-21",71.37],["2024-03-22",69.51],["2024-03-25",67.43],["2024-03-26",67.91],["2024-03-27",69.77],["2024-03-28",68.77],["2024-04-01",71.26],["2024-04-02",71.14],["2024-04-03",69.4],["2024-04-04",53.8],["2024-04-05",58.1],["2024-04-08",64.03],["2024-04-09",59.63],["2024-04-10",49.67],["2024-04-11",56.66],["2024-04-12",45.01],["2024-04-15",38.4],["2024-04-16",35.11],["2024-04-17",31.16],["2024-04-18",30.4],["2024-04-19",27.67],["2024-04-22",34.17],["2024-04-23",36.57],["2024-04-24",37.49],["2024-04-25",39.09],["2024-04-26",40.51],["2024-04-29",42.43],["2024-04-30",40.54],["2024-05-01",40.51],["2024-05-02",42.23],["2024-05-03",43.26],["2024-05-06",39.0],["2024-05-07",37.17],["2024-05-08",38.17],["2024-05-09",42.23],["2024-05-10",46.03],["2024-05-13",48.11],["2024-05-14",55.29],["2024-05-15",59.37],["2024-05-16",62.31],["2024-05-17",62.8],["2024-05-20",60.43],["2024-05-21",59.43],["2024-05-22",58.51],["2024-05-23",52.37],["2024-05-24",51.74],["2024-05-28",54.69],["2024-05-29",49.97],["2024-05-30",45.09],["2024-05-31",48.43],["2024-06-03",45.49],["2024-06-04",47.63],["2024-06-05",51.14],["2024-06-06",45.31],["2024-06-07",43.4],["2024-06-10",44.74],["2024-06-11",44.4],["2024-06-12",46.57],["2024-06-13",44.57],["2024-06-14",41.11],["2024-06-17",43.29],["2024-06-18",41.29],["2024-06-20",38.71],["2024-06-21",39.06],["2024-06-24",37.77],["2024-06-25",37.29],["2024-06-26",40.89],["2024-06-27",45.51],["2024-06-28",44.31],["2024-07-01",47.94],["2024-07-02",49.74],["2024-07-03",48.37],["2024-07-05",49.71],["2024-07-08",51.06],["2024-07-09",50.57],["2024-07-10",54.6],["2024-07-11",49.4],["2024-07-12",54.37],["2024-07-15",57.74],["2024-07-16",57.03],["2024-07-17",46.11],["2024-07-18",45.94],["2024-07-19",43.0],["2024-07-22",48.43],["2024-07-23",46.86],["2024-07-24",38.61],["2024-07-25",39.07],["2024-07-26",42.54],["2024-07-29",42.07],["2024-07-30",40.8],["2024-07-31",46.89],["2024-08-01",42.69],["2024-08-02",41.39],["2024-08-05",33.06],["2024-08-06",19.01],["2024-08-07",16.56],["2024-08-08",17.66],["2024-08-09",24.09],["2024-08-12",23.8],["2024-08-13",25.51],["2024-08-14",26.43],["2024-08-15",32.37],["2024-08-16",33.74],["2024-08-19",39.89],["2024-08-20",44.69],["2024-08-21",50.23],["2024-08-22",46.77],["2024-08-23",51.57],["2024-08-26",52.94],["2024-08-27",52.29],["2024-08-28",51.09],["2024-08-29",56.06],["2024-08-30",60.31],["2024-09-03",56.34],["2024-09-04",56.63],["2024-09-05",50.63],["2024-09-06",39.34],["2024-09-09",41.97],["2024-09-10",39.69],["2024-09-11",43.09],["2024-09-12",42.97],["2024-09-13",48.63],["2024-09-16",50.31],["2024-09-17",54.63],["2024-09-18",55.17],["2024-09-19",63.8],["2024-09-20",61.2],["2024-09-23",63.86],["2024-09-24",66.43],["2024-09-25",65.74],["2024-09-26",70.74],["2024-09-27",67.31],["2024-09-30",73.69],["2024-10-01",70.31],["2024-10-02",70.57],["2024-10-03",69.43],["2024-10-04",71.4],["2024-10-07",70.83],["2024-10-08",71.17],["2024-10-09",71.14],["2024-10-10",70.29],["2024-10-11",71.66],["2024-10-14",74.23],["2024-10-15",71.14],["2024-10-16",69.03],["2024-10-17",68.57],["2024-10-18",72.43],["2024-10-21",69.8],["2024-10-22",70.37],["2024-10-23",63.2],["2024-10-24",62.94],["2024-10-25",58.74],["2024-10-28",60.86],["2024-10-29",60.06],["2024-10-30",57.2],["2024-10-31",40.46],["2024-11-01",50.49],["2024-11-04",42.43],["2024-11-05",43.54],["2024-11-06",44.0],["2024-11-07",59.06],["2024-11-08",59.43],["2024-11-11",66.6],["2024-11-12",66.71],["2024-11-13",66.31],["2024-11-14",60.31],["2024-11-15",51.2],["2024-11-18",50.29],["2024-11-19",49.51],["2024-11-20",49.51],["2024-11-21",56.6],["2024-11-22",60.71],["2024-11-25",62.89],["2024-11-26",65.91],["2024-11-27",64.4],["2024-11-29",65.0],["2024-12-02",65.31],["2024-12-03",59.57],["2024-12-04",57.49],["2024-12-05",54.91],["2024-12-06",52.14],["2024-12-09",49.26],["2024-12-10",46.97],["2024-12-11",49.2],["2024-12-12",47.11],["2024-12-13",49.11],["2024-12-16",56.06],["2024-12-17",51.4],["2024-12-18",33.13],["2024-12-19",19.51],["2024-12-20",27.6],["2024-12-23",30.14],["2024-12-24",34.51],["2024-12-26",34.17],["2024-12-27",33.83],["2024-12-30",28.6],["2024-12-31",26.31],["2025-01-02",24.31],["2025-01-03",28.89],["2025-01-06",33.77],["2025-01-07",34.31],["2025-01-08",31.91],["2025-01-10",25.63],["2025-01-13",25.34],["2025-01-14",25.14],["2025-01-15",27.43],["2025-01-16",27.34],["2025-01-17",36.03],["2025-01-21",39.91],["2025-01-22",41.63],["2025-01-23",43.69],["2025-01-24",45.8],["2025-01-27",37.97],["2025-01-28",40.63],["2025-01-29",42.4],["2025-01-30",45.91],["2025-01-31",43.77],["2025-02-03",37.4],["2025-02-04",37.14],["2025-02-05",38.63],["2025-02-06",39.69],["2025-02-07",38.37],["2025-02-10",44.71],["2025-02-11",45.4],["2025-02-12",41.37],["2025-02-13",46.6],["2025-02-14",43.69],["2025-02-18",46.8],["2025-02-19",47.63],["2025-02-20",44.23],["2025-02-21",36.97],["2025-02-24",29.54],["2025-02-25",24.2],["2025-02-26",21.26],["2025-02-27",12.76],["2025-02-28",20.66],["2025-03-03",12.34],["2025-03-04",11.04],["2025-03-05",11.51],["2025-03-06",17.2],["2025-03-07",17.64],["2025-03-10",17.07],["2025-03-11",15.11],["2025-03-12",15.91],["2025-03-13",15.19],["2025-03-14",22.06],["2025-03-17",22.57],["2025-03-18",22.23],["2025-03-19",21.6],["2025-03-20",21.69],["2025-03-21",22.69],["2025-03-24",25.4],["2025-03-25",29.29],["2025-03-26",28.89],["2025-03-27",28.34],["2025-03-28",26.37],["2025-03-31",21.11],["2025-04-01",19.57],["2025-04-02",22.6],["2025-04-03",12.14],["2025-04-04",5.39],["2025-04-07",4.0],["2025-04-08",2.9],["2025-04-09",9.5],["2025-04-10",5.61],["2025-04-11",8.39],["2025-04-14",12.34],["2025-04-15",13.11],["2025-04-16",11.14],["2025-04-17",16.06],["2025-04-21",12.37],["2025-04-22",13.6],["2025-04-23",21.54],["2025-04-24",24.09],["2025-04-25",34.51],["2025-04-28",32.14],["2025-04-29",32.74],["2025-04-30",32.37],["2025-05-01",41.26],["2025-05-02",38.29],["2025-05-05",53.06],["2025-05-06",54.66],["2025-05-07",54.14],["2025-05-08",57.66],["2025-05-09",60.03],["2025-05-12",64.49],["2025-05-13",68.2],["2025-05-14",70.4],["2025-05-15",69.14],["2025-05-16",70.6],["2025-05-19",69.74],["2025-05-20",69.17],["2025-05-21",66.23],["2025-05-22",66.8],["2025-05-23",64.09],["2025-05-27",65.74],["2025-05-28",64.74],["2025-05-29",64.46],["2025-05-30",61.91],["2025-06-02",62.43],["2025-06-03",54.57],["2025-06-04",54.89],["2025-06-05",57.97],["2025-06-06",61.77],["2025-06-09",63.43],["2025-06-10",64.0],["2025-06-11",64.2],["2025-06-12",64.6],["2025-06-13",59.54],["2025-06-16",61.11],["2025-06-17",57.43],["2025-06-18",54.29],["2025-06-20",54.51],["2025-06-23",56.6],["2025-06-24",57.89],["2025-06-25",59.26],["2025-06-26",63.0],["2025-06-27",64.8],["2025-06-30",69.23],["2025-07-01",67.54],["2025-07-02",63.71],["2025-07-03",77.63],["2025-07-07",75.09],["2025-07-08",74.63],["2025-07-09",75.91],["2025-07-10",76.97],["2025-07-11",75.26],["2025-07-14",76.11],["2025-07-15",73.49],["2025-07-16",72.94],["2025-07-17",74.17],["2025-07-18",73.94],["2025-07-21",73.29],["2025-07-22",73.89],["2025-07-23",76.37],["2025-07-24",75.26],["2025-07-25",74.66],["2025-07-28",73.8],["2025-07-29",70.63],["2025-07-30",68.03],["2025-07-31",63.71],["2025-08-01",49.8],["2025-08-04",56.89],["2025-08-05",55.03],["2025-08-06",55.31],["2025-08-07",54.71],["2025-08-08",58.37],["2025-08-11",57.63],["2025-08-12",62.26],["2025-08-13",63.34],["2025-08-14",63.26],["2025-08-15",63.54],["2025-08-18",64.2],["2025-08-19",59.89],["2025-08-20",55.91],["2025-08-21",52.6],["2025-08-22",55.54],["2025-08-25",53.94],["2025-08-26",55.4],["2025-08-27",59.11],["2025-08-28",64.43],["2025-08-29",61.54],["2025-09-02",62.46],["2025-09-03",61.37],["2025-09-04",61.17],["2025-09-05",58.69],["2025-09-08",58.23],["2025-09-09",57.94],["2025-09-10",57.94],["2025-09-11",60.34],["2025-09-12",61.34],["2025-09-15",64.46],["2025-09-16",64.37],["2025-09-17",63.77],["2025-09-18",66.54],["2025-09-19",66.23],["2025-09-22",66.51],["2025-09-23",56.77],["2025-09-24",54.57],["2025-09-25",50.66],["2025-09-26",51.29],["2025-09-29",50.97],["2025-09-30",51.4],["2025-10-01",52.49],["2025-10-02",54.54],["2025-10-03",52.57],["2025-10-06",53.97],["2025-10-07",51.86],["2025-10-08",52.94],["2025-10-09",48.63],["2025-10-10",30.14],["2025-10-13",29.74],["2025-10-14",28.29],["2025-10-15",27.41],["2025-10-16",23.11],["2025-10-17",22.33],["2025-10-20",29.86],["2025-10-21",28.54],["2025-10-22",26.37],["2025-10-23",27.57],["2025-10-24",32.46],["2025-10-27",37.34],["2025-10-28",39.34],["2025-10-29",42.11],["2025-10-30",37.06],["2025-10-31",34.46],["2025-11-03",32.6],["2025-11-04",20.94],["2025-11-05",23.06],["2025-11-06",24.34],["2025-11-07",20.43],["2025-11-10",29.94],["2025-11-11",30.46],["2025-11-12",34.57],["2025-11-13",24.54],["2025-11-14",22.06],["2025-11-17",11.64],["2025-11-18",8.9],["2025-11-19",7.86],["2025-11-20",5.17],["2025-11-21",5.66],["2025-11-24",13.69],["2025-11-25",15.03],["2025-11-26",17.66],["2025-11-28",21.77],["2025-12-01",22.09],["2025-12-02",23.26],["2025-12-03",24.77],["2025-12-04",36.03],["2025-12-05",38.14],["2025-12-08",40.77],["2025-12-09",40.94],["2025-12-10",36.37],["2025-12-11",43.74],["2025-12-12",39.29],["2025-12-15",49.31],["2025-12-16",46.4],["2025-12-17",37.69],["2025-12-18",42.37],["2025-12-19",44.2],["2025-12-22",54.89],["2025-12-23",58.57],["2025-12-24",58.0],["2025-12-26",54.86],["2025-12-29",47.89],["2025-12-30",46.11],["2025-12-31",43.26],["2026-01-02",45.23],["2026-01-05",47.6],["2026-01-06",52.86],["2026-01-07",48.57],["2026-01-08",48.37],["2026-01-09",54.11],["2026-01-12",58.0],["2026-01-13",59.09],["2026-01-14",58.63],["2026-01-15",63.66],["2026-01-16",63.77],["2026-01-20",50.86],["2026-01-21",53.86],["2026-01-22",54.77],["2026-01-23",54.89],["2026-01-26",57.66],["2026-01-27",64.97],["2026-01-28",65.54],["2026-01-29",63.83],["2026-01-30",58.6],["2026-02-02",63.4],["2026-02-03",43.34],["2026-02-04",47.23],["2026-02-05",34.94],["2026-02-06",45.37],["2026-02-09",48.49],["2026-02-10",47.23],["2026-02-11",49.91],["2026-02-12",36.36],["2026-02-13",33.84],["2026-02-17",33.31],["2026-02-18",34.16],["2026-02-19",34.4],["2026-02-20",42.34],["2026-02-23",32.54],["2026-02-24",40.26],["2026-02-25",43.14],["2026-02-26",42.91],["2026-02-27",41.17],["2026-03-02",34.29],["2026-03-03",31.63],["2026-03-04",33.07],["2026-03-05",31.63],["2026-03-06",25.26],["2026-03-09",22.23],["2026-03-10",20.27],["2026-03-11",18.31],["2026-03-13",16.67],["2026-03-16",23.91],["2026-03-17",22.89],["2026-03-18",13.61],["2026-03-19",18.31],["2026-03-20",8.4],["2026-03-23",11.63],["2026-03-24",10.36],["2026-03-25",16.54],["2026-03-26",10.26],["2026-03-27",8.17],["2026-03-30",5.77],["2026-03-31",14.89],["2026-04-01",15.86],["2026-04-02",18.29],["2026-04-06",21.86],["2026-04-07",21.57],["2026-04-08",29.17],["2026-04-09",33.8],["2026-04-10",38.06],["2026-04-13",40.97],["2026-04-14",47.26],["2026-04-15",56.2],["2026-04-16",61.49],["2026-04-17",68.57],["2026-04-20",69.97],["2026-04-21",67.57],["2026-04-22",68.46],["2026-04-23",66.17],["2026-04-24",65.4],["2026-04-27",66.29],["2026-04-28",67.43],["2026-04-29",66.23],["2026-04-30",69.51],["2026-05-01",71.17],["2026-05-04",66.89],["2026-05-05",67.26],["2026-05-06",68.74],["2026-05-07",67.29],["2026-05-08",67.29],["2026-05-11",66.63],["2026-05-12",65.69],["2026-05-13",64.97],["2026-05-14",65.91],["2026-05-15",63.23],["2026-05-18",62.09],["2026-05-19",59.26],["2026-05-20",60.51],["2026-05-21",57.51],["2026-05-22",58.23],["2026-05-26",59.83],["2026-05-27",60.63],["2026-05-28",60.71],["2026-05-29",60.46],["2026-06-01",59.46],["2026-06-02",56.97],["2026-06-03",54.63],["2026-06-04",54.57],["2026-06-05",41.86],["2026-06-08",39.37],["2026-06-09",33.77],["2026-06-10",27.29],["2026-06-11",29.69],["2026-06-12",33.51],["2026-06-15",40.14],["2026-06-16",39.51],["2026-06-17",32.94],["2026-06-18",37.34],["2026-06-22",33.94],["2026-06-23",28.46],["2026-06-24",26.46],["2026-06-25",25.43],["2026-06-26",24.66],["2026-06-29",26.86],["2026-06-30",29.97],["2026-07-01",31.63],["2026-07-02",32.54],["2026-07-06",41.66],["2026-07-07",39.77],["2026-07-08",38.63],["2026-07-09",44.71],["2026-07-10",46.83],["2026-07-13",40.86],["2026-07-14",41.06],["2026-07-15",44.43],["2026-07-16",41.86],["2026-07-17",37.0],["2026-07-20",36.0],["2026-07-21",42.77],["2026-07-22",44.43],["2026-07-23",40.86],["2026-07-24",40.77],["2026-07-27",38.23],["2026-07-28",37.14],["2026-07-29",25.56],["2026-07-30",38.11],["2026-07-31",39.57],["2026-08-03",46.14],["2026-08-04",58.97],["2026-08-05",60.23],["2026-08-06",59.69],["2026-08-07",65.14],["2026-08-10",64.37],["2026-08-11",60.09],["2026-08-12",61.69],["2026-08-13",66.11],["2026-08-14",64.31],["2026-08-17",59.14],["2026-08-18",54.63],["2026-08-19",56.63],["2026-08-20",51.37],["2026-08-21",54.66],["2026-08-24",54.97],["2026-08-25",59.6],["2026-08-26",53.94],["2026-08-27",57.31],["2026-08-28",53.74],["2026-08-31",49.2],["2026-09-01",44.86],["2026-09-02",46.06],["2026-09-03",47.51],["2026-09-04",45.23],["2026-09-08",39.14],["2026-09-09",38.2],["2026-09-10",32.2],["2026-09-11",32.69],["2026-09-14",31.0],["2026-09-15",27.97],["2026-09-16",27.31],["2026-09-17",28.29],["2026-09-18",29.11]];
+const FG_XLS_DATA=[["2022-01-03",65.23],["2022-01-04",64.26],["2022-01-05",51.03],["2022-01-06",52.14],["2022-01-07",49.26],["2022-01-10",51.14],["2022-01-11",56.11],["2022-01-12",55.94],["2022-01-13",52.17],["2022-01-14",55.8],["2022-01-18",53.71],["2022-01-19",44.83],["2022-01-20",39.14],["2022-01-21",26.73],["2022-01-24",23.13],["2022-01-25",20.89],["2022-01-26",19.51],["2022-01-27",18.6],["2022-01-28",23.86],["2022-01-31",29.2],["2022-02-01",30.8],["2022-02-02",28.8],["2022-02-03",26.06],["2022-02-04",27.6],["2022-02-07",27.91],["2022-02-08",28.94],["2022-02-09",32.66],["2022-02-10",33.6],["2022-02-11",28.49],["2022-02-14",25.69],["2022-02-15",29.97],["2022-02-16",32.09],["2022-02-17",32.46],["2022-02-18",29.51],["2022-02-22",28.77],["2022-02-23",18.81],["2022-02-24",21.23],["2022-02-25",28.14],["2022-02-28",25.47],["2022-03-01",22.97],["2022-03-02",17.83],["2022-03-03",21.73],["2022-03-04",18.17],["2022-03-07",16.9],["2022-03-08",16.67],["2022-03-09",18.03],["2022-03-10",17.96],["2022-03-11",19.06],["2022-03-14",17.5],["2022-03-15",21.86],["2022-03-16",25.26],["2022-03-17",33.63],["2022-03-18",38.43],["2022-03-21",40.97],["2022-03-22",44.54],["2022-03-23",45.2],["2022-03-24",46.91],["2022-03-25",49.37],["2022-03-28",51.26],["2022-03-29",52.71],["2022-03-30",52.8],["2022-03-31",59.2],["2022-04-01",59.8],["2022-04-04",61.66],["2022-04-05",47.91],["2022-04-06",46.4],["2022-04-07",46.83],["2022-04-08",46.09],["2022-04-11",43.4],["2022-04-12",42.06],["2022-04-13",41.8],["2022-04-14",39.86],["2022-04-18",37.6],["2022-04-19",39.63],["2022-04-20",43.31],["2022-04-21",38.94],["2022-04-22",31.63],["2022-04-25",29.97],["2022-04-26",17.9],["2022-04-27",16.27],["2022-04-28",24.26],["2022-04-29",14.33],["2022-05-02",13.27],["2022-05-03",30.49],["2022-05-04",22.4],["2022-05-05",13.13],["2022-05-06",12.24],["2022-05-09",8.19],["2022-05-10",7.4],["2022-05-11",4.03],["2022-05-12",3.2],["2022-05-13",11.29],["2022-05-16",11.74],["2022-05-17",15.2],["2022-05-18",6.6],["2022-05-19",13.71],["2022-05-20",12.66],["2022-05-23",17.89],["2022-05-24",16.0],["2022-05-25",17.57],["2022-05-26",24.11],["2022-05-27",29.54],["2022-05-31",40.06],["2022-06-01",40.6],["2022-06-02",44.83],["2022-06-03",35.46],["2022-06-06",42.8],["2022-06-07",45.63],["2022-06-08",48.11],["2022-06-09",47.06],["2022-06-10",40.0],["2022-06-13",25.09],["2022-06-14",20.53],["2022-06-15",29.26],["2022-06-16",17.7],["2022-06-17",16.93],["2022-06-21",19.73],["2022-06-22",26.89],["2022-06-23",26.74],["2022-06-24",30.86],["2022-06-27",30.77],["2022-06-28",28.14],["2022-06-29",26.54],["2022-06-30",24.37],["2022-07-01",24.57],["2022-07-05",22.17],["2022-07-06",22.83],["2022-07-07",27.6],["2022-07-08",31.34],["2022-07-11",30.37],["2022-07-12",30.31],["2022-07-13",27.29],["2022-07-14",26.51],["2022-07-15",33.29],["2022-07-18",35.89],["2022-07-19",39.31],["2022-07-20",44.09],["2022-07-21",48.2],["2022-07-22",42.43],["2022-07-25",42.2],["2022-07-26",42.0],["2022-07-27",46.63],["2022-07-28",48.49],["2022-07-29",52.4],["2022-08-01",59.09],["2022-08-02",57.37],["2022-08-03",60.26],["2022-08-04",61.51],["2022-08-05",63.31],["2022-08-08",64.74],["2022-08-09",64.46],["2022-08-10",65.11],["2022-08-11",65.83],["2022-08-12",68.03],["2022-08-15",66.83],["2022-08-16",67.94],["2022-08-17",67.14],["2022-08-18",66.37],["2022-08-19",63.71],["2022-08-22",60.31],["2022-08-23",57.43],["2022-08-24",57.51],["2022-08-25",58.26],["2022-08-26",55.74],["2022-08-29",54.29],["2022-08-30",49.8],["2022-08-31",52.09],["2022-09-01",49.37],["2022-09-02",42.46],["2022-09-06",40.63],["2022-09-07",39.63],["2022-09-08",40.37],["2022-09-09",43.8],["2022-09-12",47.6],["2022-09-13",36.63],["2022-09-14",41.89],["2022-09-15",40.66],["2022-09-16",35.29],["2022-09-19",36.31],["2022-09-20",36.11],["2022-09-21",27.21],["2022-09-22",24.49],["2022-09-23",21.69],["2022-09-26",17.63],["2022-09-27",16.51],["2022-09-28",17.03],["2022-09-29",13.26],["2022-09-30",16.46],["2022-10-03",20.39],["2022-10-04",27.89],["2022-10-05",29.71],["2022-10-06",23.14],["2022-10-07",19.67],["2022-10-10",19.4],["2022-10-11",16.89],["2022-10-12",15.94],["2022-10-13",19.37],["2022-10-14",16.46],["2022-10-17",23.4],["2022-10-18",28.8],["2022-10-19",29.43],["2022-10-20",39.09],["2022-10-21",43.74],["2022-10-24",47.23],["2022-10-25",51.37],["2022-10-26",53.8],["2022-10-27",54.57],["2022-10-28",57.11],["2022-10-31",64.06],["2022-11-01",63.51],["2022-11-02",55.29],["2022-11-03",55.51],["2022-11-04",56.51],["2022-11-07",59.66],["2022-11-08",57.94],["2022-11-09",54.0],["2022-11-10",60.34],["2022-11-11",63.74],["2022-11-14",62.69],["2022-11-15",66.91],["2022-11-16",65.09],["2022-11-17",61.49],["2022-11-18",60.34],["2022-11-21",60.97],["2022-11-22",60.8],["2022-11-23",64.26],["2022-11-25",63.09],["2022-11-28",59.74],["2022-11-29",58.17],["2022-11-30",73.97],["2022-12-01",75.6],["2022-12-02",68.14],["2022-12-05",65.09],["2022-12-06",61.83],["2022-12-07",58.43],["2022-12-08",55.69],["2022-12-09",52.09],["2022-12-12",57.2],["2022-12-13",59.17],["2022-12-14",60.94],["2022-12-15",60.14],["2022-12-16",44.14],["2022-12-19",39.97],["2022-12-20",38.31],["2022-12-21",38.54],["2022-12-22",37.0],["2022-12-23",39.51],["2022-12-27",39.94],["2022-12-28",35.51],["2022-12-29",37.14],["2022-12-30",36.51],["2023-01-03",36.6],["2023-01-04",39.86],["2023-01-05",44.17],["2023-01-06",45.71],["2023-01-09",47.2],["2023-01-10",49.66],["2023-01-11",54.23],["2023-01-12",56.69],["2023-01-13",61.31],["2023-01-17",64.14],["2023-01-18",58.43],["2023-01-19",55.43],["2023-01-20",58.54],["2023-01-23",63.6],["2023-01-24",63.0],["2023-01-25",63.89],["2023-01-26",68.03],["2023-01-27",69.2],["2023-01-30",67.46],["2023-01-31",70.34],["2023-02-01",82.17],["2023-02-02",75.2],["2023-02-03",76.14],["2023-02-06",75.91],["2023-02-07",76.34],["2023-02-08",74.63],["2023-02-09",72.63],["2023-02-10",72.49],["2023-02-13",71.83],["2023-02-14",73.26],["2023-02-15",73.66],["2023-02-16",70.71],["2023-02-17",69.49],["2023-02-21",65.91],["2023-02-22",64.17],["2023-02-23",62.66],["2023-02-24",60.66],["2023-02-27",61.23],["2023-02-28",61.2],["2023-03-01",65.91],["2023-03-02",52.46],["2023-03-03",55.69],["2023-03-06",55.26],["2023-03-07",48.51],["2023-03-08",49.83],["2023-03-09",37.54],["2023-03-10",26.89],["2023-03-13",23.36],["2023-03-14",25.09],["2023-03-15",22.69],["2023-03-16",32.57],["2023-03-17",27.0],["2023-03-20",30.43],["2023-03-21",43.49],["2023-03-22",41.03],["2023-03-23",38.34],["2023-03-24",37.71],["2023-03-27",40.2],["2023-03-28",39.6],["2023-03-29",41.46],["2023-03-30",45.23],["2023-03-31",49.49],["2023-04-03",61.49],["2023-04-04",50.23],["2023-04-05",52.63],["2023-04-06",55.26],["2023-04-10",57.91],["2023-04-11",58.49],["2023-04-12",60.74],["2023-04-13",63.17],["2023-04-14",65.71],["2023-04-17",67.09],["2023-04-18",65.49],["2023-04-19",67.26],["2023-04-20",64.06],["2023-04-21",63.51],["2023-04-24",63.49],["2023-04-25",57.06],["2023-04-26",52.4],["2023-04-27",58.31],["2023-04-28",59.43],["2023-05-01",59.43],["2023-05-02",55.51],["2023-05-03",54.63],["2023-05-04",49.6],["2023-05-05",53.89],["2023-05-08",57.14],["2023-05-09",59.57],["2023-05-10",59.97],["2023-05-11",59.06],["2023-05-12",57.34],["2023-05-15",57.26],["2023-05-16",55.29],["2023-05-17",60.26],["2023-05-18",64.91],["2023-05-19",65.46],["2023-05-22",67.86],["2023-05-23",65.8],["2023-05-24",61.83],["2023-05-25",62.69],["2023-05-26",65.71],["2023-05-30",66.09],["2023-05-31",64.17],["2023-06-01",68.06],["2023-06-02",75.43],["2023-06-05",69.49],["2023-06-06",73.51],["2023-06-07",74.46],["2023-06-08",75.77],["2023-06-09",76.97],["2023-06-12",78.06],["2023-06-13",79.63],["2023-06-14",79.63],["2023-06-15",80.89],["2023-06-16",81.26],["2023-06-20",80.11],["2023-06-21",80.11],["2023-06-22",80.06],["2023-06-23",75.71],["2023-06-26",73.46],["2023-06-27",75.49],["2023-06-28",76.51],["2023-06-29",79.2],["2023-06-30",79.49],["2023-07-03",82.23],["2023-07-05",79.26],["2023-07-06",77.91],["2023-07-07",77.69],["2023-07-10",76.69],["2023-07-11",78.29],["2023-07-12",78.17],["2023-07-13",79.4],["2023-07-14",79.8],["2023-07-17",80.03],["2023-07-18",81.69],["2023-07-19",82.34],["2023-07-20",80.86],["2023-07-21",81.03],["2023-07-24",82.51],["2023-07-25",81.23],["2023-07-26",80.6],["2023-07-27",77.66],["2023-07-28",76.91],["2023-07-31",77.63],["2023-08-01",77.34],["2023-08-02",77.34],["2023-08-03",73.63],["2023-08-04",64.5],["2023-08-07",72.06],["2023-08-08",69.2],["2023-08-09",67.31],["2023-08-10",66.34],["2023-08-11",65.03],["2023-08-14",66.29],["2023-08-15",54.5],["2023-08-16",49.49],["2023-08-17",46.14],["2023-08-18",43.66],["2023-08-21",43.49],["2023-08-22",43.44],["2023-08-23",50.17],["2023-08-24",40.59],["2023-08-25",47.03],["2023-08-28",45.29],["2023-08-29",49.17],["2023-08-30",50.43],["2023-08-31",52.94],["2023-09-01",55.03],["2023-09-05",59.09],["2023-09-06",56.71],["2023-09-07",53.63],["2023-09-08",51.91],["2023-09-11",52.2],["2023-09-12",51.4],["2023-09-13",51.4],["2023-09-14",54.43],["2023-09-15",52.03],["2023-09-18",49.49],["2023-09-19",49.94],["2023-09-20",48.29],["2023-09-21",37.16],["2023-09-22",33.16],["2023-09-25",38.43],["2023-09-26",24.23],["2023-09-27",22.83],["2023-09-28",29.0],["2023-09-29",28.4],["2023-10-02",28.31],["2023-10-03",20.53],["2023-10-04",20.99],["2023-10-05",20.33],["2023-10-06",27.71],["2023-10-09",29.26],["2023-10-10",32.31],["2023-10-11",34.34],["2023-10-12",35.69],["2023-10-13",26.27],["2023-10-16",35.74],["2023-10-17",39.14],["2023-10-18",30.57],["2023-10-19",29.54],["2023-10-20",22.86],["2023-10-23",25.84],["2023-10-24",33.49],["2023-10-25",25.21],["2023-10-26",22.71],["2023-10-27",21.61],["2023-10-30",29.2],["2023-10-31",30.14],["2023-11-01",32.17],["2023-11-02",37.69],["2023-11-03",36.11],["2023-11-06",38.91],["2023-11-07",39.63],["2023-11-08",39.77],["2023-11-09",41.0],["2023-11-10",41.46],["2023-11-13",39.89],["2023-11-14",46.6],["2023-11-15",52.54],["2023-11-16",55.06],["2023-11-17",58.86],["2023-11-20",61.29],["2023-11-21",61.17],["2023-11-22",65.06],["2023-11-24",66.86],["2023-11-27",65.31],["2023-11-28",65.09],["2023-11-29",63.29],["2023-11-30",64.37],["2023-12-01",64.51],["2023-12-04",63.71],["2023-12-05",65.14],["2023-12-06",63.97],["2023-12-07",66.14],["2023-12-08",65.94],["2023-12-11",67.29],["2023-12-12",67.89],["2023-12-13",67.54],["2023-12-14",70.54],["2023-12-15",69.46],["2023-12-18",70.49],["2023-12-19",82.97],["2023-12-20",75.57],["2023-12-21",77.0],["2023-12-22",79.74],["2023-12-26",81.94],["2023-12-27",81.17],["2023-12-28",81.26],["2023-12-29",80.71],["2024-01-02",79.71],["2024-01-03",76.71],["2024-01-04",78.69],["2024-01-05",75.77],["2024-01-08",76.17],["2024-01-09",75.69],["2024-01-10",76.37],["2024-01-11",74.66],["2024-01-12",73.09],["2024-01-16",72.29],["2024-01-17",57.21],["2024-01-18",66.46],["2024-01-19",72.83],["2024-01-22",72.86],["2024-01-23",70.26],["2024-01-24",72.49],["2024-01-25",73.23],["2024-01-26",73.8],["2024-01-29",74.11],["2024-01-30",74.23],["2024-01-31",64.11],["2024-02-01",72.34],["2024-02-02",74.6],["2024-02-05",73.31],["2024-02-06",73.2],["2024-02-07",73.77],["2024-02-08",74.6],["2024-02-09",75.43],["2024-02-12",75.83],["2024-02-13",66.74],["2024-02-14",67.51],["2024-02-15",73.86],["2024-02-16",73.49],["2024-02-20",63.74],["2024-02-21",63.7],["2024-02-22",73.94],["2024-02-23",73.34],["2024-02-26",71.91],["2024-02-27",75.77],["2024-02-28",76.77],["2024-02-29",77.46],["2024-03-01",76.83],["2024-03-04",79.23],["2024-03-05",76.11],["2024-03-06",72.54],["2024-03-07",73.86],["2024-03-08",70.03],["2024-03-11",62.77],["2024-03-12",72.2],["2024-03-13",71.77],["2024-03-14",70.4],["2024-03-15",68.63],["2024-03-18",70.74],["2024-03-19",70.86],["2024-03-20",69.63],["2024-03-21",71.37],["2024-03-22",69.51],["2024-03-25",67.43],["2024-03-26",67.91],["2024-03-27",69.77],["2024-03-28",68.77],["2024-04-01",71.26],["2024-04-02",71.14],["2024-04-03",69.4],["2024-04-04",53.8],["2024-04-05",58.1],["2024-04-08",64.03],["2024-04-09",59.63],["2024-04-10",49.67],["2024-04-11",56.66],["2024-04-12",45.01],["2024-04-15",38.4],["2024-04-16",35.11],["2024-04-17",31.16],["2024-04-18",30.4],["2024-04-19",27.67],["2024-04-22",34.17],["2024-04-23",36.57],["2024-04-24",37.49],["2024-04-25",39.09],["2024-04-26",40.51],["2024-04-29",42.43],["2024-04-30",40.54],["2024-05-01",40.51],["2024-05-02",42.23],["2024-05-03",43.26],["2024-05-06",39.0],["2024-05-07",37.17],["2024-05-08",38.17],["2024-05-09",42.23],["2024-05-10",46.03],["2024-05-13",48.11],["2024-05-14",55.29],["2024-05-15",59.37],["2024-05-16",62.31],["2024-05-17",62.8],["2024-05-20",60.43],["2024-05-21",59.43],["2024-05-22",58.51],["2024-05-23",52.37],["2024-05-24",51.74],["2024-05-28",54.69],["2024-05-29",49.97],["2024-05-30",45.09],["2024-05-31",48.43],["2024-06-03",45.49],["2024-06-04",47.63],["2024-06-05",51.14],["2024-06-06",45.31],["2024-06-07",43.4],["2024-06-10",44.74],["2024-06-11",44.4],["2024-06-12",46.57],["2024-06-13",44.57],["2024-06-14",41.11],["2024-06-17",43.29],["2024-06-18",41.29],["2024-06-20",38.71],["2024-06-21",39.06],["2024-06-24",37.77],["2024-06-25",37.29],["2024-06-26",40.89],["2024-06-27",45.51],["2024-06-28",44.31],["2024-07-01",47.94],["2024-07-02",49.74],["2024-07-03",48.37],["2024-07-05",49.71],["2024-07-08",51.06],["2024-07-09",50.57],["2024-07-10",54.6],["2024-07-11",49.4],["2024-07-12",54.37],["2024-07-15",57.74],["2024-07-16",57.03],["2024-07-17",46.11],["2024-07-18",45.94],["2024-07-19",43.0],["2024-07-22",48.43],["2024-07-23",46.86],["2024-07-24",38.61],["2024-07-25",39.07],["2024-07-26",42.54],["2024-07-29",42.07],["2024-07-30",40.8],["2024-07-31",46.89],["2024-08-01",42.69],["2024-08-02",41.39],["2024-08-05",33.06],["2024-08-06",19.01],["2024-08-07",16.56],["2024-08-08",17.66],["2024-08-09",24.09],["2024-08-12",23.8],["2024-08-13",25.51],["2024-08-14",26.43],["2024-08-15",32.37],["2024-08-16",33.74],["2024-08-19",39.89],["2024-08-20",44.69],["2024-08-21",50.23],["2024-08-22",46.77],["2024-08-23",51.57],["2024-08-26",52.94],["2024-08-27",52.29],["2024-08-28",51.09],["2024-08-29",56.06],["2024-08-30",60.31],["2024-09-03",56.34],["2024-09-04",56.63],["2024-09-05",50.63],["2024-09-06",39.34],["2024-09-09",41.97],["2024-09-10",39.69],["2024-09-11",43.09],["2024-09-12",42.97],["2024-09-13",48.63],["2024-09-16",50.31],["2024-09-17",54.63],["2024-09-18",55.17],["2024-09-19",63.8],["2024-09-20",61.2],["2024-09-23",63.86],["2024-09-24",66.43],["2024-09-25",65.74],["2024-09-26",70.74],["2024-09-27",67.31],["2024-09-30",73.69],["2024-10-01",70.31],["2024-10-02",70.57],["2024-10-03",69.43],["2024-10-04",71.4],["2024-10-07",70.83],["2024-10-08",71.17],["2024-10-09",71.14],["2024-10-10",70.29],["2024-10-11",71.66],["2024-10-14",74.23],["2024-10-15",71.14],["2024-10-16",69.03],["2024-10-17",68.57],["2024-10-18",72.43],["2024-10-21",69.8],["2024-10-22",70.37],["2024-10-23",63.2],["2024-10-24",62.94],["2024-10-25",58.74],["2024-10-28",60.86],["2024-10-29",60.06],["2024-10-30",57.2],["2024-10-31",40.46],["2024-11-01",50.49],["2024-11-04",42.43],["2024-11-05",43.54],["2024-11-06",44.0],["2024-11-07",59.06],["2024-11-08",59.43],["2024-11-11",66.6],["2024-11-12",66.71],["2024-11-13",66.31],["2024-11-14",60.31],["2024-11-15",51.2],["2024-11-18",50.29],["2024-11-19",49.51],["2024-11-20",49.51],["2024-11-21",56.6],["2024-11-22",60.71],["2024-11-25",62.89],["2024-11-26",65.91],["2024-11-27",64.4],["2024-11-29",65.0],["2024-12-02",65.31],["2024-12-03",59.57],["2024-12-04",57.49],["2024-12-05",54.91],["2024-12-06",52.14],["2024-12-09",49.26],["2024-12-10",46.97],["2024-12-11",49.2],["2024-12-12",47.11],["2024-12-13",49.11],["2024-12-16",56.06],["2024-12-17",51.4],["2024-12-18",33.13],["2024-12-19",19.51],["2024-12-20",27.6],["2024-12-23",30.14],["2024-12-24",34.51],["2024-12-26",34.17],["2024-12-27",33.83],["2024-12-30",28.6],["2024-12-31",26.31],["2025-01-02",24.31],["2025-01-03",28.89],["2025-01-06",33.77],["2025-01-07",34.31],["2025-01-08",31.91],["2025-01-10",25.63],["2025-01-13",25.34],["2025-01-14",25.14],["2025-01-15",27.43],["2025-01-16",27.34],["2025-01-17",36.03],["2025-01-21",39.91],["2025-01-22",41.63],["2025-01-23",43.69],["2025-01-24",45.8],["2025-01-27",37.97],["2025-01-28",40.63],["2025-01-29",42.4],["2025-01-30",45.91],["2025-01-31",43.77],["2025-02-03",37.4],["2025-02-04",37.14],["2025-02-05",38.63],["2025-02-06",39.69],["2025-02-07",38.37],["2025-02-10",44.71],["2025-02-11",45.4],["2025-02-12",41.37],["2025-02-13",46.6],["2025-02-14",43.69],["2025-02-18",46.8],["2025-02-19",47.63],["2025-02-20",44.23],["2025-02-21",36.97],["2025-02-24",29.54],["2025-02-25",24.2],["2025-02-26",21.26],["2025-02-27",12.76],["2025-02-28",20.66],["2025-03-03",12.34],["2025-03-04",11.04],["2025-03-05",11.51],["2025-03-06",17.2],["2025-03-07",17.64],["2025-03-10",17.07],["2025-03-11",15.11],["2025-03-12",15.91],["2025-03-13",15.19],["2025-03-14",22.06],["2025-03-17",22.57],["2025-03-18",22.23],["2025-03-19",21.6],["2025-03-20",21.69],["2025-03-21",22.69],["2025-03-24",25.4],["2025-03-25",29.29],["2025-03-26",28.89],["2025-03-27",28.34],["2025-03-28",26.37],["2025-03-31",21.11],["2025-04-01",19.57],["2025-04-02",22.6],["2025-04-03",12.14],["2025-04-04",5.39],["2025-04-07",4.0],["2025-04-08",2.9],["2025-04-09",9.5],["2025-04-10",5.61],["2025-04-11",8.39],["2025-04-14",12.34],["2025-04-15",13.11],["2025-04-16",11.14],["2025-04-17",16.06],["2025-04-21",12.37],["2025-04-22",13.6],["2025-04-23",21.54],["2025-04-24",24.09],["2025-04-25",34.51],["2025-04-28",32.14],["2025-04-29",32.74],["2025-04-30",32.37],["2025-05-01",41.26],["2025-05-02",38.29],["2025-05-05",53.06],["2025-05-06",54.66],["2025-05-07",54.14],["2025-05-08",57.66],["2025-05-09",60.03],["2025-05-12",64.49],["2025-05-13",68.2],["2025-05-14",70.4],["2025-05-15",69.14],["2025-05-16",70.6],["2025-05-19",69.74],["2025-05-20",69.17],["2025-05-21",66.23],["2025-05-22",66.8],["2025-05-23",64.09],["2025-05-27",65.74],["2025-05-28",64.74],["2025-05-29",64.46],["2025-05-30",61.91],["2025-06-02",62.43],["2025-06-03",54.57],["2025-06-04",54.89],["2025-06-05",57.97],["2025-06-06",61.77],["2025-06-09",63.43],["2025-06-10",64.0],["2025-06-11",64.2],["2025-06-12",64.6],["2025-06-13",59.54],["2025-06-16",61.11],["2025-06-17",57.43],["2025-06-18",54.29],["2025-06-20",54.51],["2025-06-23",56.6],["2025-06-24",57.89],["2025-06-25",59.26],["2025-06-26",63.0],["2025-06-27",64.8],["2025-06-30",69.23],["2025-07-01",67.54],["2025-07-02",63.71],["2025-07-03",77.63],["2025-07-07",75.09],["2025-07-08",74.63],["2025-07-09",75.91],["2025-07-10",76.97],["2025-07-11",75.26],["2025-07-14",76.11],["2025-07-15",73.49],["2025-07-16",72.94],["2025-07-17",74.17],["2025-07-18",73.94],["2025-07-21",73.29],["2025-07-22",73.89],["2025-07-23",76.37],["2025-07-24",75.26],["2025-07-25",74.66],["2025-07-28",73.8],["2025-07-29",70.63],["2025-07-30",68.03],["2025-07-31",63.71],["2025-08-01",49.8],["2025-08-04",56.89],["2025-08-05",55.03],["2025-08-06",55.31],["2025-08-07",54.71],["2025-08-08",58.37],["2025-08-11",57.63],["2025-08-12",62.26],["2025-08-13",63.34],["2025-08-14",63.26],["2025-08-15",63.54],["2025-08-18",64.2],["2025-08-19",59.89],["2025-08-20",55.91],["2025-08-21",52.6],["2025-08-22",55.54],["2025-08-25",53.94],["2025-08-26",55.4],["2025-08-27",59.11],["2025-08-28",64.43],["2025-08-29",61.54],["2025-09-02",62.46],["2025-09-03",61.37],["2025-09-04",61.17],["2025-09-05",58.69],["2025-09-08",58.23],["2025-09-09",57.94],["2025-09-10",57.94],["2025-09-11",60.34],["2025-09-12",61.34],["2025-09-15",64.46],["2025-09-16",64.37],["2025-09-17",63.77],["2025-09-18",66.54],["2025-09-19",66.23],["2025-09-22",66.51],["2025-09-23",56.77],["2025-09-24",54.57],["2025-09-25",50.66],["2025-09-26",51.29],["2025-09-29",50.97],["2025-09-30",51.4],["2025-10-01",52.49],["2025-10-02",54.54],["2025-10-03",52.57],["2025-10-06",53.97],["2025-10-07",51.86],["2025-10-08",52.94],["2025-10-09",48.63],["2025-10-10",30.14],["2025-10-13",29.74],["2025-10-14",28.29],["2025-10-15",27.41],["2025-10-16",23.11],["2025-10-17",22.33],["2025-10-20",29.86],["2025-10-21",28.54],["2025-10-22",26.37],["2025-10-23",27.57],["2025-10-24",32.46],["2025-10-27",37.34],["2025-10-28",39.34],["2025-10-29",42.11],["2025-10-30",37.06],["2025-10-31",34.46],["2025-11-03",32.6],["2025-11-04",20.94],["2025-11-05",23.06],["2025-11-06",24.34],["2025-11-07",20.43],["2025-11-10",29.94],["2025-11-11",30.46],["2025-11-12",34.57],["2025-11-13",24.54],["2025-11-14",22.06],["2025-11-17",11.64],["2025-11-18",8.9],["2025-11-19",7.86],["2025-11-20",5.17],["2025-11-21",5.66],["2025-11-24",13.69],["2025-11-25",15.03],["2025-11-26",17.66],["2025-11-28",21.77],["2025-12-01",22.09],["2025-12-02",23.26],["2025-12-03",24.77],["2025-12-04",36.03],["2025-12-05",38.14],["2025-12-08",40.77],["2025-12-09",40.94],["2025-12-10",36.37],["2025-12-11",43.74],["2025-12-12",39.29],["2025-12-15",49.31],["2025-12-16",46.4],["2025-12-17",37.69],["2025-12-18",42.37],["2025-12-19",44.2],["2025-12-22",54.89],["2025-12-23",58.57],["2025-12-24",58.0],["2025-12-26",54.86],["2025-12-29",47.89],["2025-12-30",46.11],["2025-12-31",43.26],["2026-01-02",45.23],["2026-01-05",47.6],["2026-01-06",52.86],["2026-01-07",48.57],["2026-01-08",48.37],["2026-01-09",54.11],["2026-01-12",58.0],["2026-01-13",59.09],["2026-01-14",58.63],["2026-01-15",63.66],["2026-01-16",63.77],["2026-01-20",50.86],["2026-01-21",53.86],["2026-01-22",54.77],["2026-01-23",54.89],["2026-01-26",57.66],["2026-01-27",64.97],["2026-01-28",65.54],["2026-01-29",63.83],["2026-01-30",58.6],["2026-02-02",63.4],["2026-02-03",43.34],["2026-02-04",47.23],["2026-02-05",34.94],["2026-02-06",45.37],["2026-02-09",48.49],["2026-02-10",47.23],["2026-02-11",49.91],["2026-02-12",36.36],["2026-02-13",33.84],["2026-02-17",33.31],["2026-02-18",34.16],["2026-02-19",34.4],["2026-02-20",42.34],["2026-02-23",32.54],["2026-02-24",40.26],["2026-02-25",43.14],["2026-02-26",42.91],["2026-02-27",41.17],["2026-03-02",34.29],["2026-03-03",31.63],["2026-03-04",33.07],["2026-03-05",31.63],["2026-03-06",25.26],["2026-03-09",22.23],["2026-03-10",20.27],["2026-03-11",18.31],["2026-03-13",16.67],["2026-03-16",23.91],["2026-03-17",22.89],["2026-03-18",13.61],["2026-03-19",18.31],["2026-03-20",8.4],["2026-03-23",11.63],["2026-03-24",10.36],["2026-03-25",16.54],["2026-03-26",10.26],["2026-03-27",8.17],["2026-03-30",5.77],["2026-03-31",14.89],["2026-04-01",15.86],["2026-04-02",18.29],["2026-04-06",21.86],["2026-04-07",21.57],["2026-04-08",29.17],["2026-04-09",33.8],["2026-04-10",38.06],["2026-04-13",40.97],["2026-04-14",47.26],["2026-04-15",56.2],["2026-04-16",61.49],["2026-04-17",68.57],["2026-04-20",69.97],["2026-04-21",67.57],["2026-04-22",68.46],["2026-04-23",66.17],["2026-04-24",65.4],["2026-04-27",66.29],["2026-04-28",67.43],["2026-04-29",66.23],["2026-04-30",69.51],["2026-05-01",71.17],["2026-05-04",66.89],["2026-05-05",67.26],["2026-05-06",68.74],["2026-05-07",67.29],["2026-05-08",67.29],["2026-05-11",66.63],["2026-05-12",65.69],["2026-05-13",64.97],["2026-05-14",65.91],["2026-05-15",63.23],["2026-05-18",62.09],["2026-05-19",59.26],["2026-05-20",60.51],["2026-05-21",57.51],["2026-05-22",58.23],["2026-05-26",59.83],["2026-05-27",60.63],["2026-05-28",60.71],["2026-05-29",60.46],["2026-06-01",59.46],["2026-06-02",56.97],["2026-06-03",54.63],["2026-06-04",54.57],["2026-06-05",41.86],["2026-06-08",39.37],["2026-06-09",33.77],["2026-06-10",27.29],["2026-06-11",29.69],["2026-06-12",33.51],["2026-06-15",40.14],["2026-06-16",39.51],["2026-06-17",32.94],["2026-06-18",37.34],["2026-06-22",33.94],["2026-06-23",28.46],["2026-06-24",26.46],["2026-06-25",25.43],["2026-06-26",24.66],["2026-06-29",26.86],["2026-06-30",29.97],["2026-07-01",31.63],["2026-07-02",32.54],["2026-07-06",41.66],["2026-07-07",39.77],["2026-07-08",38.63],["2026-07-09",44.71],["2026-07-10",46.83],["2026-07-13",40.86],["2026-07-14",41.06],["2026-07-15",44.43],["2026-07-16",41.86],["2026-07-17",37.0],["2026-07-20",36.0],["2026-07-21",42.77],["2026-07-22",44.43],["2026-07-23",40.86],["2026-07-24",40.77],["2026-07-27",38.23],["2026-07-28",37.14],["2026-07-29",25.56],["2026-07-30",38.11],["2026-07-31",39.57],["2026-08-03",46.14],["2026-08-04",58.97],["2026-08-05",60.23],["2026-08-06",59.69],["2026-08-07",65.14],["2026-08-10",64.37],["2026-08-11",60.09],["2026-08-12",61.69],["2026-08-13",66.11],["2026-08-14",64.31],["2026-08-17",59.14],["2026-08-18",54.63],["2026-08-19",56.63],["2026-08-20",51.37],["2026-08-21",54.66],["2026-08-24",54.97],["2026-08-25",59.6],["2026-08-26",53.94],["2026-08-27",57.31],["2026-08-28",53.74],["2026-08-31",49.2],["2026-09-01",44.86],["2026-09-02",46.06],["2026-09-03",47.51],["2026-09-04",45.23],["2026-09-08",39.14],["2026-09-09",38.2],["2026-09-10",32.2],["2026-09-11",33.34]];
 
 async function fgDailyHistory(){
   const xlsPoints=FG_XLS_DATA.map(([d,v])=>({t:new Date(d+'T00:00:00Z').getTime(), score:v}));
@@ -1537,240 +1594,12 @@ async function fgDailyHistory(){
   return out.length?out:null;
 }
 
-/* ============ 추가매매법(떨어지면 매수·오르면 매도) — SOXL 6분할 티어 전략 ============
-   [비공개] 실제 종목명(SOXL)과 티어 배분·매수/매도/손절 기준은 공개 화면에 노출하지 않는다.
-   관리자 히든페이지에서만 정확한 수치를 확인할 수 있다. */
-const ALT_PROFILES={
-  defense:{ tiers:[5,10,15,20,25,25], buyPct:0.01, sellPct:0.01, stopDays:10, label:'수비' },
-  neutral:{ tiers:[10,15,20,25,20,10], buyPct:0.01, sellPct:1.5, stopDays:10, label:'중립' },
-  offense:{ tiers:[16.7,16.7,16.7,16.7,16.7,16.7], buyPct:0.1, sellPct:2, stopDays:12, label:'공격' }
-};
-
-async function runAltTradeBacktest(profile, baseCapital){
-  const cfg=ALT_PROFILES[profile];
-  if(!cfg) return {error:['알 수 없는 투자 성향']};
-  const soxl=await yDailySeries('SOXL');
-  if(!soxl) return {error:['기초자산 시세(Yahoo)']};
-  const series=soxl.series.slice().sort((a,b)=>a.t-b.t);
-  if(!series.length) return {error:['기초자산 시세(거래일 없음)']};
-
-  /* 티어별로 배정된 자본금(고정) 안에서 반복 매수·매도한다. 매도로 남긴 손익은 그 티어의
-     누적 실현손익(realizedPnL)으로 따로 쌓이고, 다음 매수는 항상 같은 배정 자본금을
-     그대로 다시 쓴다(수익을 재투자해 포지션을 불리지 않는, 고정 배팅 방식). */
-  const tiers=cfg.tiers.map(pct=>({
-    pct, capital: baseCapital*pct/100,
-    holding:false, shares:0, entryPrice:null, entryDay:null, refPrice:null,
-    realizedPnL:0
-  }));
-
-  let buyCount=0, stopLossCount=0;
-  const curve=[];
-  const monthly={};
-  const tradeLog=[]; // {t, tierPct, type:'buy'|'sell'|'stoploss', price, amount}
-  let prevMonthKey=null, monthStartValue=baseCapital;
-  let globalPeak=baseCapital;
-
-  series.forEach((p,dayIdx)=>{
-    const ts=p.t, price=p.close;
-    const d=new Date(ts);
-    const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
-    if(mk!==prevMonthKey){
-      monthly[mk]={buys:0, stopLosses:0, startValue:monthStartValue, endValue:0};
-      prevMonthKey=mk;
-    }
-
-    tiers.forEach(t=>{
-      if(t.refPrice==null) t.refPrice=price; // 첫날 기준가 설정
-
-      if(!t.holding){
-        if(price<=t.refPrice*(1-cfg.buyPct/100)){
-          t.shares=t.capital/price;
-          t.holding=true;
-          t.entryPrice=price;
-          t.entryDay=dayIdx;
-          buyCount++; monthly[mk].buys++;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'buy', price, amount:t.capital});
-        }
-      }else{
-        const daysHeld=dayIdx-t.entryDay;
-        if(price>=t.entryPrice*(1+cfg.sellPct/100)){
-          const proceeds=t.shares*price;
-          const pnl=proceeds-t.capital;
-          t.realizedPnL+=pnl;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'sell', price, amount:proceeds, entryT:series[t.entryDay].t, entryPrice:t.entryPrice, holdDays:daysHeld, pnl});
-          t.holding=false; t.shares=0; t.refPrice=price;
-        }else if(daysHeld>=cfg.stopDays){
-          /* 손절: 그날 가격으로 매도해 손실 확정 후, 같은 날 즉시 같은 자본금으로 재매수한다
-             ("손절일도 매수") — 현금이 하루도 비지 않도록 바로 다음 사이클을 시작한다. */
-          const proceeds=t.shares*price;
-          const pnl=proceeds-t.capital;
-          t.realizedPnL+=pnl;
-          stopLossCount++; monthly[mk].stopLosses++;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'stoploss', price, amount:proceeds, entryT:series[t.entryDay].t, entryPrice:t.entryPrice, holdDays:daysHeld, pnl});
-          t.shares=t.capital/price;
-          t.entryPrice=price; t.entryDay=dayIdx; t.refPrice=price;
-          buyCount++; monthly[mk].buys++;
-          tradeLog.push({t:ts, tierPct:t.pct, type:'buy', price, amount:t.capital});
-        }
-      }
-    });
-
-    let totalValue=0;
-    tiers.forEach(t=>{ totalValue+=t.realizedPnL+(t.holding?t.shares*price:t.capital); });
-    globalPeak=Math.max(globalPeak,totalValue);
-    const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
-    curve.push({t:ts, value:totalValue, cost:baseCapital, dd});
-    monthly[mk].endValue=totalValue;
-    monthStartValue=totalValue;
-  });
-
-  const finalValue=curve.length?curve[curve.length-1].value:baseCapital;
-  const totalRealizedPnL=tiers.reduce((s,t)=>s+t.realizedPnL,0);
-  return {curve, monthly, buyCount, stopLossCount, baseCapital, finalValue, profile, tradeLog, totalRealizedPnL};
-}
-
-/* ============ 추가매매법(스나이퍼) — TQQQ·TECL·SOXL 3종목, 공포탐욕 점수 기반 ============
-   [비공개] 실제 종목명과 매수·리밸런싱·매도 세부 기준은 공개 화면에 노출하지 않는다.
-   관리자 히든페이지에서만 정확한 수치를 확인할 수 있다. */
-const SNIPER_TICKERS=['TQQQ','TECL','SOXL'];
-const SNIPER_REBAL_TARGET={TQQQ:0.30, TECL:0.35, SOXL:0.35};
-async function runSniperTradeBacktest(){
-  const [tqqq,tecl,soxl,fg]=await Promise.all([
-    yDailySeries('TQQQ'), yDailySeries('TECL'), yDailySeries('SOXL'), fgDailyHistory()
-  ]);
-  const missing=[];
-  if(!tqqq) missing.push('TQQQ 시세(Yahoo)');
-  if(!tecl) missing.push('TECL 시세(Yahoo)');
-  if(!soxl) missing.push('SOXL 시세(Yahoo)');
-  if(!fg) missing.push('공포탐욕지수 히스토리(CNN)');
-  if(missing.length) return {error:missing};
-
-  const data={TQQQ:tqqq, TECL:tecl, SOXL:soxl};
-  const tradingTs=tqqq.series.map(p=>p.t).slice().sort((a,b)=>a-b);
-  if(!tradingTs.length) return {error:['TQQQ 시세(거래일 없음)']};
-
-  const priceMap={};
-  SNIPER_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
-
-  function scoreAt(ts){
-    let ans=fg.length?fg[0].score:50;
-    for(let i=0;i<fg.length;i++){ if(fg[i].t<=ts) ans=fg[i].score; else break; }
-    return ans;
-  }
-
-  /* 리밸런싱: 연말 마지막 거래일이 아니라 "그 다음 거래일"(새해 첫 거래일)에 실시한다 */
-  const yearMaxTs={};
-  tradingTs.forEach(ts=>{ const y=new Date(ts).getUTCFullYear(); if(!yearMaxTs[y]||ts>yearMaxTs[y]) yearMaxTs[y]=ts; });
-  const datasetLastTs=tradingTs[tradingTs.length-1];
-  const rebalanceDays=new Set();
-  Object.values(yearMaxTs).forEach(ts=>{
-    if(ts===datasetLastTs) return; // 아직 끝나지 않은 마지막 해는 제외
-    const idx=tradingTs.indexOf(ts);
-    if(idx>=0 && idx+1<tradingTs.length) rebalanceDays.add(tradingTs[idx+1]);
-  });
-
-  let shares={TQQQ:0,TECL:0,SOXL:0};
-  let cumCost=0, buyCount=0;
-  const monthly={};
-  const curve=[];
-  let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
-  let globalPeak=0;
-  const tradeLog=[];
-  const rebalanceLog=[];
-
-  /* 자산별로 완전히 독립된 매도규칙 — 종목 하나가 200%/300%… 도달해도 다른 종목엔 영향 없음 */
-  const sellState={}; SNIPER_TICKERS.forEach(t=>{ sellState[t]={cumCost:0, nextPct:200, realized:0}; });
-  const sellEvents=[]; // {t, ticker, amount, type, pct}
-
-  tradingTs.forEach(ts=>{
-    const d=new Date(ts);
-    const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
-    if(mk!==prevMonthKey){
-      monthly[mk]={buys:0, sold:0, startValue:monthStartValue, startCost:monthStartCost, endValue:0, endCost:0, peak:monthStartValue||0, mdd:0};
-      prevMonthKey=mk;
-    }
-
-    const score=scoreAt(ts);
-    let qty=0;
-    if(score<=5) qty=30;
-    else if(score<=10) qty=20;
-    else if(score<=15) qty=10;
-
-    if(qty>0){
-      let bought=false;
-      SNIPER_TICKERS.forEach(t=>{
-        const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]+=qty; cumCost+=px*qty; sellState[t].cumCost+=px*qty; bought=true;
-        tradeLog.push({t:ts, ticker:t, qty, price:px, amount:px*qty, score});
-      });
-      if(bought){ buyCount++; monthly[mk].buys++; }
-    }
-
-    let value=0;
-    SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
-
-    if(rebalanceDays.has(ts) && value>0){
-      const beforeVals={}, priceAtRebal={};
-      SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; beforeVals[t]=px!=null?shares[t]*px:0; priceAtRebal[t]=px; });
-      SNIPER_TICKERS.forEach(t=>{
-        const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]=(value*SNIPER_REBAL_TARGET[t])/px;
-      });
-      value=0;
-      const afterVals={};
-      SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null){ value+=shares[t]*px; afterVals[t]=shares[t]*px; } });
-      rebalanceLog.push({t:ts, before:beforeVals, after:afterVals, priceAtRebal});
-    }
-
-    /* 자산별 독립 매도: 종목별 수익률 200% 최초 도달 시 그 종목 투자원금만큼 매도,
-       이후 100%p 구간마다 그 종목 잔고의 25%씩 매도 */
-    SNIPER_TICKERS.forEach(t=>{
-      const px=priceMap[t][ts]; if(px==null) return;
-      const tVal=shares[t]*px;
-      const st=sellState[t];
-      if(st.cumCost>0 && tVal>0){
-        const pft=(tVal/st.cumCost-1)*100;
-        if(pft>=st.nextPct){
-          const isFirst=(st.nextPct===200);
-          const sellRatio=isFirst?Math.min(1, st.cumCost/tVal):0.25;
-          const sellAmt=tVal*sellRatio;
-          shares[t]*=(1-sellRatio);
-          st.cumCost*=(1-sellRatio);
-          st.realized+=sellAmt;
-          sellEvents.push({t:ts, ticker:t, amount:sellAmt, type:isFirst?'principal':'partial', pct:st.nextPct});
-          monthly[mk].sold+=sellAmt;
-          st.nextPct+=100;
-        }
-      }
-    });
-
-    value=0;
-    SNIPER_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
-
-    const totalRealized=SNIPER_TICKERS.reduce((s,t)=>s+sellState[t].realized,0);
-    const displayCost=cumCost-totalRealized;
-    globalPeak=Math.max(globalPeak,value);
-    const dd=globalPeak>0?(globalPeak-value)/globalPeak*100:0;
-
-    curve.push({t:ts, cost:displayCost, value, dd});
-    const mObj=monthly[mk];
-    mObj.endValue=value; mObj.endCost=displayCost;
-    mObj.peak=Math.max(mObj.peak,value);
-    if(mObj.peak>0){ const mdd_=(mObj.peak-value)/mObj.peak; if(mdd_>mObj.mdd) mObj.mdd=mdd_; }
-    monthStartValue=value; monthStartCost=displayCost;
-  });
-
-  const totalRealizedFinal=SNIPER_TICKERS.reduce((s,t)=>s+sellState[t].realized,0);
-  const finalValue=curve.length?curve[curve.length-1].value:0;
-  const finalCost=cumCost-totalRealizedFinal;
-
-  return {curve, monthly, buyCount, finalCost, finalValue, tradeLog, rebalanceLog, sellEvents, totalRealized:totalRealizedFinal};
-}
-
 async function runTradeBacktest(opts){
   opts = opts || {};
-  const [qld,usd,schd,qqq,tqqq,fg]=await Promise.all([
-    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory()
+  const principalRecoveryMode = !!opts.principalRecovery;
+  const dualSniperMode = !!opts.dualSniper;
+  const [qld,usd,schd,qqq,tqqq,fg,soxl]=await Promise.all([
+    yDailySeries('QLD'), yDailySeries('USD'), yDailySeries('SCHD'), yDailySeries('QQQ'), yDailySeries('TQQQ'), fgDailyHistory(), yDailySeries('SOXL')
   ]);
   const missing=[];
   if(!qld) missing.push('QLD 시세(Yahoo)');
@@ -1786,9 +1615,10 @@ async function runTradeBacktest(opts){
 
   const priceMap={};
   TRADE_TICKERS.forEach(t=>{ priceMap[t]={}; data[t].series.forEach(p=>{ priceMap[t][p.t]=p.close; }); });
-  const qqqPriceMap={}, tqqqPriceMap={};
+  const qqqPriceMap={}, tqqqPriceMap={}, soxlPriceMap={};
   if(qqq) qqq.series.forEach(p=>{ qqqPriceMap[p.t]=p.close; });
   if(tqqq) tqqq.series.forEach(p=>{ tqqqPriceMap[p.t]=p.close; });
+  if(soxl) soxl.series.forEach(p=>{ soxlPriceMap[p.t]=p.close; });
 
   function buildDivMap(dividends){
     const m={};
@@ -1803,6 +1633,7 @@ async function runTradeBacktest(opts){
   TRADE_TICKERS.forEach(t=>{ divMap[t]=buildDivMap(data[t].dividends); });
   const qqqDivMap=qqq?buildDivMap(qqq.dividends):{};
   const tqqqDivMap=tqqq?buildDivMap(tqqq.dividends):{};
+  const soxlDivMap=soxl?buildDivMap(soxl.dividends):{};
 
   function scoreAt(ts){
     let ans=fg.length?fg[0].score:50;
@@ -1836,15 +1667,16 @@ async function runTradeBacktest(opts){
   const REBAL_TARGET={QLD:0.40, USD:0.40, SCHD:0.20};
 
   let shares={QLD:0,USD:0,SCHD:0};
-  let cumCost=0, cumDividend=0, buyCount=0;
+  let cumCost=0, baseCumCost=0, cumDividend=0, buyCount=0;
   const monthly={};
   const curve=[];
   let prevMonthKey=null, monthStartValue=0, monthStartCost=0;
   /* 벤치마크: 실제 전략이 그날 지출한 것과 동일한 금액을 QQQ/QLD/TQQQ 단독매수에 썼다면 가정 */
   let bmQqqShares=0, bmQldShares=0, bmTqqqShares=0;
-  /* [벤치마크 매도 동기화] 전략이 기본 매도규칙으로 특정 금액을 현금화하면, "같은 돈을
-     QQQ/QLD/TQQQ에 그대로 넣어뒀다면?" 비교도 공정하려면 그 시점에 벤치마크에서도 동일한
-     달러 금액만큼 매도해야 한다. */
+  /* [벤치마크 매도 동기화] 전략이 원금 100% 회수나 듀얼스나이퍼 매도로 특정 금액을 현금화하면,
+     "같은 돈을 QQQ/QLD/TQQQ에 그대로 넣어뒀다면?" 비교도 공정하려면 그 시점에 벤치마크에서도
+     동일한 달러 금액만큼 매도해야 한다. 그렇지 않으면 벤치마크는 계속 전액 투자 상태로 남아
+     실제 전략(현금화로 위험 노출이 줄어든 상태)과 비교가 어긋난다. */
   function sellFromBenchmarks(dollarAmount, ts){
     const qqqPx=qqqPriceMap[ts], qldPx=priceMap.QLD[ts], tqqqPx=tqqqPriceMap[ts];
     if(qqqPx && bmQqqShares>0) bmQqqShares=Math.max(0, bmQqqShares-dollarAmount/qqqPx);
@@ -1855,27 +1687,48 @@ async function runTradeBacktest(opts){
   let globalPeak=0; /* 낙폭(underwater) 그래프용 — 리셋되지 않는 전체 기간 누적 최고점(배당 포함 총수익 기준) */
   let bmQldPeak=0, bmTqqqPeak=0, bmQqqPeak=0; /* QQQ·QLD·TQQQ 단독매수 벤치마크의 낙폭 계산용 최고점 */
 
-  /* 기본 매매법에 내장된 매도 규칙(항상 작동): 정규 매수분 기준 수익률이 200%에 처음
-     도달하면 투자원금만큼 매도하고, 이후 수익률 100%p 구간마다(300%,400%…) 잔고의 25%를
-     추가로 매도한다. 매도분만큼 원가도 비례 차감. */
-  let mainSellCumCost=0, mainSellNextPct=200, mainSellRealized=0;
-  const mainSellEvents=[]; // {t, amount, type:'principal'|'partial', pct}
+  /* [옵션] 원금 100% 회수: 포트폴리오 매수 첫 시작 시점 기준으로 딱 1회만 수행한다고 가정한다.
+     평가금(배당 포함)이 최초 원금의 2배에 처음 도달하는 순간, 그 원금만큼 비례 매도해
+     현금화하고(recoveredCash) 남은 평가금으로 동일 조건 매수를 계속한다. 이후 조건이 다시
+     충족되어도 재실행하지 않는다(실제 트리거는 아래 day loop에서 recoveryEvents.length===0
+     조건으로 강제한다). */
+  let recoveredCash=0;
+  const recoveryEvents=[]; // 항상 0개 또는 1개 — {t, amount, round:1}
 
   /* [관리자 전용 상세 기록] 종목별 실제 매수 로그 — 화면에는 공개하지 않고 관리자 히든페이지에서만 사용 */
   const tradeLog=[]; // {t, ticker, qty, price, amount, score}
   const rebalanceLog=[]; // {t, before:{QLD,USD,SCHD}, after:{QLD,USD,SCHD}} — 관리자 히든페이지용
+
+  /* [원금 100% 회수 옵션] "회수하지 않았다면?" 시나리오를 비교용으로 나란히 시뮬레이션한다.
+     매수·배당·리밸런싱 규칙은 완전히 동일하게 적용하되, 회수 매도만 절대 실행하지 않는다.
+     principalRecoveryMode가 꺼져 있으면 recoveryEvents가 항상 비어 있어 shares2는 shares와
+     끝까지 동일하게 흘러간다(계산은 하되 화면에는 옵션이 켜져 있을 때만 표시). */
+  let shares2={QLD:0,USD:0,SCHD:0}, cumCost2=0, cumDividend2=0, value2=0;
+
+  /* [옵션] 듀얼스나이퍼 매수 조건: 미국지수 공포탐욕 점수 기준으로 SOXL을 단계적으로 매수한다.
+     점수 25 미만이면 매주 금요일 2,500달러, 20 미만이면 매주 금요일 5,000달러, 15 미만이면
+     매주 금요일 7,500달러, 10 미만이면 매일 10,000달러(중복이 아니라 구간 교체 — 가장 낮은
+     점수 구간이 우선 적용됨). 이 SOXL 포지션은 연말 리밸런싱에서 완전히 제외된다.
+     매도 조건은 이전과 동일: 포지션 수익률이 +200%에 처음 도달하면 잔고의 50%를 매도하고,
+     이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도한다(매도분 원가도 비례 차감). */
+  let sniperShares=0, sniperCost=0, sniperRealizedCash=0, sniperNextSellPct=200, sniperSellCount=0;
+  let lastSniperValue=0;
+  const sniperLog=[]; // {t, type:'buy'|'sell', qty, price, amount} — 관리자 히든페이지용
+  const monthlySniper={}; // mk -> {buys, spend, sells:[{t,amount}]}
 
   tradingTs.forEach(ts=>{
     const d=new Date(ts);
     const mk=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
     if(mk!==prevMonthKey){
       monthly[mk]={buys:0, dividends:0, startValue:monthStartValue, startCost:monthStartCost, endValue:0, endCost:0, peak:monthStartValue||0, mdd:0, divEvents:[]};
+      monthlySniper[mk]={buys:0, spend:0, sells:[]};
       prevMonthKey=mk;
     }
     { let dayDivAmt=0;
       TRADE_TICKERS.forEach(t=>{
         const dv=divMap[t][ts];
         if(dv && shares[t]>0){ const amt=dv*shares[t]; cumDividend+=amt; monthly[mk].dividends+=amt; dayDivAmt+=amt; }
+        if(dv && shares2[t]>0){ cumDividend2+=dv*shares2[t]; } // 회수 안 했을 시나리오도 동일하게 배당 누적
       });
       if(dayDivAmt>0) monthly[mk].divEvents.push({t:ts, amount:dayDivAmt});
     }
@@ -1886,13 +1739,7 @@ async function runTradeBacktest(opts){
 
     const score=scoreAt(ts);
     let qty=0;
-    /* 극심한 공포 구간: 지수가 낮아질수록 매일 매수량이 배로 늘어난다(5→32, 10→16, 15→8, 20→4).
-       20~25 구간(과거 "극도공포 4주" 규칙)은 매일이 아니라 금요일에만 4주 매수. */
-    if(score<=5) qty=32;
-    else if(score<=10) qty=16;
-    else if(score<=15) qty=8;
-    else if(score<=20) qty=4;
-    else if(score<25 && fridayBuyDays.has(ts)) qty=4;
+    if(score<25) qty=4;
     else if(fridayBuyDays.has(ts)){
       if(score<45) qty=2;
       else if(score<=55) qty=1;
@@ -1903,8 +1750,9 @@ async function runTradeBacktest(opts){
       let bought=false;
       TRADE_TICKERS.forEach(t=>{
         const px=priceMap[t][ts]; if(px==null) return;
-        shares[t]+=qty; cumCost+=px*qty; mainSellCumCost+=px*qty; dailySpend+=px*qty; bought=true;
+        shares[t]+=qty; cumCost+=px*qty; baseCumCost+=px*qty; dailySpend+=px*qty; bought=true;
         tradeLog.push({t:ts, ticker:t, qty, price:px, amount:px*qty, score});
+        shares2[t]+=qty; cumCost2+=px*qty; // "회수 안 했다면" 시나리오도 동일하게 매수
       });
       if(bought){ buyCount++; monthly[mk].buys++; }
     }
@@ -1917,7 +1765,8 @@ async function runTradeBacktest(opts){
     let value=0;
     TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value+=shares[t]*px; });
 
-    /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분 */
+    /* 연말 리밸런싱: 보유 3종목 시가(배당 제외)를 QLD 40% · USD 40% · SCHD 20% 로 재배분
+       (스나이퍼 SOXL 포지션은 이 로직과 완전히 분리되어 있어 자연히 제외된다) */
     if(rebalanceDays.has(ts) && value>0){
       const beforeVals={}, priceAtRebal={};
       TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; beforeVals[t]=px!=null?shares[t]*px:0; priceAtRebal[t]=px; });
@@ -1930,32 +1779,92 @@ async function runTradeBacktest(opts){
       TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null){ value+=shares[t]*px; afterVals[t]=shares[t]*px; } });
       rebalanceLog.push({t:ts, before:beforeVals, after:afterVals, priceAtRebal});
     }
+    /* "회수 안 했다면" 시나리오도 동일한 리밸런싱 규칙을 적용 */
+    { let value2now=0;
+      TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value2now+=shares2[t]*px; });
+      if(rebalanceDays.has(ts) && value2now>0){
+        TRADE_TICKERS.forEach(t=>{
+          const px=priceMap[t][ts]; if(px==null) return;
+          shares2[t]=(value2now*REBAL_TARGET[t])/px;
+        });
+        value2now=0;
+        TRADE_TICKERS.forEach(t=>{ const px=priceMap[t][ts]; if(px!=null) value2now+=shares2[t]*px; });
+      }
+      value2=value2now;
+    }
 
-    /* 기본 매매법 내장 매도 규칙: 수익률 200% 최초 도달 시 투자원금만큼 매도, 이후 100%p
-       구간마다 잔고 25% 매도 */
-    if(mainSellCumCost>0 && value>0){
-      const pft=(value/mainSellCumCost-1)*100;
-      if(pft>=mainSellNextPct){
-        const isFirst=(mainSellNextPct===200);
-        const sellRatio=isFirst?Math.min(1, mainSellCumCost/value):0.25;
-        const sellAmt=value*sellRatio;
-        TRADE_TICKERS.forEach(t=>{ shares[t]*=(1-sellRatio); });
-        value-=sellAmt;
-        mainSellCumCost*=(1-sellRatio);
-        mainSellRealized+=sellAmt;
-        mainSellEvents.push({t:ts, amount:sellAmt, type:isFirst?'principal':'partial', pct:mainSellNextPct});
-        monthly[mk].mainSold=(monthly[mk].mainSold||0)+sellAmt;
-        mainSellNextPct+=100;
-        sellFromBenchmarks(sellAmt, ts); // 벤치마크도 동일 금액만큼 매도(공정 비교)
+    const soxlPxNow0=soxlPriceMap[ts];
+
+    if(dualSniperMode){
+      const soxlDiv=soxlDivMap[ts];
+      if(soxlDiv && sniperShares>0){ const amt=soxlDiv*sniperShares; cumDividend+=amt; monthly[mk].dividends+=amt; monthly[mk].divEvents.push({t:ts, amount:amt}); }
+      /* 공포탐욕 점수 기준 — 가장 낮은(가장 공포스러운) 구간이 우선 적용된다 */
+      let sniperBuy=0;
+      if(score<10){ sniperBuy=10000; } // 매일
+      else if(fridayBuyDays.has(ts)){
+        if(score<15) sniperBuy=7500;
+        else if(score<20) sniperBuy=5000;
+        else if(score<25) sniperBuy=2500;
+      }
+      if(sniperBuy>0 && soxlPxNow0){
+        sniperShares+=sniperBuy/soxlPxNow0;
+        sniperCost+=sniperBuy;
+        cumCost+=sniperBuy; // 실제 투입 자금이므로 누적원금에 포함
+        sniperLog.push({t:ts, type:'buy', qty:sniperBuy/soxlPxNow0, price:soxlPxNow0, amount:sniperBuy, score});
+        monthlySniper[mk].buys++; monthlySniper[mk].spend+=sniperBuy;
+      }
+      /* 스나이퍼 매도: 포지션 수익률이 +200%에 처음 도달하면 잔고의 50%, 이후 +100%p 구간마다(300%,400%…) 잔고의 25%씩 매도 */
+      if(sniperShares>0 && soxlPxNow0 && sniperCost>0){
+        const sniperValueChk=sniperShares*soxlPxNow0;
+        const sniperProfitPct=(sniperValueChk/sniperCost-1)*100;
+        if(sniperProfitPct>=sniperNextSellPct){
+          const sellFrac=sniperSellCount===0?0.5:0.25;
+          const soldShares=sniperShares*sellFrac;
+          const soldValue=soldShares*soxlPxNow0;
+          const costBasisSold=sniperCost*sellFrac; // 매도분에 해당하는 원가(수익금 계산용)
+          sniperShares-=soldShares;
+          sniperCost*=(1-sellFrac); // 매도분만큼 원가도 비례 차감(잔여 포지션 평단가 유지)
+          sniperRealizedCash+=soldValue;
+          sniperNextSellPct+=100;
+          sniperSellCount++;
+          sniperLog.push({t:ts, type:'sell', qty:soldShares, price:soxlPxNow0, amount:soldValue, profit:soldValue-costBasisSold});
+          monthlySniper[mk].sells.push({t:ts, amount:soldValue});
+          sellFromBenchmarks(soldValue, ts); // 벤치마크도 동일 금액만큼 매도(공정 비교)
+        }
       }
     }
 
-    const displayCost=cumCost-mainSellRealized; // 매도규칙으로 실현된 금액은 더 이상 투입원금으로 잡지 않는다
-    /* 매도규칙으로 실현된 현금은 "인출해서 쓴 현금"으로 간주해 평가금에 더 이상 포함시키지
-       않는다. 그래서 매도가 발생하는 순간 평가금 곡선이 실제로 팔린 금액만큼 한 단계
-       내려가고, 그 뒤로는 남은(줄어든) 포지션만으로 계속 성장한다. */
-    const totalValue=value+cumDividend; // 평가금(배당 포함, 실현된 현금은 제외)
-    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts];
+    /* 원금 100% 회수: 포트폴리오 시작 시점 기준으로 딱 1회만 수행한다고 가정한다.
+       평가금(배당 포함)이 최초 순원금의 2배에 처음 도달하는 순간, 그 순원금만큼 비례
+       매도해 현금화한다(스나이퍼 SOXL 포지션은 건드리지 않음). 이후에는 다시 조건이
+       충족되어도 재실행하지 않는다. */
+    if(principalRecoveryMode && recoveryEvents.length===0){
+      const netCost=baseCumCost-recoveredCash; // [반영] 듀얼스나이퍼 매수원금은 제외하고 기본매수조건 원금만으로 판단
+      if(netCost>0 && value>0 && (value+cumDividend)>=2*netCost){
+        /* [버그 수정] 배당이 누적돼 "평가금+배당≥원금의 2배" 조건은 충족되지만 포지션 시가(value)
+           자체는 원금(netCost)에 못 미치는 경우, 예전 코드는 그래도 netCost 전액을 매도한 것처럼
+           처리해 value가 음수로 내려가는 계산 오류가 있었다. 실제로 현금화할 수 있는 금액은
+           포지션 시가를 넘을 수 없으므로 min(netCost, value)로 상한을 둔다. */
+        const cashOut=Math.min(netCost, value);
+        const sellRatio=value>0?cashOut/value:0;
+        TRADE_TICKERS.forEach(t=>{ shares[t]*=(1-sellRatio); });
+        value-=cashOut;
+        recoveredCash+=cashOut;
+        recoveryEvents.push({t:ts, amount:cashOut, round:1});
+        monthly[mk].recovered=(monthly[mk].recovered||0)+cashOut; // 이번 달 원금 회수액(월별 수익 계산 보정용)
+        sellFromBenchmarks(cashOut, ts); // 벤치마크도 동일 금액만큼 매도(공정 비교)
+      }
+    }
+
+    const sniperValueNow=tqqqPxNow0?sniperShares*tqqqPxNow0:0;
+    lastSniperValue=sniperValueNow;
+    const displayCost=cumCost-recoveredCash-sniperRealizedCash; // 회수한 원금·듀얼스나이퍼 실현액은 더 이상 투입원금으로 잡지 않는다
+    /* [재검토 반영] 원금 회수・듀얼스나이퍼 매도 둘 다 "인출해서 쓴 현금"으로 간주해 이 시점부터는
+       포트폴리오 평가금에 더 이상 포함시키지 않는다(recoveredCash·sniperRealizedCash 모두
+       totalValue에서 제외). 그래서 두 이벤트 중 무엇이 발생하든 그 순간 평가금 곡선이 실제로
+       팔린 금액만큼 한 단계 내려가고, 그 뒤로는 남은(줄어든) 포지션만으로 계속 성장한다. */
+    const totalValue=value+cumDividend+sniperValueNow; // 평가금(배당 포함, 회수·실현된 현금은 모두 제외)
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPxNow0;
     globalPeak=Math.max(globalPeak,totalValue);
     const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
 
@@ -1971,8 +1880,9 @@ async function runTradeBacktest(opts){
     const bmTqqqDD=(bmTqqqValue!=null && bmTqqqPeak>0)?(bmTqqqPeak-bmTqqqValue)/bmTqqqPeak*100:null;
     const bmQqqDD=(bmQqqValue!=null && bmQqqPeak>0)?(bmQqqPeak-bmQqqValue)/bmQqqPeak*100:null;
 
+
     curve.push({
-      t:ts, cost:displayCost, value:totalValue, dd, cumDividend, posValue:value,
+      t:ts, cost:displayCost, value:totalValue, dd, cumDividend, posValue:value, sniperVal:sniperValueNow,
       bmQqq: qqqPxNow!=null?(bmQqqShares*qqqPxNow+bmQqqDiv):null,
       bmQld: bmQldValue, bmTqqq: bmTqqqValue,
       bmQqqDivC: bmQqqDiv, bmQldDivC: bmQldDiv, bmTqqqDivC: bmTqqqDiv,
@@ -1990,12 +1900,12 @@ async function runTradeBacktest(opts){
   const yearly={};
   Object.keys(monthly).sort().forEach(mk=>{
     const y=mk.slice(0,4);
-    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0, mainSold:0};
+    if(!yearly[y]) yearly[y]={startValue:monthly[mk].startValue, startCost:monthly[mk].startCost, endValue:0, endCost:0, dividends:0, buys:0, recovered:0};
     yearly[y].endValue=monthly[mk].endValue;
     yearly[y].endCost=monthly[mk].endCost;
     yearly[y].dividends+=monthly[mk].dividends;
     yearly[y].buys+=monthly[mk].buys;
-    yearly[y].mainSold+=(monthly[mk].mainSold||0);
+    yearly[y].recovered+=(monthly[mk].recovered||0);
   });
 
   /* 다음 예상 배당: 종목별 최근 두 배당의 간격·금액과 현재 보유 수량으로 단순 추정 */
@@ -2022,16 +1932,28 @@ async function runTradeBacktest(opts){
     annualDividendEst+=perShare12m*shares[t];
   });
 
+  /* [원금 100% 회수 옵션] "회수하지 않았다면?" 시나리오의 최종값들 — 실제 결과와 비교(diff)용.
+     principalRecoveryMode가 꺼져 있거나 회수가 일어나지 않았으면 실제값과 동일해 diff가 0이 된다. */
+  let annualDividendEst2=0;
+  TRADE_TICKERS.forEach(t=>{
+    if(shares2[t]<=0) return;
+    const perShare12m=(data[t].dividends||[]).filter(d=>d.t>oneYearAgoTs && d.t<=lastTs).reduce((s,d)=>s+d.amount,0);
+    annualDividendEst2+=perShare12m*shares2[t];
+  });
+  const noRecoveryTotalValue=value2+cumDividend2+lastSniperValue; // 실제 평가금과 동일하게 스나이퍼 실현 현금은 제외(둘 다 "인출한 현금"으로 취급)
+
   const finalPrices={}; TRADE_TICKERS.forEach(t=>{ finalPrices[t]=priceMap[t][lastTs]; });
 
   return {
     curve, monthly, yearly, buyCount, cumDividend,
-    finalCost:cumCost-mainSellRealized, finalValue:curve.length?curve[curve.length-1].value:0,
+    finalCost:cumCost-recoveredCash-sniperRealizedCash, finalValue:curve.length?curve[curve.length-1].value:0,
     finalPosValue:curve.length?curve[curve.length-1].posValue:0,
     nextDiv, didRebalance:rebalanceDays.size>0,
     annualDividendEst,
-    tradeLog, rebalanceLog, finalPrices,
-    mainSellRealized, mainSellEvents
+    principalRecoveryMode, dualSniperMode, recoveredCash, recoveryEvents,
+    sniperCost, sniperShares, sniperRealizedCash, sniperLog, monthlySniper, tradeLog, rebalanceLog, finalPrices,
+    noRecoveryCost:cumCost2, noRecoveryDividend:cumDividend2,
+    noRecoveryAnnualDividendEst:annualDividendEst2, noRecoveryTotalValue
   };
 }
 
@@ -2136,6 +2058,43 @@ function miniLineChart(seriesArr, opts){
 }
 
 /* 원금 100% 회수 전/후, 그리고 듀얼스나이퍼 차수별 매도 전/후를 각각 절반씩 나란히 비교한다 */
+function renderPostRecoveryCharts(res){
+  function fmtUSDKRW2(usd){
+    if(!krwDisplayOn) return fmtUSD(usd);
+    const krw=fmtKRW(usd);
+    return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
+  }
+  /* ---- 듀얼스나이퍼 차수별(1차/2차…) 매도 전/후 비교 — SOXL 스나이퍼 포지션 가치만 비교 ---- */
+  const sniperSection=document.getElementById('bt-sniper-rounds-section');
+  const sniperChartsEl=document.getElementById('bt-sniper-rounds-charts');
+  const sells=(res.sniperLog||[]).filter(l=>l.type==='sell');
+  if(sniperSection && sniperChartsEl){
+    if(!sells.length){ sniperSection.style.display='none'; }
+    else{
+      sniperSection.style.display='';
+      let html='';
+      sells.forEach((s,i)=>{
+        const sellIdx=res.curve.findIndex(p=>p.t>=s.t);
+        let prevIdx=i===0?0:res.curve.findIndex(p=>p.t>=sells[i-1].t);
+        if(prevIdx<0) prevIdx=0;
+        let nextIdx=(i+1<sells.length)?res.curve.findIndex(p=>p.t>=sells[i+1].t):res.curve.length-1;
+        if(nextIdx<0) nextIdx=res.curve.length-1;
+        if(sellIdx<0) return;
+        const beforeSeg=res.curve.slice(prevIdx, sellIdx+1);
+        const afterSeg=res.curve.slice(sellIdx, nextIdx+1);
+        const rebase=(seg)=>{ const b=seg[0].sniperVal||0; return seg.map(p=>(p.sniperVal||0)-b); };
+        html+='<div class="card" style="margin-top:10px">'+
+          '<div class="mut" style="font-size:12px;margin-bottom:6px"><b>'+(i+1)+'차 매도</b> · '+new Date(s.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW2(s.amount)+' 실현</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+          '<div><div class="mut" style="font-size:11px;margin-bottom:4px">이번 매도 전</div>'+miniLineChart([{values:rebase(beforeSeg), color:'#facc15', width:2, zeroLine:true}],{h:140,zeroLine:true})+'</div>'+
+          '<div><div class="mut" style="font-size:11px;margin-bottom:4px">이번 매도 후</div>'+miniLineChart([{values:rebase(afterSeg), color:'#facc15', width:2, zeroLine:true}],{h:140,zeroLine:true})+'</div>'+
+          '</div></div>';
+      });
+      sniperChartsEl.innerHTML=html;
+    }
+  }
+}
+
 function renderBacktest(res){
   const statusEl=document.getElementById('bt-status');
   if(!res || res.error || !res.curve || !res.curve.length){
@@ -2143,7 +2102,7 @@ function renderBacktest(res){
     if(statusEl) statusEl.textContent='⚠ '+reason+' — PROXY_BASE에 설정한 Worker 주소가 살아있는지, 코드가 정확히 배포됐는지 확인해주세요.';
     return;
   }
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
 
   const rebalNoteEl=document.getElementById('bt-rebal-note');
   if(rebalNoteEl) rebalNoteEl.textContent=res.didRebalance
@@ -2156,6 +2115,94 @@ function renderBacktest(res){
     return krw ? fmtUSD(usd)+' ('+krw+')' : fmtUSD(usd);
   }
 
+  const optSummaryEl=document.getElementById('bt-opt-summary');
+  if(optSummaryEl){
+    const parts=[];
+    if(res.principalRecoveryMode){
+      parts.push(res.recoveredCash>0
+        ? '원금 100% 회수: '+fmtUSDKRW(res.recoveredCash)+' 현금화됨(1회성)'
+        : '원금 100% 회수: 아직 조건(평가금 ≥ 순원금의 2배)에 도달하지 않았습니다');
+    }
+    if(res.dualSniperMode){
+      const sniperTotal=res.sniperCost>0||res.sniperRealizedCash>0;
+      parts.push(sniperTotal
+        ? '듀얼스나이퍼: 추가 매수 '+fmtUSDKRW(res.sniperCost)+' 집행됨'+(res.sniperRealizedCash>0?' · 실현 '+fmtUSDKRW(res.sniperRealizedCash):'')
+        : '듀얼스나이퍼: 아직 매수 조건이 발동하지 않았습니다');
+    }
+    optSummaryEl.textContent=parts.join(' · ');
+  }
+
+  /* 수익실현금 — 원금 100% 회수와 듀얼스나이퍼는 서로 다른 카드로 완전히 분리해서 보여준다.
+     원금회수 옵션은 켰지만 아직 조건에 도달하지 못했으면(짧은 기간으로 테스트 중 등),
+     현재까지의 연환산 수익률(CAGR)로 추정한 예상 회수시점·D-DAY를 대신 보여준다. */
+  const recoveryCardEl2=document.getElementById('bt-realized-recovery-card');
+  const sniperCardEl2=document.getElementById('bt-realized-sniper-card');
+  const hasRecoveryRealized=res.recoveryEvents && res.recoveryEvents.length>0;
+  const hasSniperRealized=res.sniperRealizedCash>0;
+  const showProjected=res.principalRecoveryMode && !hasRecoveryRealized;
+  const firstTs0=res.curve[0].t, lastTs0=res.curve[res.curve.length-1].t;
+  const dayCount0=(a,b)=>Math.round((b-a)/86400000);
+
+  if(recoveryCardEl2){
+    if(hasRecoveryRealized || showProjected){
+      recoveryCardEl2.style.display='';
+      const recoveryBlockEl=document.getElementById('bt-realized-recovery-block');
+      const projectedBlockEl=document.getElementById('bt-realized-recovery-projected-block');
+      if(hasRecoveryRealized){
+        if(recoveryBlockEl) recoveryBlockEl.style.display='';
+        if(projectedBlockEl) projectedBlockEl.style.display='none';
+        const ev=res.recoveryEvents[0];
+        const recoveryEl2=document.getElementById('bt-realized-recovery');
+        const detailEl=document.getElementById('bt-realized-recovery-detail');
+        if(recoveryEl2) recoveryEl2.textContent=fmtUSDKRW(ev.amount);
+        if(detailEl) detailEl.innerHTML=new Date(ev.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,ev.t).toLocaleString('ko-KR')+'일)';
+      }else if(recoveryBlockEl){ recoveryBlockEl.style.display='none'; }
+      if(showProjected){
+        if(projectedBlockEl) projectedBlockEl.style.display='';
+        const projectedEl=document.getElementById('bt-realized-recovery-projected');
+        const years=(lastTs0-firstTs0)/(365*86400000);
+        const ratio=res.finalCost>0?res.finalValue/res.finalCost:0;
+        const cagr=(years>0.1 && ratio>0)?Math.pow(ratio,1/years)-1:null;
+        if(projectedEl){
+          if(cagr!=null && cagr>0 && ratio<2){
+            const extraYears=Math.log(2/ratio)/Math.log(1+cagr);
+            if(isFinite(extraYears) && extraYears>0 && extraYears<100){
+              const projectedDate=new Date(lastTs0);
+              projectedDate.setDate(projectedDate.getDate()+Math.round(extraYears*365));
+              const dday=Math.round(extraYears*365);
+              projectedEl.innerHTML='예상 회수시점<br><b>'+projectedDate.toLocaleDateString('ko-KR')+'</b> <span class="mut">(D-'+dday.toLocaleString('ko-KR')+'일)</span>';
+            }else{
+              projectedEl.innerHTML='추정 불가(현재 페이스로는 100년 내 도달 예상 어려움)';
+            }
+          }else{
+            projectedEl.innerHTML='추정 불가(현재 수익률이 마이너스이거나 데이터가 부족합니다)';
+          }
+        }
+      }else if(projectedBlockEl){ projectedBlockEl.style.display='none'; }
+    }else{
+      recoveryCardEl2.style.display='none';
+    }
+  }
+
+  if(sniperCardEl2){
+    if(hasSniperRealized){
+      sniperCardEl2.style.display='';
+      const sniperBlockEl=document.getElementById('bt-realized-sniper-block');
+      if(sniperBlockEl) sniperBlockEl.style.display='';
+      const sniperEl2=document.getElementById('bt-realized-sniper');
+      const sniperDetailEl=document.getElementById('bt-realized-sniper-detail');
+      if(sniperEl2) sniperEl2.textContent=fmtUSDKRW(res.sniperRealizedCash);
+      const sniperSells=(res.sniperLog||[]).filter(l=>l.type==='sell');
+      if(sniperDetailEl){
+        sniperDetailEl.innerHTML=sniperSells.length
+          ? sniperSells.map((s,i)=>'<b>'+(i+1)+'차</b> '+fmtUSDKRW(s.amount)+'<br><span style="font-size:11px">'+new Date(s.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,s.t).toLocaleString('ko-KR')+'일)</span>').join('<div style="margin:6px 0;border-top:1px dashed var(--line)"></div>')
+          : '';
+      }
+    }else{
+      sniperCardEl2.style.display='none';
+    }
+  }
+
   const bc=document.getElementById('bt-buycount'); if(bc) bc.textContent=res.buyCount+'회';
   const totalValueEl=document.getElementById('bt-total-value');
   if(totalValueEl){
@@ -2163,6 +2210,32 @@ function renderBacktest(res){
   }
   const costEl=document.getElementById('bt-cost'); if(costEl) costEl.textContent=fmtUSDKRW(res.finalCost);
   const dv=document.getElementById('bt-dividend'); if(dv) dv.textContent=fmtUSDKRW(res.cumDividend);
+
+  /* [원금 100% 회수 옵션] 실제로 회수가 일어났을 때만, "회수 안 했다면?" 시나리오와 비교한
+     차이를 각 카드 아래에 작게 보여준다(회수가 없었으면 diff가 0이라 자동으로 표시 안 됨). */
+  /* [문구·시각화 개선] "회수 안 했다면"은 지금과 달리 원금을 계속 그대로 투자한(전액 미실현
+     상태를 유지한) 가상의 시나리오다. 그냥 회색 텍스트 한 줄로만 보여주던 것을, 어떤 값인지
+     헷갈리지 않도록 라벨을 명확히 하고(전액 미실현 유지 시), 점선 박스로 시각적으로 구분해
+     차이(+/-)를 색상과 함께 눈에 띄게 표시한다. */
+  /* [문구·시각화 개선] "회수 안 했다면"이라는 단정적 문구 대신 "계속 투자했다면(비교)"으로
+     톤을 낮췄고, 금액·차이를 줄로 나눠 표시한다. 누적원금·배당금 비교는 성과 평가가 아니라
+     단순 회계상 차이라 up/down(적/청) 색을 넣지 않는다 — 원금을 회수해서 누적원금이 줄어든
+     것은 "나쁜 결과"가 아닌데 빨간색을 넣으면 마치 손해처럼 보이는 문제가 있었다. */
+  function diffNote(actual, counterfactual, elId, neutral){
+    const el=document.getElementById(elId);
+    if(!el) return;
+    const diff=actual-counterfactual;
+    if(!hasRecoveryRealized || Math.abs(diff)<0.5){ el.innerHTML=''; return; }
+    const dir=neutral?'':(diff>=0?'up':'down');
+    el.innerHTML='<div style="margin-top:8px;padding:7px 10px;border-radius:8px;border:1px dashed var(--line);background:rgba(159,176,201,.06)">'+
+      '<div class="mut" style="font-size:10.5px">계속 투자했다면(비교)</div>'+
+      '<div style="font-size:12.5px;margin-top:4px">'+fmtUSDKRW(counterfactual)+'</div>'+
+      '<div style="font-size:11.5px;margin-top:2px" class="'+dir+'">차이 '+(diff>=0?'+':'-')+fmtUSDKRW(Math.abs(diff))+'</div>'+
+      '</div>';
+  }
+  diffNote(res.finalCost, res.noRecoveryCost, 'bt-cost-diff', true);
+  diffNote(res.cumDividend, res.noRecoveryDividend, 'bt-dividend-diff', true);
+  diffNote(res.annualDividendEst||0, res.noRecoveryAnnualDividendEst||0, 'bt-annual-dividend-diff', true);
 
   /* 원금 대비 배당률 = 누적 배당금 ÷ 누적원금 */
   const divYieldEl=document.getElementById('bt-div-yield');
@@ -2175,26 +2248,7 @@ function renderBacktest(res){
   const annualDivEl=document.getElementById('bt-annual-dividend');
   if(annualDivEl) annualDivEl.textContent=fmtUSDKRW(res.annualDividendEst||0);
 
-  /* 기본 매매법에 내장된 매도규칙(항상 작동) — 실현된 금액이 있으면 카드로 보여준다 */
-  const mainCardEl2=document.getElementById('bt-realized-main-card');
-  const hasMainRealized=res.mainSellEvents && res.mainSellEvents.length>0;
-  const firstTs0=res.curve[0].t;
-  const dayCount0=(a,b)=>Math.round((b-a)/86400000);
-  if(mainCardEl2){
-    if(hasMainRealized){
-      mainCardEl2.style.display='';
-      const mainEl2=document.getElementById('bt-realized-main');
-      const mainDetailEl=document.getElementById('bt-realized-main-detail');
-      if(mainEl2) mainEl2.textContent=fmtUSDKRW(res.mainSellRealized);
-      if(mainDetailEl){
-        mainDetailEl.innerHTML=res.mainSellEvents.map((s,i)=>
-          '<b>'+(i+1)+'차('+(s.type==='principal'?'원금':s.pct+'%')+')</b> '+fmtUSDKRW(s.amount)+'<br><span style="font-size:11px">'+new Date(s.t).toLocaleDateString('ko-KR')+' (D+'+dayCount0(firstTs0,s.t).toLocaleString('ko-KR')+'일)</span>'
-        ).join('<div style="margin:6px 0;border-top:1px dashed var(--line)"></div>');
-      }
-    }else{
-      mainCardEl2.style.display='none';
-    }
-  }
+
 
   const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
   const roiEl=document.getElementById('bt-roi');
@@ -2204,8 +2258,25 @@ function renderBacktest(res){
   }
   const roiSub=document.getElementById('bt-roi-sub');
   if(roiSub) roiSub.innerHTML='원금 '+fmtUSDKRW(res.finalCost)+'<br>· 평가금 '+fmtUSDKRW(res.finalValue);
+  { const roiDiffEl=document.getElementById('bt-roi-diff');
+    if(roiDiffEl){
+      const roi2=res.noRecoveryCost>0?(res.noRecoveryTotalValue/res.noRecoveryCost-1)*100:0;
+      const diff=roi-roi2;
+      const dir2=diff>=0?'up':'down';
+      roiDiffEl.innerHTML=(hasRecoveryRealized && Math.abs(diff)>=0.1)
+        ? '<div style="margin-top:8px;padding:7px 10px;border-radius:8px;border:1px dashed var(--line);background:rgba(159,176,201,.06)">'+
+          '<div class="mut" style="font-size:10.5px">계속 투자했다면(비교)</div>'+
+          '<div style="font-size:12.5px;margin-top:4px">'+(roi2>=0?'+':'')+roi2.toFixed(1)+'%p</div>'+
+          '<div style="font-size:11.5px;margin-top:2px" class="'+dir2+'">차이 '+(diff>=0?'+':'')+diff.toFixed(1)+'%p</div>'+
+          '</div>'
+        : '';
+    }
+  }
 
-  /* 현재 평가수익금(배당 포함) = 평가금 - 누적원금 */
+  /* 현재 평가수익금(배당 포함) = 평가금 - 누적원금. 원금이 이미 회수됐으면 "수익실현금" 카드와
+     내용이 겹치므로 이 카드는 숨긴다. */
+  const profitCardEl=document.getElementById('bt-profit-card');
+  if(profitCardEl) profitCardEl.style.display=hasRecoveryRealized?'none':'';
   const profitAmt=res.finalValue-res.finalCost;
   const profitEl=document.getElementById('bt-profit');
   if(profitEl){
@@ -2214,26 +2285,11 @@ function renderBacktest(res){
   }
   const profitKrwEl=document.getElementById('bt-profit-krw');
   if(profitKrwEl) profitKrwEl.textContent='평가금(배당포함) - 누적원금';
+  diffNote(profitAmt, res.noRecoveryTotalValue-res.noRecoveryCost, 'bt-profit-diff');
 
   /* 수익률 곡선 SVG */
   /* 평가금 곡선 패널 하나를 그린다 — 회수 전/후 두 패널이 완전히 동일한 축척(scaleMin~scaleMax)과
      동일한 벤치마크 정의를 쓰도록 공유해서, 나란히 놓았을 때 크기 비교가 왜곡되지 않게 한다. */
-  /* 수익률·낙폭·배당 곡선 공통 — 연도가 바뀌는 지점마다 세로 구분선과 연도 라벨을 그린다 */
-  function yearDividerLines(seg, padL, stepX, yTop, yBottom, labelY){
-    let html='';
-    let prevYear=null;
-    seg.forEach((p,i)=>{
-      const y=new Date(p.t).getUTCFullYear();
-      if(prevYear!==null && y!==prevYear){
-        const x=(padL+i*stepX).toFixed(1);
-        html+='<line x1="'+x+'" y1="'+yTop+'" x2="'+x+'" y2="'+yBottom+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>';
-        if(labelY!=null) html+='<text x="'+(+x+3)+'" y="'+labelY+'" font-size="8.5" fill="var(--tx2)" text-anchor="start">'+y+'</text>';
-      }
-      prevYear=y;
-    });
-    return html;
-  }
-
   function buildEquityPanel(seg, scaleMin, scaleMax, w, h, events){
     const padL=48,padR=14,padTop=10,padBottom=30;
     const n=seg.length;
@@ -2254,11 +2310,18 @@ function renderBacktest(res){
       yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
       yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
     }
-    let markers=yearDividerLines(seg, padL, stepX, padTop, h-padBottom, h-padBottom+11);
-
+    let markers='';
+    (events.sniperSells||[]).forEach((sl,i)=>{
+      const idx=seg.findIndex(p=>p.t>=sl.t);
+      if(idx>=0){
+        const x=(padL+idx*stepX).toFixed(1);
+        markers+='<line x1="'+x+'" y1="'+padTop+'" x2="'+x+'" y2="'+(h-padBottom)+'" stroke="#facc15" stroke-width="1.6" stroke-dasharray="3 2"/>'+
+          '<text x="'+x+'" y="'+(h-padBottom-3)+'" font-size="8.5" fill="#facc15" text-anchor="middle">'+(events.sniperOffset?events.sniperOffset+i:i+1)+'차</text>';
+      }
+    });
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
       yAxis+markers+
-      '<path d="'+areaPath+'" fill="'+(profit?'rgba(200,32,20,.12)':'rgba(26,111,168,.12)')+'" stroke="none"/>'+
+      '<path d="'+areaPath+'" fill="'+(profit?'rgba(255,77,79,.12)':'rgba(61,157,255,.12)')+'" stroke="none"/>'+
       (ptsQqq.length?'<path d="'+pathOf(ptsQqq)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (ptsQld.length?'<path d="'+pathOf(ptsQld)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (ptsTqqq.length?'<path d="'+pathOf(ptsTqqq)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
@@ -2276,7 +2339,7 @@ function renderBacktest(res){
     const all=res.curve.map(p=>p.cost).concat(res.curve.map(p=>p.value)).concat(bmQqqVals).concat(bmQldVals).concat(bmTqqqVals);
     const scaleMin=Math.min(...all,0), scaleMax=Math.max(...all,1);
 
-    /* 기간 중 최고 수익률(원금 대비 평가금, 배당 포함) 시점 탐색 */
+    /* 기간 중 최고 수익률(원금 대비 평가금, 배당 포함) 시점 탐색 — 전체 기간 기준, 분할 여부와 무관 */
     let maxRoi=-Infinity, maxRoiTs=null;
     res.curve.forEach(p=>{
       if(p.cost>0){
@@ -2286,17 +2349,34 @@ function renderBacktest(res){
     });
     if(maxRoi===-Infinity) maxRoi=0;
 
+    const hasRec=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdx=hasRec?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    const sniperSells=(res.sniperLog||[]).filter(l=>l.type==='sell');
+
     const legendHtml='<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;font-size:12px;color:var(--tx2);min-width:0">'+
       '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 평가금(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD(배당포함)</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ(배당포함)</span>'+
+      (sniperSells.length?'<span style="white-space:nowrap"><span style="color:#facc15">┊</span> 듀얼스나이퍼 매도(차수별)</span>':'')+
       '</div>';
     const roiSummary='<div class="mut" style="margin-top:8px;font-size:12.5px">기간 중 최고 수익률: <b style="color:var(--up)">+'+maxRoi.toFixed(1)+'%</b>'+(maxRoiTs?' ('+new Date(maxRoiTs).toLocaleDateString('ko-KR')+')':'')+'</div>';
 
-    if(splitNoteEl) splitNoteEl.textContent='';
-    curveEl.innerHTML=buildEquityPanel(res.curve,scaleMin,scaleMax,700,240,{})+roiSummary+legendHtml;
+    if(hasRec && recIdx>0 && recIdx<res.curve.length-1){
+      if(splitNoteEl) splitNoteEl.textContent='— 원금 회수 시점 기준 전/후로 나눠 표시(같은 축척)';
+      const pre=res.curve.slice(0,recIdx+1), post=res.curve.slice(recIdx);
+      const evT=res.recoveryEvents[0].t;
+      const preSells=sniperSells.filter(s=>s.t<=evT);
+      const postSells=sniperSells.filter(s=>s.t>=evT);
+      curveEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildEquityPanel(pre,scaleMin,scaleMax,340,220,{sniperSells:preSells})+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildEquityPanel(post,scaleMin,scaleMax,340,220,{sniperSells:postSells, sniperOffset:preSells.length+1})+'</div>'+
+        '</div>'+roiSummary+legendHtml;
+    }else{
+      if(splitNoteEl) splitNoteEl.textContent='';
+      curveEl.innerHTML=buildEquityPanel(res.curve,scaleMin,scaleMax,700,240,{sniperSells})+roiSummary+legendHtml;
+    }
   }
 
   /* 낙폭(underwater) 그래프 — 전체 기간 누적 최고점 대비 낙폭(%)을 아래로 그린다 */
@@ -2323,8 +2403,8 @@ function renderBacktest(res){
       yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
     }
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+yearDividerLines(seg, padL, stepX, padTop, h-14, h-4)+
-      '<path d="'+areaPath+'" fill="rgba(200,32,20,.18)" stroke="none"/>'+
+      yAxis+
+      '<path d="'+areaPath+'" fill="rgba(255,77,79,.18)" stroke="none"/>'+
       '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
       (ptsQldDD.length?'<path d="'+pathOf(ptsQldDD)+'" fill="none" stroke="#c084fc" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
       (ptsTqqqDD.length?'<path d="'+pathOf(ptsTqqqDD)+'" fill="none" stroke="#facc15" stroke-width="1.3" stroke-dasharray="5 3"/>':'')+
@@ -2352,7 +2432,21 @@ function renderBacktest(res){
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> QLD 단독매수</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> TQQQ 단독매수</span>'+
       '</div>';
-    ddEl.innerHTML=buildDrawdownPanel(res.curve,maxDD,700,110,false)+summary+ddLegend;
+    const hasRecDD=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdxDD=hasRecDD?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    if(hasRecDD && recIdxDD>0 && recIdxDD<res.curve.length-1){
+      const preDD=res.curve.slice(0,recIdxDD+1), postDD=res.curve.slice(recIdxDD);
+      /* 회수 후 패널은 0%부터 다시 시작하므로, 축 스케일도 그 구간에서 실제로 필요한 만큼(전체
+         스케일과 그 구간 자체 최대낙폭 중 더 큰 값)으로 잡아 값이 잘리지 않게 한다 */
+      let postPeak=0; const postDDVals=postDD.map(p=>{ postPeak=Math.max(postPeak,p.value); return postPeak>0?(postPeak-p.value)/postPeak*100:0; });
+      const postMaxDD=Math.max(maxDD, ...postDDVals, 1);
+      ddEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDrawdownPanel(preDD,maxDD,340,110,false)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후(0%부터 재시작)</div>'+buildDrawdownPanel(postDD,postMaxDD,340,110,true)+'</div>'+
+        '</div>'+summary+ddLegend;
+    }else{
+      ddEl.innerHTML=buildDrawdownPanel(res.curve,maxDD,700,110,false)+summary+ddLegend;
+    }
     /* 연도별 최고 낙폭 박스 — 전략·QQQ·QLD·TQQQ 를 연도마다 나란히 비교 */
     const ddYearBoxEl=document.getElementById('bt-drawdown-yearly');
     if(ddYearBoxEl){
@@ -2452,11 +2546,11 @@ function renderBacktest(res){
     const qldDiv=seg.map(p=>p.bmQldDivC!=null?p.bmQldDivC:null);
     const tqqqDiv=seg.map(p=>p.bmTqqqDivC!=null?p.bmTqqqDivC:null);
     return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+yearDividerLines(seg, padL, stepX, padTop, h-padBottom, h-padBottom+11)+
+      yAxis+
       (qqqDiv.some(v=>v!=null)?'<path d="'+pathOf(qqqDiv)+'" fill="none" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (qldDiv.some(v=>v!=null)?'<path d="'+pathOf(qldDiv)+'" fill="none" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
       (tqqqDiv.some(v=>v!=null)?'<path d="'+pathOf(tqqqDiv)+'" fill="none" stroke="#facc15" stroke-width="1.4" stroke-dasharray="6 3"/>':'')+
-      '<path d="'+pathOf(div)+'" fill="none" stroke="var(--up)" stroke-width="2"/>'+
+      '<path d="'+pathOf(div)+'" fill="none" stroke="var(--accent)" stroke-width="2"/>'+
       '</svg>';
   }
   const divCurveEl=document.getElementById('bt-dividend-curve');
@@ -2467,14 +2561,25 @@ function renderBacktest(res){
       .concat(res.curve.map(p=>p.bmTqqqDivC).filter(v=>v!=null));
     const divScaleMax=Math.max(...allDivVals,1);
     const divLegend='<div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12px;color:var(--tx2)">'+
-      '<span style="white-space:nowrap"><span style="color:var(--up)">■</span> 기본 전략 배당</span>'+
+      '<span style="white-space:nowrap"><span style="color:var(--accent)">■</span> 기본전략(QLD/USD/SCHD) 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#2dd4bf">┄</span> 동일 금액 QQQ 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#c084fc">┄</span> 동일 금액 QLD 배당</span>'+
       '<span style="white-space:nowrap"><span style="color:#facc15">┄</span> 동일 금액 TQQQ 배당</span>'+
       '</div>';
-    divCurveEl.innerHTML=buildDividendPanel(res.curve,divScaleMax,700,200)+divLegend;
+    const hasRecDiv=res.recoveryEvents && res.recoveryEvents.length>0;
+    const recIdxDiv=hasRecDiv?res.curve.findIndex(p=>p.t>=res.recoveryEvents[0].t):-1;
+    if(hasRecDiv && recIdxDiv>0 && recIdxDiv<res.curve.length-1){
+      const preDiv=res.curve.slice(0,recIdxDiv+1), postDiv=res.curve.slice(recIdxDiv);
+      divCurveEl.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="fx-2col">'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 전</div>'+buildDividendPanel(preDiv,divScaleMax,340,180)+'</div>'+
+        '<div><div class="mut" style="font-size:11px;margin-bottom:4px;font-weight:700">회수 후</div>'+buildDividendPanel(postDiv,divScaleMax,340,180)+'</div>'+
+        '</div>'+divLegend;
+    }else{
+      divCurveEl.innerHTML=buildDividendPanel(res.curve,divScaleMax,700,200)+divLegend;
+    }
   }
 
+  renderPostRecoveryCharts(res);
 
   /* 연도별 수익률 */
   const yearlyEl=document.getElementById('bt-yearly-return');
@@ -2482,7 +2587,7 @@ function renderBacktest(res){
     const years=Object.keys(res.yearly||{}).sort();
     const yretList=years.map(y=>{
       const yr=res.yearly[y];
-      const contrib=yr.endCost-yr.startCost; // [버그 수정] 위 월별 표와 동일한 이유로 recovered 보정을 제거
+      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0); // 원금 회수분은 신규 매수의 반대가 아니므로 보정
       const denom=yr.startValue+contrib;
       const profitYen=yr.endValue-yr.startValue-contrib;
       return denom>0?profitYen/denom*100:0;
@@ -2490,13 +2595,13 @@ function renderBacktest(res){
     const bestYret=Math.max(...yretList), worstYret=Math.min(...yretList);
     yearlyEl.innerHTML=years.map((y,i)=>{
       const yr=res.yearly[y];
-      const contrib=yr.endCost-yr.startCost;
+      const contrib=(yr.endCost-yr.startCost)+(yr.recovered||0);
       const yret=yretList[i];
       const isBest=yret===bestYret && yretList.length>1;
       const isWorst=yret===worstYret && yretList.length>1;
-      const rowBg='background:'+(yret>=0?'rgba(200,32,20,':'rgba(26,111,168,')+Math.min(Math.abs(yret)/40,1)*0.22+')';
-      const badge=isBest?' <span class="tag" style="background:rgba(0,117,74,.18);color:var(--accent)">최고</span>':isWorst?' <span class="tag" style="background:rgba(26,111,168,.15);color:var(--down)">최저</span>':'';
-      return '<tr style="'+rowBg+'"><td>'+y+badge+(yr.mainSold?' <span class="mut" style="font-size:11px">💰 매도 발생</span>':'')+'</td>'+
+      const rowBg='background:'+(yret>=0?'rgba(255,77,79,':'rgba(61,157,255,')+Math.min(Math.abs(yret)/40,1)*0.22+')';
+      const badge=isBest?' <span class="tag" style="background:rgba(255,176,32,.18);color:var(--accent)">최고</span>':isWorst?' <span class="tag" style="background:rgba(61,157,255,.15);color:var(--down)">최저</span>':'';
+      return '<tr style="'+rowBg+'"><td>'+y+badge+(yr.recovered?' <span class="mut" style="font-size:11px">(원금 회수 발생)</span>':'')+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(yr.endCost)+'</td>'+
         '<td class="num">'+yr.buys+'회</td>'+
@@ -2511,20 +2616,17 @@ function renderBacktest(res){
   if(trEl){
     trEl.innerHTML=months.map(mk=>{
       const m=res.monthly[mk];
-      /* [버그 수정] 이 파일의 현재 설계는 회수·매도로 실현된 현금을 평가금(totalValue)에서
-         아예 제외한다(더 이상 "인출해서 쓴 현금"으로 취급). 그 결과 회수/매도 이벤트 자체는
-         원가와 평가금을 정확히 같은 금액만큼 같이 줄이므로, 보정 없이 단순 델타만 써도
-         수익 계산이 이미 맞다 — 예전에는 평가금에 회수액을 포함시켰던 구조라 보정이
-         필요했지만, 지금 구조에서 그 보정(+recovered)을 그대로 두면 회수·매도 자체가
-         가짜 손실처럼 잡히는 반대 방향 버그가 생긴다(실제 계산으로 확인). */
-      const contrib=m.endCost-m.startCost;
+      /* endCost는 "누적원금(회수분 제외)" 표시용이라 회수가 있었던 달은 원가 델타가 실제
+         매수 여부와 무관하게 확 줄어든다. 그 달의 "진짜 신규 매수액"과 "진짜 수익"을
+         구하려면 회수액만큼 다시 더해줘야 한다(회수는 신규 매수의 반대가 아니라 별개의
+         현금 인출이므로). */
+      const contrib=(m.endCost-m.startCost)+(m.recovered||0);
       const denom=m.startValue+contrib;
       const profitYen=m.endValue-m.startValue-contrib;
       const mret=denom>0?profitYen/denom:0;
       const mddPct=(m.mdd||0)*100;
-      const rowStyle=m.mainSold?' style="background:rgba(0,117,74,.14)"':'';
-      const evTag=m.mainSold?' <span class="mut" style="font-size:11px">💰 매도 발생</span>':'';
-      return '<tr'+rowStyle+'><td>'+mk+evTag+'</td>'+
+      const rowStyle=m.recovered?' style="background:rgba(255,176,32,.14)"':'';
+      return '<tr'+rowStyle+'><td>'+mk+(m.recovered?' <span class="mut" style="font-size:11px">💰 원금 회수 발생</span>':'')+'</td>'+
         '<td class="num">'+fmtUSDKRW(contrib)+'</td>'+
         '<td class="num">'+fmtUSDKRW(m.endCost)+'</td>'+
         '<td class="num">'+m.buys+'회</td>'+
@@ -2533,6 +2635,35 @@ function renderBacktest(res){
         '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW(Math.abs(profitYen))+'</td>'+
         '<td class="num '+(mret>=0?'up':'down')+'">'+(mret*100>=0?'+':'')+(mret*100).toFixed(2)+'%</td></tr>';
     }).join('');
+  }
+
+  /* 듀얼스나이퍼 월별 매매기록 — 옵션이 켜져 있을 때만 표시 */
+  const sniperSectionEl=document.getElementById('bt-sniper-monthly-section');
+  if(sniperSectionEl){
+    if(res.dualSniperMode && res.monthlySniper){
+      sniperSectionEl.style.display='';
+      const sTbody=document.getElementById('bt-sniper-monthly');
+      const sMonths=Object.keys(res.monthlySniper).sort().filter(mk=>{
+        const s=res.monthlySniper[mk]; return s.buys>0 || s.sells.length>0;
+      });
+      let cumSniperSpend=0;
+      if(sTbody){
+        sTbody.innerHTML=sMonths.length?sMonths.map(mk=>{
+          const s=res.monthlySniper[mk];
+          cumSniperSpend+=s.spend;
+          const rowStyle=s.sells.length?' style="background:rgba(255,176,32,.14)"':'';
+          const sellTxt=s.sells.length
+            ? s.sells.map(sl=>fmtUSDKRW(sl.amount)+' ('+new Date(sl.t).toLocaleDateString('ko-KR')+')').join(', ')
+            : '<span class="mut">--</span>';
+          return '<tr'+rowStyle+'><td>'+mk+(s.sells.length?' <span class="mut" style="font-size:11px">💰 매도 발생</span>':'')+'</td>'+
+            '<td class="num">'+fmtUSDKRW(cumSniperSpend)+'</td>'+
+            '<td class="num">'+s.buys+'회</td>'+
+            '<td>'+sellTxt+'</td></tr>';
+        }).join(''):'<tr><td class="mut" colspan="4">아직 매수·매도 조건이 발동한 달이 없습니다.</td></tr>';
+      }
+    }else{
+      sniperSectionEl.style.display='none';
+    }
   }
 
   /* 월별 배당금 → 날짜별 배당금 지급 내역(매매기록과 동일하게 펼침 없이 한 줄씩 표시) */
@@ -2577,236 +2708,6 @@ function fgScoreState(score){
   return '탐욕';
 }
 
-/* 추가매매법(떨사오팔) 결과 렌더링 — 현재매매법과 같은 카드·차트 구조를 재사용한다 */
-function renderAltBacktest(res){
-  const statusEl=document.getElementById('bt2-status');
-  if(!res || res.error || !res.curve || !res.curve.length){
-    const reason=(res&&res.error)?res.error.join(', ')+' 연동 실패':'알 수 없는 오류';
-    if(statusEl) statusEl.textContent='⚠ '+reason;
-    const monthlyEl0=document.getElementById('bt2-monthly');
-    if(monthlyEl0) monthlyEl0.innerHTML='<tr><td class="mut" colspan="5">⚠ 데이터를 불러오지 못해 계산할 수 없습니다('+reason+')</td></tr>';
-    return;
-  }
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
-
-  function fmtUSDKRW2(usd){
-    if(!krwDisplayOn) return fmtUSD(usd);
-    const krw=fmtKRW(usd);
-    return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
-  }
-  const capEl=document.getElementById('bt2-capital'); if(capEl) capEl.textContent=fmtUSDKRW2(res.baseCapital);
-  const bcEl=document.getElementById('bt2-buycount'); if(bcEl) bcEl.textContent=res.buyCount+'회';
-  const slEl=document.getElementById('bt2-stoploss'); if(slEl) slEl.textContent=res.stopLossCount+'회';
-  const valEl=document.getElementById('bt2-value'); if(valEl) valEl.textContent=fmtUSDKRW2(res.finalValue);
-
-  const profitAmt=res.finalValue-res.baseCapital;
-  const profitEl=document.getElementById('bt2-profit');
-  if(profitEl){
-    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW2(Math.abs(profitAmt));
-    profitEl.className='big '+(profitAmt>=0?'up':'down');
-  }
-  /* [재검토 반영] "수익률"은 기본투자금 대비 총 평가금(미실현 포함) 기준이 아니라, 사용자가
-     명시한 대로 "기본투자금 대비 수익실현금"으로 계산한다 — 실현수익률 카드와 같은 정의를
-     쓰되, 여기서는 메인 지표로 강조해서 보여준다. */
-  const roi=res.baseCapital>0?(res.totalRealizedPnL||0)/res.baseCapital*100:0;
-  const roiEl=document.getElementById('bt2-roi');
-  if(roiEl){
-    roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
-    roiEl.className='big '+(roi>=0?'up':'down');
-  }
-
-  /* 수익실현금 — 2배김군과 동일한 방식으로 매도(수익실현) 이벤트를 차수별로 나열한다.
-     손절매도는 손실 확정이라 "수익 실현"이 아니므로 이 목록에서는 제외한다. */
-  const realizedCardEl2=document.getElementById('bt2-realized-card');
-  const sellOnly=(res.tradeLog||[]).filter(r=>r.type==='sell');
-  if(realizedCardEl2){
-    if(sellOnly.length){
-      realizedCardEl2.style.display='';
-      const realizedEl2=document.getElementById('bt2-realized');
-      const detailEl2=document.getElementById('bt2-realized-detail');
-      const totalSellAmt=sellOnly.reduce((s,r)=>s+r.amount,0);
-      if(realizedEl2) realizedEl2.textContent=fmtUSDKRW2(totalSellAmt);
-      if(detailEl2){
-        const shown=sellOnly.slice(-20); // 너무 길어지지 않게 최근 20건만(전체는 관리자 페이지에서)
-        detailEl2.innerHTML=(sellOnly.length>20?'최근 20건만 표시(전체 '+sellOnly.length+'건) · ':'')+
-          shown.map((r,i)=>(sellOnly.length-shown.length+i+1)+'차: '+new Date(r.t).toLocaleDateString('ko-KR')+' · '+fmtUSDKRW2(r.amount)).join('<br>');
-      }
-    }else{
-      realizedCardEl2.style.display='none';
-    }
-  }
-  /* 실현수익률 — 확정된(매도·손절 포함) 손익만 기본투자금 대비 비율로 표시. 아직 보유 중인
-     포지션의 평가손익은 포함하지 않는다(그건 "수익률" 카드가 이미 다룬다). */
-  const realizedRoiEl=document.getElementById('bt2-realized-roi');
-  if(realizedRoiEl){
-    const rr=res.baseCapital>0?(res.totalRealizedPnL||0)/res.baseCapital*100:0;
-    realizedRoiEl.textContent=(rr>=0?'+':'')+rr.toFixed(1)+'%';
-    realizedRoiEl.className='big '+(rr>=0?'up':'down');
-  }
-
-  /* 월별 매매기록 — 혹시 모를 예외로 조용히 실패해 "계산 중…"에 멈춰 있는 것처럼 보이는
-     일이 없도록 try/catch로 감싸고, 실패 시 원인을 화면에 바로 보여준다 */
-  const monthlyEl=document.getElementById('bt2-monthly');
-  if(monthlyEl){
-    try{
-      const months=Object.keys(res.monthly).sort();
-      if(!months.length){
-        monthlyEl.innerHTML='<tr><td class="mut" colspan="5">월별 데이터가 없습니다.</td></tr>';
-      }else{
-        monthlyEl.innerHTML=months.map(mk=>{
-          const m=res.monthly[mk];
-          const profitYen=m.endValue-m.startValue;
-          const mret=m.startValue>0?profitYen/m.startValue*100:0;
-          const rowStyle=m.stopLosses>0?' style="background:rgba(26,111,168,.12)"':'';
-          return '<tr'+rowStyle+'><td>'+mk+(m.stopLosses>0?' <span class="mut" style="font-size:11px">🔵 손절 발생</span>':'')+'</td>'+
-            '<td class="num">'+m.buys+'회</td>'+
-            '<td class="num">'+m.stopLosses+'회</td>'+
-            '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW2(Math.abs(profitYen))+'</td>'+
-            '<td class="num '+(mret>=0?'up':'down')+'">'+(mret>=0?'+':'')+mret.toFixed(2)+'%</td></tr>';
-        }).join('');
-      }
-    }catch(e){
-      console.error('떨사오팔 월별 매매기록 렌더링 실패:', e);
-      monthlyEl.innerHTML='<tr><td class="mut" colspan="5">⚠ 표시 중 오류가 발생했습니다: '+e.message+'</td></tr>';
-    }
-  }
-}
-
-/* 추가매매법(스나이퍼) 결과 렌더링 — 떨사오팔과 같은 카드·차트 구조를 재사용한다 */
-function renderSniperBacktest(res){
-  const statusEl=document.getElementById('bt3-status');
-  if(!res || res.error || !res.curve || !res.curve.length){
-    const reason=(res&&res.error)?res.error.join(', ')+' 연동 실패':'알 수 없는 오류';
-    if(statusEl) statusEl.textContent='⚠ '+reason;
-    return;
-  }
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+' ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
-
-  function fmtUSDKRW3(usd){
-    if(!krwDisplayOn) return fmtUSD(usd);
-    const krw=fmtKRW(usd);
-    return krw?fmtUSD(usd)+' ('+krw+')':fmtUSD(usd);
-  }
-  const costEl=document.getElementById('bt3-cost'); if(costEl) costEl.textContent=fmtUSDKRW3(res.finalCost);
-  const bcEl=document.getElementById('bt3-buycount'); if(bcEl) bcEl.textContent=res.buyCount+'회';
-  const realizedEl=document.getElementById('bt3-realized'); if(realizedEl) realizedEl.textContent=res.totalRealized>0?fmtUSDKRW3(res.totalRealized):'--';
-  const valEl=document.getElementById('bt3-value'); if(valEl) valEl.textContent=fmtUSDKRW3(res.finalValue);
-
-  const profitAmt=res.finalValue-res.finalCost;
-  const profitEl=document.getElementById('bt3-profit');
-  if(profitEl){
-    profitEl.textContent=(profitAmt>=0?'+':'-')+fmtUSDKRW3(Math.abs(profitAmt));
-    profitEl.className='big '+(profitAmt>=0?'up':'down');
-  }
-  const roi=res.finalCost>0?(res.finalValue/res.finalCost-1)*100:0;
-  const roiEl=document.getElementById('bt3-roi');
-  if(roiEl){
-    roiEl.textContent=(roi>=0?'+':'')+roi.toFixed(1)+'%';
-    roiEl.className='big '+(roi>=0?'up':'down');
-  }
-
-  /* 수익률 곡선 */
-  const curveEl=document.getElementById('bt3-curve');
-  if(curveEl){
-    const w=700,h=240,padL=56,padR=20,padTop=10,padBottom=30;
-    const n=res.curve.length;
-    const stepX=n>1?(w-padL-padR)/(n-1):0;
-    const allVals=res.curve.map(p=>p.value).concat(res.curve.map(p=>p.cost));
-    const scaleMin=Math.min(...allVals,0), scaleMax=Math.max(...allVals,1);
-    const yOf=v=>h-padBottom-((v-scaleMin)/((scaleMax-scaleMin)||1))*(h-padTop-padBottom);
-    const ptsVal=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.value)]);
-    const ptsCost=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.cost)]);
-    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const profit=res.finalValue>=res.finalCost;
-    const areaPath=ptsVal.length?pathOf(ptsVal)+' L'+ptsVal[ptsVal.length-1][0].toFixed(1)+','+(h-padBottom)+' L'+ptsVal[0][0].toFixed(1)+','+(h-padBottom)+' Z':'';
-    let yAxis='';
-    for(let ti=0;ti<=3;ti++){
-      const val=scaleMin+(scaleMax-scaleMin)*(ti/3);
-      const y=yOf(val);
-      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
-      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">'+fmtUSD(val)+'</text>';
-    }
-    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-padBottom, h-padBottom+11);
-    curveEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+yearLines+
-      '<path d="'+areaPath+'" fill="'+(profit?'rgba(167,139,250,.15)':'rgba(26,111,168,.12)')+'" stroke="none"/>'+
-      '<path d="'+pathOf(ptsCost)+'" fill="none" stroke="var(--tx2)" stroke-width="1.3" stroke-dasharray="4 3"/>'+
-      '<path d="'+pathOf(ptsVal)+'" fill="none" stroke="'+(profit?'#a78bfa':'var(--down)')+'" stroke-width="2"/>'+
-      '</svg>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:8px;font-size:12px;color:var(--tx2)">'+
-      '<span><span style="color:'+(profit?'#a78bfa':'var(--down)')+'">■</span> 평가금</span>'+
-      '<span><span style="color:var(--tx2)">┄</span> 누적 원금</span>'+
-      '</div>';
-  }
-
-  /* 낙폭(고점 대비 하락폭) */
-  const ddEl=document.getElementById('bt3-drawdown');
-  if(ddEl){
-    const w=700,h=110,padL=56,padR=20,padTop=10;
-    const n=res.curve.length;
-    const stepX=n>1?(w-padL-padR)/(n-1):0;
-    const maxDD=Math.max(...res.curve.map(p=>p.dd||0),1);
-    const yOf=v=>padTop+(v/maxDD)*(h-padTop-14);
-    const pts=res.curve.map((p,i)=>[padL+i*stepX,yOf(p.dd||0)]);
-    const pathOf=pts=>pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const areaPath=pts.length?pathOf(pts)+' L'+pts[pts.length-1][0].toFixed(1)+','+padTop+' L'+pts[0][0].toFixed(1)+','+padTop+' Z':'';
-    let yAxis='';
-    for(let ti=0;ti<=3;ti++){
-      const val=maxDD*ti/3;
-      const y=yOf(val);
-      yAxis+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>';
-      yAxis+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="var(--tx2)" text-anchor="end">-'+val.toFixed(1)+'%</text>';
-    }
-    const yearLines=yearDividerLines(res.curve, padL, stepX, padTop, h-14, h-4);
-    ddEl.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+
-      yAxis+yearLines+
-      '<path d="'+areaPath+'" fill="rgba(200,32,20,.18)" stroke="none"/>'+
-      '<path d="'+pathOf(pts)+'" fill="none" stroke="var(--up)" stroke-width="1.6"/>'+
-      '</svg>'+
-      '<div class="mut" style="margin-top:4px;font-size:12px">최대 낙폭 -'+maxDD.toFixed(1)+'%</div>';
-  }
-
-  /* 월별 매매기록 */
-  const monthlyEl=document.getElementById('bt3-monthly');
-  if(monthlyEl){
-    const months=Object.keys(res.monthly).sort();
-    monthlyEl.innerHTML=months.map(mk=>{
-      const m=res.monthly[mk];
-      const contrib=m.endCost-m.startCost;
-      const profitYen=m.endValue-m.startValue-contrib;
-      const denom=m.startValue+contrib;
-      const mret=denom>0?profitYen/denom*100:0;
-      const rowStyle=m.sold>0?' style="background:rgba(167,139,250,.14)"':'';
-      return '<tr'+rowStyle+'><td>'+mk+(m.sold>0?' <span class="mut" style="font-size:11px">💰 매도 발생</span>':'')+'</td>'+
-        '<td class="num">'+fmtUSDKRW3(contrib)+'</td>'+
-        '<td class="num">'+m.buys+'회</td>'+
-        '<td class="num '+(profitYen>=0?'up':'down')+'">'+(profitYen>=0?'+':'-')+fmtUSDKRW3(Math.abs(profitYen))+'</td>'+
-        '<td class="num '+(mret>=0?'up':'down')+'">'+(mret>=0?'+':'')+mret.toFixed(2)+'%</td></tr>';
-    }).join('');
-  }
-}
-
-/* 추가매매법(스나이퍼)의 자산별 매수·매도 기록 — 관리자 페이지 전용 */
-function renderSniperAdminLog(res){
-  const tbl=document.getElementById('bt-admin-tradelog');
-  if(!tbl) return;
-  const table=tbl.closest('table');
-  const thead=table?table.querySelector('thead'):null;
-  if(thead) thead.innerHTML='<tr><th>날짜</th><th>종목</th><th>구분</th><th class="num">가격</th><th class="num">금액</th><th class="num">공포탐욕</th></tr>';
-  const buyRows=(res.tradeLog||[]).map(r=>({...r, kind:'buy'}));
-  const sellRows=(res.sellEvents||[]).map(r=>({t:r.t, ticker:r.ticker, price:null, amount:r.amount, kind:r.type==='principal'?'principal':'partial'}));
-  const rows=buyRows.concat(sellRows).sort((a,b)=>a.t-b.t).slice(-500);
-  const typeLabel={buy:'매수', principal:'매도(원금)', partial:'매도(잔고25%)'};
-  tbl.innerHTML=rows.length?rows.map(r=>{
-    const cls=r.kind==='buy'?'':'up';
-    return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td><td>'+r.ticker+'</td>'+
-      '<td class="'+cls+'">'+(typeLabel[r.kind]||r.kind)+'</td>'+
-      '<td class="num">'+(r.price!=null?fmtUSD(r.price):'<span class="mut">--</span>')+'</td>'+
-      '<td class="num">'+fmtUSD(r.amount)+'</td>'+
-      '<td class="num">'+(r.score!=null?r.score.toFixed(1):'<span class="mut">--</span>')+'</td></tr>';
-  }).join(''):'<tr><td class="mut" colspan="6">데이터 없음</td></tr>';
-}
-
 function renderAdminTables(res){
   const tlBody=document.getElementById('bt-admin-tradelog');
   if(tlBody){
@@ -2823,18 +2724,20 @@ function renderAdminTables(res){
       '<td class="num">'+(r.score!=null?r.score.toFixed(1):'--')+(state?' <span class="mut" style="font-size:11px">('+state+')</span>':'')+'</td></tr>';
     }).join(''):'<tr><td class="mut" colspan="8">데이터 없음</td></tr>';
   }
-  const msBody=document.getElementById('bt-admin-mainsell');
-  if(msBody){
-    const rows=res.mainSellEvents||[];
-    let cumMs=0;
-    msBody.innerHTML=rows.length?rows.map(r=>{
-      cumMs+=r.amount;
-      return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td>'+
-        '<td>'+(r.type==='principal'?'원금 매도':'잔고 25% 매도')+'</td>'+
-        '<td class="num">'+fmtUSD(r.amount)+'</td>'+
-        '<td class="num">'+fmtUSD(cumMs)+'</td>'+
-        '<td class="num">'+r.pct+'%</td></tr>';
-    }).join(''):'<tr><td class="mut" colspan="5">아직 매도 조건이 발동하지 않았습니다.</td></tr>';
+  const slBody=document.getElementById('bt-admin-sniperlog');
+  if(slBody){
+    const rows=res.sniperLog||[];
+    let cumQty2=0, cumAmt2=0;
+    slBody.innerHTML=rows.length?rows.map(r=>{
+      if(r.type==='buy'){ cumQty2+=r.qty; cumAmt2+=r.amount; }
+      else{ cumQty2-=r.qty; }
+      return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td><td class="'+(r.type==='sell'?'up':'')+'">'+(r.type==='buy'?'매수':'매도')+'</td>'+
+      '<td class="num">'+r.qty.toFixed(2)+'</td><td class="num">'+cumQty2.toFixed(2)+'</td>'+
+      '<td class="num">'+fmtUSD(r.price)+'</td>'+
+      '<td class="num">'+(r.type==='buy'?fmtUSD(r.amount):'<span class="mut">--</span>')+'</td>'+
+      '<td class="num">'+(r.type==='buy'?fmtUSD(cumAmt2):'<span class="mut">--</span>')+'</td>'+
+      '<td class="num '+(r.type==='sell'?'up':'')+'">'+(r.type==='sell' && r.profit!=null?(r.profit>=0?'+':'-')+fmtUSD(Math.abs(r.profit)):'<span class="mut">--</span>')+'</td></tr>';
+    }).join(''):'<tr><td class="mut" colspan="8">듀얼스나이퍼 옵션이 꺼져 있거나 아직 매매 기록이 없습니다.</td></tr>';
   }
   const rbBody=document.getElementById('bt-admin-rebalance');
   if(rbBody){
@@ -2865,169 +2768,47 @@ function renderAdminTables(res){
 }
 
 /* 관리자 페이지 버튼 — 비밀번호(coolzet***) 확인 후에만 히든 섹션을 보여준다.
-   클라이언트 사이드 체크일 뿐이라 실제 보안 기능은 아니며, 화면 노출만 막는 용도다.
-   현재매매법·추가매매법 화면 양쪽에 각자 버튼이 있지만 같은 패널을 공유한다. */
+   클라이언트 사이드 체크일 뿐이라 실제 보안 기능은 아니며, 화면 노출만 막는 용도다. */
 const ADMIN_PASSWORD='coolzet***';
 function initTradeAdminPanel(){
+  const btn=document.getElementById('bt-admin-btn');
   const panel=document.getElementById('bt-admin-panel');
-  if(!panel) return;
-  const btnIds=['bt-admin-btn','bt-admin-btn-2','bt-admin-btn-3'];
-  const allBtns=btnIds.map(id=>document.getElementById(id)).filter(Boolean);
-  btnIds.forEach(btnId=>{
-    const btn=document.getElementById(btnId);
-    if(!btn) return;
-    btn.addEventListener('click',()=>{
-      if(panel.style.display!=='none'){
-        panel.style.display='none';
-        allBtns.forEach(b=>b.textContent='관리자 페이지');
-        return;
-      }
-      const pw=prompt('관리자 비밀번호를 입력하세요');
-      if(pw===null) return;
-      if(pw===ADMIN_PASSWORD){
-        panel.style.display='';
-        allBtns.forEach(b=>b.textContent='관리자 페이지 닫기');
-        if(btnId==='bt-admin-btn-2'){
-          if(lastAltBacktestResult) renderAltAdminLog(lastAltBacktestResult);
-        }else if(btnId==='bt-admin-btn-3'){
-          if(lastSniperBacktestResult) renderSniperAdminLog(lastSniperBacktestResult);
-        }else if(lastBacktestResult){
-          renderAdminTables(lastBacktestResult);
-        }
-        panel.scrollIntoView({behavior:'smooth', block:'start'});
-      }else{
-        alert('비밀번호가 올바르지 않습니다.');
-      }
-    });
+  if(!btn || !panel) return;
+  btn.addEventListener('click',()=>{
+    if(panel.style.display!=='none'){ panel.style.display='none'; btn.textContent='관리자 페이지'; return; }
+    const pw=prompt('관리자 비밀번호를 입력하세요');
+    if(pw===null) return;
+    if(pw===ADMIN_PASSWORD){
+      panel.style.display='';
+      btn.textContent='관리자 페이지 닫기';
+      if(lastBacktestResult) renderAdminTables(lastBacktestResult);
+      panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }else{
+      alert('비밀번호가 올바르지 않습니다.');
+    }
   });
-}
-
-/* 추가매매법(떨사오팔)의 티어별 매수·매도·손절 기록 — 기존 종목별 매매기록 표를 그대로
-   재사용하되, 열 구성이 다르므로(종목 대신 티어%, 매수/매도/손절 구분 등) 헤더와 본문을
-   이 전용 함수에서 새로 그린다. */
-function renderAltAdminLog(res){
-  const tbl=document.getElementById('bt-admin-tradelog');
-  if(!tbl) return;
-  const table=tbl.closest('table');
-  const thead=table?table.querySelector('thead'):null;
-  if(thead) thead.innerHTML='<tr><th>날짜</th><th>티어</th><th>구분</th><th class="num">가격</th><th class="num">금액</th></tr>';
-  const rows=(res.tradeLog||[]).slice(-500);
-  const typeLabel={buy:'매수', sell:'매도', stoploss:'손절매도'};
-  tbl.innerHTML=rows.length?rows.map(r=>{
-    const cls=r.type==='buy'?'':(r.type==='stoploss'?'down':'up');
-    return '<tr><td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td><td>'+r.tierPct+'%</td>'+
-      '<td class="'+cls+'">'+(typeLabel[r.type]||r.type)+'</td>'+
-      '<td class="num">'+fmtUSD(r.price)+'</td>'+
-      '<td class="num">'+fmtUSD(r.amount)+'</td></tr>';
-  }).join(''):'<tr><td class="mut" colspan="5">데이터 없음</td></tr>';
 }
 
 let lastBacktestResult=null;
 async function loadTradeBacktest(){
   const statusEl=document.getElementById('bt-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
-  const [res]=await Promise.all([runTradeBacktest(), loadFxRate()]);
+  if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'년 1월 1일부터 데이터를 불러와 다시 계산하는 중…';
+  const opts={
+    principalRecovery: !!(document.getElementById('bt-opt-recovery')||{}).checked,
+    dualSniper: !!(document.getElementById('bt-opt-sniper')||{}).checked
+  };
+  const [res]=await Promise.all([runTradeBacktest(opts), loadFxRate()]);
   lastBacktestResult=res;
   renderBacktest(res);
 }
 
-let lastAltBacktestResult=null;
-let altProfile='defense', altCapital=10000;
-async function loadAltTradeBacktest(){
-  const statusEl=document.getElementById('bt2-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
-  const [res]=await Promise.all([runAltTradeBacktest(altProfile, altCapital), loadFxRate()]);
-  lastAltBacktestResult=res;
-  renderAltBacktest(res);
-}
-
-let lastSniperBacktestResult=null;
-async function loadSniperTradeBacktest(){
-  const statusEl=document.getElementById('bt3-status');
-  if(statusEl) statusEl.textContent=BACKTEST_START_DATE+'부터 데이터를 불러와 다시 계산하는 중…';
-  const [res]=await Promise.all([runSniperTradeBacktest(), loadFxRate()]);
-  lastSniperBacktestResult=res;
-  renderSniperBacktest(res);
-}
-
-/* 매매법 선택 탭(2배김군/떨사오팔/스나이퍼) — 화면 전환만 하고, 각 매매법을 처음 열 때만
-   데이터를 불러온다(불필요한 재계산 방지). 탭마다 고유 색상(주황/파랑/보라)을 배경에도
-   반영해 지금 어떤 매매법을 보고 있는지 한눈에 구분되게 한다. */
-let altLoaded=false, sniperLoaded=false;
-const METHOD_COLORS={1:'var(--accent)', 2:'#1a6fa8', 3:'#a78bfa'};
-function initTradeMethodTabs(){
-  const tabs=document.getElementById('bt-method-tabs');
-  const wraps={1:document.getElementById('bt-method1-wrap'), 2:document.getElementById('bt-method2-wrap'), 3:document.getElementById('bt-method3-wrap')};
-  if(!tabs || !wraps[1] || !wraps[2] || !wraps[3]) return;
-  tabs.addEventListener('click', e=>{
-    const b=e.target.closest('button'); if(!b) return;
-    tabs.querySelectorAll('button').forEach(x=>{ x.classList.remove('on'); x.style.background=''; x.style.color=''; });
-    b.classList.add('on');
-    b.style.background=METHOD_COLORS[b.dataset.method];
-    b.style.color='#ffffff';
-    const m=b.dataset.method;
-    Object.keys(wraps).forEach(k=>{ wraps[k].style.display=(k===m)?'':'none'; });
-    if(m==='2' && !altLoaded){ altLoaded=true; loadAltTradeBacktest(); }
-    if(m==='3' && !sniperLoaded){ sniperLoaded=true; loadSniperTradeBacktest(); }
+/* 원금 100% 회수·듀얼스나이퍼 체크박스 — 조건 자체가 바뀌므로 표시만 다시 그리지 않고
+   전체를 재계산한다 */
+function initTradeOptionCheckboxes(){
+  ['bt-opt-recovery','bt-opt-sniper'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('change', loadTradeBacktest);
   });
-  // 초기 활성 탭 배경도 맞춰준다
-  const onBtn=tabs.querySelector('button.on');
-  if(onBtn){ onBtn.style.background=METHOD_COLORS[onBtn.dataset.method]; onBtn.style.color='#ffffff'; }
-}
-
-/* 추가매매법 전용 컨트롤 — 기본투자금 선택, 투자 성향(수비/중립/공격) 탭, 연도 탭 */
-function initAltTradeControls(){
-  const capSel=document.getElementById('bt2-capital-select');
-  if(capSel){
-    capSel.addEventListener('change', ()=>{
-      altCapital=+capSel.value;
-      loadAltTradeBacktest();
-    });
-  }
-  const profTabs=document.getElementById('bt2-profile-tabs');
-  if(profTabs){
-    profTabs.addEventListener('click', e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      profTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');
-      altProfile=b.dataset.profile;
-      loadAltTradeBacktest();
-    });
-  }
-
-  /* 수익실현금 카드 클릭 → 티어·진입일·실현일·보유기간·손익 세부내역 모달 */
-  const realizedCard=document.getElementById('bt2-realized-card');
-  const modal=document.getElementById('bt2-realized-modal');
-  const modalClose=document.getElementById('bt2-realized-modal-close');
-  if(realizedCard && modal){
-    realizedCard.addEventListener('click', ()=>{
-      const body=document.getElementById('bt2-realized-modal-body');
-      if(body){
-        const events=(lastAltBacktestResult&&lastAltBacktestResult.tradeLog||[]).filter(r=>r.type==='sell'||r.type==='stoploss').sort((a,b)=>a.t-b.t);
-        body.innerHTML=events.length?events.map(r=>{
-          const holdTxt=r.holdDays!=null?r.holdDays+'일':'<span class="mut">--</span>';
-          const pnlCls=r.pnl!=null?(r.pnl>=0?'up':'down'):'';
-          const pnlTxt=r.pnl!=null?(r.pnl>=0?'+':'-')+fmtUSD(Math.abs(r.pnl)):'<span class="mut">--</span>';
-          return '<tr><td>'+r.tierPct+'%'+(r.type==='stoploss'?' <span class="mut" style="font-size:10.5px">(손절)</span>':'')+'</td>'+
-            '<td>'+(r.entryT!=null?new Date(r.entryT).toLocaleDateString('ko-KR'):'<span class="mut">--</span>')+'</td>'+
-            '<td>'+new Date(r.t).toLocaleDateString('ko-KR')+'</td>'+
-            '<td class="num">'+holdTxt+'</td>'+
-            '<td class="num '+pnlCls+'">'+pnlTxt+'</td></tr>';
-        }).join(''):'<tr><td class="mut" colspan="5">아직 실현된 거래가 없습니다.</td></tr>';
-      }
-      modal.style.display='flex';
-    });
-  }
-  if(modalClose && modal){
-    modalClose.addEventListener('click', ()=>{ modal.style.display='none'; });
-  }
-  if(modal){
-    modal.addEventListener('click', e=>{ if(e.target===modal) modal.style.display='none'; });
-  }
-}
-
-/* 추가매매법(스나이퍼) 전용 컨트롤 — 자체 옵션 없음(날짜 입력은 initBacktestDateInputs가 공통 처리) */
-function initSniperTradeControls(){
 }
 
 /* stock.html·crypto.html의 "원화 표시" 토글과 동일 구조 — krwDisplayOn 플래그만 켜고
@@ -3037,51 +2818,24 @@ function initTradeKrwToggle(sel){
   if(!toggle) return;
   toggle.addEventListener('change',()=>{
     krwDisplayOn=toggle.checked;
-    /* [버그 수정] 여기서 2배김군(method 1)만 다시 그리고 있어서, 떨사오팔·스나이퍼 화면을
-       보고 있을 때 원화 표시를 켜도 반영되지 않고 있었다. 세 매매법 모두 이미 계산된 결과가
-       있으면(altLoaded/sniperLoaded) 그 결과를 그대로 다시 그린다(재계산 없이 즉시 반영). */
     if(lastBacktestResult) renderBacktest(lastBacktestResult);
-    if(altLoaded && lastAltBacktestResult) renderAltBacktest(lastAltBacktestResult);
-    if(sniperLoaded && lastSniperBacktestResult) renderSniperBacktest(lastSniperBacktestResult);
   });
 }
 
-/* 날짜 직접입력 — 값이 바뀌면 시작일을 바꾸고 세 매매법 전체를 다시 계산한다.
-   min/max 범위 밖의 값은 입력 자체가 막히지만(HTML min/max 속성), 혹시 모를 우회 입력에
-   대비해 여기서도 한 번 더 범위를 강제로 맞춘다. */
-function setBacktestDate(dateStr){
-  const min=BACKTEST_MIN_DATE, max=backtestMaxDate();
-  if(dateStr<min) dateStr=min;
-  if(dateStr>max) dateStr=max;
-  if(BACKTEST_START_DATE===dateStr) return;
-  BACKTEST_START_DATE=dateStr;
-  BACKTEST_START_TS=Math.floor(new Date(dateStr+'T00:00:00Z').getTime()/1000);
-  ['bt-start-date','bt2-start-date','bt3-start-date'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.value=dateStr;
-  });
+/* 연도 선택 버튼(2024/2025/2026년부터) — 클릭 시 시작일을 바꾸고 백테스트 전체를 다시 계산 */
+function setBacktestYear(year){
+  if(BACKTEST_START_YEAR===year) return;
+  BACKTEST_START_YEAR=year;
+  BACKTEST_START_TS=Math.floor(new Date(year+'-01-01T00:00:00Z').getTime()/1000);
+  const btns=document.querySelectorAll('#bt-year-tabs button');
+  btns.forEach(b=>b.classList.toggle('on', +b.dataset.year===year));
   loadTradeBacktest();
-  if(altLoaded) loadAltTradeBacktest();
-  if(sniperLoaded) loadSniperTradeBacktest();
 }
-/* 세 군데(2배김군·떨사오팔·스나이퍼)의 날짜 입력 필드에 min/max 제약과 change 이벤트를 건다 */
-function initBacktestDateInputs(){
-  ['bt-start-date','bt2-start-date','bt3-start-date'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.min=BACKTEST_MIN_DATE;
-    el.max=backtestMaxDate();
-    el.value=BACKTEST_START_DATE;
-    /* 일부 모바일 브라우저는 네이티브 날짜 선택기에서 'change'를 놓치는 경우가 있어
-       'change'·'input'·'blur' 세 가지 모두에 걸어 확실히 반영되게 한다(값이 실제로
-       바뀌었을 때만 setBacktestDate 내부에서 재계산하므로 중복 실행 걱정은 없다) */
-    const onPick=()=>{
-      if(!el.value || !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return; // 미완성 입력 무시(직전 값 유지)
-      setBacktestDate(el.value);
-    };
-    el.addEventListener('change', onPick);
-    el.addEventListener('input', onPick);
-    el.addEventListener('blur', onPick);
+const btYearTabs=document.getElementById('bt-year-tabs');
+if(btYearTabs){
+  btYearTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    setBacktestYear(+b.dataset.year);
   });
 }
 
