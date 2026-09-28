@@ -1434,13 +1434,19 @@ function renderFinancialsChart(data){
 
 async function loadKrxIndicators(){
   const result={};
-  /* 5. 시장 변동성(VKOSPI): kospi_dd_trd(KOSPI 시리즈 지수)에서 이름으로 검색 */
+  /* 5. 시장 변동성(VKOSPI): idx/drvprod_dd_trd(파생상품지수 시세정보) — IDX_CLSS='옵션지수',
+     IDX_NM='코스피 200 변동성지수' 행이 VKOSPI (2026-09-28 직접 검증, CLSPRC_IDX=42.98 형태로 확인).
+     '변동성매칭 양매도지수'/'변동성추세 추종 양매도지수' 등 이름에 '변동성'이 들어간 다른 지수와
+     혼동되지 않도록 정확한 지수명으로 매칭한다. */
   try{
-    const idxRows=await krxJSONRecent('idx/kospi_dd_trd', 10);
+    const idxRows=await krxJSONRecent('idx/drvprod_dd_trd', 10);
     if(idxRows){
       const row=idxRows.find(r=>{
         const name=pick(r,['IDX_NM','IDX_IND_NM','ISU_NM','IDX_NM_KOR'])||'';
-        return name.includes('변동성');
+        return name.trim()==='코스피 200 변동성지수';
+      }) || idxRows.find(r=>{
+        const name=pick(r,['IDX_NM','IDX_IND_NM','ISU_NM','IDX_NM_KOR'])||'';
+        return /^코스피\s*200\s*변동성지수$/.test(name.trim());
       });
       if(row){
         const val=+pick(row,['CLSPRC_IDX','TDD_CLSPRC','CLSPRC','IDX_CLSPRC']);
@@ -1451,7 +1457,7 @@ async function loadKrxIndicators(){
           result.vkospiScore=100-((clipped-10)/35)*100;
         }
       }else{
-        console.warn('KRX kospi_dd_trd 응답에서 VKOSPI 행을 찾지 못함(지수명 필드 확인 필요):', idxRows[0]);
+        console.warn('KRX drvprod_dd_trd 응답에서 VKOSPI(코스피 200 변동성지수) 행을 찾지 못함:', idxRows[0]);
       }
     }
   }catch(e){ console.warn('VKOSPI 계산 실패:', e); }
