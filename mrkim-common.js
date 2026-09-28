@@ -1132,18 +1132,28 @@ async function loadEcosIndicators(){
     return null; // 설정 미완료 — 위 안내 참고
   }
   const [t3y, aa, bbb] = await Promise.all([
-    ecosSeries(ECOS_ITEM.treasury3y, 40),
-    ecosSeries(ECOS_ITEM.corpAA, 40),
-    ecosSeries(ECOS_ITEM.corpBBB, 40)
+    ecosSeries(ECOS_ITEM.treasury3y, 90),
+    ecosSeries(ECOS_ITEM.corpAA, 90),
+    ecosSeries(ECOS_ITEM.corpBBB, 90)
   ]);
   const result={};
-  /* 7. 정크본드 수요: 신용스프레드 = BBB- 금리 - AA- 금리. 스프레드가 좁을수록(위험선호) 탐욕, 벌어질수록 공포 */
+  /* 7. 정크본드 수요: 신용스프레드 = BBB- 금리 - AA- 금리. 스프레드가 좁을수록(위험선호) 탐욕, 벌어질수록 공포.
+     [계산값 보정 — 2026-09-28 실측] 한국 회사채(3년) AA-/BBB- 스프레드는 미국 IG/HY 스프레드와
+     스케일이 전혀 달라 항상 5.7~5.9%p 근처에서 움직인다(등급 체계상 BBB-가 사실상 투기등급에
+     가까운 취급을 받기 때문). 기존 0.5~3.0%p 고정 구간으로는 매일 스프레드가 구간 최댓값을
+     넘어서 점수가 계속 0(공포 고정)으로 나오는 문제가 있었다. 절대 구간 대신 최근 90일 스프레드의
+     최소~최대 범위 내 상대 위치(percentile)로 정규화해 어떤 절대 수준에서도 스스로 보정되게 한다
+     (좁을수록=범위 내 최소에 가까울수록 탐욕, 넓을수록=최대에 가까울수록 공포). */
   if(aa && bbb && aa.length && bbb.length){
-    const spread=bbb[bbb.length-1].v - aa[aa.length-1].v;
-    // 스프레드 0.5%p~3.0%p 를 공포~탐욕 0~100으로 역매핑(좁을수록 탐욕)
-    const clipped=Math.max(0.5,Math.min(3.0,spread));
-    result.creditSpread=spread;
-    result.creditScore=100-((clipped-0.5)/2.5)*100;
+    const bbbByDate={}; bbb.forEach(r=>bbbByDate[r.t]=r.v);
+    const spreadSeries=aa.filter(r=>bbbByDate[r.t]!=null).map(r=>({t:r.t, v:bbbByDate[r.t]-r.v}));
+    if(spreadSeries.length){
+      const vals=spreadSeries.map(r=>r.v);
+      const spread=vals[vals.length-1];
+      const lo=Math.min(...vals), hi=Math.max(...vals);
+      result.creditSpread=spread;
+      result.creditScore=(hi>lo)?((hi-spread)/(hi-lo))*100:50;
+    }
   }
   /* 6. 안전자산 수요: 코스피 20일 수익률 - 국고채(3년) 20일 수익률(금리 변화분으로 근사) */
   if(t3y && t3y.length>20){
@@ -1499,12 +1509,30 @@ async function loadKrxIndicators(){
    종가만 있으면 계산 가능)까지 같이 멈춰 있었다. 이제는 1번을 별도로 즉시 계산해서
    먼저 표시하고, 2~7번(ECOS·KRX·주가강도폭)은 도착하는 대로 각자 갱신한다 — 값이
    아직 없는 항목은 renderKRSub가 자동으로 "준비중"으로 표시한다. */
-let lastKrMomentumScore=null;
+let lastKrMomentumScore=null, lastKrMomentumData=null;
+/* [로직 변경 — 2026-09-28] 예전에는 상단 큰 게이지가 1번(모멘텀) 하나만 반영하는
+   "모멘텀 기반 근사 지수"였다(2~7번은 표 아래 세부지표에만 표시되고 도착해도 게이지에는
+   반영 안 됨). 이제 4·5·6·7번이 실제로 계산되고 있으므로, 게이지도 CNN 방식처럼 7개
+   세부지표 중 현재 값이 있는 항목들의 단순평균으로 계산해 도착하는 대로 갱신한다
+   (2·3번은 KV/Cron 설정 전까지 계속 평균에서 제외됨 — 몇 개가 반영됐는지 kr-note에 표시). */
+function computeKRComposite(momentumScore, ecos, krx, breadth){
+  const vals=[
+    momentumScore,
+    breadth&&breadth.strength?breadth.strength.score:null,
+    breadth&&breadth.breadth?breadth.breadth.score:null,
+    krx&&krx.putCallScore!=null?krx.putCallScore:null,
+    krx&&krx.vkospiScore!=null?krx.vkospiScore:null,
+    ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null,
+    ecos&&ecos.creditScore!=null?ecos.creditScore:null
+  ].filter(v=>v!=null && isFinite(v));
+  if(!vals.length) return null;
+  return {avg: vals.reduce((a,b)=>a+b,0)/vals.length, count: vals.length};
+}
 async function loadKR(){
   let ecosData=null, krxData=null, breadthData=null;
   renderKRSub(null, null, null, null); // 뼈대부터 즉시 그려서 "불러오는 중" 상태를 없앤다
 
-  const bg=(p, assign)=>p.then(v=>{ assign(v); renderKRSub(lastKrMomentumScore, ecosData, krxData, breadthData); })
+  const bg=(p, assign)=>p.then(v=>{ assign(v); renderKR(lastKrMomentumData, ecosData, krxData, breadthData); })
                         .catch(e=>{ console.warn('한국 공포탐욕 세부지표 로딩 실패:', e); });
   const ecosP=bg(loadEcosIndicators(), v=>ecosData=v);
   const krxP=bg(loadKrxIndicators(), v=>krxData=v);
@@ -1519,24 +1547,30 @@ async function loadKR(){
   const clipped=Math.max(-0.15,Math.min(0.15,ratio));
   const score=((clipped+0.15)/0.30)*100;
   lastKrMomentumScore=score;
-  renderKR({score, last, ma125, ratio}, ecosData, krxData, breadthData);
+  lastKrMomentumData={score, last, ma125, ratio};
+  renderKR(lastKrMomentumData, ecosData, krxData, breadthData);
   await Promise.allSettled([ecosP,krxP,breadthP]); // 이미 각자 도착 시점에 화면을 갱신했으므로 여기선 대기만
 }
 function renderKR(d, ecos, krx, breadth){
   const valEl=document.getElementById('kr-val'), stateEl=document.getElementById('kr-state'),
-        dialEl=document.getElementById('kr-dial'), detailEl=document.getElementById('kr-detail');
+        dialEl=document.getElementById('kr-dial'), detailEl=document.getElementById('kr-detail'),
+        noteEl=document.getElementById('kr-note');
   if(!d){
     if(stateEl) stateEl.textContent='연동 실패';
     if(detailEl) detailEl.textContent='코스피(^KS11) 데이터를 가져오지 못했습니다 · PROXY_BASE 설정을 확인해주세요.';
     renderKRSub(null, ecos, krx, breadth);
     return;
   }
-  const [t,c]=label(d.score);
-  if(valEl) valEl.textContent=Math.round(d.score);
+  const composite=computeKRComposite(d.score, ecos, krx, breadth);
+  const gaugeScore=composite?composite.avg:d.score;
+  const [t,c]=label(gaugeScore);
+  if(valEl) valEl.textContent=Math.round(gaugeScore);
   if(stateEl){ stateEl.textContent=t; stateEl.style.color=c; }
-  if(dialEl){ dialEl.style.setProperty('--p',d.score+'%'); dialEl.style.setProperty('--g',c); }
+  if(dialEl){ dialEl.style.setProperty('--p',gaugeScore+'%'); dialEl.style.setProperty('--g',c); }
+  if(noteEl) noteEl.textContent=composite?('CNN 7개 세부지표 중 '+composite.count+'/7 반영 평균'):'코스피 vs 125일 이동평균 이격도 기준';
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
-      ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%';
+      ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%'+
+      (composite?' · 모멘텀 단독점수 '+Math.round(d.score):'');
   renderKRSub(d.score, ecos, krx, breadth);
 }
 function renderKRSub(momentumScore, ecos, krx, breadth){
