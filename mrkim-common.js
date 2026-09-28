@@ -1322,6 +1322,75 @@ function renderFinEvents(data){
   });
 }
 
+/* ===================== 금융상품 페이지 — 예금·적금 금리비교(야선지지 스타일) =====================
+   금융감독원 "금융상품한눈에" 오픈API를 Worker(/fin-savings)가 은행+저축은행 전체를 모아 12개월
+   최고우대금리 기준으로 정렬해 KV에 6시간 캐시해둔 결과를 그대로 받아 표로 렌더링한다.
+   [설정 필요] Worker에 finlife.fss.or.kr 인증키(FSS_SAVINGS_KEY)가 있어야 값이 채워진다. */
+const finSavingsData={ deposit:null, saving:null };
+let finSavingsGroup='전체'; // '전체' | '은행' | '저축은행'
+
+async function loadFinSavings(){
+  const statusEl=document.getElementById('fin-savings-status');
+  if(!PROXY_BASE){
+    if(statusEl) statusEl.textContent='⚠ PROXY_BASE가 설정되어 있지 않아 예금·적금 금리를 불러올 수 없습니다.';
+    return;
+  }
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'fin-savings',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    const data=r.ok?await r.json():null;
+    if(data && (data.deposit || data.saving)){
+      finSavingsData.deposit=data.deposit||[];
+      finSavingsData.saving=data.saving||[];
+      if(statusEl){
+        const updated=data.updated?new Date(data.updated).toLocaleString('ko-KR'):'알 수 없음';
+        statusEl.textContent='자료: 금융감독원 금융상품통합비교공시(금융상품한눈에) · 최근 수집 '+updated+' · 12개월 기준 최고우대금리순';
+      }
+    }else{
+      if(statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다 — Worker(/fin-savings)가 배포되어 있고 인증키가 설정됐는지 확인해주세요.';
+    }
+  }catch(e){
+    console.warn('예금·적금 금리 로딩 실패:', e);
+    if(statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다.';
+  }
+  renderFinSavings();
+}
+
+function finSavingsGroupTag(g){
+  return g==='은행'?'<span class="tag t-l">은행</span>':'<span class="tag t-m">저축은행</span>';
+}
+
+function renderFinSavingsTable(tbodyId, list){
+  const tbody=document.getElementById(tbodyId);
+  if(!tbody) return;
+  if(!list){ tbody.innerHTML='<tr><td class="mut" colspan="6">불러오는 중…</td></tr>'; return; }
+  const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
+  if(!filtered.length){ tbody.innerHTML='<tr><td class="mut" colspan="6">표시할 상품이 없습니다</td></tr>'; return; }
+  tbody.innerHTML=filtered.slice(0,30).map(it=>{
+    const rsrv=it.rsrvType?' <span class="mut" style="font-size:11px">('+it.rsrvType+')</span>':'';
+    return '<tr>'+
+      '<td>'+finSavingsGroupTag(it.group)+'</td>'+
+      '<td>'+it.company+'</td>'+
+      '<td>'+it.product+rsrv+'</td>'+
+      '<td class="num">'+(it.term!=null?it.term+'개월':'--')+'</td>'+
+      '<td class="num">'+(it.baseRate!=null?it.baseRate.toFixed(2)+'%':'--')+'</td>'+
+      '<td class="num" style="color:var(--accent);font-weight:800">'+(it.maxRate!=null?it.maxRate.toFixed(2)+'%':'--')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function renderFinSavings(){
+  renderFinSavingsTable('fin-deposit-tbl', finSavingsData.deposit);
+  renderFinSavingsTable('fin-saving-tbl', finSavingsData.saving);
+  const btns=document.querySelectorAll('#fin-savings-group button');
+  btns.forEach(b=>b.classList.toggle('on', b.dataset.g===finSavingsGroup));
+}
+
+function setFinSavingsGroup(g){
+  finSavingsGroup=g;
+  renderFinSavings();
+}
+
 /* ===================== 환율 페이지 — 김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) =====================
    원화(KRW) 기준 교차환율을 Yahoo Finance 티커로 받는다. USD·JPY·EUR·CHF는 XXXKRW=X 직접
    교차 티커가 존재하지만, CNY·BRL은 Yahoo에 해당 직접 교차 티커가 없어(조회 실패) 대신
