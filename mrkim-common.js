@@ -1112,19 +1112,33 @@ const ECOS_ITEM={
   corpBBB:'010320000'       // 회사채(3년,BBB-)
 };
 
+/* [2026-09-28] getJSON()의 공개 프록시 폴백(allorigins/codetabs/thingproxy)이 ecos.bok.or.kr에
+   대해 간헐적으로 막히거나 느려서, t3y·AA·BBB 3개를 Promise.all로 동시에 부를 때 셋 중
+   하나만 랜덤하게 실패하는 경우가 있었다(6번은 되는데 7번만 '준비중'으로 뜨는 현상의 원인).
+   ECOS는 KRX와 달리 헤더 없는 공개 API라 Worker가 굳이 아니어도 되지만, 안정성을 위해
+   Worker로 먼저 시도하고 실패하면 한 번 더 재시도(짧은 지연 후) — 공개 프록시로는 폴백하지 않는다. */
 async function ecosSeries(itemCode, days){
   if(!ECOS_KEY || !itemCode) return null;
   const end=new Date(), start=new Date(); start.setDate(end.getDate()-(days||60));
   const fmt8=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   const url='https://ecos.bok.or.kr/api/StatisticSearch/'+ECOS_KEY+'/json/kr/1/200/'+
       ECOS_STAT_MARKET_RATE+'/D/'+fmt8(start)+'/'+fmt8(end)+'/'+itemCode;
-  try{
-    const j=await getJSON(url);
-    if(j.RESULT){ console.warn('ECOS 오류('+itemCode+'):', j.RESULT.MESSAGE||j.RESULT); return null; }
-    const rows=(j.StatisticSearch||{}).row||[];
-    if(!rows.length){ console.warn('ECOS 빈 응답('+itemCode+') — 통계표/항목코드 확인 필요:', j); return null; }
-    return rows.map(r=>({t:r.TIME, v:+r.DATA_VALUE})).filter(r=>isFinite(r.v)).sort((a,b)=>a.t.localeCompare(b.t));
-  }catch(e){ console.warn('ECOS 호출 실패('+itemCode+'):', e); return null; }
+  const attempt=async()=>{
+    const target=PROXY_BASE?PROXY_BASE+encodeURIComponent(url):url;
+    const c=new AbortController(), t=setTimeout(()=>c.abort(),10000);
+    try{
+      const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
+      if(!r.ok) return null;
+      const j=await r.json();
+      if(j.RESULT){ console.warn('ECOS 오류('+itemCode+'):', j.RESULT.MESSAGE||j.RESULT); return null; }
+      const rows=(j.StatisticSearch||{}).row||[];
+      if(!rows.length){ console.warn('ECOS 빈 응답('+itemCode+') — 통계표/항목코드 확인 필요:', j); return null; }
+      return rows.map(r2=>({t:r2.TIME, v:+r2.DATA_VALUE})).filter(r2=>isFinite(r2.v)).sort((a,b)=>a.t.localeCompare(b.t));
+    }catch(e){ clearTimeout(t); console.warn('ECOS 호출 실패('+itemCode+'):', e); return null; }
+  };
+  let res=await attempt();
+  if(!res){ await new Promise(r=>setTimeout(r,600)); res=await attempt(); }
+  return res;
 }
 
 async function loadEcosIndicators(){
@@ -1181,22 +1195,45 @@ function pick(row, keys){
   for(const k of keys){ if(row[k]!=null && row[k]!=='') return row[k]; }
   return null;
 }
+/* [2026-09-28 발견/수정] KRX는 AUTH_KEY 헤더가 필수라 Worker(PROXY_BASE)를 거쳐야만
+   응답할 수 있다 — getJSON()의 공개 프록시 폴백(allorigins/codetabs/thingproxy)은 그
+   헤더를 넣어줄 수 없어 KRX 호출에는 애초에 성공할 수 없는데도, 기존 코드는 매 요청마다
+   이 3개를 전부 5초씩 타임아웃날 때까지 시도했다. 게다가 미승인 카테고리(401)는 어떤
+   날짜로 바꿔도 절대 통과되지 않는데 krxJSONRecent가 이를 구분 못 해 10일치를 전부
+   반복 시도했다 — 결과적으로 미승인 API 하나당 최대 4프록시×5초×10일=200초 가까이
+   걸려 사실상 영구 로딩(화면엔 "준비중")으로 보였다. 이제 KRX 호출은 Worker로 직접
+   1회만 붙고, 401(미승인)이면 즉시 포기해서 다른 날짜/프록시를 반복하지 않는다. */
 async function krxJSON(path, basDd){
+  if(!PROXY_BASE) return null;
   const url='https://data-dbg.krx.co.kr/svc/apis/'+path+'?basDd='+basDd;
   try{
-    const j=await getJSON(url);
-    if(j.OutBlock_1) return j.OutBlock_1;
+    const c=new AbortController(), t=setTimeout(()=>c.abort(),8000);
+    const r=await fetch(PROXY_BASE+encodeURIComponent(url),{signal:c.signal});
+    clearTimeout(t);
+    let j=null; try{ j=await r.json(); }catch(_){}
+    if(j && j.respCode==='401'){
+      console.warn('KRX 미승인 카테고리('+path+') — data-dbg.krx.co.kr 포털에서 해당 API 신청 필요:', j.respMsg);
+      const err=new Error('KRX_UNAUTHORIZED'); err.krxUnauthorized=true; throw err;
+    }
+    if(!r.ok){ console.warn('KRX 호출 실패('+path+'):', r.status, j); return null; }
+    if(j && j.OutBlock_1) return j.OutBlock_1;
     console.warn('KRX 응답에 OutBlock_1 없음('+path+'):', j);
     return null;
-  }catch(e){ console.warn('KRX 호출 실패('+path+'):', e); return null; }
+  }catch(e){
+    if(e && e.krxUnauthorized) throw e;
+    console.warn('KRX 호출 실패('+path+'):', e); return null;
+  }
 }
 async function krxJSONRecent(path, maxBack){
   /* KRX Open API는 최근 2~4거래일치가 아직 집계되지 않아 비어있는 경우가 많다(2026-09-28
      직접 검증: 금요일치도 비어있고 화요일치부터 정상). 휴장일까지 겹치면 5일로는 부족할 수
-     있어 기본을 10일로 늘려 최근 거래일까지 확실히 소급한다. */
+     있어 기본을 10일로 늘려 최근 거래일까지 확실히 소급한다. 단 401(미승인)이면 날짜를
+     바꿔도 의미가 없으므로 즉시 중단한다. */
   for(let i=0;i<(maxBack||10);i++){
     const d=new Date(); d.setDate(d.getDate()-i);
-    const rows=await krxJSON(path, fmtYmd(d));
+    let rows;
+    try{ rows=await krxJSON(path, fmtYmd(d)); }
+    catch(e){ if(e && e.krxUnauthorized) return null; throw e; }
     if(rows && rows.length) return rows;
   }
   return null;
