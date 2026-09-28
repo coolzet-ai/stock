@@ -274,7 +274,17 @@ const KRKQ_CAP_DATA=[
 /* ================= 상대수익률 비교 차트 (raoni.xyz 스타일 시각화 구체화) =================
    여러 종목·지수의 첫 값을 100으로 맞춰(rebase) 정규화하면, 절대 가격 단위가 달라도
    기간 내 상대적인 강약(어느 자산이 더 잘 버텼는지)을 한 차트에서 바로 비교할 수 있다.
-   기존 yclose()로 이미 받아온 종가 배열과 miniLineChart()를 그대로 재사용한다. */
+   기존 yclose()로 이미 받아온 종가 배열과 miniLineChart()를 그대로 재사용한다.
+   [로딩 안정성] 새 차트들이 같은 티커(SPY·^KS11·005930.KS 등)를 중복으로 프록시 호출하면
+   무료 프록시가 동시 요청에 실패하기 쉬워, RELCACHE 하나를 모든 신규 차트가 공유하고
+   이미 tickData(관심종목/TOP10 카드)에 있는 티커는 재요청하지 않는다. */
+const RELCACHE={};
+async function relFetch(t, range){
+  if(tickData[t]) return tickData[t];
+  if(RELCACHE[t]!==undefined) return RELCACHE[t];
+  RELCACHE[t]=await yclose(t, range||'1y');
+  return RELCACHE[t];
+}
 function rebase100(arr){
   if(!arr) return null;
   const first=arr.find(v=>v!=null);
@@ -282,7 +292,7 @@ function rebase100(arr){
   return arr.map(v=>v!=null?+(v/first*100).toFixed(3):null);
 }
 const REL_PERIOD_DAYS={'1m':21,'3m':63,'6m':126,'1y':252};
-function relReturnChart(elId, series){
+function relReturnChart(elId, series, loaded){
   const el=document.getElementById(elId); if(!el) return;
   const built=series.map(s=>{
     const reb=s.values?rebase100(s.values):null;
@@ -292,7 +302,12 @@ function relReturnChart(elId, series){
     return {values:reb||[], color:s.color, width:s.width||2.2,
       label:s.label+(chg!=null?' '+sign(chg):' --')};
   }).filter(s=>s.values.length>1);
-  if(!built.length){ el.innerHTML='<p class="mut" style="font-size:12.5px">데이터를 불러오는 중…</p>'; return; }
+  if(!built.length){
+    el.innerHTML=loaded
+      ? '<p class="mut" style="font-size:12.5px">⚠ 데이터 연동 실패 — 프록시 응답이 없습니다. 새로고침해도 안 뜨면 콘솔(F12) 경고를 확인해주세요.</p>'
+      : '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+    return;
+  }
   el.innerHTML=miniLineChart(built,{h:230,padL:4,padR:4,padTop:10,padBottom:6});
 }
 /* 시가총액 TOP10 카드(cap/krcap)의 순위·색상 순서를 그대로 상대수익률 비교 시리즈로 변환 */
@@ -304,7 +319,7 @@ function renderCapRelCompare(elId, group, capData, period){
   const defs=capRelDefsFromGroup(group, capData);
   const days=REL_PERIOD_DAYS[period]||126;
   const series=defs.map(d=>({label:d.label, color:d.color, values:tickData[d.t]?tickData[d.t].slice(-days):null}));
-  relReturnChart(elId, series);
+  relReturnChart(elId, series, true);
 }
 
 /* 미국 주요 지수 ETF 상대수익률 비교 (S&P500·나스닥100·다우존스·러셀2000·반도체) */
@@ -315,17 +330,17 @@ const IDXREL_DEFS_US=[
   {t:'IWM', label:'러셀2000(IWM)', color:'#ff4d4f'},
   {t:'SOXX', label:'반도체(SOXX)', color:'#c084fc'}
 ];
-const idxRelDataUS={};
 async function loadIdxRelUS(){
-  await Promise.all(IDXREL_DEFS_US.map(async d=>{
-    if(idxRelDataUS[d.t]===undefined) idxRelDataUS[d.t]=await yclose(d.t,'1y');
-  }));
+  await Promise.all(IDXREL_DEFS_US.map(d=>relFetch(d.t,'1y')));
   renderIdxRelUS(curPer.usrel);
 }
 function renderIdxRelUS(period){
   const days=REL_PERIOD_DAYS[period]||126;
-  const series=IDXREL_DEFS_US.map(d=>({label:d.label, color:d.color, values:idxRelDataUS[d.t]?idxRelDataUS[d.t].slice(-days):null}));
-  relReturnChart('us-idxrel-chart', series);
+  const series=IDXREL_DEFS_US.map(d=>{
+    const c=tickData[d.t]||RELCACHE[d.t];
+    return {label:d.label, color:d.color, values:c?c.slice(-days):null};
+  });
+  relReturnChart('us-idxrel-chart', series, true);
 }
 
 /* 한국 지수·대표종목 상대수익률 비교 (코스피·코스닥·삼성전자·SK하이닉스) */
@@ -335,17 +350,48 @@ const IDXREL_DEFS_KR=[
   {t:'005930.KS', label:'삼성전자', color:'#22c55e'},
   {t:'000660.KS', label:'SK하이닉스', color:'#ff4d4f'}
 ];
-const idxRelDataKR={};
 async function loadIdxRelKR(){
-  await Promise.all(IDXREL_DEFS_KR.map(async d=>{
-    if(idxRelDataKR[d.t]===undefined) idxRelDataKR[d.t]=await yclose(d.t,'1y');
-  }));
+  await Promise.all(IDXREL_DEFS_KR.map(d=>relFetch(d.t,'1y')));
   renderIdxRelKR(curPer.krrel);
 }
 function renderIdxRelKR(period){
   const days=REL_PERIOD_DAYS[period]||126;
-  const series=IDXREL_DEFS_KR.map(d=>({label:d.label, color:d.color, values:idxRelDataKR[d.t]?idxRelDataKR[d.t].slice(-days):null}));
-  relReturnChart('kr-idxrel-chart', series);
+  const series=IDXREL_DEFS_KR.map(d=>{
+    const c=tickData[d.t]||RELCACHE[d.t];
+    return {label:d.label, color:d.color, values:c?c.slice(-days):null};
+  });
+  relReturnChart('kr-idxrel-chart', series, true);
+}
+
+/* 이벤트 캘린더(MONTH_EVENTS/KR_MONTH_EVENTS)에서 오늘 이후 가장 가까운 일정을 찾아
+   상단에 "다음 이벤트" 배너로 보여준다. hol:1(휴장일)은 opts.excludeHoliday로 제외 가능. */
+function renderNextEventBanner(elId, monthEvents, opts){
+  const el=document.getElementById(elId); if(!el) return;
+  opts=opts||{};
+  const now=new Date();
+  const today=new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let best=null, bestDate=null;
+  Object.keys(monthEvents).forEach(mKey=>{
+    const m=+mKey;
+    (monthEvents[mKey]||[]).forEach(ev=>{
+      if(opts.excludeHoliday && ev.hol) return;
+      const dt=new Date(now.getFullYear(), m-1, ev.d);
+      if(dt<today) return;
+      if(!bestDate || dt<bestDate){ bestDate=dt; best={ev, m}; }
+    });
+  });
+  if(!best){ el.style.display='none'; return; }
+  const dday=Math.round((bestDate-today)/86400000);
+  const dtext=dday===0?'오늘':'D-'+dday;
+  const gradeColor={h:'var(--up)',m:'var(--accent)',l:'var(--tx2)'}[best.ev.g]||'var(--tx2)';
+  el.style.display='flex';
+  el.innerHTML=
+    '<span class="tag" style="background:'+gradeColor+';color:#fff;flex:none">'+dtext+'</span>'+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-weight:800;font-size:14px">'+best.ev.t+'</div>'+
+      '<div class="mut" style="font-size:12px;margin-top:2px">'+best.m+'월 '+best.ev.d+'일 · '+best.ev.c+'</div>'+
+    '</div>'+
+    (best.ev.s?'<a href="'+best.ev.s+'" target="_blank" rel="noopener" class="mut" style="font-size:12px;text-decoration:underline;flex:none">출처</a>':'');
 }
 
 /* 한국 수급 플로우 시각화 — Worker가 코스피·코스닥 전종목을 집계한 상승/하락 거래대금 비율과
@@ -416,20 +462,21 @@ function corrColor(r){
   if(r>-0.5) return '#7cc4ff';
   return 'var(--down)';
 }
-const corrDataCache={};
 async function loadCorrSeries(tickers){
-  await Promise.all(tickers.map(async t=>{
-    if(corrDataCache[t]===undefined) corrDataCache[t]=await yclose(t,'6mo');
-  }));
+  await Promise.all(tickers.map(t=>relFetch(t,'6mo')));
 }
 function renderCorrGrid(elId, pairs){
   const el=document.getElementById(elId); if(!el) return;
   const rows=pairs.map(p=>{
-    const ca=corrDataCache[p.a.t], cb=corrDataCache[p.b.t];
+    const ca=tickData[p.a.t]||RELCACHE[p.a.t], cb=tickData[p.b.t]||RELCACHE[p.b.t];
     if(!ca||!cb) return {p, r:null};
     const ra=pctReturns(ca.slice(-91)), rb=pctReturns(cb.slice(-91));
     return {p, r:pearsonCorr(ra,rb)};
   });
+  if(rows.every(({r})=>r==null)){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">⚠ 데이터 연동 실패 — 프록시 응답이 없습니다. 새로고침해도 안 뜨면 콘솔(F12) 경고를 확인해주세요.</p>';
+    return;
+  }
   const body=rows.map(({p,r})=>{
     const pct=r==null?50:((r+1)/2*100);
     const col=corrColor(r);
