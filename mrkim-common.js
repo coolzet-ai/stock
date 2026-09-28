@@ -1356,26 +1356,29 @@ async function loadFinSavings(){
   renderFinSavings();
 }
 
-function finSavingsGroupTag(g){
-  return g==='은행'?'<span class="tag t-l">은행</span>':'<span class="tag t-m">저축은행</span>';
-}
-
-function renderFinSavingsTable(tbodyId, list){
-  const tbody=document.getElementById(tbodyId);
-  if(!tbody) return;
-  if(!list){ tbody.innerHTML='<tr><td class="mut" colspan="6">불러오는 중…</td></tr>'; return; }
+/* 미국지수·한국지수 페이지의 "관심종목" 모바일 워치리스트(.wl-list/.wl-row)와 동일한 패턴 —
+   좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링. */
+function renderFinSavingsTable(listId, list){
+  const el=document.getElementById(listId);
+  if(!el) return;
+  if(!list){ el.innerHTML='<div class="fs-row"><span class="mut">불러오는 중…</span></div>'; return; }
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
-  if(!filtered.length){ tbody.innerHTML='<tr><td class="mut" colspan="6">표시할 상품이 없습니다</td></tr>'; return; }
-  tbody.innerHTML=filtered.slice(0,30).map(it=>{
-    const rsrv=it.rsrvType?' <span class="mut" style="font-size:11px">('+it.rsrvType+')</span>':'';
-    return '<tr>'+
-      '<td>'+finSavingsGroupTag(it.group)+'</td>'+
-      '<td>'+it.company+'</td>'+
-      '<td>'+it.product+rsrv+'</td>'+
-      '<td class="num">'+(it.term!=null?it.term+'개월':'--')+'</td>'+
-      '<td class="num">'+(it.baseRate!=null?it.baseRate.toFixed(2)+'%':'--')+'</td>'+
-      '<td class="num" style="color:var(--accent);font-weight:800">'+(it.maxRate!=null?it.maxRate.toFixed(2)+'%':'--')+'</td>'+
-      '</tr>';
+  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">표시할 상품이 없습니다</span></div>'; return; }
+  el.innerHTML=filtered.slice(0,30).map(it=>{
+    const rsrv=it.rsrvType?' · '+it.rsrvType:'';
+    const barCls=it.group==='은행'?'bank':'saving';
+    return '<div class="fs-row">'+
+      '<div class="fs-bar '+barCls+'"></div>'+
+      '<div class="fs-info">'+
+        '<div class="fs-co">'+it.group+' · '+it.company+'</div>'+
+        '<div class="fs-name">'+it.product+'</div>'+
+        '<div class="fs-meta">'+(it.term!=null?it.term+'개월':'--')+rsrv+'</div>'+
+      '</div>'+
+      '<div class="fs-rate">'+
+        '<div class="max">'+(it.maxRate!=null?it.maxRate.toFixed(2)+'%':'--')+'</div>'+
+        '<div class="base">기본 '+(it.baseRate!=null?it.baseRate.toFixed(2)+'%':'--')+'</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
