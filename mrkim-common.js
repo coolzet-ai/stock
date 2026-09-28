@@ -1472,17 +1472,21 @@ async function loadKrxIndicators(){
     }
   }catch(e){ console.warn('VKOSPI 계산 실패:', e); }
 
-  /* 4. 풋/콜 비율: eqsop_bydd_trd(주식옵션 일별매매정보) — 개별주식옵션 합산 기준
-     (KOSPI200 지수옵션이 아닌 개별 종목 옵션이라 CNN 방식과 완전히 동일하진 않음)
-     필드명 확인됨(2026-09-28): RGHT_TP_NM='CALL'|'PUT'(영문 대문자), ACC_TRDVOL=거래량.
-     [계산값 보정] 개별주식옵션은 구조적으로 콜 거래량이 풋보다 항상 많아(3거래일 실측
-     풋/콜비 0.78~0.92) 기존 0.5~2.0 매핑에서는 매일 탐욕~극단적 탐욕 구간에 고정되는
-     문제가 있었다. 실측 분포에 맞춰 0.5~1.5로 좁혀 변화에 더 민감하게 반응하도록 조정. */
+  /* 4. 풋/콜 비율: opt_bydd_trd(옵션 일별매매정보(주식옵션외)) — KOSPI200 지수옵션 기준으로 교체.
+     [2026-09-28] 기존엔 개별주식옵션(eqsop_bydd_trd) 합산이라 CNN 원본(지수옵션) 방식과
+     달랐는데, opt_bydd_trd 카테고리 승인 후 실데이터로 확인해보니 PROD_NM 필드에
+     '코스피200 옵션'(정규월물) · '코스피200 위클리(목/월) 옵션' · '미니코스피200 옵션' ·
+     '코스닥150 옵션' 등이 섞여 있다. PROD_NM이 '코스피200'으로 시작하는 행(정규월물+위클리,
+     미니/코스닥 제외)만 합산 — 위클리 포함이 3거래일 실측 기준 변동성이 더 작고 안정적이었다
+     (정규월물만 쓰면 0.68~0.94로 더 들쭉날쭉, 위클리 포함 시 0.76~0.79로 안정).
+     RGHT_TP_NM='CALL'|'PUT'(영문 대문자), ACC_TRDVOL=거래량. */
   try{
-    const optRows=await krxJSONRecent('drv/eqsop_bydd_trd', 10);
+    const optRows=await krxJSONRecent('drv/opt_bydd_trd', 10);
     if(optRows && optRows.length){
       let callVol=0, putVol=0;
       optRows.forEach(r=>{
+        const prod=pick(r,['PROD_NM'])||'';
+        if(!prod.startsWith('코스피200')) return; // 미니코스피200·코스닥150 옵션 제외
         const kind=(pick(r,['RGHT_TP_NM','RGHT_TP_CD','OPT_TP_NM'])||'').toUpperCase();
         const vol=+pick(r,['ACC_TRDVOL','TRDVOL','TRD_VOL'])||0;
         if(kind.includes('콜')||kind.includes('CALL')) callVol+=vol;
@@ -1495,7 +1499,7 @@ async function loadKrxIndicators(){
         const clipped=Math.max(0.5,Math.min(1.5,ratio));
         result.putCallScore=100-((clipped-0.5)/1.0)*100;
       }else{
-        console.warn('KRX eqsop_bydd_trd 응답에서 콜/풋 구분 실패(필드명 확인 필요):', optRows[0]);
+        console.warn('KRX opt_bydd_trd 응답에서 코스피200 옵션 콜/풋 구분 실패(필드명 확인 필요):', optRows[0]);
       }
     }
   }catch(e){ console.warn('풋/콜 비율 계산 실패:', e); }
@@ -1580,7 +1584,7 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     ['1. 시장 모멘텀 (코스피 vs 125일 이평)', momentumScore],
     ['2. 주가 강도 (52주 신고가/신저가 비율)'+strengthNote, breadth&&breadth.strength?breadth.strength.score:null],
     ['3. 주가 폭 (상승/하락 거래량 비율)', breadth&&breadth.breadth?breadth.breadth.score:null],
-    ['4. 풋/콜 옵션 비율 (개별주식옵션 합산)', krx&&krx.putCallScore!=null?krx.putCallScore:null],
+    ['4. 풋/콜 옵션 비율 (KOSPI200 지수옵션)', krx&&krx.putCallScore!=null?krx.putCallScore:null],
     ['5. 시장 변동성 (VKOSPI)', krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
     ['6. 안전자산 수요 (코스피 vs 국고채)', ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
     ['7. 정크본드 수요 (AA-/BBB- 스프레드)', ecos&&ecos.creditScore!=null?ecos.creditScore:null]

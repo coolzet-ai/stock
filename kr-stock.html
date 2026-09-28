@@ -245,7 +245,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <h3>7개 세부지표 (CNN 방식 설계)</h3>
         <table><tbody id="kr-sub"></tbody></table>
         <div id="kr-breadth-flow" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><p class="mut" style="font-size:12px">수급 데이터를 불러오는 중…</p></div>
-        <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번은 Yahoo KOSPI, 6·7번은 한국은행 ECOS로 계산됩니다. 4번(풋/콜)·5번(VKOSPI)은 KRX Open API 연동을 시도했으나 실제 응답 필드명을 확인하지 못해 여러 후보로 추정 구현했습니다 — 값이 계속 안 뜨면 브라우저 콘솔(F12)의 경고 메시지를 확인해 알려주세요. 4번은 KOSPI200 지수옵션이 아닌 개별주식옵션 합산 기준입니다. 2·3번(주가 강도·주가 폭)은 코스피·코스닥 전종목 배치 집계가 필요해 별도 아키텍처(Worker 자동실행) 작업 중입니다.</p>
+        <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번은 Yahoo KOSPI, 4·5번은 KRX Open API(파생상품), 6·7번은 한국은행 ECOS로 계산됩니다. 4번은 KOSPI200 지수옵션(정규월물+위클리) 콜/풋 거래량 기준입니다. 2·3번(주가 강도·주가 폭)은 코스피·코스닥 전종목 배치 집계가 필요해 별도 아키텍처(Worker 자동실행) 작업 중입니다.</p>
       </div>
     </div>
 
