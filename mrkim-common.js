@@ -1104,7 +1104,7 @@ let BACKTEST_START_TS=Math.floor(new Date(BACKTEST_START_YEAR+'-01-01T00:00:00Z'
    인증키·항목코드 설정 완료. CORS가 막혀 있으면 getJSON의 PROXY_BASE 경유로 자동 우회된다
    (cors-proxy-worker.js ALLOW 목록에 ecos.bok.or.kr 이미 등록됨). */
 const ECOS_KEY='63MKYWEJT6RYCZ59IHTU';
-const ECOS_STAT_MARKET_RATE='060Y001'; // 시장금리, 일별 — 제공된 항목코드(010200000 등)와 매칭되는 실제 통계표
+const ECOS_STAT_MARKET_RATE='817Y002'; // 시장금리, 일별 — 항목코드(010200000 등)와 실제로 매칭 확인된 통계표(2026-09-28 직접 검증)
 const ECOS_ITEM={
   treasury3y:'010200000',   // 국고채(3년)
   treasury10y:'010210000',  // 국고채(10년)
@@ -1181,8 +1181,10 @@ async function krxJSON(path, basDd){
   }catch(e){ console.warn('KRX 호출 실패('+path+'):', e); return null; }
 }
 async function krxJSONRecent(path, maxBack){
-  /* 휴장일이면 데이터가 없을 수 있어 최근 거래일까지 며칠 소급 시도 */
-  for(let i=0;i<(maxBack||5);i++){
+  /* KRX Open API는 최근 2~4거래일치가 아직 집계되지 않아 비어있는 경우가 많다(2026-09-28
+     직접 검증: 금요일치도 비어있고 화요일치부터 정상). 휴장일까지 겹치면 5일로는 부족할 수
+     있어 기본을 10일로 늘려 최근 거래일까지 확실히 소급한다. */
+  for(let i=0;i<(maxBack||10);i++){
     const d=new Date(); d.setDate(d.getDate()-i);
     const rows=await krxJSON(path, fmtYmd(d));
     if(rows && rows.length) return rows;
@@ -1434,7 +1436,7 @@ async function loadKrxIndicators(){
   const result={};
   /* 5. 시장 변동성(VKOSPI): kospi_dd_trd(KOSPI 시리즈 지수)에서 이름으로 검색 */
   try{
-    const idxRows=await krxJSONRecent('idx/kospi_dd_trd', 5);
+    const idxRows=await krxJSONRecent('idx/kospi_dd_trd', 10);
     if(idxRows){
       const row=idxRows.find(r=>{
         const name=pick(r,['IDX_NM','IDX_IND_NM','ISU_NM','IDX_NM_KOR'])||'';
@@ -1457,7 +1459,7 @@ async function loadKrxIndicators(){
   /* 4. 풋/콜 비율: eqsop_bydd_trd(주식옵션 일별매매정보) — 개별주식옵션 합산 기준
      (KOSPI200 지수옵션이 아닌 개별 종목 옵션이라 CNN 방식과 완전히 동일하진 않음) */
   try{
-    const optRows=await krxJSONRecent('drv/eqsop_bydd_trd', 5);
+    const optRows=await krxJSONRecent('drv/eqsop_bydd_trd', 10);
     if(optRows && optRows.length){
       let callVol=0, putVol=0;
       optRows.forEach(r=>{
