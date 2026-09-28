@@ -1463,7 +1463,11 @@ async function loadKrxIndicators(){
   }catch(e){ console.warn('VKOSPI 계산 실패:', e); }
 
   /* 4. 풋/콜 비율: eqsop_bydd_trd(주식옵션 일별매매정보) — 개별주식옵션 합산 기준
-     (KOSPI200 지수옵션이 아닌 개별 종목 옵션이라 CNN 방식과 완전히 동일하진 않음) */
+     (KOSPI200 지수옵션이 아닌 개별 종목 옵션이라 CNN 방식과 완전히 동일하진 않음)
+     필드명 확인됨(2026-09-28): RGHT_TP_NM='CALL'|'PUT'(영문 대문자), ACC_TRDVOL=거래량.
+     [계산값 보정] 개별주식옵션은 구조적으로 콜 거래량이 풋보다 항상 많아(3거래일 실측
+     풋/콜비 0.78~0.92) 기존 0.5~2.0 매핑에서는 매일 탐욕~극단적 탐욕 구간에 고정되는
+     문제가 있었다. 실측 분포에 맞춰 0.5~1.5로 좁혀 변화에 더 민감하게 반응하도록 조정. */
   try{
     const optRows=await krxJSONRecent('drv/eqsop_bydd_trd', 10);
     if(optRows && optRows.length){
@@ -1477,9 +1481,9 @@ async function loadKrxIndicators(){
       if(callVol>0){
         const ratio=putVol/callVol;
         result.putCallRatio=ratio;
-        // 풋/콜 0.5~2.0 를 탐욕(100)~공포(0)로 역매핑(높을수록 공포)
-        const clipped=Math.max(0.5,Math.min(2.0,ratio));
-        result.putCallScore=100-((clipped-0.5)/1.5)*100;
+        // 풋/콜 0.5~1.5 를 탐욕(100)~공포(0)로 역매핑(높을수록 공포)
+        const clipped=Math.max(0.5,Math.min(1.5,ratio));
+        result.putCallScore=100-((clipped-0.5)/1.0)*100;
       }else{
         console.warn('KRX eqsop_bydd_trd 응답에서 콜/풋 구분 실패(필드명 확인 필요):', optRows[0]);
       }
