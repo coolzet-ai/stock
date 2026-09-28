@@ -1651,19 +1651,36 @@ function renderKR(d, ecos, krx, breadth){
       (composite?' · 모멘텀 단독점수 '+Math.round(d.score):'');
   renderKRSub(d.score, ecos, krx, breadth);
 }
+/* 7개 세부지표 설명 — 표 항목명 옆 ⓘ 아이콘에 마우스를 올리면(모바일은 탭하면) 나오는 툴팁.
+   각 지표가 "무엇을, 어떻게 계산하는지"와 "어느 쪽이 탐욕/공포인지"를 담아 표만 봐서는
+   알기 어려운 계산 방식을 설명한다. */
+const KR_SUBDESC={
+  '1':'코스피 지수가 125일(약 6개월) 이동평균보다 얼마나 높은지/낮은지를 측정합니다. 이동평균보다 많이 올라 있을수록 탐욕, 많이 내려가 있을수록 공포로 해석합니다.',
+  '2':'코스피+코스닥 전종목 중 52주(약 1년) 신고가를 기록한 종목 수와 52주 신저가를 기록한 종목 수의 비율입니다. 신고가 종목이 신저가 종목보다 많을수록 탐욕입니다. ※ Worker가 매일 종가를 누적해 자체 계산하는 구조라, 누적 기간이 짧을 때는 실제 52주 기준과 오차가 있을 수 있습니다(위 "N일 누적" 참고).',
+  '3':'코스피+코스닥 전종목의 상승종목 거래대금 합과 하락종목 거래대금 합의 비율입니다. 상승하는 종목 쪽으로 거래대금이 많이 몰릴수록(자금이 위험자산을 쫓아갈수록) 탐욕입니다.',
+  '4':'KOSPI200 지수옵션(정규월물+위클리)의 풋옵션·콜옵션 거래량 비율입니다. 콜옵션(상승 베팅) 거래가 상대적으로 많으면(풋/콜비가 낮으면) 탐욕, 풋옵션(하락 베팅·헤지) 거래가 많으면 공포입니다.',
+  '5':'VKOSPI는 KOSPI200 옵션 가격에서 역산한 "향후 변동성에 대한 시장의 기대치"로, 미국 VIX의 한국판입니다. 낮을수록 투자자들이 시장을 안정적으로 보고 있다는 뜻(탐욕), 높을수록 불안감이 크다는 뜻(공포)입니다.',
+  '6':'최근 20거래일간 코스피 수익률과 국고채(3년) 금리 변화를 비교합니다. 주식 대신 국채(안전자산)로 자금이 이동하는 신호가 강할수록 공포, 주식을 선호할수록 탐욕입니다.',
+  '7':'신용등급이 낮은 회사채(BBB-)와 우량 회사채(AA-) 간 금리차(신용스프레드)입니다. 스프레드가 최근 평소 수준보다 좁아지면(위험자산도 서슴없이 사들이는 분위기) 탐욕, 벌어지면(안전한 채권만 찾는 분위기) 공포로 해석합니다.'
+};
+function krSubLabel(num, text){
+  const desc=KR_SUBDESC[num];
+  if(!desc) return text;
+  return text+' <span class="mut" title="'+desc.replace(/"/g,'&quot;')+'" style="cursor:help;font-weight:700;border:1px solid var(--line);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;vertical-align:middle;margin-left:2px">ⓘ</span>';
+}
 function renderKRSub(momentumScore, ecos, krx, breadth){
   const el=document.getElementById('kr-sub'); if(!el) return;
   const strengthNote=breadth&&breadth.strength?' ('+breadth.strength.daysAccumulated+'일 누적, '+breadth.market+')':'';
   const rows=[
-    ['1. 시장 모멘텀 (코스피 vs 125일 이평)', momentumScore],
-    ['2. 주가 강도 (52주 신고가/신저가 비율)'+strengthNote, breadth&&breadth.strength?breadth.strength.score:null],
-    ['3. 주가 폭 (상승/하락 거래대금 비율)', breadth&&breadth.breadth?breadth.breadth.score:null],
-    ['4. 풋/콜 옵션 비율 (KOSPI200 지수옵션)', krx&&krx.putCallScore!=null?krx.putCallScore:null],
-    ['5. 시장 변동성 (VKOSPI)', krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
-    ['6. 안전자산 수요 (코스피 vs 국고채)', ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
-    ['7. 정크본드 수요 (AA-/BBB- 스프레드)', ecos&&ecos.creditScore!=null?ecos.creditScore:null]
+    ['1', krSubLabel('1','1. 시장 모멘텀 (코스피 vs 125일 이평)'), momentumScore],
+    ['2', krSubLabel('2','2. 주가 강도 (52주 신고가/신저가 비율)'+strengthNote), breadth&&breadth.strength?breadth.strength.score:null],
+    ['3', krSubLabel('3','3. 주가 폭 (상승/하락 거래대금 비율)'), breadth&&breadth.breadth?breadth.breadth.score:null],
+    ['4', krSubLabel('4','4. 풋/콜 옵션 비율 (KOSPI200 지수옵션)'), krx&&krx.putCallScore!=null?krx.putCallScore:null],
+    ['5', krSubLabel('5','5. 시장 변동성 (VKOSPI)'), krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
+    ['6', krSubLabel('6','6. 안전자산 수요 (코스피 vs 국고채)'), ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
+    ['7', krSubLabel('7','7. 정크본드 수요 (AA-/BBB- 스프레드)'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
-  el.innerHTML=rows.map(([n,v])=>{
+  el.innerHTML=rows.map(([num,n,v])=>{
     if(v==null) return '<tr><td>'+n+'</td><td class="num mut">--</td><td class="num"><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
     return '<tr><td>'+n+'</td><td class="num">'+v.toFixed(1)+'</td>'+
