@@ -1400,6 +1400,53 @@ async function loadUsFundamentals(){
 }
 function usFundPct(v){ return (v==null||isNaN(v)) ? '—' : ((v*100>=0?'+':'')+(v*100).toFixed(1)+'%'); }
 function usFundNum(v,d){ return (v==null||isNaN(v)) ? '—' : v.toFixed(d==null?2:d); }
+
+/* 미국지수 페이지의 "재무" 클릭식 토글(한국지수 페이지와 동일한 UX)에서 쓴다. /us-fundamentals가
+   10개 종목을 한 번에 반환하므로, 첫 클릭에서 한 번만 요청해 ticker→데이터 맵으로 캐시해두고
+   이후 클릭은 네트워크 요청 없이 캐시에서 즉시 렌더링한다(동시에 여러 번 눌러도 요청은 1번만
+   나가도록 Promise 자체를 캐시). */
+let usFundCache=null, usFundPromise=null;
+async function loadUsFundamentalsOnce(){
+  if(usFundCache) return usFundCache;
+  if(usFundPromise) return usFundPromise;
+  usFundPromise=(async()=>{
+    if(!PROXY_BASE) return null;
+    try{
+      const origin=PROXY_BASE.replace(/\?url=$/,'');
+      const r=await fetch(origin+'us-fundamentals',{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+      const data=r.ok?await r.json():null;
+      if(data && Array.isArray(data.items)){
+        const map={};
+        data.items.forEach(it=>{ map[it.ticker]=it; });
+        usFundCache=map;
+        return map;
+      }
+    }catch(e){
+      console.warn('미국주식 재무비율 로딩 실패:', e);
+    }
+    usFundPromise=null; // 실패 시 다음 클릭에서 다시 시도할 수 있게 프로미스 캐시는 남기지 않는다
+    return null;
+  })();
+  return usFundPromise;
+}
+function renderUsFinancialRatios(it){
+  if(!it || (it.revenueGrowth==null && it.earningsGrowth==null && it.trailingEps==null && it.forwardEps==null && it.psr==null && it.trailingPE==null)){
+    return '<p class="mut" style="font-size:11.5px;margin-top:6px">재무비율·주가지표 데이터를 가져오지 못했습니다.</p>';
+  }
+  const rg=it.revenueGrowth, eg=it.earningsGrowth;
+  const rgColor=rg==null?'var(--tx2)':(rg>=0?'var(--up)':'var(--down)');
+  const egColor=eg==null?'var(--tx2)':(eg>=0?'var(--up)':'var(--down)');
+  return '<div style="max-width:360px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
+    '<div class="mut" style="font-size:11px;margin-bottom:6px">재무비율 · 주가지표(Yahoo Finance 기준)</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;font-size:12px">'+
+      '<div><span class="mut" style="font-size:10.5px">매출액증가율</span><br><b style="color:'+rgColor+'">'+usFundPct(rg)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">영업이익증가율※</span><br><b style="color:'+egColor+'">'+usFundPct(eg)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">PER</span><br><b>'+usFundNum(it.trailingPE,1)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">EPS(TTM)</span><br><b>'+usFundNum(it.trailingEps)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">EPS(Fwd)</span><br><b>'+usFundNum(it.forwardEps)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">PSR</span><br><b>'+usFundNum(it.psr)+'</b></div>'+
+    '</div></div>';
+}
 function renderUsFundamentals(items){
   const el=document.getElementById('us-fund-tbl');
   if(!el) return;
