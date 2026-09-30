@@ -1467,7 +1467,9 @@ async function loadIpoListLive(){
   if(!PROXY_BASE) return null;
   try{
     const origin=PROXY_BASE.replace(/\?url=$/,'');
-    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+    // Cron이 KV 캐시를 미리 데워두지만, 캐시가 막 만료된 직후라면 서버가 연간 신규상장
+    // 전체(약 50~60종목)를 즉석에서 다시 계산해야 할 수 있어 넉넉히 잡는다.
+    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(45000):undefined});
     if(!r.ok) return null;
     const j=await r.json();
     if(!j || !j.items || !j.items.length) return null;
