@@ -468,7 +468,7 @@ function renderIpoList(m){
         '</div>'+
         (item.no?(
         '<div style="margin-top:14px">'+
-          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoPeer(\''+i+'-'+m+'\',\''+item.no+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">🏢 동종업체 재무비교·주가 보기</a>'+
+          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoPeer(\''+i+'-'+m+'\',\''+item.no+'\',\''+(item.listDate||'').replace(/'/g,"\\'")+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">🏢 동종업체 재무비교·주가 보기</a>'+
           '<div id="ipo-peer-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
         '</div>'
         ):'')+
@@ -508,7 +508,7 @@ async function toggleIpoFinancials(key, companyName){
 /* IPO 카드의 "동종업체 재무비교·주가 보기" — 38.co.kr 상세페이지의 증권신고서 발췌 표를
    그대로 받아 표로 보여주고, 피어사들의 최근 1년 상대주가도 함께 시각화한다. */
 const ipoPeerLoaded={};
-async function toggleIpoPeer(key, no){
+async function toggleIpoPeer(key, no, listDate){
   const el=document.getElementById('ipo-peer-'+key);
   if(!el) return;
   const willOpen=(el.style.display==='none');
@@ -521,7 +521,7 @@ async function toggleIpoPeer(key, no){
     }else{
       const chartId='ipo-peer-chart-'+key;
       el.innerHTML=renderIpoPeerTable(peer)+'<div id="'+chartId+'" style="margin-top:10px"></div>';
-      renderIpoPeerPriceChart(chartId, peer);
+      renderIpoPeerPriceChart(chartId, peer, listDate);
     }
     ipoPeerLoaded[key]=true;
   }

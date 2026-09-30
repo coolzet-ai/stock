@@ -593,6 +593,30 @@ async function yclose(sym,range){
     return q.length>30?q:null;
   }catch(e){ return null; }
 }
+/* yclose()는 종가만 반환해(null 필터링까지 해서) 인덱스와 실제 날짜가 어긋난다 — 공모주
+   동종업체 상대수익률 차트에서 "상장일 기준점"을 정확한 위치에 표시하려면 날짜가 함께
+   필요해 별도 함수로 둔다(다른 곳에서 쓰는 yclose/relFetch는 그대로 둔다). null(휴장/결측)은
+   버리지 않고 두 배열의 길이를 맞춰 인덱스 정합성을 유지한다. */
+async function yCloseWithDates(sym,range){
+  const j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+
+      encodeURIComponent(sym)+'?range='+(range||'1y')+'&interval=1d');
+  try{
+    const ts=j.chart.result[0].timestamp;
+    const closes=j.chart.result[0].indicators.quote[0].close;
+    if(!ts || !closes || ts.length<30) return null;
+    const dates=ts.map(t=>new Date(t*1000).toISOString().slice(0,10));
+    return {dates, closes};
+  }catch(e){ return null; }
+}
+/* "2026.01.30" · "2026/01/30" · "2026년 01월 30일" · "2026-01-30" 등 사이트마다 다른
+   상장일 표기에서 연/월/일 숫자만 뽑아 Date로 만든다. "미정"처럼 날짜가 아니면 null. */
+function parseKrDate(str){
+  if(!str) return null;
+  const m=String(str).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if(!m) return null;
+  const d=new Date(+m[1], +m[2]-1, +m[3]);
+  return isNaN(d.getTime())?null:d;
+}
 
 /* ================= 시가총액 TOP10 순위 변동 이력 =================
    전월(2026-08-01 스냅샷 기준) 순위 근사치. 운영 시 월간 리포트 작성 때 갱신하세요. */
@@ -1918,13 +1942,16 @@ function renderIpoPeerTable(peer){
    상대수익률(rebase 100) 차트를 그린다. 코스피/코스닥 구분을 모르므로 .KS를 먼저 시도하고
    실패하면 .KQ로 재시도한다. "동사"(공모기업 본인)는 아직 미상장이라 제외한다. */
 async function tryKrTicker(stockCode){
-  let closes=await relFetch(stockCode+'.KS','1y');
-  if(closes && closes.some(v=>v!=null)) return {ticker:stockCode+'.KS', closes};
-  closes=await relFetch(stockCode+'.KQ','1y');
-  if(closes && closes.some(v=>v!=null)) return {ticker:stockCode+'.KQ', closes};
+  let r=await yCloseWithDates(stockCode+'.KS','1y');
+  if(r && r.closes.some(v=>v!=null)) return {ticker:stockCode+'.KS', dates:r.dates, closes:r.closes};
+  r=await yCloseWithDates(stockCode+'.KQ','1y');
+  if(r && r.closes.some(v=>v!=null)) return {ticker:stockCode+'.KQ', dates:r.dates, closes:r.closes};
   return null;
 }
-async function renderIpoPeerPriceChart(elId, peer){
+/* listDateStr: 공모기업(동사) 본인의 상장일(item.listDate, ipo.html에서 전달) — 동사는 아직
+   신규상장이라 상대수익률 계열에는 없지만(또는 상장했어도 1년치 데이터가 짧아 비교가 무의미),
+   "이 날짜를 기준으로 동종업체들이 어떻게 움직였는지" 보여주기 위해 차트에 기준선으로 표시한다. */
+async function renderIpoPeerPriceChart(elId, peer, listDateStr){
   const el=document.getElementById(elId);
   if(!el) return;
   if(!peer || !peer.companies || peer.companies.length<2){ el.innerHTML=''; return; }
@@ -1934,15 +1961,31 @@ async function renderIpoPeerPriceChart(elId, peer){
     const resolved=await resolveDartByName(peerNames);
     const palette=['var(--accent)','var(--up)','var(--down)','var(--gold)','#7c3aed'];
     const series=[];
+    let masterDates=null; // 기준선 위치 계산용 — 가장 먼저 확보된 종목의 거래일 캘린더를 그대로 쓴다
     for(let k=0;k<peerNames.length;k++){
       const info=resolved[k];
       if(!info || !info.stockCode) continue;
       const got=await tryKrTicker(info.stockCode);
-      if(got) series.push({label:peerNames[k], values:rebase100(got.closes), color:palette[series.length%palette.length], width:2});
+      if(got){
+        series.push({label:peerNames[k], values:rebase100(got.closes), color:palette[series.length%palette.length], width:2});
+        if(!masterDates) masterDates=got.dates;
+      }
     }
     if(!series.length){ el.innerHTML='<p class="mut" style="font-size:12px">동종업체 주가 데이터를 찾지 못했습니다(비상장이거나 종목코드 매칭 실패).</p>'; return; }
-    el.innerHTML='<div class="mut" style="font-size:11px;margin-bottom:6px">최근 1년 상대수익률(첫날=100) · 동종업체(이미 상장된 회사)만 표시</div>'+
-      miniLineChart(series,{h:180,padL:40,padR:8,padTop:14,padBottom:10,axis:true,axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(0)+'%'});
+    // 상장일을 거래일 캘린더에서 찾아(당일이 휴장이면 그 이후 첫 거래일로) 기준선 인덱스를 구한다.
+    // 조회 기간(최근 1년) 밖의 날짜(너무 과거이거나 아직 상장 전)면 그래프에 표시할 위치가
+    // 없으므로 기준선을 그리지 않는다.
+    let vLine=null;
+    const listDate=parseKrDate(listDateStr);
+    if(listDate && masterDates && masterDates.length){
+      const listIso=listDate.toISOString().slice(0,10);
+      if(listIso>=masterDates[0] && listIso<=masterDates[masterDates.length-1]){
+        const idx=masterDates.findIndex(d=>d>=listIso);
+        if(idx>=0) vLine={i:idx, label:'상장일('+listDate.toLocaleDateString('ko-KR')+')', color:'var(--gold)'};
+      }
+    }
+    el.innerHTML='<div class="mut" style="font-size:11px;margin-bottom:6px">최근 1년 상대수익률(첫날=100) · 동종업체(이미 상장된 회사)만 표시'+(vLine?' · 세로 점선은 공모기업 상장일':'')+'</div>'+
+      miniLineChart(series,{h:180,padL:40,padR:8,padTop:14,padBottom:10,axis:true,axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(0)+'%',vLine});
   }catch(e){
     console.warn('동종업체 주가 로딩 실패:', e);
     el.innerHTML='<p class="mut" style="font-size:12px">동종업체 주가를 가져오지 못했습니다.</p>';
@@ -2751,6 +2794,16 @@ function miniLineChart(seriesArr, opts){
       const x=padL+lb.i*stepX;
       svg+='<text x="'+x.toFixed(1)+'" y="'+(h-2)+'" text-anchor="'+(lb.anchor||'middle')+'" font-size="9" fill="var(--tx2)">'+lb.text+'</text>';
     });
+  }
+  // 특정 인덱스에 세로 점선 기준선(예: 공모주 동종업체 비교에서 공모기업의 실제 상장일 위치)
+  if(opts.vLine){
+    const vx=(padL+opts.vLine.i*stepX).toFixed(1);
+    const vColor=opts.vLine.color||'var(--tx2)';
+    svg+='<line x1="'+vx+'" y1="'+padTop+'" x2="'+vx+'" y2="'+(h-padBottom)+'" stroke="'+vColor+'" stroke-width="1.5" stroke-dasharray="4 3"/>';
+    if(opts.vLine.label){
+      const nearRightEdge=(opts.vLine.i/(n-1||1))>0.6;
+      svg+='<text x="'+vx+'" y="'+(padTop+9)+'" text-anchor="'+(nearRightEdge?'end':'start')+'" dx="'+(nearRightEdge?-4:4)+'" font-size="9" fill="'+vColor+'" font-weight="700">'+opts.vLine.label+'</text>';
+    }
   }
   seriesArr.forEach(s=>{
     if(s.area){
