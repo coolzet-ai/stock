@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);
-  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.6;
+  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.45;
   letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{color:inherit}
@@ -115,7 +115,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .trend-lg svg{width:100%;height:44px;display:block}
 
 table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
-th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 th.fund-th{white-space:nowrap}
@@ -146,7 +146,7 @@ td.spark svg{display:block;margin:0 auto}
 .plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
 .plan h3{font-size:18px;margin-bottom:6px}
 .plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
-.plan li{padding:6px 0 6px 22px;position:relative}
+.plan li{padding:4px 0 4px 22px;position:relative}
 .plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
 .soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
 
@@ -192,13 +192,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="card" style="margin-bottom:20px">
       <h3>김군코멘트 산정 기준 (참고용 · 투자 권유 아님)</h3>
-      <p class="mut">기관경쟁률·확정공모가 위치·의무보유확약비율·유통비율 4가지를 참고해 4단계로 표시합니다. 이 중 기관경쟁률·확정공모가·확약비율은 수요예측이 끝나야 발표되므로, 그 전까지는 "판정 보류"로 표시됩니다.</p>
-      <ul style="font-size:13px;color:var(--tx2);line-height:1.9;padding-left:18px;margin-top:8px">
-        <li><b style="color:var(--up)">적극추천</b> — 기관경쟁률 1,000:1 이상 + 공모가 밴드 상단 근접 확정</li>
-        <li><b style="color:var(--accent)">추천</b> — 기관경쟁률 500~1,000:1</li>
-        <li><b style="color:var(--tx2)">중립</b> — 기관경쟁률 100~500:1</li>
-        <li><b style="color:var(--down)">포기</b> — 기관경쟁률 100:1 미만 또는 밴드 하단 확정</li>
+      <p class="mut">기관경쟁률(45점)·의무보유확약비율(30점)·유통비율(25점, 낮을수록 고득점) 3가지 지표를 100점 만점으로 합산해 5단계로 표시합니다. 기관경쟁률은 수요예측이 끝나야 발표되므로, 그 전까지는 "판정 보류"로 표시됩니다. 확약비율·유통비율이 개별적으로 아직 없으면 중립 점수를 주고 사유에 "데이터 없음"을 남깁니다.</p>
+      <ul style="font-size:13px;color:var(--tx2);line-height:1.6;padding-left:18px;margin-top:8px">
+        <li><b style="color:var(--up)">적극추천</b> — 종합 85점 이상</li>
+        <li><b style="color:var(--accent)">추천</b> — 종합 70~84점</li>
+        <li><b style="color:var(--tx2)">중립</b> — 종합 55~69점</li>
+        <li><b style="color:var(--gold)">신중</b> — 종합 35~54점</li>
+        <li><b style="color:var(--down)">포기</b> — 종합 34점 이하</li>
       </ul>
+      <p class="mut" style="margin-top:8px;font-size:12px">참고: 기관경쟁률은 1,000:1↑ 매우 우수·500:1↑ 우수·300:1↑ 양호·100:1↑ 보통 / 의무보유확약비율은 30%↑ 매우 우수·15%↑ 우수·5%↑ 보통 / 유통비율은 15%↓ 매우 우수·25%↓ 우수·40%↓ 보통(낮을수록 유리)로 각각 채점합니다.</p>
       <p class="mut" style="margin-top:10px;font-size:12px">⚠ 본 페이지는 정보 제공 목적이며 특정 종목의 청약을 권유하지 않습니다. 청약 전 반드시 증권신고서·투자설명서를 직접 확인하세요.</p>
     </div>
 
@@ -233,6 +235,15 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .ipo-tier-bar{display:flex;gap:4px;margin-top:8px}
 .ipo-tier-bar span{flex:1;text-align:center;font-size:11px;padding:5px 0;border-radius:6px;background:var(--panel2);color:var(--tx2)}
 .ipo-tier-bar span.on{color:#ffffff;font-weight:800}
+.ipo-factor-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.ipo-factor{background:var(--panel2);border-radius:8px;padding:8px 10px}
+.ipo-factor-top{display:flex;justify-content:space-between;font-size:11.5px;color:var(--tx2);margin-bottom:5px}
+.ipo-factor-top span:first-child{font-weight:700;color:var(--tx)}
+.ipo-factor-top span:last-child{font-weight:800}
+.ipo-factor-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.ipo-factor-fill{height:100%;border-radius:3px}
+.ipo-factor-val{margin-top:5px;font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:560px){.ipo-factor-row{grid-template-columns:1fr}}
 </style>
 </section>
 
@@ -242,7 +253,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   <div class="wrap">
     <div class="logo" style="margin-bottom:8px">투자김군</div>
     <p>주식 · 가상화폐 시장 신호 대시보드</p>
-    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.8">
+    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.55">
       <li>본 프로그램은 지속적으로 기능이 개선될 예정입니다.</li>
       <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
     </ul>
@@ -339,14 +350,69 @@ let IPO_DATA={
   ]
 };
 
+function ipoParsePct(str){
+  if(str==null) return null;
+  const m=String(str).match(/-?\d+(\.\d+)?/);
+  return m?parseFloat(m[0]):null;
+}
+function ipoFactorGrade(score,max){
+  const pct=max>0?Math.round(score/max*100):0;
+  if(pct>=75) return {pct,label:'우수',color:'var(--up)'};
+  if(pct>=50) return {pct,label:'양호',color:'var(--accent)'};
+  if(pct>=25) return {pct,label:'보통',color:'var(--tx2)'};
+  return {pct,label:'미흡',color:'var(--down)'};
+}
+/* 기관경쟁률(45) · 의무보유확약비율(30) · 유통비율(25, 낮을수록 고득점) 3요인을 합산해 100점 만점으로 종합판정한다.
+   기관경쟁률이 아직 없으면(수요예측 전) 전체를 '판정 보류'로 둔다. 확약비율·유통비율이 개별적으로 없으면
+   중립 절반 점수를 주고 사유에 "데이터 없음"을 남긴다 — 데이터가 없다고 0점 처리해 과도하게 불리해지지 않도록 한다. */
 function ipoVerdict(item){
-  if(item.instRatio==null) return {tier:-1, label:'판정 보류', color:'var(--tx2)', reason:'수요예측 결과가 아직 발표되지 않았습니다.'};
+  if(item.instRatio==null) return {tier:-1, label:'판정 보류', color:'var(--tx2)', reason:'수요예측 결과가 아직 발표되지 않았습니다.', factors:null};
+
   const r=item.instRatio;
-  const topBand=item.offerPriceFinal && item.offerPriceFinal.includes('상단');
-  if(r>=1000 && topBand) return {tier:3, label:'적극추천', color:'var(--up)', reason:'기관경쟁률 '+r.toLocaleString()+':1, 공모가 밴드 상단 확정'};
-  if(r>=500) return {tier:2, label:'추천', color:'var(--accent)', reason:'기관경쟁률 '+r.toLocaleString()+':1'};
-  if(r>=100) return {tier:1, label:'중립', color:'var(--tx2)', reason:'기관경쟁률 '+r.toLocaleString()+':1'};
-  return {tier:0, label:'포기', color:'var(--down)', reason:'기관경쟁률 '+r.toLocaleString()+':1로 저조'};
+  let instScore, instNote;
+  if(r>=1000){instScore=45; instNote='매우 우수';}
+  else if(r>=500){instScore=36; instNote='우수';}
+  else if(r>=300){instScore=27; instNote='양호';}
+  else if(r>=100){instScore=17; instNote='보통';}
+  else{instScore=6; instNote='저조';}
+
+  const lockupPct=ipoParsePct(item.lockupRatio);
+  let lockupScore, lockupNote;
+  if(lockupPct==null){lockupScore=15; lockupNote='데이터 없음';}
+  else if(lockupPct>=30){lockupScore=30; lockupNote='매우 우수';}
+  else if(lockupPct>=15){lockupScore=22; lockupNote='우수';}
+  else if(lockupPct>=5){lockupScore=12; lockupNote='보통';}
+  else{lockupScore=3; lockupNote='저조';}
+
+  const floatPct=ipoParsePct(item.floatRatio);
+  let floatScore, floatNote;
+  if(floatPct==null){floatScore=12; floatNote='데이터 없음';}
+  else if(floatPct<=15){floatScore=25; floatNote='매우 우수';}
+  else if(floatPct<=25){floatScore=20; floatNote='우수';}
+  else if(floatPct<=40){floatScore=13; floatNote='보통';}
+  else if(floatPct<=60){floatScore=6; floatNote='저조';}
+  else{floatScore=0; floatNote='과다'; }
+
+  const total=instScore+lockupScore+floatScore;
+  const tiers=[
+    {min:0,  tier:0, label:'포기',    color:'var(--down)'},
+    {min:35, tier:1, label:'신중',    color:'var(--gold)'},
+    {min:55, tier:2, label:'중립',    color:'var(--tx2)'},
+    {min:70, tier:3, label:'추천',    color:'var(--accent)'},
+    {min:85, tier:4, label:'적극추천', color:'var(--up)'}
+  ];
+  let v=tiers[0];
+  for(const t of tiers){ if(total>=t.min) v=t; }
+
+  const factors=[
+    {name:'기관경쟁률', valueText:item.instCount||(r.toLocaleString()+':1'), note:instNote, ...ipoFactorGrade(instScore,45)},
+    {name:'의무보유확약', valueText:item.lockupRatio||'미발표', note:lockupNote, ...ipoFactorGrade(lockupScore,30)},
+    {name:'유통비율', valueText:item.floatRatio||'미발표', note:floatNote, ...ipoFactorGrade(floatScore,25)}
+  ];
+
+  return {tier:v.tier, label:v.label, color:v.color, total,
+    reason:'기관경쟁률 '+r.toLocaleString()+':1('+instNote+') · 의무보유확약 '+(item.lockupRatio||'미발표')+'('+lockupNote+') · 유통비율 '+(item.floatRatio||'미발표')+'('+floatNote+') — 종합 '+total+'점',
+    factors};
 }
 
 function renderIpoList(m){
@@ -358,8 +424,16 @@ function renderIpoList(m){
   }
   el.innerHTML=items.map((item,i)=>{
     const v=ipoVerdict(item);
-    const tierNames=['포기','중립','추천','적극추천'];
-    const tierBar=tierNames.map((t,idx)=>'<span'+(v.tier===idx?' class="on" style="background:'+v.color+'"':'')+'>'+t+'</span>').join('');
+    const tierNames=['포기','신중','중립','추천','적극추천'];
+    const tierColors=['var(--down)','var(--gold)','var(--tx2)','var(--accent)','var(--up)'];
+    const tierBar=tierNames.map((t,idx)=>'<span'+(v.tier===idx?' class="on" style="background:'+tierColors[idx]+'"':'')+'>'+t+'</span>').join('');
+    const factorRows=v.factors ? v.factors.map(f=>
+      '<div class="ipo-factor">'+
+        '<div class="ipo-factor-top"><span>'+f.name+'</span><span style="color:'+f.color+'">'+f.note+'</span></div>'+
+        '<div class="ipo-factor-bar"><div class="ipo-factor-fill" style="width:'+f.pct+'%;background:'+f.color+'"></div></div>'+
+        '<div class="ipo-factor-val">'+f.valueText+'</div>'+
+      '</div>'
+    ).join('') : '';
     const detailRows=[
       ['청약일', item.subscDate||'미정'],
       ['상장일', item.listDate||'미정'],
@@ -383,8 +457,9 @@ function renderIpoList(m){
           detailRows.map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+
         '</div>'+
         '<div style="margin-top:14px">'+
-          '<div class="k" style="color:var(--tx2);font-size:12px">김군코멘트</div>'+
+          '<div class="k" style="color:var(--tx2);font-size:12px">김군코멘트'+(v.total!=null?' <span style="color:'+v.color+';font-weight:800">('+v.total+'점)</span>':'')+'</div>'+
           '<div class="ipo-tier-bar">'+tierBar+'</div>'+
+          (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
           '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
         '</div>'+
         '<div style="margin-top:14px;font-size:12.5px;color:var(--tx2)">'+

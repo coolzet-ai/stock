@@ -308,7 +308,18 @@ function relReturnChart(elId, series, loaded){
       : '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
     return;
   }
-  el.innerHTML=miniLineChart(built,{h:230,padL:4,padR:4,padTop:10,padBottom:6});
+  // 가로축 날짜 라벨 — yclose()가 실제 거래일 타임스탬프를 주지 않으므로, 영업일수(1주=5거래일)로
+  // 역산한 근사 날짜를 쓴다(참고용 표시로 충분 — 휴장일 등으로 하루이틀 오차가 있을 수 있다).
+  const n=Math.max.apply(null,built.map(s=>s.values.length).concat([2]));
+  const today=new Date();
+  function calDate(i){
+    const d=new Date(today.getTime()-Math.round((n-1-i)*7/5)*86400000);
+    return (d.getMonth()+1)+'/'+d.getDate();
+  }
+  const mid=Math.floor((n-1)/2);
+  const xLabels=[{i:0,text:calDate(0),anchor:'start'},{i:mid,text:calDate(mid),anchor:'middle'},{i:n-1,text:calDate(n-1),anchor:'end'}];
+  el.innerHTML=miniLineChart(built,{h:250,padL:40,padR:8,padTop:14,padBottom:18,
+    axis:true, axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(1)+'%', xLabels});
 }
 /* 시가총액 TOP10 카드(cap/krcap)의 순위·색상 순서를 그대로 상대수익률 비교 시리즈로 변환 */
 function capRelDefsFromGroup(group, capData){
@@ -1360,13 +1371,18 @@ async function loadFinSavings(){
 /* 미국지수·한국지수 페이지의 "관심종목" 모바일 워치리스트(.wl-list/.wl-row)와 동일한 패턴 —
    좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링.
    정기예금/적금 탭으로 하나만 골라서 보고, 은행/저축은행 필터를 그 위에 추가로 적용한다. */
+// 목록(이미 Worker에서 금리 내림차순 정렬됨)이 길어 기본은 금리 Top10만 보여주고,
+// "더보기" 클릭 시에만 나머지(최대 30개)를 펼친다. 탭/필터를 바꾸면 다시 Top10부터 시작한다.
+let finSavingsExpanded=false;
 function renderFinSavingsTable(listId, list){
   const el=document.getElementById(listId);
   if(!el) return;
   if(!list){ el.innerHTML='<div class="fs-row"><span class="mut">불러오는 중…</span></div>'; return; }
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
   if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">표시할 상품이 없습니다</span></div>'; return; }
-  el.innerHTML=filtered.slice(0,30).map(it=>{
+  const capped=filtered.slice(0,30);
+  const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,10);
+  const rowsHtml=capped.slice(0,showCount).map(it=>{
     const rsrv=it.rsrvType?' · '+it.rsrvType:'';
     const barCls=it.group==='은행'?'bank':'saving';
     return '<div class="fs-row">'+
@@ -1382,6 +1398,17 @@ function renderFinSavingsTable(listId, list){
       '</div>'+
     '</div>';
   }).join('');
+  let moreBtn='';
+  if(capped.length>10){
+    moreBtn=finSavingsExpanded
+      ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">접기</button>'
+      : '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">금리 Top10 외 '+(capped.length-10)+'개 자세히 보기</button>';
+  }
+  el.innerHTML=rowsHtml+moreBtn;
+}
+function toggleFinSavingsExpand(){
+  finSavingsExpanded=!finSavingsExpanded;
+  renderFinSavings();
 }
 
 function renderFinSavings(){
@@ -1395,10 +1422,12 @@ function renderFinSavings(){
 
 function setFinSavingsGroup(g){
   finSavingsGroup=g;
+  finSavingsExpanded=false;
   renderFinSavings();
 }
 function setFinSavingsType(t){
   finSavingsType=t;
+  finSavingsExpanded=false;
   renderFinSavings();
 }
 
@@ -1804,6 +1833,15 @@ function renderKR(d, ecos, krx, breadth){
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%'+
       (composite?' · 모멘텀 단독점수 '+Math.round(d.score):'');
+  // 김군코멘트 — 미국지수(paint())와 동일한 상태→행동 매핑·배지 스타일을 그대로 재사용한다.
+  const kc=document.getElementById('kr-kimcomment');
+  if(kc){
+    const ACTION={'극단적 공포':'매수 시작','공포':'매수 시작','중립':'관망','탐욕':'매수 금지','극단적 탐욕':'매수 금지'};
+    kc.textContent=t+' — '+(ACTION[t]||'—');
+    kc.style.color=c;
+    kc.style.background=c+'26';
+    kc.style.border='1px solid '+c+'55';
+  }
   renderKRSub(d.score, ecos, krx, breadth);
 }
 /* 7개 세부지표 설명 — 표 항목명 옆 ⓘ 아이콘에 마우스를 올리면(모바일은 탭하면) 나오는 툴팁.
@@ -2199,7 +2237,10 @@ async function runTradeBacktest(opts){
       }
     }
 
-    const sniperValueNow=tqqqPxNow0?sniperShares*tqqqPxNow0:0;
+    // [버그 수정] 듀얼스나이퍼 포지션은 SOXL로 매수·매도되는데(soxlPxNow0), 여기서는 존재하지 않는
+    // tqqqPxNow0 변수를 참조해 매 계산마다 ReferenceError로 백테스트 전체가 중단되고 있었다
+    // ("00년 1월 1일부터 데이터를 불러와 다시 계산하는 중…"에서 멈춰 화면에 아무것도 안 뜨는 원인).
+    const sniperValueNow=soxlPxNow0?sniperShares*soxlPxNow0:0;
     lastSniperValue=sniperValueNow;
     const displayCost=cumCost-recoveredCash-sniperRealizedCash; // 회수한 원금·듀얼스나이퍼 실현액은 더 이상 투입원금으로 잡지 않는다
     /* [재검토 반영] 원금 회수・듀얼스나이퍼 매도 둘 다 "인출해서 쓴 현금"으로 간주해 이 시점부터는
@@ -2207,7 +2248,9 @@ async function runTradeBacktest(opts){
        totalValue에서 제외). 그래서 두 이벤트 중 무엇이 발생하든 그 순간 평가금 곡선이 실제로
        팔린 금액만큼 한 단계 내려가고, 그 뒤로는 남은(줄어든) 포지션만으로 계속 성장한다. */
     const totalValue=value+cumDividend+sniperValueNow; // 평가금(배당 포함, 회수·실현된 현금은 모두 제외)
-    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPxNow0;
+    // [버그 수정] "TQQQ 단독매수" 벤치마크 비교선은 실제 TQQQ 시세가 필요한데, 위와 같은 이유로
+    // 존재하지 않는 tqqqPxNow0(예전 변수명 잔재)를 재사용하고 있었다 — TQQQ 시세 조회로 교체.
+    const qqqPxNow=qqqPriceMap[ts], qldPxNow=priceMap.QLD[ts], tqqqPxNow=tqqqPriceMap[ts];
     globalPeak=Math.max(globalPeak,totalValue);
     const dd=globalPeak>0?(globalPeak-totalValue)/globalPeak*100:0;
 
@@ -2381,8 +2424,26 @@ function miniLineChart(seriesArr, opts){
     const pts=arr.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
     return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
   };
-  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">';
+  // preserveAspectRatio="none": 기본값(xMidYMid meet)은 viewBox 가로세로비(w:h)를 유지하려고
+  // 실제 컨테이너보다 훨씬 좁은 폭으로 그림을 가운데에 레터박스 처리해버려, 카드 폭이 넓을수록
+  // 곡선이 화면 가운데의 좁은 영역에만 몰려 보이는 문제가 있었다. none으로 폭 전체를 채운다.
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:'+h+'px;display:block">';
   if(zeroLine) svg+='<line x1="'+padL+'" y1="'+yOf(0).toFixed(1)+'" x2="'+(w-padR)+'" y2="'+yOf(0).toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>';
+  if(opts.axis){
+    // 세로축: 최고/중간/최저 3개 지점에 보조선+값 라벨(axisFmt로 서식 지정, 기본은 소수 1자리)
+    const fmtY=opts.axisFmt||(v=>v.toFixed(1));
+    const ticks=(max>min)?[max,(max+min)/2,min]:[max];
+    ticks.forEach(v=>{
+      const y=yOf(v);
+      svg+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>';
+      svg+='<text x="'+(padL-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--tx2)">'+fmtY(v)+'</text>';
+    });
+    // 가로축: 전달받은 xLabels(시작/중간/끝 등) 위치에 날짜 라벨
+    (opts.xLabels||[]).forEach(lb=>{
+      const x=padL+lb.i*stepX;
+      svg+='<text x="'+x.toFixed(1)+'" y="'+(h-2)+'" text-anchor="'+(lb.anchor||'middle')+'" font-size="9" fill="var(--tx2)">'+lb.text+'</text>';
+    });
+  }
   seriesArr.forEach(s=>{
     if(s.area){
       const pts=s.values.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
