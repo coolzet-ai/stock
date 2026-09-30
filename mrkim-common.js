@@ -1052,13 +1052,28 @@ async function loadTickGroup(g){
   }));
   renderTick(g,curPer[g]);
 }
+/* 52주(최근 1년 종가 데이터) 범위 내 현재가 위치를 얇은 바+점으로 표시한다. tickData가
+   이미 1년치 종가를 갖고 있어(loadTickGroup) 별도 네트워크 호출 없이 그 배열의 최저/최고로
+   계산한다 — "52주"는 근사치(거래일 기준 최근 1년)다. */
+function render52wBar(el, d, last, cur, f){
+  if(!el) return;
+  if(!d || d.length<30){ el.innerHTML=''; return; }
+  const lo=Math.min.apply(null,d), hi=Math.max.apply(null,d);
+  if(!(hi>lo)){ el.innerHTML=''; return; }
+  const pos=Math.max(0,Math.min(100,((last-lo)/(hi-lo))*100));
+  el.innerHTML='<div title="52주 범위 '+cur+f(lo)+' ~ '+cur+f(hi)+' · 현재 위치 '+pos.toFixed(0)+'%" '+
+    'style="width:100%;max-width:76px;margin-left:auto;height:4px;border-radius:2px;'+
+    'background:linear-gradient(90deg,var(--down),var(--line) 50%,var(--up));position:relative">'+
+    '<i style="position:absolute;top:-2.5px;left:'+pos.toFixed(1)+'%;width:9px;height:9px;border-radius:50%;'+
+    'background:var(--tx);border:1.5px solid var(--panel);transform:translateX(-50%);display:block"></i></div>';
+}
 function renderTick(g,p){
   const cfg=TICKGROUPS[g]; if(!cfg)return;
   const cur=cfg.cur||'$', f=cfg.fmt||fmt;
   const n={d:1,w:5,m:21,y:252}[p];
   document.querySelectorAll('#'+cfg.table+' .wl-row').forEach(row=>{
     const t=row.dataset.t, d=tickData[t];
-    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar'), sp=row.querySelector('.wl-spark');
+    const px=row.querySelector('.px'), ch=row.querySelector('.ch'), bar=row.querySelector('.wl-bar'), sp=row.querySelector('.wl-spark'), w52=row.querySelector('.wl-52w');
     if(!d||d.length<2){
       const b=BASE[t];
       if(!b){
@@ -1066,6 +1081,7 @@ function renderTick(g,p){
         if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
         if(bar) bar.className='wl-bar';
         if(sp) sp.innerHTML='';
+        if(w52) w52.innerHTML='';
         return;
       }
       const dir=cls(b[p]);
@@ -1073,6 +1089,7 @@ function renderTick(g,p){
       if(ch){ ch.textContent=arrowSign(b[p]); ch.className='ch wl-pct '+dir; }
       if(bar) bar.className='wl-bar '+dir;
       if(sp) sp.innerHTML=sparkSVG(fallbackSeries(b,p));
+      if(w52) w52.innerHTML='';
       return;
     }
     const last=d[d.length-1];
@@ -1085,6 +1102,7 @@ function renderTick(g,p){
       if(ch){ ch.textContent='--'; ch.className='ch wl-pct'; }
       if(bar) bar.className='wl-bar';
       if(sp) sp.innerHTML='';
+      if(w52) w52.innerHTML='';
       return;
     }
     const dir=cls(v);
@@ -1096,6 +1114,7 @@ function renderTick(g,p){
       const pts=d.slice(-Math.min(d.length, win));
       sp.innerHTML=sparkSVG(pts);
     }
+    render52wBar(w52, d, last, cur, f);
   });
 }
 
@@ -1456,6 +1475,27 @@ async function loadUsFundamentalsOnce(){
   })();
   return usFundPromise;
 }
+/* ===================== "김군 판정" — 저평가·관망·고평가 3단계 간이 밸류에이션 =====================
+   미국지수(Yahoo, PER/PSR 다 있음)와 한국지수(DART, PER은 없고 PSR만 있음)에서 공통으로 쓸 수
+   있도록 매출액증가율(%)·PSR 두 지표만으로 채점한다(두 페이지의 판정 기준을 동일하게 맞추기
+   위해 미국지수도 PER은 이 판정에서 제외). 어디까지나 성장성·밸류에이션의 방향성만 보는 간이
+   지표라 "투자 권유"가 아님을 항상 함께 표기한다. */
+function kimValuationVerdict(growthPct, psr){
+  if(growthPct==null && psr==null) return null;
+  let score=0;
+  if(growthPct!=null){ if(growthPct>=15) score+=1; else if(growthPct<=0) score-=1; }
+  if(psr!=null){ if(psr>0 && psr<2) score+=1; else if(psr>8) score-=1; }
+  if(score>=1) return {label:'저평가', color:'var(--accent)'};
+  if(score<=-1) return {label:'고평가', color:'var(--up)'};
+  return {label:'관망', color:'var(--gold)'};
+}
+function renderKimVerdictBadge(growthPct, psr){
+  const v=kimValuationVerdict(growthPct, psr);
+  if(!v) return '';
+  return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
+    '<span style="display:inline-block;padding:4px 12px;border-radius:8px;background:'+v.color+'22;color:'+v.color+';font-weight:800;font-size:12.5px">김군 판정 · '+v.label+'</span>'+
+    '<div class="mut" style="font-size:10px;margin-top:4px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div></div>';
+}
 function renderUsFinancialRatios(it){
   if(!it || (it.revenueGrowth==null && it.earningsGrowth==null && it.trailingEps==null && it.forwardEps==null && it.psr==null && it.trailingPE==null)){
     return '<p class="mut" style="font-size:11.5px;margin-top:6px">재무비율·주가지표 데이터를 가져오지 못했습니다.</p>';
@@ -1472,8 +1512,70 @@ function renderUsFinancialRatios(it){
       '<div><span class="mut" style="font-size:10.5px">EPS(TTM)</span><br><b>'+usFundNum(it.trailingEps)+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">EPS(Fwd)</span><br><b>'+usFundNum(it.forwardEps)+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">PSR</span><br><b>'+usFundNum(it.psr)+'</b></div>'+
-    '</div></div>';
+    '</div>'+renderKimVerdictBadge(rg==null?null:rg*100, it.psr)+'</div>';
 }
+
+/* ===================== 관심종목(ETF) — 주요 보유종목·섹터 가중치 =====================
+   Worker(/etf-holdings?ticker=)가 Yahoo Finance quoteSummary(topHoldings)를 종목별로 온디맨드
+   조회해 24시간 KV 캐시해둔 결과를 그대로 받는다. 클릭한 종목만 불러오면 되므로(7개 전부를
+   미리 받아둘 필요 없음) 종목별로 개별 캐시한다. */
+const ETF_HOLD_CACHE={};
+async function loadEtfHoldings(ticker){
+  if(ETF_HOLD_CACHE[ticker]) return ETF_HOLD_CACHE[ticker];
+  if(!PROXY_BASE) return null;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'etf-holdings?ticker='+encodeURIComponent(ticker),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+    const data=r.ok?await r.json():null;
+    if(data){ ETF_HOLD_CACHE[ticker]=data; return data; }
+  }catch(e){ console.warn('ETF 보유종목 로딩 실패:', e); }
+  return null;
+}
+const ETF_SECTOR_NAME={
+  realestate:'부동산', consumer_cyclical:'경기소비재', basic_materials:'소재',
+  consumer_defensive:'필수소비재', technology:'기술', communication_services:'통신서비스',
+  financial_services:'금융', utilities:'유틸리티', industrials:'산업재',
+  energy:'에너지', healthcare:'헬스케어'
+};
+function renderEtfHoldings(data){
+  if(!data || (!data.holdings.length && !data.sectors.length)){
+    return '<p class="mut" style="font-size:12.5px">보유종목·섹터 정보를 가져오지 못했습니다(개별주 ETN이거나 Yahoo가 이 상품의 구성정보를 제공하지 않을 수 있습니다).</p>';
+  }
+  const pct=v=>(v*100).toFixed(1)+'%';
+  let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fx-2col">';
+  if(data.holdings.length){
+    html+='<div><div class="mut" style="font-size:11px;margin-bottom:6px">주요 보유종목 TOP'+Math.min(10,data.holdings.length)+'</div>';
+    data.holdings.slice(0,10).forEach(h=>{
+      const w=Math.max(2,(h.pct||0)*100/Math.max(...data.holdings.map(x=>x.pct||0))*100);
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11.5px">'+
+        '<span style="width:52px;flex:none;font-weight:700">'+(h.symbol||'')+'</span>'+
+        '<div style="flex:1;background:var(--panel2);border-radius:3px;overflow:hidden;height:14px">'+
+          '<div style="width:'+w.toFixed(1)+'%;height:100%;background:var(--accent)"></div>'+
+        '</div>'+
+        '<span style="width:44px;text-align:right;flex:none;font-weight:700">'+pct(h.pct)+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+  }else html+='<div></div>';
+  if(data.sectors.length){
+    html+='<div><div class="mut" style="font-size:11px;margin-bottom:6px">섹터 가중치</div>';
+    const maxPct=Math.max(...data.sectors.map(s=>s.pct||0));
+    data.sectors.slice(0,10).forEach(s=>{
+      const w=maxPct>0?Math.max(2,(s.pct/maxPct)*100):2;
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11.5px">'+
+        '<span style="width:70px;flex:none">'+(ETF_SECTOR_NAME[s.key]||s.key)+'</span>'+
+        '<div style="flex:1;background:var(--panel2);border-radius:3px;overflow:hidden;height:14px">'+
+          '<div style="width:'+w.toFixed(1)+'%;height:100%;background:var(--gold)"></div>'+
+        '</div>'+
+        '<span style="width:44px;text-align:right;flex:none;font-weight:700">'+pct(s.pct)+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+  }else html+='<div></div>';
+  html+='</div><div class="mut" style="font-size:10px;margin-top:6px">출처: Yahoo Finance · 보유 구성은 운용사가 주기적으로 갱신합니다</div>';
+  return html;
+}
+
 function renderUsFundamentals(items){
   const el=document.getElementById('us-fund-tbl');
   if(!el) return;
@@ -2042,7 +2144,7 @@ function renderFinancialRatios(ratios){
       '<div><span class="mut" style="font-size:10.5px">영업이익증가율</span><br><b style="color:'+pctColor(og)+'">'+pctStr(og)+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">EPS(주당순이익)</span><br><b>'+(eps==null?'—':eps.toLocaleString()+'원')+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">PSR(주가매출비율)</span><br><b>'+(psr==null?'—':psr.toFixed(2)+'배')+'</b></div>'+
-    '</div></div>';
+    '</div>'+renderKimVerdictBadge(rg, psr)+'</div>';
 }
 
 async function loadKrxIndicators(){
