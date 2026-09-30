@@ -1328,6 +1328,7 @@ function renderFinEvents(data){
    [설정 필요] Worker에 finlife.fss.or.kr 인증키(FSS_SAVINGS_KEY)가 있어야 값이 채워진다. */
 const finSavingsData={ deposit:null, saving:null };
 let finSavingsGroup='전체'; // '전체' | '은행' | '저축은행'
+let finSavingsType='deposit'; // 'deposit'(정기예금) | 'saving'(적금)
 
 async function loadFinSavings(){
   const statusEl=document.getElementById('fin-savings-status');
@@ -1357,7 +1358,8 @@ async function loadFinSavings(){
 }
 
 /* 미국지수·한국지수 페이지의 "관심종목" 모바일 워치리스트(.wl-list/.wl-row)와 동일한 패턴 —
-   좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링. */
+   좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링.
+   정기예금/적금 탭으로 하나만 골라서 보고, 은행/저축은행 필터를 그 위에 추가로 적용한다. */
 function renderFinSavingsTable(listId, list){
   const el=document.getElementById(listId);
   if(!el) return;
@@ -1383,15 +1385,94 @@ function renderFinSavingsTable(listId, list){
 }
 
 function renderFinSavings(){
-  renderFinSavingsTable('fin-deposit-tbl', finSavingsData.deposit);
-  renderFinSavingsTable('fin-saving-tbl', finSavingsData.saving);
-  const btns=document.querySelectorAll('#fin-savings-group button');
-  btns.forEach(b=>b.classList.toggle('on', b.dataset.g===finSavingsGroup));
+  const list=finSavingsType==='saving'?finSavingsData.saving:finSavingsData.deposit;
+  renderFinSavingsTable('fin-savings-list', list);
+  const typeBtns=document.querySelectorAll('#fin-savings-type button');
+  typeBtns.forEach(b=>b.classList.toggle('on', b.dataset.t===finSavingsType));
+  const groupBtns=document.querySelectorAll('#fin-savings-group button');
+  groupBtns.forEach(b=>b.classList.toggle('on', b.dataset.g===finSavingsGroup));
 }
 
 function setFinSavingsGroup(g){
   finSavingsGroup=g;
   renderFinSavings();
+}
+function setFinSavingsType(t){
+  finSavingsType=t;
+  renderFinSavings();
+}
+
+/* ===================== 공모주 페이지 — 38.co.kr 실시간 연동 =====================
+   Worker(/ipo-list)가 38.co.kr을 서버에서 긁어 종목별 기관경쟁률·의무보유확약·공모가 등을
+   집계해 KV에 캐시해둔 결과를 그대로 받아, ipo.html의 기존 IPO_DATA(월별 하드코딩 객체)와
+   동일한 스키마로 변환한다 — ipo.html의 ipoVerdict()·renderIpoList()는 수정 없이 재사용. */
+function ipoDeriveMonth(item){
+  const raw=item.listDate||item.subscDate||item.predictDate||'';
+  // "2026.09.30"/"2026/10/01 ~ 10/02"처럼 연도가 포함된 형식을 먼저 시도(그렇지 않으면
+  // "2026.09.30"의 "26.09"를 월=26으로 잘못 읽는 문제가 생긴다).
+  let m=raw.match(/\d{4}[.\/](\d{1,2})[.\/]\d{1,2}/);
+  if(m) return parseInt(m[1],10);
+  // "09/28~10/02"·"10/12~10/13"처럼 연도 없이 월/일만 있는 형식(수요예측·공모청약 목록)
+  m=raw.match(/(?:^|\D)(\d{1,2})[.\/]\d{1,2}/);
+  return m?parseInt(m[1],10):null;
+}
+function ipoFormatOfferFinal(item){
+  if(item.offerPriceFinal==null) return null;
+  const finalNum=parseFloat(String(item.offerPriceFinal).replace(/[^\d.]/g,''));
+  const band=(item.offerPriceBand||'').match(/([\d,]+)\s*~\s*([\d,]+)/);
+  let suffix='';
+  if(band && isFinite(finalNum)){
+    const lo=parseFloat(band[1].replace(/,/g,'')), hi=parseFloat(band[2].replace(/,/g,''));
+    if(finalNum>=hi) suffix=' (밴드 상단 확정)';
+    else if(finalNum<=lo) suffix=' (밴드 하단 확정)';
+    else suffix=' (밴드 내 확정)';
+  }
+  return item.offerPriceFinal.trim()+suffix;
+}
+function ipoBuildItem(raw){
+  const offerPriceFinal=ipoFormatOfferFinal(raw);
+  const stageNote=raw.stage==='청약중'?'청약 진행중(수요예측 결과 아직 미반영)':raw.stage==='수요예측'?'수요예측 진행중':null;
+  const descParts=[];
+  if(raw.subRatioText) descParts.push('개인 청약경쟁률 '+raw.subRatioText);
+  if(raw.totalShares) descParts.push('총공모주식수 '+raw.totalShares);
+  if(raw.parValue) descParts.push('액면가 '+raw.parValue);
+  return {
+    name: raw.name,
+    market: raw.market||'',
+    subscDate: raw.subscDate || (raw.predictDate?('수요예측 '+raw.predictDate):'미정'),
+    listDate: raw.listDate||'미정',
+    underwriter: raw.underwriter||'미정',
+    offerPriceBand: raw.offerPriceBand||null,
+    offerPriceFinal: offerPriceFinal,
+    instRatio: raw.instRatio,
+    instCount: raw.instRatio!=null ? (raw.instRatio.toLocaleString('ko-KR')+':1') : (stageNote||'수요예측 전'),
+    topBandRatio: null,
+    lockupRatio: raw.lockupRatio!=null ? raw.lockupRatio.toFixed(2)+'%' : null,
+    floatRatio: raw.floatRatio!=null ? raw.floatRatio.toFixed(2)+'%' : null, // ipostock.co.kr 보강(유통가능주식÷공모후 발행주식)
+    refundRight: null,
+    desc: descParts.length?descParts.join(' · '):'상세 정보 준비 중',
+    sourceUrl: raw.sourceUrl
+  };
+}
+function buildIpoDataFromApi(items){
+  const grouped={};
+  (items||[]).forEach(raw=>{
+    const m=ipoDeriveMonth(raw);
+    if(!m) return;
+    (grouped[m]=grouped[m]||[]).push(ipoBuildItem(raw));
+  });
+  return grouped;
+}
+async function loadIpoListLive(){
+  if(!PROXY_BASE) return null;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    if(!j || !j.items || !j.items.length) return null;
+    return { updated: j.updated, grouped: buildIpoDataFromApi(j.items) };
+  }catch(e){ console.warn('공모주(38.co.kr) 연동 실패:', e); return null; }
 }
 
 /* ===================== 환율 페이지 — 김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) =====================
