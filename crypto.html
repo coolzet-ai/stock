@@ -15,12 +15,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);
-  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.6;
+  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.45;
   letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{color:inherit}
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
-  box-shadow:0 1px 3px rgba(0,0,0,.1),0 2px 2px rgba(0,0,0,.06),0 0 2px rgba(0,0,0,.07)}
+  border-bottom:1px solid var(--line)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
 .logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
 .logo span{color:var(--accent)}
@@ -30,7 +30,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{display:none}}
+@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
 .btn{display:inline-block;background:var(--accent);
   color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
@@ -92,7 +92,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 0 .5px rgba(0,0,0,.14),0 1px 1px rgba(0,0,0,.24)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
 .card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
 .big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
 .mut{color:var(--tx2);font-size:13px}
@@ -115,7 +115,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .trend-lg svg{width:100%;height:44px;display:block}
 
 table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
-th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 th.fund-th{white-space:nowrap}
@@ -174,7 +174,7 @@ td.spark svg{display:block;margin:0 auto}
 .plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
 .plan h3{font-size:18px;margin-bottom:6px}
 .plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
-.plan li{padding:6px 0 6px 22px;position:relative}
+.plan li{padding:4px 0 4px 22px;position:relative}
 .plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
 .soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
 
@@ -242,6 +242,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div class="bars" id="cf-bars"></div>
         <div class="trend-lg" id="cf-trend"></div>
         <div class="mut" style="margin-top:8px">최근 흐름</div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="mut" style="font-weight:700;margin-bottom:8px">김군코멘트</div>
+          <div id="cf-kimcomment" class="kimcomment" style="font-weight:800;font-size:26px;line-height:1.3">불러오는 중…</div>
+        </div>
       </div>
       <div class="card">
         <h3>시장 코멘트</h3>
@@ -249,8 +253,6 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <p class="mut" style="margin-top:12px">공포 구간은 분할매수, 극단적 탐욕 구간은 비중 축소 관점으로 활용합니다.</p>
       </div>
     </div>
-
-    <div id="crypto-next-event" style="display:none;margin-top:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
 
     <h2 style="font-size:21px;margin-top:44px">주요 코인 가격 — BTC · ETH · SOL · XRP</h2>
     <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률</p>
@@ -309,7 +311,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   <div class="wrap">
     <div class="logo" style="margin-bottom:8px">투자김군</div>
     <p>주식 · 가상화폐 시장 신호 대시보드</p>
-    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.8">
+    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.55">
       <li>본 프로그램은 지속적으로 기능이 개선될 예정입니다.</li>
       <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
     </ul>
@@ -337,7 +339,6 @@ if(cryptoEvMonthTabs){
   if(defBtnCrypto) defBtnCrypto.classList.add('on');
   renderCryptoEvents(defMonthCrypto);
 }
-renderNextEventBanner('crypto-next-event', CRYPTO_MONTH_EVENTS, {excludeHoliday:true});
 
 
 const now=new Date();
