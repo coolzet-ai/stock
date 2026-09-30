@@ -1437,7 +1437,10 @@ async function loadUsFundamentalsOnce(){
     if(!PROXY_BASE) return null;
     try{
       const origin=PROXY_BASE.replace(/\?url=$/,'');
-      const r=await fetch(origin+'us-fundamentals',{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+      // [버그 대응] Cron으로 미리 캐시가 안 채워진 최초(cold) 요청은 Worker가 Yahoo 인증부터
+      // 10개 종목 조회까지 순서대로 처리해 20초를 넘기는 경우가 있어(재무 버튼이 "불러오는 중"에서
+      // 멈춰 보이던 원인 중 하나) 타임아웃을 30초로 늘렸다.
+      const r=await fetch(origin+'us-fundamentals',{signal:AbortSignal.timeout?AbortSignal.timeout(30000):undefined});
       const data=r.ok?await r.json():null;
       if(data && Array.isArray(data.items)){
         const map={};
