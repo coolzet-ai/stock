@@ -1368,6 +1368,93 @@ async function loadFinSavings(){
   renderFinSavings();
 }
 
+/* ===================== 미국주식 시가총액 TOP10 — 재무비율·주가지표 =====================
+   Worker(/us-fundamentals)가 Yahoo Finance quoteSummary를 종목별로 모아 KV에 6시간 캐시해둔 결과를
+   그대로 받아 표로 렌더링한다. ETF(관심종목 워치리스트)는 회사 재무제표가 없어 대상에서 제외되고,
+   시가총액 TOP10 개별 종목만 대상이다. 일부 종목은 Yahoo가 간헐적으로 401(Invalid Crumb)을 반환해
+   값이 비어 있을 수 있으므로 그런 경우 "—"로 표시한다. */
+const US_FUND_NAME={NVDA:'엔비디아',AAPL:'애플',GOOGL:'알파벳(구글)',MSFT:'마이크로소프트',AMZN:'아마존',TSM:'TSMC',SPCX:'스페이스X',AVGO:'브로드컴',META:'메타 플랫폼스',TSLA:'테슬라'};
+async function loadUsFundamentals(){
+  const statusEl=document.getElementById('us-fund-status');
+  const bodyEl=document.getElementById('us-fund-tbl');
+  if(!PROXY_BASE){ if(statusEl) statusEl.textContent='⚠ PROXY_BASE가 설정되어 있지 않아 재무비율을 불러올 수 없습니다.'; return; }
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'us-fundamentals',{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+    const data=r.ok?await r.json():null;
+    if(data && Array.isArray(data.items) && data.items.length){
+      renderUsFundamentals(data.items);
+      if(statusEl){
+        const updated=data.updated?new Date(data.updated).toLocaleString('ko-KR'):'알 수 없음';
+        statusEl.textContent='자료: Yahoo Finance · 최근 수집 '+updated+' · 매출액증가율·영업이익증가율은 전년 동기 대비(YoY), EPS는 TTM/향후 12개월 컨센서스, PSR은 최근 12개월 기준';
+      }
+    }else{
+      if(bodyEl) bodyEl.innerHTML='<tr><td colspan="6" class="mut">재무비율을 가져오지 못했습니다</td></tr>';
+      if(statusEl) statusEl.textContent='⚠ 재무비율을 가져오지 못했습니다 — Worker(/us-fundamentals)가 배포되어 있는지 확인해주세요.';
+    }
+  }catch(e){
+    console.warn('미국주식 재무비율 로딩 실패:', e);
+    if(bodyEl) bodyEl.innerHTML='<tr><td colspan="6" class="mut">재무비율을 가져오지 못했습니다</td></tr>';
+    if(statusEl) statusEl.textContent='⚠ 재무비율을 가져오지 못했습니다.';
+  }
+}
+function usFundPct(v){ return (v==null||isNaN(v)) ? '—' : ((v*100>=0?'+':'')+(v*100).toFixed(1)+'%'); }
+function usFundNum(v,d){ return (v==null||isNaN(v)) ? '—' : v.toFixed(d==null?2:d); }
+function renderUsFundamentals(items){
+  const el=document.getElementById('us-fund-tbl');
+  if(!el) return;
+  el.innerHTML=items.map(it=>{
+    const rg=usFundPct(it.revenueGrowth), eg=usFundPct(it.earningsGrowth);
+    const rgColor=it.revenueGrowth==null?'var(--tx2)':(it.revenueGrowth>=0?'var(--up)':'var(--down)');
+    const egColor=it.earningsGrowth==null?'var(--tx2)':(it.earningsGrowth>=0?'var(--up)':'var(--down)');
+    return '<tr><td style="font-weight:700">'+it.ticker+' <span class="mut" style="font-weight:400;font-size:12px">'+(US_FUND_NAME[it.ticker]||'')+'</span></td>'+
+      '<td style="text-align:right;color:'+rgColor+'">'+rg+'</td>'+
+      '<td style="text-align:right;color:'+egColor+'">'+eg+'</td>'+
+      '<td style="text-align:right">'+usFundNum(it.trailingEps)+' / '+usFundNum(it.forwardEps)+'</td>'+
+      '<td style="text-align:right">'+usFundNum(it.psr)+'</td>'+
+      '<td style="text-align:right">'+usFundNum(it.trailingPE,1)+'</td></tr>';
+  }).join('');
+}
+
+/* ===================== 미국지수 페이지 "유니콘 기업" 섹션 — 최근 뉴스 =====================
+   Worker(/unicorn-news)가 Google News RSS를 회사별로 모아 KV에 6시간 캐시해둔 결과를 그대로
+   받아 각 카드 하단의 뉴스 리스트를 채운다. 카드가 정적 마크업이라 회사키→컨테이너id 매핑을 고정한다. */
+const UNICORN_NEWS_CONTAINERS={anthropic:'unicorn-news-anthropic',openai:'unicorn-news-openai',databricks:'unicorn-news-databricks',xai:'unicorn-news-xai'};
+async function loadUnicornNews(){
+  if(!PROXY_BASE) return;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'unicorn-news',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    const data=r.ok?await r.json():null;
+    if(data && data.news) renderUnicornNews(data.news);
+    else Object.values(UNICORN_NEWS_CONTAINERS).forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='<div class="mut" style="font-size:11.5px">뉴스를 가져오지 못했습니다</div>';});
+  }catch(e){
+    console.warn('유니콘 기업 최근 뉴스 로딩 실패:', e);
+    Object.values(UNICORN_NEWS_CONTAINERS).forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='<div class="mut" style="font-size:11.5px">뉴스를 가져오지 못했습니다</div>';});
+  }
+}
+function unicornNewsAgo(pubDate){
+  if(!pubDate) return '';
+  const d=new Date(pubDate);
+  if(isNaN(d.getTime())) return '';
+  const diffH=Math.max(0,Math.round((Date.now()-d.getTime())/3600000));
+  if(diffH<1) return '방금 전';
+  if(diffH<24) return diffH+'시간 전';
+  return Math.round(diffH/24)+'일 전';
+}
+function renderUnicornNews(newsByKey){
+  Object.keys(UNICORN_NEWS_CONTAINERS).forEach(key=>{
+    const el=document.getElementById(UNICORN_NEWS_CONTAINERS[key]);
+    if(!el) return;
+    const items=newsByKey[key]||[];
+    if(!items.length){ el.innerHTML='<div class="mut" style="font-size:11.5px">최근 뉴스가 없습니다</div>'; return; }
+    el.innerHTML=items.map(it=>
+      '<div style="margin-top:5px;font-size:12px;line-height:1.35"><a href="'+it.url+'" target="_blank" rel="noopener" class="news-link" style="text-decoration:none">'+it.title+'</a>'+
+      '<span class="mut" style="font-size:10.5px"> · '+(it.source||'')+(it.pubDate?' · '+unicornNewsAgo(it.pubDate):'')+'</span></div>'
+    ).join('');
+  });
+}
+
 /* 미국지수·한국지수 페이지의 "관심종목" 모바일 워치리스트(.wl-list/.wl-row)와 동일한 패턴 —
    좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링.
    정기예금/적금 탭으로 하나만 골라서 보고, 은행/저축은행 필터를 그 위에 추가로 적용한다. */
@@ -1466,6 +1553,7 @@ function ipoBuildItem(raw){
   if(raw.totalShares) descParts.push('총공모주식수 '+raw.totalShares);
   if(raw.parValue) descParts.push('액면가 '+raw.parValue);
   return {
+    no: raw.no||null, // 38.co.kr 상세페이지 id — 동종업체 비교(/ipo-peer) 조회용
     name: raw.name,
     market: raw.market||'',
     subscDate: raw.subscDate || (raw.predictDate?('수요예측 '+raw.predictDate):'미정'),
@@ -1630,6 +1718,30 @@ async function resolveDartCorpCodes(stockCodes){
   return stockCodes.map(c=>dartCorpCodeCache[c]||null);
 }
 
+/* 공모주(IPO) 목록·동종업체는 아직(또는 처음부터) 6자리 종목코드를 갖고 있지 않아(38.co.kr
+   데이터에 종목코드가 없음) 회사명으로 corp_code/종목코드를 찾는다. Worker가 각 이름에 대해
+   {corpCode, stockCode} 쌍을 돌려준다(stockCode는 이미 상장된 동종업체 주가 조회용). */
+const dartCorpCodeByNameCache={};
+async function resolveDartByName(names){
+  const need=names.filter(n=>!(n in dartCorpCodeByNameCache));
+  if(need.length && PROXY_BASE){
+    try{
+      const origin=PROXY_BASE.replace(/\?url=$/,'');
+      const r=await fetch(origin+'dart-corp?names='+need.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});
+      if(r.ok){
+        const j=await r.json();
+        const byName=j.byName||{};
+        need.forEach(n=>{ dartCorpCodeByNameCache[n]=byName[n]||null; });
+      }
+    }catch(e){ console.warn('DART corp_code(회사명) 해석 실패:', e); }
+  }
+  return names.map(n=>dartCorpCodeByNameCache[n]||null); // 각 항목: {corpCode, stockCode} | null
+}
+async function resolveDartCorpCodesByName(names){
+  const rows=await resolveDartByName(names);
+  return rows.map(r=>r?r.corpCode:null);
+}
+
 /* bsns_year의 사업보고서(reprt_code=11011, 사업보고서) 단일회사 전체 재무제표 중
    손익계산서 핵심 항목(매출액·영업이익·당기순이익)만 추출 */
 async function dartFinancialYear(corpCode, year){
@@ -1658,6 +1770,136 @@ async function dartFinancials3Y(stockCode){
   const results=await Promise.all(years.map(y=>dartFinancialYear(corpCode, y)));
   const valid=results.filter(Boolean);
   return valid.length?valid:null;
+}
+
+/* 성장성지표(전년동기대비 증가율) — DART가 매출액증가율(YoY)·영업이익증가율(YoY)을
+   fnlttSinglIndx(idx_cl_code=M230000, 성장성지표)로 직접 제공해 3년 손익 데이터로 직접
+   계산하지 않고 이 값을 그대로 사용한다(DART 자체 산식과 100% 일치시키기 위함). */
+async function dartGrowthIndicators(corpCode, year){
+  const url='https://opendart.fss.or.kr/api/fnlttSinglIndx.json?corp_code='+corpCode+'&bsns_year='+year+'&reprt_code=11011&idx_cl_code=M230000';
+  try{
+    const j=await getJSON(url);
+    if(!j || j.status!=='000' || !Array.isArray(j.list)) return null;
+    const pick=nm=>{ const row=j.list.find(r=>r.idx_nm===nm); return (row && row.idx_val!=null && row.idx_val!=='')?parseFloat(row.idx_val):null; };
+    return { revenueGrowth:pick('매출액증가율(YoY)'), opProfitGrowth:pick('영업이익증가율(YoY)') };
+  }catch(e){ console.warn('DART 성장성지표 실패('+corpCode+','+year+'):', e); return null; }
+}
+
+/* 주당순이익(EPS) — alotMatter.json(배당에 관한 사항)의 "(연결)주당순이익(원)" 항목을 우선
+   사용하고, 연결 재무제표가 없는(비지주) 종목은 개별 기준 "주당순이익(원)"으로 대체한다. */
+async function dartEps(corpCode, year){
+  const url='https://opendart.fss.or.kr/api/alotMatter.json?corp_code='+corpCode+'&bsns_year='+year+'&reprt_code=11011';
+  try{
+    const j=await getJSON(url);
+    if(!j || j.status!=='000' || !Array.isArray(j.list)) return null;
+    const row=j.list.find(r=>r.se && r.se.indexOf('주당순이익')>=0 && r.se.indexOf('(연결)')>=0)
+           || j.list.find(r=>r.se && r.se.indexOf('주당순이익')>=0);
+    if(!row || !row.thstrm) return null;
+    const v=parseFloat(String(row.thstrm).replace(/,/g,''));
+    return isNaN(v)?null:v;
+  }catch(e){ console.warn('DART EPS 조회 실패('+corpCode+','+year+'):', e); return null; }
+}
+
+/* 시가총액 TOP10 카드(KRCAP_CAP_DATA/KRKQ_CAP_DATA)는 회사명→시가총액(조원)만 갖고 있어,
+   PSR(주가매출비율=시가총액/매출액) 계산에 종목명으로 역매칭한다. */
+function findKrMarketCapByName(name){
+  const all=KRCAP_CAP_DATA.concat(KRKQ_CAP_DATA);
+  const row=all.find(r=>r.label===name);
+  return row?row.cap:null; // 단위: 조원
+}
+
+/* 최근 3년 손익 + 최신연도 성장률·EPS·PSR을 한 번에 모아 반환.
+   stockName을 넘기면 PSR도 함께 계산(시가총액 스냅샷 매칭용), 없으면 PSR은 생략. */
+async function dartFinancialsWithRatios(stockCode, stockName){
+  const [corpCode]=await resolveDartCorpCodes([stockCode]);
+  const fin3y=await dartFinancials3Y(stockCode);
+  if(!corpCode || !fin3y || !fin3y.length) return { fin3y, growth:null, eps:null, psr:null };
+  const latestYear=fin3y[fin3y.length-1].year;
+  const [growth, eps]=await Promise.all([ dartGrowthIndicators(corpCode, latestYear), dartEps(corpCode, latestYear) ]);
+  let psr=null;
+  if(stockName){
+    const capJo=findKrMarketCapByName(stockName); // 조원
+    const revenue=fin3y[fin3y.length-1].revenue; // 원
+    if(capJo!=null && revenue) psr=(capJo*1e12)/revenue;
+  }
+  return { fin3y, growth, eps, psr };
+}
+
+/* 공모주(IPO) 상장종목용 — 종목코드가 아직 없어 회사명으로 corp_code를 찾는다.
+   막 상장한 종목은 아직 사업보고서(연간)를 못 냈을 수 있어 최근 3년이 다 안 채워질 수 있다.
+   PSR은 상장 직후 실제 유통주식수/시가총액을 신뢰성 있게 구하기 어려워 제공하지 않는다
+   (동종업체 비교 카드에서 시가총액 대비 밸류에이션은 별도로 안내). */
+async function dartFinancialsForIpoCompany(companyName){
+  const [corpCode]=await resolveDartCorpCodesByName([companyName]);
+  if(!corpCode) return { fin3y:null, growth:null, eps:null, psr:null, notFound:true };
+  const thisYear=new Date().getFullYear();
+  const years=[thisYear-2, thisYear-1, thisYear];
+  const results=await Promise.all(years.map(y=>dartFinancialYear(corpCode, y)));
+  const fin3y=results.filter(r=>r && (r.revenue!=null||r.opProfit!=null||r.netProfit!=null));
+  if(!fin3y.length) return { fin3y:null, growth:null, eps:null, psr:null, notFound:false };
+  const latestYear=fin3y[fin3y.length-1].year;
+  const [growth, eps]=await Promise.all([ dartGrowthIndicators(corpCode, latestYear), dartEps(corpCode, latestYear) ]);
+  return { fin3y, growth, eps, psr:null, notFound:false };
+}
+
+/* ===================== 공모주 상세 — 동종업체와의 재무정보 비교 =====================
+   Worker(/ipo-peer?no=)가 38.co.kr 상세페이지의 "6.동종업체와의 재무정보 비교" 표(증권신고서
+   발췌)를 그대로 파싱해 돌려준다. 종목별로 KV에 24시간 캐시돼 있어 매번 새로 파싱하지 않는다. */
+async function loadIpoPeerComparison(no){
+  if(!PROXY_BASE || !no) return null;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'ipo-peer?no='+encodeURIComponent(no),{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return j&&j.peer?j.peer:null;
+  }catch(e){ console.warn('IPO 동종업체 비교 로딩 실패:', e); return null; }
+}
+/* 표의 값 단위는 38.co.kr 증권신고서 발췌 표를 그대로 따르며 대개 천원 단위다("(단위: 천원)"
+   문구가 basis 위에 있으나 파서가 별도 필드로 넘기지 않아, 값 크기로 억원 환산 여부를 짐작하지
+   않고 원안 그대로 "천원" 단위 표기를 유지한다 — 오해를 막기 위해 표 상단에 명시). */
+function renderIpoPeerTable(peer){
+  if(!peer || !peer.rows || !peer.rows.length) return '<p class="mut" style="font-size:12.5px">동종업체 비교 자료를 찾지 못했습니다(증권신고서에 해당 항목이 없거나 아직 미제출).</p>';
+  const fmt=v=>v==null?'—':v.toLocaleString('ko-KR');
+  const head='<tr><th>구분</th>'+peer.companies.map((c,idx)=>'<th style="text-align:right">'+c+(idx===0?' <span class="mut" style="font-weight:400">(공모기업)</span>':'')+'</th>').join('')+'</tr>';
+  const body=peer.rows.map(r=>'<tr><td>'+r.label.replace(/[\[\]]/g,'')+'</td>'+r.values.map(v=>'<td style="text-align:right">'+fmt(v)+'</td>').join('')+'</tr>').join('');
+  return '<div class="mut" style="font-size:11px;margin-bottom:6px">단위: 천원 · 출처: 증권신고서(38.co.kr 발췌)</div>'+
+    '<div class="scroll"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+}
+
+/* 동종업체(피어) 주가 정보 시각화 — 회사명으로 종목코드를 찾아(DART corp_code 맵의 stockCode)
+   상대수익률(rebase 100) 차트를 그린다. 코스피/코스닥 구분을 모르므로 .KS를 먼저 시도하고
+   실패하면 .KQ로 재시도한다. "동사"(공모기업 본인)는 아직 미상장이라 제외한다. */
+async function tryKrTicker(stockCode){
+  let closes=await relFetch(stockCode+'.KS','1y');
+  if(closes && closes.some(v=>v!=null)) return {ticker:stockCode+'.KS', closes};
+  closes=await relFetch(stockCode+'.KQ','1y');
+  if(closes && closes.some(v=>v!=null)) return {ticker:stockCode+'.KQ', closes};
+  return null;
+}
+async function renderIpoPeerPriceChart(elId, peer){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  if(!peer || !peer.companies || peer.companies.length<2){ el.innerHTML=''; return; }
+  const peerNames=peer.companies.slice(1); // 첫 번째는 "동사"(공모기업 본인) — 미상장이라 제외
+  el.innerHTML='<p class="mut" style="font-size:12px">동종업체 주가를 불러오는 중…</p>';
+  try{
+    const resolved=await resolveDartByName(peerNames);
+    const palette=['var(--accent)','var(--up)','var(--down)','var(--gold)','#7c3aed'];
+    const series=[];
+    for(let k=0;k<peerNames.length;k++){
+      const info=resolved[k];
+      if(!info || !info.stockCode) continue;
+      const got=await tryKrTicker(info.stockCode);
+      if(got) series.push({label:peerNames[k], values:rebase100(got.closes), color:palette[series.length%palette.length], width:2});
+    }
+    if(!series.length){ el.innerHTML='<p class="mut" style="font-size:12px">동종업체 주가 데이터를 찾지 못했습니다(비상장이거나 종목코드 매칭 실패).</p>'; return; }
+    el.innerHTML='<div class="mut" style="font-size:11px;margin-bottom:6px">최근 1년 상대수익률(첫날=100) · 동종업체(이미 상장된 회사)만 표시</div>'+
+      miniLineChart(series,{h:180,padL:40,padR:8,padTop:14,padBottom:10,axis:true,axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(0)+'%'});
+  }catch(e){
+    console.warn('동종업체 주가 로딩 실패:', e);
+    el.innerHTML='<p class="mut" style="font-size:12px">동종업체 주가를 가져오지 못했습니다.</p>';
+  }
 }
 
 /* 손익계산서 3년 막대그래프(매출액·영업이익·당기순이익) — 반환된 HTML 문자열을 그대로 넣어 쓴다 */
@@ -1689,6 +1931,25 @@ function renderFinancialsChart(data){
     rows+='</div>';
   });
   return '<div style="max-width:'+w+'px">'+rows+'</div>';
+}
+
+/* 재무비율(매출액증가율·영업이익증가율) + 주가지표(EPS·PSR) — dartFinancialsWithRatios()가
+   모아준 값을 손익 막대그래프 아래에 작은 표로 붙인다. */
+function renderFinancialRatios(ratios){
+  if(!ratios) return '';
+  const g=ratios.growth, eps=ratios.eps, psr=ratios.psr;
+  if(g==null && eps==null && psr==null) return '<p class="mut" style="font-size:11.5px;margin-top:6px">재무비율·주가지표 데이터를 가져오지 못했습니다.</p>';
+  const pctStr=v=>(v==null)?'—':((v>=0?'+':'')+v.toFixed(1)+'%');
+  const pctColor=v=>(v==null)?'var(--tx2)':(v>=0?'var(--up)':'var(--down)');
+  const rg=g?g.revenueGrowth:null, og=g?g.opProfitGrowth:null;
+  return '<div style="max-width:320px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
+    '<div class="mut" style="font-size:11px;margin-bottom:6px">재무비율 · 주가지표(최신 사업연도, DART 성장성지표 기준)</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px">'+
+      '<div><span class="mut" style="font-size:10.5px">매출액증가율</span><br><b style="color:'+pctColor(rg)+'">'+pctStr(rg)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">영업이익증가율</span><br><b style="color:'+pctColor(og)+'">'+pctStr(og)+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">EPS(주당순이익)</span><br><b>'+(eps==null?'—':eps.toLocaleString()+'원')+'</b></div>'+
+      '<div><span class="mut" style="font-size:10.5px">PSR(주가매출비율)</span><br><b>'+(psr==null?'—':psr.toFixed(2)+'배')+'</b></div>'+
+    '</div></div>';
 }
 
 async function loadKrxIndicators(){

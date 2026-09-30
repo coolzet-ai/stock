@@ -30,7 +30,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
+@media(max-width:640px){.updated-top{display:none}}
 .btn{display:inline-block;background:var(--accent);
   color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
   border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
@@ -462,13 +462,69 @@ function renderIpoList(m){
           (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
           '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
         '</div>'+
+        '<div style="margin-top:14px">'+
+          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoFinancials(\''+i+'-'+m+'\',\''+item.name.replace(/'/g,"\\'")+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">📊 재무비율·주가지표 보기(DART 전자공시)</a>'+
+          '<div id="ipo-fin-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
+        '</div>'+
+        (item.no?(
+        '<div style="margin-top:14px">'+
+          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoPeer(\''+i+'-'+m+'\',\''+item.no+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">🏢 동종업체 재무비교·주가 보기</a>'+
+          '<div id="ipo-peer-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
+        '</div>'
+        ):'')+
         '<div style="margin-top:14px;font-size:12.5px;color:var(--tx2)">'+
-          '손익계산서(최근 3년) 시각화 · 예상경쟁률 · 예상균등수량 · 비례예상 1주 최소금액 · IR자료 · 경쟁사 주가 비교: 데이터 연동 준비 중<br>'+
+          '예상경쟁률 · 예상균등수량 · 비례예상 1주 최소금액 · IR자료: 데이터 연동 준비 중<br>'+
           '<a href="'+(item.sourceUrl||IPO_SOURCE)+'" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">출처 기사 보기 ↗</a>'+
         '</div>'+
       '</div>'+
     '</div>';
   }).join('');
+}
+
+/* IPO 카드의 "재무비율·주가지표 보기" — 회사명으로 DART corp_code를 찾아 최근 재무제표를
+   불러온다. 막 상장했거나 아직 사업보고서를 제출하지 않은 종목은 데이터가 없을 수 있다. */
+const ipoFinLoaded={};
+async function toggleIpoFinancials(key, companyName){
+  const el=document.getElementById('ipo-fin-'+key);
+  if(!el) return;
+  const willOpen=(el.style.display==='none');
+  el.style.display=willOpen?'block':'none';
+  if(willOpen && !ipoFinLoaded[key]){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
+    const {fin3y,growth,eps,psr,notFound}=await dartFinancialsForIpoCompany(companyName);
+    if(notFound){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">DART에서 "'+companyName+'"과(와) 일치하는 회사를 찾지 못했습니다(상장 직후라 아직 반영되지 않았을 수 있습니다).</p>';
+    }else if(!fin3y || !fin3y.length){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">아직 DART에 제출된 사업보고서가 없어 재무제표를 표시할 수 없습니다(상장 초기 종목에서 흔합니다).</p>';
+    }else{
+      el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:8px">손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)</div>'+
+        renderFinancialsChart(fin3y)+renderFinancialRatios({growth,eps,psr})+
+        '<p class="mut" style="font-size:11px;margin-top:6px">※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.</p>';
+    }
+    ipoFinLoaded[key]=true;
+  }
+}
+
+/* IPO 카드의 "동종업체 재무비교·주가 보기" — 38.co.kr 상세페이지의 증권신고서 발췌 표를
+   그대로 받아 표로 보여주고, 피어사들의 최근 1년 상대주가도 함께 시각화한다. */
+const ipoPeerLoaded={};
+async function toggleIpoPeer(key, no){
+  const el=document.getElementById('ipo-peer-'+key);
+  if(!el) return;
+  const willOpen=(el.style.display==='none');
+  el.style.display=willOpen?'block':'none';
+  if(willOpen && !ipoPeerLoaded[key]){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+    const peer=await loadIpoPeerComparison(no);
+    if(!peer){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">동종업체 비교 자료를 찾지 못했습니다(증권신고서에 해당 항목이 없거나 아직 미제출).</p>';
+    }else{
+      const chartId='ipo-peer-chart-'+key;
+      el.innerHTML=renderIpoPeerTable(peer)+'<div id="'+chartId+'" style="margin-top:10px"></div>';
+      renderIpoPeerPriceChart(chartId, peer);
+    }
+    ipoPeerLoaded[key]=true;
+  }
 }
 
 let ipoSelectedMonth=null;

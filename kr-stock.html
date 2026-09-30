@@ -392,8 +392,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 <script src="mrkim-common.js"></script>
 <script>
-/* DART 전자공시 손익계산서 3년 시각화 — 코스피·코스닥 TOP10 전 종목(20개) 지원.
-   corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로 찾아준다(mrkim-common.js 참고). */
+/* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
+   — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
+   찾아준다(mrkim-common.js 참고). PSR은 KRCAP_CAP_DATA/KRKQ_CAP_DATA 시가총액 스냅샷을 종목명으로
+   매칭해 계산하므로, 아래 맵의 이름이 그 두 배열의 label과 정확히 일치해야 한다. */
+const KR_TOP10_NAME_BY_CODE={
+  '005930':'삼성전자','000660':'SK하이닉스','402340':'SK스퀘어','009150':'삼성전기','005380':'현대차',
+  '373220':'LG에너지솔루션','207940':'삼성바이오로직스','105560':'KB금융','032830':'삼성생명','028260':'삼성물산',
+  '196170':'알테오젠','086520':'에코프로','247540':'에코프로비엠','036930':'주성엔지니어링','277810':'레인보우로보틱스',
+  '240810':'원익IPS','039030':'이오테크닉스','058470':'리노공업','222800':'심텍','108490':'로보티즈'
+};
 const finLoaded={};
 async function toggleFinancials(stockCode){
   const el=document.getElementById('fin-'+stockCode);
@@ -402,8 +410,9 @@ async function toggleFinancials(stockCode){
     el.style.display='block';
     if(!finLoaded[stockCode]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
-      const data=await dartFinancials3Y(stockCode);
-      el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:8px">손익계산서 최근 3년(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)</div>'+renderFinancialsChart(data);
+      const {fin3y,growth,eps,psr}=await dartFinancialsWithRatios(stockCode, KR_TOP10_NAME_BY_CODE[stockCode]);
+      const data=fin3y;
+      el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:8px">손익계산서 최근 3년(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)</div>'+renderFinancialsChart(data)+renderFinancialRatios({growth,eps,psr});
       finLoaded[stockCode]=true;
     }
   }else{
