@@ -1723,16 +1723,24 @@ function ipoFormatOfferFinal(item){
 }
 function ipoBuildItem(raw){
   const offerPriceFinal=ipoFormatOfferFinal(raw);
-  const stageNote=raw.stage==='청약중'?'청약 진행중(수요예측 결과 아직 미반영)':raw.stage==='수요예측'?'수요예측 진행중':null;
+  // [버그 수정] 코스피/코스닥 "이전상장"(코넥스→코스닥, 코스닥→코스피 등)은 일반공모(청약) 절차
+  // 자체가 없는 경우가 많아 기관경쟁률·청약경쟁률·수요예측일 등이 원래부터 존재하지 않는다.
+  // 이걸 구분 안 하면 "데이터를 못 가져온 것"처럼(계속 '미정'/'수요예측 전') 보여 로딩 실패로
+  // 오해하기 쉬웠다 — market 문구로 이전상장 여부를 판별해 안내 문구를 다르게 준다.
+  const isTransfer=/이전상장/.test(raw.market||'');
+  const stageNote=isTransfer?'일반공모 없음(이전상장)':raw.stage==='청약중'?'청약 진행중(수요예측 결과 아직 미반영)':raw.stage==='수요예측'?'수요예측 진행중':null;
   const descParts=[];
   if(raw.subRatioText) descParts.push('개인 청약경쟁률 '+raw.subRatioText);
   if(raw.totalShares) descParts.push('총공모주식수 '+raw.totalShares);
   if(raw.parValue) descParts.push('액면가 '+raw.parValue);
+  if(isTransfer && !descParts.length) descParts.push('이전상장 종목은 일반공모 절차가 없어 수요예측·청약경쟁률 정보가 제공되지 않습니다');
   return {
     no: raw.no||null, // 38.co.kr 상세페이지 id — 동종업체 비교(/ipo-peer) 조회용
     name: raw.name,
     market: raw.market||'',
-    subscDate: raw.subscDate || (raw.predictDate?('수요예측 '+raw.predictDate):'미정'),
+    stage: raw.stage||null, // '수요예측'·'청약중'·'신규상장' — 카드에 진행 상태 배지를 표시하기 위해 전달
+    isTransfer: isTransfer,
+    subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.predictDate?('수요예측 '+raw.predictDate):'미정')),
     listDate: raw.listDate||'미정',
     underwriter: raw.underwriter||'미정',
     offerPriceBand: raw.offerPriceBand||null,

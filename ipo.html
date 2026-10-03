@@ -366,6 +366,10 @@ function ipoFactorGrade(score,max){
    기관경쟁률이 아직 없으면(수요예측 전) 전체를 '판정 보류'로 둔다. 확약비율·유통비율이 개별적으로 없으면
    중립 절반 점수를 주고 사유에 "데이터 없음"을 남긴다 — 데이터가 없다고 0점 처리해 과도하게 불리해지지 않도록 한다. */
 function ipoVerdict(item){
+  // [버그 수정] 이전상장(코넥스→코스닥, 코스닥→코스피 등)은 일반공모 절차가 없어 기관경쟁률이
+  // "아직 발표 안 됨"이 아니라 "원래 존재하지 않음"이다. 둘을 구분 안 하면 영원히 "수요예측
+  // 결과가 아직 발표되지 않았습니다"로 보여 데이터가 안 불러와지는 것처럼 오해하게 된다.
+  if(item.isTransfer) return {tier:-1, label:'해당없음', color:'var(--tx2)', reason:'이전상장 종목은 일반공모 절차가 없어 기관경쟁률 등 수요예측 데이터가 존재하지 않습니다.', factors:null};
   if(item.instRatio==null) return {tier:-1, label:'판정 보류', color:'var(--tx2)', reason:'수요예측 결과가 아직 발표되지 않았습니다.', factors:null};
 
   const r=item.instRatio;
@@ -445,9 +449,14 @@ function renderIpoList(m){
       ['유통비율', item.floatRatio||'미발표'],
       ['환매청구권', item.refundRight||'미확인']
     ];
+    const stageBadge=item.stage==='신규상장'
+      ? '<span class="ipo-market" style="background:rgba(0,117,74,.15);color:var(--accent);font-weight:700">✓ 상장완료</span>'
+      : item.stage==='청약중' ? '<span class="ipo-market" style="background:rgba(203,162,88,.22);color:var(--gold)">청약중</span>'
+      : item.stage==='수요예측' ? '<span class="ipo-market" style="background:rgba(0,0,0,.1);color:var(--tx2)">수요예측중</span>'
+      : '';
     return '<div class="ipo-card">'+
       '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
-        '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+
+        '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+stageBadge+
           '<div class="ipo-dates">'+(item.subscDate||'')+'</div></div>'+
         '<div class="ipo-verdict"><div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
       '</div>'+
