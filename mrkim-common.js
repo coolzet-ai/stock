@@ -1421,12 +1421,12 @@ function subTable(rows,src){
     const link=SUBSRC[n];
     const label_=SUB_NUM[i]+' '+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+' ↗</a>':n);
     const [tl,tc]=label(v);
-    return '<tr><td style="white-space:nowrap">'+label_+'</td><td style="width:34%;min-width:96px">'+subBarCell(v)+'</td><td class="num" style="font-weight:800">'+v.toFixed(1)+'</td>'+
-    '<td class="num"><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
+    return '<tr><td>'+label_+'</td><td style="width:26%;min-width:56px">'+subBarCell(v)+'</td>'+
+    '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
   }).join('');
   $('#us-src').textContent=src;
   const nEl=document.getElementById('us-sub-note');
-  if(nEl) nEl.innerHTML='<b>지표 설명</b><br>'+rows.map(([n],i)=>SUB_NUM[i]+' <b>'+n+'</b> — '+(US_SUBDESC[n]||'')).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span>';
+  if(nEl) nEl.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+rows.map(([n],i)=>SUB_NUM[i]+' <b>'+n+'</b> — '+(US_SUBDESC[n]||'')).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
 }
 function renderUS(p){
   $('#us-per').textContent='· '+PERKO[p];
@@ -2002,17 +2002,35 @@ async function loadP2pOpenSoon(){
     const fmtAmt=v=>v>=1e8?(v/1e8).toFixed(v%1e8?1:0).replace(/\.0$/,'')+'억원':Math.round(v/1e4).toLocaleString('ko-KR')+'만원';
     const fmtDt=iso=>{ if(!iso) return '—'; const m=String(iso).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/); return m?(+m[2])+'/'+(+m[3])+' '+m[4]+':'+m[5]:'—'; };
     const GC={'A+':'#1fa463','A':'#1fa463','A-':'#4fa383','B+':'#c99a00','B':'#c99a00','B-':'#d98a00'};
-    if(st) st.textContent='오픈 시각 빠른 순 · 총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
-    box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-top:8px">'+d.items.map(x=>
-      '<a href="'+esc(x.url)+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel2)">'+
-      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="mut" style="font-size:11.5px">'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+'</span>'+
-      (x.grade?'<b style="font-size:12px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'')+'</div>'+
-      '<div style="font-size:13.5px;font-weight:800;margin:5px 0 8px;line-height:1.35">'+esc(x.title)+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
-        '<div><div class="mut" style="font-size:10.5px">연 수익률</div><b style="font-size:17px;color:var(--accent)">'+(x.rate!=null?x.rate.toFixed(1)+'%':'—')+'</b></div>'+
-        '<div><div class="mut" style="font-size:10.5px">기간</div><b style="font-size:15px">'+(x.months?x.months+'개월':'—')+'</b></div>'+
-        '<div><div class="mut" style="font-size:10.5px">모집액</div><b style="font-size:15px">'+(x.amount?fmtAmt(x.amount):'—')+'</b></div></div>'+
-      '<div class="mut" style="font-size:11.5px;margin-top:8px">⏰ 오픈 '+fmtDt(x.openAt)+(x.reservationStart?' · 예약 '+fmtDt(x.reservationStart)+'~'+fmtDt(x.reservationClose):'')+(x.ltv!=null?' · LTV '+esc(x.ltv)+'%':'')+'</div></a>').join('')+'</div>';
+    if(st) st.textContent='A+ 등급 우선 표시 · 총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
+    const card=x=>{
+      const hi=x.grade==='A+';
+      const m=String(x.title||'').match(/^(.*?\d+호)\s*(.*)$/);
+      const head=m?m[1]:x.title, tail=m?m[2]:'';
+      const ltv=x.ltv!=null?Number(x.ltv):null;
+      const lc=ltv==null?'var(--tx2)':ltv<=50?'#1fa463':ltv<=65?'#c99a00':'#e5332a';
+      return '<a href="'+esc(x.url)+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;padding:12px 14px;border:'+(hi?'2px solid #1fa463':'1.5px solid var(--line)')+';border-radius:12px;background:'+(hi?'rgba(31,164,99,.08)':'var(--panel2)')+'">'+
+        '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="mut" style="font-size:11.5px">'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+'</span>'+
+        (x.grade?'<b style="font-size:12px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'')+'</div>'+
+        '<div style="margin:6px 0 8px"><div style="font-size:'+(hi?17:15)+'px;font-weight:900;color:'+(hi?'#1fa463':'var(--tx)')+'">'+esc(head)+'</div>'+
+        (tail?'<div class="mut" style="font-size:12.5px;line-height:1.4;margin-top:2px">'+esc(tail)+'</div>':'')+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
+          '<div><div class="mut" style="font-size:10.5px">연 수익률</div><b style="font-size:17px;color:var(--accent)">'+(x.rate!=null?x.rate.toFixed(1)+'%':'—')+'</b></div>'+
+          '<div><div class="mut" style="font-size:10.5px">기간</div><b style="font-size:15px">'+(x.months?x.months+'개월':'—')+'</b></div>'+
+          '<div><div class="mut" style="font-size:10.5px">모집액</div><b style="font-size:15px">'+(x.amount?fmtAmt(x.amount):'—')+'</b></div></div>'+
+        (ltv!=null?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px"><span class="mut">LTV (담보인정비율)</span><b style="color:'+lc+'">'+ltv+'%</b></div>'+
+          '<div style="position:relative;height:9px;border-radius:5px;background:var(--panel);overflow:hidden;margin-top:3px"><div style="height:9px;width:'+Math.min(100,ltv)+'%;background:'+lc+'"></div>'+
+          '<i style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--tx2);opacity:.5"></i><i style="position:absolute;left:65%;top:0;bottom:0;width:1px;background:var(--tx2);opacity:.5"></i></div>'+
+          '<div class="mut" style="display:flex;justify-content:space-between;font-size:9.5px;margin-top:1px"><span>0</span><span>50 안전</span><span>65 주의</span><span>100%</span></div></div>':'')+
+        '<div class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.55">⏰ 오픈 '+fmtDt(x.openAt)+(x.reservationStart?'<br>📝 예약 '+fmtDt(x.reservationStart)+' ~ '+fmtDt(x.reservationClose):'')+'</div></a>';
+    };
+    const top=d.items.filter(x=>x.grade==='A+'), rest=d.items.filter(x=>x.grade!=='A+');
+    const gridS='display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-top:8px';
+    box.innerHTML=(top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>')+
+      (rest.length?'<div style="text-align:center;margin-top:12px"><button type="button" class="btn sm" id="p2p-more-btn" style="padding:6px 18px">상세보기 ▼ (나머지 '+rest.length+'건)</button></div>'+
+        '<div id="p2p-more" style="display:none"><div style="'+gridS+'">'+rest.map(card).join('')+'</div></div>':'');
+    const mb=document.getElementById('p2p-more-btn');
+    if(mb) mb.onclick=function(){ const m=document.getElementById('p2p-more'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; mb.textContent=o?'접기 ▲':'상세보기 ▼ (나머지 '+rest.length+'건)'; };
   }catch(e){ console.warn('P2P 오픈예정 실패',e); fail('⚠ 오픈예정 상품을 불러오지 못했습니다.'); }
 }
 
@@ -2071,14 +2089,30 @@ function renderFinEvents(data){
     const tb=tbodies[cat]; if(!tb) return;
     const rows=(data.byCat[cat]||[]);
     if(!rows.length){ tb.innerHTML='<tr><td class="mut" colspan="4">표시할 이벤트가 없습니다</td></tr>'; return; }
-    tb.innerHTML=rows.map(ev=>{
-      const dstr=ev.deadlineTs?new Date(ev.deadlineTs).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'})+'까지':'상시';
-      const stars='★'.repeat(ev.star||1)+'☆'.repeat(3-(ev.star||1));
-      return '<tr><td>'+ev.source+'</td><td><a href="'+ev.url+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">'+ev.title+'</a></td>'+
-        '<td class="mut" style="white-space:nowrap">'+dstr+'</td><td style="text-align:center;color:var(--accent)">'+stars+'</td></tr>';
-    }).join('');
+    const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+    const rowHtml=ev=>{
+      const dstr=ev.deadlineTs?new Date(ev.deadlineTs).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'})+'까지':'상시·미표기';
+      const st=ev.star||1, stars='★'.repeat(st)+'☆'.repeat(3-st), hi=st>=3;
+      const home=FIN_SITE[ev.source];
+      return '<tr style="'+(hi?'background:rgba(229,51,42,.08);box-shadow:inset 3px 0 0 #e5332a':'')+'">'+
+        '<td style="white-space:nowrap;font-weight:'+(hi?800:500)+'">'+esc(ev.source)+(home?' <a href="'+home+'" target="_blank" rel="noopener" title="'+esc(ev.source)+' 공식 사이트(이벤트 메뉴)로 이동" style="text-decoration:none">🔗</a>':'')+'</td>'+
+        '<td><a href="'+esc(ev.url)+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:'+(hi?'underline':'none')+';font-weight:'+(hi?800:500)+'">'+esc(ev.title)+'</a></td>'+
+        '<td class="mut" style="white-space:nowrap;'+(ev.deadlineTs&&ev.deadlineTs-Date.now()<3*864e5?'color:var(--up);font-weight:800':'')+'">'+dstr+'</td>'+
+        '<td style="text-align:center;color:'+(hi?'#e5332a':'var(--accent)')+';white-space:nowrap">'+stars+'</td></tr>';
+    };
+    const top=rows.filter(e=>(e.star||1)>=3), rest=rows.filter(e=>(e.star||1)<3);
+    let html=top.length?top.map(rowHtml).join(''):'<tr><td class="mut" colspan="4">★★★ 이벤트가 없습니다'+(rest.length?' — 아래 상세보기에서 나머지 '+rest.length+'건을 확인하세요':'')+'</td></tr>';
+    if(rest.length){
+      const id='fin-more-'+cat;
+      html+='<tr><td colspan="4" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
+        rest.map(ev=>rowHtml(ev).replace('<tr style="','<tr class="'+id+'" style="display:none;')).join('');
+    }
+    tb.innerHTML=html;
   });
 }
+const FIN_SITE={'NH투자증권':'https://www.nhqv.com/','미래에셋증권':'https://securities.miraeasset.com/','삼성증권':'https://www.samsungpop.com/','KB증권':'https://www.kbsec.com/','한국투자증권':'https://securities.koreainvestment.com/','키움증권':'https://www.kiwoom.com/','신한투자증권':'https://www.shinhansec.com/','하나증권':'https://www.hanaw.com/','대신증권':'https://www.daishin.com/','토스증권':'https://www.tossinvest.com/','카카오페이증권':'https://www.kakaopaysec.com/','유안타증권':'https://www.myasset.com/','메리츠증권':'https://home.imeritz.com/',
+ '토스뱅크':'https://www.tossbank.com/','카카오뱅크':'https://www.kakaobank.com/','케이뱅크':'https://www.kbanknow.com/','KB국민은행':'https://www.kbstar.com/','국민은행':'https://www.kbstar.com/','신한은행':'https://www.shinhan.com/','하나은행':'https://www.kebhana.com/','우리은행':'https://www.wooribank.com/','NH농협은행':'https://banking.nonghyup.com/','농협은행':'https://banking.nonghyup.com/','IBK기업은행':'https://www.ibk.co.kr/','기업은행':'https://www.ibk.co.kr/','SC제일은행':'https://www.standardchartered.co.kr/','iM뱅크':'https://www.imbank.co.kr/',
+ '신한카드':'https://www.shinhancard.com/','삼성카드':'https://www.samsungcard.com/','KB국민카드':'https://card.kbcard.com/','국민카드':'https://card.kbcard.com/','현대카드':'https://www.hyundaicard.com/','롯데카드':'https://www.lottecard.co.kr/','우리카드':'https://pc.wooricard.com/','하나카드':'https://www.hanacard.co.kr/','BC카드':'https://www.bccard.com/','NH농협카드':'https://card.nonghyup.com/','농협카드':'https://card.nonghyup.com/'};
 
 /* ===================== 금융상품 페이지 — 예금·적금 금리비교(야선지지 스타일) =====================
    금융감독원 "금융상품한눈에" 오픈API를 Worker(/fin-savings)가 은행+저축은행 전체를 모아 12개월
@@ -2441,9 +2475,9 @@ function renderUsFinancialRatios(it, techD, opt){
     (epsHtml?card('② 주가 = EPS × PER',epsHtml):'')+
     (pegHtml?card('③ PEG (성장 대비 PER)',pegHtml):'')+
     (roaHtml?card('④ ROA vs ROE — 자본 효율',roaHtml):'')+
+    card('⑤ 팩터 등급 (자체 계산)',factorHtml)+
     '</div><div style="flex:1 1 360px;min-width:0">'+
     (divHtml?card('배당정보',divHtml):'')+
-    card('⑤ 팩터 등급 (자체 계산)',factorHtml)+
     renderKimVerdictBig(rg==null?null:rg*100, it.psr, techD, extra)+
     '</div></div>'+
     '<div class="mut" style="font-size:10.5px;margin-top:8px">'+(opt.foot||'※ 영업이익증가율은 Yahoo가 분기 이익 성장률로만 제공해 근사치입니다. 참고용이며 투자 권유가 아닙니다.')+'</div></div>';
@@ -2950,8 +2984,10 @@ function renderFxWatchlist(p){
     const dir=chg>=0?'up':'down';
     const decimals=last<50?2:(last<500?1:0);
     const priceStr='₩'+last.toLocaleString('ko-KR',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+    const sw={d:5,w:21,m:63,y:252}[p]||5;
+    const spark=sparkSVG(closes.slice(-(sw+1)));
     return '<tr>'+nameCell+
-      '<td class="num">'+priceStr+'</td>'+
+      '<td class="num"><span style="display:inline-flex;align-items:center;gap:10px;justify-content:flex-end"><span style="display:inline-block;line-height:0">'+spark+'</span><span>'+priceStr+'</span></span></td>'+
       '<td class="num '+dir+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</td></tr>';
   }).join('');
 }
@@ -3385,7 +3421,7 @@ function finSvg(data, metrics, H){
   });
   return svg+'</svg>';
 }
-function renderFinancialsChart(data){
+function renderFinancialsChart(data, split){
   if(!data || !data.length) return '<p class="mut" style="font-size:12.5px">재무제표 데이터를 가져오지 못했습니다.</p>';
   const eok=v=>v==null?null:v/100000000;
   const WIDEH=(typeof window!=='undefined'&&window.innerWidth>=1100);
@@ -3417,8 +3453,9 @@ function renderFinancialsChart(data){
     const chip=(nm,v)=>v==null?'':'<span style="display:inline-block;margin-right:12px"><span class="mut">'+nm+'</span> <b style="color:'+(v>=0?'var(--up)':'var(--down)')+'">'+(v>=0?'+':'')+v.toFixed(1)+'%</b></span>';
     estNote='<div style="margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(0,117,74,.08);font-size:12px">📈 <b>'+ed.year.replace('E','')+'년 예상(컨센서스)</b> 전년 대비 '+chip('매출액',gr)+chip('영업이익',go)+'<div class="mut" style="font-size:10.5px;margin-top:3px">점선 연한 막대·E = 증권사 추정 평균(네이버 증권/FnGuide). 추정치는 실제와 다를 수 있으며 투자 권유가 아닙니다.</div></div>';
   }
-  return svg+
-    '<div class="scroll" style="margin-top:8px"><table style="font-size:12px;white-space:nowrap"><thead>'+th+'</thead><tbody>'+rows+marginRow+'</tbody></table></div>'+estNote;
+  const tbl='<div class="scroll" style="margin-top:8px"><table style="font-size:12px;white-space:nowrap"><thead>'+th+'</thead><tbody>'+rows+marginRow+'</tbody></table></div>'+estNote;
+  if(split) return {svg:svg, table:tbl};
+  return svg+tbl;
 }
 
 /* 0을 중앙으로 한 증가율 막대(±clip% 에서 잘림) */
@@ -3496,10 +3533,21 @@ function krInvestorPanel(fin, ratios){
 }
 function renderFinancialsPanel(fin3y, ratios, headNote, footNote){
   return '<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+headNote+'</div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start">'+
-      '<div style="flex:2 1 460px;min-width:0">'+renderFinancialsChart(fin3y)+'</div>'+
-      '<div style="flex:1 1 300px;min-width:0">'+renderFinancialRatios(ratios,true)+'</div>'+
-    '</div>'+(ratios?krInvestorPanel(fin3y,ratios):'')+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
+    (function(){
+      const pc=(typeof window!=='undefined'&&window.innerWidth>=1000);
+      if(pc){
+        const sp=renderFinancialsChart(fin3y,true);
+        if(sp&&sp.svg!=null){
+          // PC: 왼쪽 절반=매출·영업이익 그래프, 오른쪽=표 설명 + 재무비율
+          return '<div style="display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start">'+
+            '<div style="flex:1 1 360px;min-width:0;max-width:calc(50% - 14px)">'+sp.svg+'</div>'+
+            '<div style="flex:1 1 360px;min-width:0">'+sp.table+'<div style="margin-top:14px">'+renderFinancialRatios(ratios,true)+'</div></div></div>';
+        }
+      }
+      return '<div style="display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start">'+
+        '<div style="flex:2 1 460px;min-width:0">'+renderFinancialsChart(fin3y)+'</div>'+
+        '<div style="flex:1 1 300px;min-width:0">'+renderFinancialRatios(ratios,true)+'</div></div>';
+    })()+(ratios?krInvestorPanel(fin3y,ratios):'')+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
 }
 
 async function loadKrxIndicators(){
@@ -3640,7 +3688,7 @@ function renderKR(d, ecos, krx, breadth){
   if(valEl) valEl.textContent=Math.round(gaugeScore);
   if(stateEl){ stateEl.textContent=t; stateEl.style.color=c; }
   if(dialEl){ dialEl.style.setProperty('--p',gaugeScore+'%'); dialEl.style.setProperty('--g',c); }
-  if(noteEl){ const cg=d.chg!=null?('코스피 전일 대비 '+(d.chg>=0?'▲ ':'▼ ')+Math.abs(d.chg).toFixed(2)+'% · '):''; noteEl.textContent=cg+(composite?('7개 지표 중 '+composite.count+'/7 반영 평균'):'125일 이평 이격도 기준'); }
+  if(noteEl){ const cg=d.chg!=null?('코스피 전일 대비 '+(d.chg>=0?'▲ ':'▼ ')+Math.abs(d.chg).toFixed(2)+'%<br>'):''; noteEl.innerHTML=cg+(composite?('7개 지표 중 '+composite.count+'/7 반영 평균'):'125일 이평 이격도 기준'); }
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%'+
       (composite?' · 모멘텀 단독점수 '+Math.round(d.score):'');
@@ -3686,13 +3734,13 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     ['7', krSubLabel('7','7. 정크본드 수요 (AA-/BBB- 스프레드)'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
   el.innerHTML=rows.map(([num,n,v])=>{
-    if(v==null) return '<tr><td>'+n+'</td><td style="width:30%;min-width:90px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num mut">--</td><td class="num"><span class="tag t-l">준비중</span></td></tr>';
+    if(v==null) return '<tr><td>'+n+'</td><td style="width:26%;min-width:56px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
-    return '<tr><td>'+n+'</td><td style="width:30%;min-width:90px">'+subBarCell(v)+'</td><td class="num" style="font-weight:800">'+v.toFixed(1)+'</td>'+
-      '<td class="num"><span class="tag" style="background:'+c+'33;color:'+(v<=55&&v>=45?'var(--tx2)':c)+'">'+t+'</span></td></tr>';
+    return '<tr><td>'+n+'</td><td style="width:26%;min-width:56px">'+subBarCell(v)+'</td>'+
+      '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+c+'33;color:'+(v<=55&&v>=45?'var(--tx2)':c)+'">'+t+'</span></td></tr>';
   }).join('');
   const kn=document.getElementById('kr-sub-note');
-  if(kn) kn.innerHTML='<b>지표 설명</b><br>'+['1','2','3','4','5','6','7'].map(k=>SUB_NUM[+k-1]+' '+KR_SUBDESC[k]).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span>';
+  if(kn) kn.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+['1','2','3','4','5','6','7'].map(k=>SUB_NUM[+k-1]+' '+KR_SUBDESC[k]).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
   renderBreadthFlow('kr-breadth-flow', breadth);
 }
 
@@ -5233,7 +5281,20 @@ function ipoLockupHtml(sched, listDate, lockRatio){
       '<div style="font-size:13px;font-weight:800;margin-top:3px;color:'+col+'">'+fmtSh(o.shares)+'</div>'+
       '<div style="font-size:10.5px;color:var(--tx2)">'+o.pct.toFixed(2)+'% · '+ds+(done?' 해제':' 해제')+'</div></div>';
   }).join('');
-  return '<div style="flex:1 1 100%;margin-top:2px"><div style="font-size:11px;color:var(--tx2);margin-bottom:5px">🔒 보호예수 해제 일정 (상장일 기준 · 경과/예정)</div>'+
+  // 일자별 타임라인: 상장일 ~ 마지막 해제일, 해제 시점마다 마커(경과=회색, 예정=색)와 해제 비율
+  const pts=sched.map(o=>{ const d=new Date(base.getTime()); if(o.months) d.setMonth(d.getMonth()+o.months); else d.setDate(d.getDate()+o.days); return {o:o,d:d,off:Math.round((d-base)/86400000)}; });
+  const span=Math.max(1,pts[pts.length-1].off), todayOff=Math.max(0,Math.min(span,Math.round((now-base)/86400000)));
+  const totalPct=sched.reduce((a,o)=>a+o.pct,0);
+  const tl='<div style="position:relative;height:46px;margin:6px 10px 4px">'+
+    '<div style="position:absolute;left:0;right:0;top:20px;height:6px;border-radius:3px;background:var(--panel2)"></div>'+
+    '<div style="position:absolute;left:0;top:20px;height:6px;border-radius:3px;background:var(--accent);width:'+(todayOff/span*100).toFixed(1)+'%"></div>'+
+    pts.map(pt=>{ const x=pt.off/span*100, done=pt.d<=now; const diff=Math.round((pt.d-now)/86400000);
+      return '<div style="position:absolute;left:'+x.toFixed(1)+'%;top:0;transform:translateX(-50%);text-align:center;white-space:nowrap">'+
+        '<div style="font-size:10px;font-weight:800;color:'+(done?'var(--tx2)':'var(--up)')+'">'+pt.o.label+'</div>'+
+        '<i style="display:block;width:12px;height:12px;border-radius:50%;margin:3px auto 0;background:'+(done?'var(--tx2)':'var(--up)')+';border:2px solid var(--panel)"></i>'+
+        '<div style="font-size:9.5px;color:var(--tx2);margin-top:2px">'+(done?'해제':'D-'+diff)+'</div></div>'; }).join('')+
+    '</div>';
+  return '<div style="flex:1 1 100%;margin-top:2px"><div style="font-size:11px;color:var(--tx2);margin-bottom:5px">🔒 보호예수 해제 일정 (상장일 '+(base.getMonth()+1)+'/'+base.getDate()+' 기준 · 경과/예정 · 보호예수 합계 '+totalPct.toFixed(1)+'%)</div>'+tl+
     '<div style="display:flex;flex-wrap:wrap;gap:6px">'+chips+'</div></div>';
 }
 /* 상장일 이후 시세 분석 — 공모가 대비 최고가 수익률, 상한가(전일比 +29.5%↑, 상장일은 공모가×4 근접) 일수, 상장일 공모가 대비 등락 */
@@ -5327,7 +5388,13 @@ async function hydrateIpoQuotes(){
     try{
       const ck=code||nm; if(!(ck in IPOQ_CACHE)) IPOQ_CACHE[ck]=await ipoQuoteFetch(code,mk,nm);
       const d=IPOQ_CACHE[ck];
-      let lk=''; try{ lk=ipoLockupHtml(JSON.parse(el.getAttribute('data-lock')||'null'), el.getAttribute('data-ld'), el.getAttribute('data-lr')); }catch(e){}
+      let lk=''; try{
+        let sched=JSON.parse(el.getAttribute('data-lock')||'null');
+        if((!sched||!sched.length)&&PROXY_BASE&&nm){
+          try{ const o=PROXY_BASE.replace(/\?url=$/,''); const rr=await fetch(o+'ipo-lockup?name='+encodeURIComponent(nm),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined}); const jj=rr.ok?await rr.json():null; if(jj&&jj.schedule) sched=jj.schedule; }catch(e){}
+        }
+        lk=ipoLockupHtml(sched, el.getAttribute('data-ld'), el.getAttribute('data-lr'));
+      }catch(e){}
       try{ if(d&&offer){ const stt=ipoQuoteStats(d.rows,offer,el.getAttribute('data-ld')); const nmEl=el.closest('.ipo-card')&&el.closest('.ipo-card').querySelector('.ipo-name'); if(nmEl&&stt.firstDay&&stt.firstDay.close<offer&&!nmEl.parentNode.querySelector('.ipo-below')){ const b=document.createElement('span'); b.className='ipo-market ipo-below'; b.style.cssText='background:rgba(26,111,168,.15);color:var(--down);font-weight:800'; b.textContent='공모가 하회'; nmEl.parentNode.insertBefore(b,nmEl.parentNode.querySelector('.ipo-dates')); } } }catch(e){}
       try{
         if(d&&d.rows&&d.rows.length>=6){

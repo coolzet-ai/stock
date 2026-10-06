@@ -230,7 +230,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="scroll">
       <table>
-        <thead><tr><th>통화</th><th class="num">환율(₩)</th><th class="num">등락률</th></tr></thead>
+        <thead><tr><th>통화</th><th class="num">추이 · 환율(₩)</th><th class="num">등락률</th></tr></thead>
         <tbody id="fx-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
       </table>
     </div>
@@ -292,7 +292,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006v"></script>
+<script src="mrkim-common.js?v=20261007a"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -343,7 +343,11 @@ function renderFxPerk(){
 
 /* ===== 브라질 국채 수익률 시각화 · Top3 ===== */
 async function bcbSeries(code,n){
-  const j=await getJSON('https://api.bcb.gov.br/dados/serie/bcdata.sgs.'+code+'/dados/ultimos/'+n+'?formato=json');
+  const u='https://api.bcb.gov.br/dados/serie/bcdata.sgs.'+code+'/dados/ultimos/'+n+'?formato=json';
+  let j=await getJSON(u);
+  if(!Array.isArray(j)){ // 프록시 실패 시 BCB 직접 호출(CORS 허용) 재시도
+    try{ const r=await fetch(u,{signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined}); if(r.ok) j=await r.json(); }catch(e){}
+  }
   if(!Array.isArray(j)) return null;
   return j.map(r=>parseFloat(r.valor)).filter(v=>isFinite(v));
 }
@@ -356,7 +360,7 @@ async function loadBrazilYield(){
   const ipca=ipcaArr&&ipcaArr.length?ipcaArr[ipcaArr.length-1]:null;
   let fxChg=null;
   if(brl&&brl.length>240) fxChg=(brl[brl.length-1]/brl[brl.length-1-252]-1)*100;
-  if(selic==null){ card.innerHTML='<p class="mut">BCB 통계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; return; }
+  if(selic==null){ card.innerHTML='<p class="mut">BCB 통계를 불러오지 못했습니다. Worker 재배포(api.bcb.gov.br 허용) 후 새로고침해 주세요.</p>'; const t3=document.getElementById('br-top3'); if(t3) t3.innerHTML='<p class="mut">기준금리(SELIC)·물가(IPCA)를 불러온 뒤 표시됩니다.</p>'; return; }
   const real=ipca!=null?selic-ipca:null;
   const krw1y=fxChg!=null?((1+selic/100)*(1+fxChg/100)-1)*100:null;
   const bar=(label,val,max,col,sub)=>'<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:700">'+label+'</span><b style="font-size:17px;color:'+col+'">'+(val>=0?'':'−')+Math.abs(val).toFixed(2)+'%</b></div>'+
