@@ -111,6 +111,17 @@ h2{font-size:26px;letter-spacing:-.6px}
   font-size:27px;font-weight:800}
 .state{font-size:19px;font-weight:800}
 .kimcomment{display:inline-block;padding:10px 18px;border-radius:10px}
+.fg-row{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.fg-left{min-width:0}
+.fg-left .state{font-size:20px;line-height:1.2}
+.fg-left .mut{margin-top:2px;font-size:12.5px}
+.fg-row .kimcomment{white-space:nowrap;font-size:17px!important;padding:8px 14px;font-weight:800;line-height:1.3}
+.fg-cmt-lab{font-size:11px;color:var(--tx2);font-weight:700;text-align:right;margin-bottom:3px}
+.sub-bar{position:relative;height:9px;border-radius:5px;background:linear-gradient(90deg,#ff4d4f 0%,#ff8a00 30%,#c9d3e3 50%,#a3e635 70%,#22c55e 100%);min-width:90px}
+.sub-bar i{position:absolute;top:-4px;width:5px;height:17px;border-radius:2px;background:var(--tx);transform:translateX(-50%);box-shadow:0 0 0 2px var(--panel)}
+.sub-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--panel2);font-size:11.5px;line-height:1.55;color:var(--tx2)}
+.sub-note b{color:var(--tx)}
+
 .bars{display:flex;gap:6px;align-items:flex-end;height:120px;margin-top:16px}
 .bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
 .bars-labels{display:none;gap:6px;margin-top:4px}
@@ -232,23 +243,18 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="grid">
       <div class="card">
         <h3>한국지수 공포탐욕 종합 지수</h3>
-        <div class="gauge">
-          <div class="dial" id="kr-dial"><b id="kr-val">--</b></div>
-          <div>
-            <div class="state" id="kr-state">불러오는 중</div>
-            <div class="mut" id="kr-note">코스피 vs 125일 이동평균 이격도 기준</div>
-          </div>
+        <div style="display:flex;justify-content:center"><div class="dial" id="kr-dial"><b id="kr-val">--</b></div></div>
+        <div class="fg-row">
+          <div class="fg-left"><div class="state" id="kr-state">불러오는 중</div><div class="mut" id="kr-note">코스피 vs 125일 이동평균 이격도 기준</div></div>
+          <div><div class="fg-cmt-lab">김군코멘트</div><div id="kr-kimcomment" class="kimcomment">불러오는 중…</div></div>
         </div>
         <p class="mut" style="margin-top:12px;font-size:12px" id="kr-detail">코스피 지수를 불러오는 중입니다.</p>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
-          <div class="mut" style="font-weight:700;margin-bottom:8px">김군코멘트</div>
-          <div id="kr-kimcomment" class="kimcomment" style="font-weight:800;font-size:26px;line-height:1.3">불러오는 중…</div>
-        </div>
+        <div id="kr-breadth-flow" style="margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><p class="mut" style="font-size:12px">수급 데이터를 불러오는 중…</p></div>
       </div>
       <div class="card">
         <h3>7개 세부지표 (CNN 방식 설계)</h3>
         <table><tbody id="kr-sub"></tbody></table>
-        <div id="kr-breadth-flow" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><p class="mut" style="font-size:12px">수급 데이터를 불러오는 중…</p></div>
+        <div class="sub-note" id="kr-sub-note"></div>
         <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번은 Yahoo KOSPI, 4·5번은 KRX Open API(파생상품), 6·7번은 한국은행 ECOS로 계산됩니다. 4번은 KOSPI200 지수옵션(정규월물+위클리) 콜/풋 거래량 기준입니다. 2·3번(주가 강도·주가 폭)은 코스피·코스닥 전종목 배치 집계가 필요해 별도 아키텍처(Worker 자동실행) 작업 중입니다.</p>
       </div>
     </div>
@@ -428,7 +434,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006u"></script>
+<script src="mrkim-common.js?v=20261006v"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로

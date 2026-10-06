@@ -192,15 +192,24 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="card" style="margin-bottom:20px">
       <h3>김군코멘트 산정 기준 (참고용 · 투자 권유 아님)</h3>
-      <p class="mut">기관경쟁률(45점)·의무보유확약비율(30점)·유통비율(25점, 낮을수록 고득점) 3가지 지표를 100점 만점으로 합산해 5단계로 표시합니다. 기관경쟁률은 수요예측이 끝나야 발표되므로, 그 전까지는 "판정 보류"로 표시됩니다. 확약비율·유통비율이 개별적으로 아직 없으면 중립 점수를 주고 사유에 "데이터 없음"을 남깁니다.</p>
-      <ul style="font-size:13px;color:var(--tx2);line-height:1.6;padding-left:18px;margin-top:8px">
-        <li><b style="color:var(--up)">적극추천</b> — 종합 85점 이상</li>
-        <li><b style="color:var(--accent)">추천</b> — 종합 70~84점</li>
-        <li><b style="color:var(--tx2)">중립</b> — 종합 55~69점</li>
-        <li><b style="color:var(--gold)">신중</b> — 종합 35~54점</li>
-        <li><b style="color:var(--down)">포기</b> — 종합 34점 이하</li>
-      </ul>
-      <p class="mut" style="margin-top:8px;font-size:12px">참고: 기관경쟁률은 1,000:1↑ 매우 우수·500:1↑ 우수·300:1↑ 양호·100:1↑ 보통 / 의무보유확약비율은 30%↑ 매우 우수·15%↑ 우수·5%↑ 보통 / 유통비율은 15%↓ 매우 우수·25%↓ 우수·40%↓ 보통(낮을수록 유리)로 각각 채점합니다.</p>
+      <p class="mut">기관경쟁률(45점)·의무보유확약비율(30점)·유통비율(25점) 3가지 지표를 100점 만점으로 합산해 5단계로 표시합니다.</p>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-weight:800;color:var(--accent);font-size:13.5px">자세히 보기 ▾</summary>
+        <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">① 기관경쟁률 <span class="mut">(45점)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#9cc9b9"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>~100:1</span><span>100</span><span>300</span><span>500</span><span>1,000:1↑</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">수요예측 참여 기관의 경쟁이 치열할수록 고득점. 수요예측이 끝나야 발표되므로 그 전에는 "판정 보류"입니다.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">② 의무보유확약비율 <span class="mut">(30점)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>~5%</span><span>5%↑</span><span>15%↑</span><span>30%↑</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">기관이 일정 기간 팔지 않겠다고 약속한 물량 비율. 높을수록 상장 직후 매도 부담이 적습니다. 없으면 중립 점수.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">③ 유통비율 <span class="mut">(25점 · 낮을수록 유리)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#0b8a4a"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#c9ccd1"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>15%↓</span><span>25%↓</span><span>40%↓</span><span>40%↑</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">상장 직후 시장에 풀리는 물량 비율. 낮을수록 수급이 가벼워 고득점. 없으면 중립 점수.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">종합 판정 (100점 만점)</b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:34;background:#e5332a"></i><i style="flex:20;background:#f0b429"></i><i style="flex:15;background:#9aa0a6"></i><i style="flex:15;background:#4fa383"></i><i style="flex:16;background:#1fa463"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>포기</span><span>신중</span><span>중립</span><span>추천</span><span>적극추천</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">적극추천 85↑ · 추천 70~84 · 중립 55~69 · 신중 35~54 · 포기 34↓</div></div>
+        </div>
+      </details>
       <p class="mut" style="margin-top:10px;font-size:12px">⚠ 본 페이지는 정보 제공 목적이며 특정 종목의 청약을 권유하지 않습니다. 청약 전 반드시 증권신고서·투자설명서를 직접 확인하세요.</p>
     </div>
 
@@ -296,7 +305,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006u"></script>
+<script src="mrkim-common.js?v=20261006v"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -529,7 +538,7 @@ function renderIpoList(m){
         (item.stage==='신규상장'?'<div class="ipo-mid"><span class="mut" style="font-size:11.5px">…</span></div>':'')+
         '<div class="ipo-verdict">'+(pend?'':ipoLamp(v.tier))+'<div class="ipo-verdict-badge'+(pend?' pend':'')+'" style="background:'+v.color+'22;color:'+v.color+'">'+(pend?'<i class="ipo-pulse"></i>':'')+v.label+'</div></div>'+
       '</div>'+
-      (item.stage==='신규상장'?'<div class="ipo-quote" data-ipoq="'+(item.stockCode||'')+'" data-nm="'+item.name.replace(/"/g,'')+'" data-mk="'+(item.market||'')+'" data-ld="'+(item.listDate||'')+'" data-offer="'+(item.offerPriceFinal||'')+'" data-lock="'+(item.lockupSchedule?JSON.stringify(item.lockupSchedule).replace(/"/g,'&quot;'):'')+'" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><span class="mut" style="font-size:11.5px">📈 상장 후 주가 불러오는 중…</span></div>':'')+
+      (item.stage==='신규상장'?'<div class="ipo-quote" data-ipoq="'+(item.stockCode||'')+'" data-nm="'+item.name.replace(/"/g,'')+'" data-mk="'+(item.market||'')+'" data-ld="'+(item.listDate||'')+'" data-offer="'+(item.offerPriceFinal||'')+'" data-lr="'+(item.lockupRatio||'')+'" data-lock="'+(item.lockupSchedule?JSON.stringify(item.lockupSchedule).replace(/"/g,'&quot;'):'')+'" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><span class="mut" style="font-size:11.5px">📈 상장 후 주가 불러오는 중…</span></div>':'')+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
         '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
         '<div class="ipo-detail-grid">'+

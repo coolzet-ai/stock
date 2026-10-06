@@ -220,8 +220,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <div class="card" style="margin-top:24px">
+      <h3>에잇퍼센트 오픈예정 상품</h3>
+      <p class="mut" id="p2p-open-status" style="font-size:12px">오픈예정 상품을 불러오는 중…</p>
+      <div id="p2p-open-list"></div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
       <h3>에잇퍼센트 현재 투자상품</h3>
-      <p class="mut">투자상품 목록은 로그인 후 실시간으로 바뀌므로 이 페이지에 직접 표시하는 대신 공식 사이트로 연결합니다.</p>
+      <p class="mut">투자 가능 상품은 실시간으로 바뀌므로 공식 사이트에서 확인해 주세요. 오픈예정 상품은 위 목록에서 미리 볼 수 있습니다.</p>
       <a class="btn sm" style="margin-top:10px" href="https://8percent.kr/" target="_blank" rel="noopener">에잇퍼센트 바로가기 ↗</a>
     </div>
     <p class="mut" style="margin-top:16px;font-size:12px">⚠ P2P(온라인투자연계금융) 투자는 원금 손실 위험이 있으며 예금자보호법의 보호 대상이 아닙니다. 투자 전 상품별 연체율·부실률을 반드시 확인하세요.</p>
@@ -245,12 +251,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js"></script>
+<script src="mrkim-common.js?v=20261006v"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
 { const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
 
+loadP2pOpenSoon();
 </script>
 </body>
 </html>
