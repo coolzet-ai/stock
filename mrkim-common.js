@@ -2261,7 +2261,34 @@ function ipoFormatSubRatio(txt){
     return n.toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
   });
 }
+/* 단계(stage)를 날짜로 다시 계산한다 — Worker가 구버전이거나 캐시가 낡아도 청약예정·청약중·청약완료·상장완료가
+   오늘(한국시간) 기준으로 정확히 구분되도록, 서버가 준 stage는 "참고"만 하고 날짜를 우선한다. */
+function ipoDeriveStage(raw){
+  const now=new Date(Date.now()+9*3600*1000);
+  const yy=now.getUTCFullYear();
+  const todayNum=yy*10000+(now.getUTCMonth()+1)*100+now.getUTCDate();
+  let stage=raw.stage||null;
+  const lm=String(raw.listDate||'').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if(lm){
+    const ln=(+lm[1])*10000+(+lm[2])*100+(+lm[3]);
+    if(ln<=todayNum) return '신규상장';
+    if(stage==='신규상장'||stage==='상장예정') stage='청약완료';
+  }else if(stage==='신규상장' && !raw.listDate){
+    return stage;
+  }
+  const sm=String(raw.subscDate||'').match(/(?:(\d{4})[\/.])?(\d{1,2})[\/.](\d{1,2})\s*~\s*(?:(\d{4})[\/.])?(\d{1,2})[\/.](\d{1,2})/);
+  if(sm && stage!=='수요예측'){
+    const y1=+(sm[1]||yy), y2=+(sm[4]||sm[1]||yy);
+    const sN=y1*10000+(+sm[2])*100+(+sm[3]), eN=y2*10000+(+sm[5])*100+(+sm[6]);
+    if(todayNum<sN) return '청약예정';
+    if(todayNum<=eN) return '청약중';
+    return '청약완료';
+  }
+  if(stage==='상장예정') return '청약완료';
+  return stage;
+}
 function ipoBuildItem(raw){
+  raw=Object.assign({},raw,{stage:ipoDeriveStage(raw)});
   const offerPriceFinal=ipoFormatOfferFinal(raw);
   // [버그 수정] 코스피/코스닥 "이전상장"(코넥스→코스닥, 코스닥→코스피 등)은 일반공모(청약) 절차
   // 자체가 없는 경우가 많아 기관경쟁률·청약경쟁률·수요예측일 등이 원래부터 존재하지 않는다.
@@ -2277,9 +2304,11 @@ function ipoBuildItem(raw){
   return {
     no: raw.no||null, // 38.co.kr 상세페이지 id — 동종업체 비교(/ipo-peer) 조회용
     name: raw.name,
-    market: raw.market||'',
+    market: raw.market||(raw.isTransfer?'':'시장 미확인'),
     stage: raw.stage||null, // '수요예측'·'청약중'·'상장예정'·'신규상장(=상장완료)' — 카드에 진행 상태 배지를 표시하기 위해 전달
     isTransfer: isTransfer,
+    predictPeriod: raw.predictPeriod||null, payDate: raw.payDate||null, refundDate: raw.refundDate||null,
+    offerAmount: raw.offerAmount||null, allocInst: raw.allocInst||null, allocRetail: raw.allocRetail||null,
     subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.stage==='신규상장'?'청약 종료':(raw.predictDate?('수요예측 '+raw.predictDate):'미정'))),
     subRatio: ipoFormatSubRatio(raw.subRatioText)||(raw.stage==='청약중'?'청약 종료 후 발표':raw.stage==='청약완료'?'집계 중':(raw.stage==='수요예측'||raw.stage==='청약예정')?'청약 전':null),
     listDate: raw.listDate||'미정',

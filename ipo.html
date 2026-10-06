@@ -382,7 +382,13 @@ function ipoVerdict(item){
   // "아직 발표 안 됨"이 아니라 "원래 존재하지 않음"이다. 둘을 구분 안 하면 영원히 "수요예측
   // 결과가 아직 발표되지 않았습니다"로 보여 데이터가 안 불러와지는 것처럼 오해하게 된다.
   if(item.isTransfer) return {tier:-1, label:'해당없음', color:'var(--tx2)', reason:'이전상장 종목은 일반공모 절차가 없어 기관경쟁률 등 수요예측 데이터가 존재하지 않습니다.', factors:null};
-  if(item.instRatio==null) return {tier:-1, label:'판정 보류', color:'var(--tx2)', reason:'수요예측 결과가 아직 발표되지 않았습니다.', factors:null};
+  if(item.instRatio==null){
+    const st=item.stage;
+    const why = st==='수요예측' ? '수요예측이 진행 중이라 기관경쟁률·의무보유확약이 아직 없습니다.'
+      : (st==='청약예정'||st==='청약중') ? '수요예측은 마감됐으나 기관경쟁률·의무보유확약이 38.co.kr에 아직 공시되지 않았습니다(공모가 확정 공고 후 반영). 발표되는 대로 자동으로 판정됩니다.'
+      : '수요예측 결과가 아직 발표되지 않았습니다.';
+    return {tier:-1, label:'결과 대기', color:'var(--tx2)', reason:why+' 그동안은 희망공모가·청약일·배정물량 등 확인 가능한 세부 정보를 아래에 표시합니다.', factors:null};
+  }
 
   const r=item.instRatio;
   let instScore, instNote;
@@ -480,8 +486,14 @@ function renderIpoList(m){
       ['밴드 제시 현황', item.topBandRatio||'--'],
       ['의무보유확약비율', item.lockupRatio||'미발표'],
       ['유통비율', item.floatRatio||'미발표'],
-      ['환매청구권', item.refundRight||'미확인']
-    ];
+      ['환매청구권', item.refundRight||'미확인'],
+      ['수요예측 기간', item.predictPeriod],
+      ['공모금액', item.offerAmount],
+      ['기관 배정', item.allocInst],
+      ['일반청약자 배정', item.allocRetail],
+      ['납입일', item.payDate],
+      ['환불일', item.refundDate]
+    ].filter(r=>r[1]!=null&&r[1]!=='');
     const stageBadge=item.stage==='신규상장'
       ? ''
       : item.stage==='청약완료' ? '<span class="ipo-market" style="background:rgba(26,111,168,.15);color:var(--down);font-weight:700">청약완료 · 상장대기</span>'
