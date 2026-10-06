@@ -2263,9 +2263,9 @@ function renderUsFinancialRatios(it, techD, opt){
   if(pg.v!=null) extra.push({grp:'재무', txt:'PEG '+pg.v.toFixed(2)+(pg.v<0.9?' — 성장 대비 저평가':pg.v<=1.1?' — 적정':' — 성장 대비 고평가'), pt:pg.v<0.9?1:pg.v<=1.1?0:-1});
   if(fs.revision!=null) extra.push({grp:'재무', txt:'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합'), pt:fs.revision>=75?1:fs.revision<=40?-1:0});
   return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
-    '<div class="mut" style="font-size:11px;margin-bottom:6px">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+
+    '<div class="mut" style="font-size:11.5px;margin-bottom:6px;text-align:center;font-weight:700">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:0 24px;align-items:flex-start"><div style="flex:1 1 360px;min-width:0">'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;font-size:12px">'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;font-size:13px;text-align:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)">'+
       '<div><span class="mut" style="font-size:10.5px">매출액증가율</span><br><b style="color:'+rgColor+'">'+usFundPct(rg)+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">'+(opt.ogLabel||'영업이익증가율※')+'</span><br><b style="color:'+egColor+'">'+usFundPct(eg)+'</b></div>'+
       '<div><span class="mut" style="font-size:10.5px">PER</span><br><b>'+usFundNum(it.trailingPE,1)+'</b></div>'+
@@ -2274,11 +2274,11 @@ function renderUsFinancialRatios(it, techD, opt){
       '<div><span class="mut" style="font-size:10.5px">PSR</span><br><b>'+usFundNum(it.psr)+'</b></div>'+
     '</div>'+
     card('① 4축 점검 — 성장성·수익성·효율성·안정성',axHtml)+
-    (roaHtml?card('④ ROA vs ROE — 자본 효율',roaHtml):'')+
-    card('⑤ 팩터 등급 (자체 계산)',factorHtml)+
-    '</div><div style="flex:1 1 360px;min-width:0">'+
     (epsHtml?card('② 주가 = EPS × PER',epsHtml):'')+
     (pegHtml?card('③ PEG (성장 대비 PER)',pegHtml):'')+
+    (roaHtml?card('④ ROA vs ROE — 자본 효율',roaHtml):'')+
+    '</div><div style="flex:1 1 360px;min-width:0">'+
+    card('⑤ 팩터 등급 (자체 계산)',factorHtml)+
     renderKimVerdictBig(rg==null?null:rg*100, it.psr, techD, extra)+
     '</div></div>'+
     '<div class="mut" style="font-size:10.5px;margin-top:8px">'+(opt.foot||'※ 영업이익증가율은 Yahoo가 분기 이익 성장률로만 제공해 근사치입니다. 참고용이며 투자 권유가 아닙니다.')+'</div></div>';
@@ -5053,6 +5053,13 @@ function ipoQuoteStats(rows, offer, listDate){
   st.offer=offer||null;
   return st;
 }
+/* 카드 머리(종목명과 추천 판단 사이) 가운데: 현재가·등락률 + 스파크라인 (한국지수 표와 같은 표기) */
+function ipoQuoteMidHtml(d){
+  const rows=d.rows, closes=rows.map(r=>r.c), last=closes[closes.length-1], prev=closes.length>1?closes[closes.length-2]:last;
+  const chg=(last/prev-1)*100, up=chg>=0, col=up?'var(--up)':'var(--down)';
+  return '<div style="text-align:right"><div style="font-size:19px;font-weight:900;line-height:1.1">'+fmtWon(last)+'</div>'+
+    '<div style="font-size:12.5px;font-weight:800;color:'+col+'">'+(up?'▲ +':'▼ ')+chg.toFixed(2)+'%</div></div>'+sparkSVG(closes.slice(-30));
+}
 function ipoQuoteHtml(d, offer, listDate){
   const st=ipoQuoteStats(d.rows, offer, listDate);
   const rows=st.rows, closes=rows.map(r=>r.c), last=closes[closes.length-1], prev=closes.length>1?closes[closes.length-2]:last;
@@ -5095,11 +5102,7 @@ function ipoQuoteHtml(d, offer, listDate){
       '<i style="position:absolute;left:'+pos.toFixed(1)+'%;top:-4px;width:5px;height:18px;border-radius:2px;background:var(--tx);transform:translateX(-50%)"></i></div>'+
     '<div style="display:flex;justify-content:space-between;gap:6px;font-size:12px;margin-top:6px;color:var(--tx2);white-space:nowrap"><span>최저 '+fmtWon(lo)+'</span><span>최고 '+fmtWon(hi)+'</span></div>'+
     '<div style="font-size:11.5px;color:var(--tx2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">고점 대비 '+fromHi.toFixed(1)+'% · 범위 내 '+pos.toFixed(0)+'% 위치</div></div>';
-  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px">'+
-      '<div><div style="font-size:21px;font-weight:900;line-height:1.1">'+fmtWon(last)+'</div>'+
-      '<div style="font-size:13px;font-weight:800;color:'+col+'">'+(up?'▲ +':'▼ ')+chg.toFixed(2)+'%</div></div>'+
-      '<div>'+sparkSVG(closes)+'</div></div>'+
-    (boxes?'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">'+boxes+'</div>':'')+
+  return (boxes?'<div style="display:flex;flex-wrap:wrap;gap:10px">'+boxes+'</div>':'')+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:10px;margin-top:10px">'+barBox+limBox+'</div>';
 }
 const IPOQ_CACHE={};
@@ -5124,6 +5127,7 @@ async function hydrateIpoQuotes(){
           }
         }
       }catch(e){}
+      try{ const midEl=el.closest('.ipo-card')&&el.closest('.ipo-card').querySelector('.ipo-mid'); if(midEl&&d) midEl.innerHTML=ipoQuoteMidHtml(d); }catch(e){}
       el.innerHTML=(d?ipoQuoteHtml(d,offer,el.getAttribute('data-ld')):'<span class="mut" style="font-size:11.5px">시세를 불러오지 못했습니다.</span>')+(lk?'<div style="margin-top:10px">'+lk+'</div>':'');
     }catch(e){ el.innerHTML='<span class="mut" style="font-size:11.5px">시세를 불러오지 못했습니다.</span>'; }
   }
