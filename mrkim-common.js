@@ -444,6 +444,113 @@ function renderBreadthFlow(elId, breadth){
   el.innerHTML=html;
 }
 
+/* ================= 한국지수 "투자자 동향" / "증시자금동향" (Npay 증권) =================
+   stock.naver.com(Npay 증권)이 자체 집계해 공개하는 지수별 당일 투자자 순매수와 증시자금
+   추이를 Worker(/kr-investor-trend, /kr-market-deposit)가 CORS 중계해준다. */
+let krInvestorMarket='KOSPI';
+async function loadKrInvestorTrend(market){
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'kr-investor-trend?market='+market,{signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return (j && j.bizdate)?j:null;
+  }catch(e){ console.warn('투자자 동향 로딩 실패:', e); return null; }
+}
+function parseKrAmt(s){ // "+2,654" / "-986" 같은 네이버 표기 문자열 → 숫자(억원)
+  if(s==null) return null;
+  const n=Number(String(s).replace(/,/g,''));
+  return isFinite(n)?n:null;
+}
+function fmtKrDate(bizdate){
+  return bizdate?String(bizdate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1. $2. $3.'):'';
+}
+async function setKrInvestorMarket(market){
+  krInvestorMarket=market;
+  document.querySelectorAll('.kr-investor-market-btn').forEach(b=>b.classList.toggle('on', b.dataset.m===market));
+  const el=document.getElementById('kr-investor-trend');
+  if(el) el.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+  renderKrInvestorTrend(await loadKrInvestorTrend(market));
+}
+function renderKrInvestorTrend(data){
+  const el=document.getElementById('kr-investor-trend'); if(!el) return;
+  if(!data){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">투자자 동향 데이터를 가져오지 못했습니다 — Worker(/kr-investor-trend)가 배포되어 있는지 확인해주세요.</p>';
+    return;
+  }
+  const rows=[
+    ['개인', parseKrAmt(data.personal)],
+    ['외국인', parseKrAmt(data.foreign)],
+    ['기관', parseKrAmt(data.institutional)]
+  ];
+  const maxAbs=Math.max(1, ...rows.map(([,v])=>Math.abs(v||0)));
+  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(data.bizdate)+' 기준 · 순매수(억원)</div>'+
+    rows.map(([name,v])=>{
+      if(v==null) return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:44px;font-size:12.5px;color:var(--tx2)">'+name+'</div><div class="mut" style="font-size:12.5px">--</div></div>';
+      const isBuy=v>=0;
+      const pct=Math.abs(v)/maxAbs*100;
+      const color=isBuy?'var(--up)':'var(--down)'; // 국내 관례: 순매수(+)=빨강, 순매도(-)=파랑
+      return '<div style="margin-bottom:10px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">'+
+          '<span style="color:var(--tx2)">'+name+'</span>'+
+          '<span style="font-weight:800;color:'+color+'">'+(isBuy?'+':'')+v.toLocaleString('ko-KR')+'억</span>'+
+        '</div>'+
+        '<div style="height:10px;border-radius:5px;background:var(--panel2);overflow:hidden">'+
+          '<div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+color+'"></div>'+
+        '</div></div>';
+    }).join('');
+}
+
+async function loadKrMarketDeposit(size){
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'kr-market-deposit?size='+(size||40),{signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    return (Array.isArray(j)&&j.length)?j:null;
+  }catch(e){ console.warn('증시자금동향 로딩 실패:', e); return null; }
+}
+function renderKrMarketDeposit(rows){
+  const el=document.getElementById('kr-market-deposit'); if(!el) return;
+  if(!rows || !rows.length){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">증시자금동향 데이터를 가져오지 못했습니다 — Worker(/kr-market-deposit)가 배포되어 있는지 확인해주세요.</p>';
+    return;
+  }
+  const last=rows[rows.length-1];
+  const metrics=[
+    ['고객예탁금','customerDeposit','customerDepositDiff'],
+    ['신용잔고','creditLoan','creditLoanDiff'],
+    ['주식형펀드','stockFund','stockFundDiff'],
+    ['혼합형펀드','mixedFund','mixedFundDiff'],
+    ['채권형펀드','bondFund','bondFundDiff']
+  ];
+  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 단위 억원</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px">'+
+    metrics.map(([name,key,diffKey])=>{
+      const v=last[key], diff=last[diffKey];
+      const values=rows.map(r=>r[key]);
+      const diffUp=(diff!=null && diff>=0);
+      const diffColor=diff==null?'var(--tx2)':(diffUp?'var(--up)':'var(--down)');
+      const diffText=diff==null?'--':(diffUp?'▲':'▼')+Math.abs(diff).toLocaleString('ko-KR');
+      return '<div style="padding:10px 12px;background:var(--panel2);border-radius:10px">'+
+        '<div style="font-size:11.5px;color:var(--tx2);margin-bottom:4px">'+name+'</div>'+
+        '<div style="font-weight:800;font-size:15px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'</div>'+
+        '<div style="font-size:11.5px;color:'+diffColor+';font-weight:700;margin-bottom:6px">'+diffText+'</div>'+
+        miniLineChart([{values:values, color:diffColor, width:1.5}], {w:140,h:34,padL:0,padR:0,padTop:3,padBottom:3})+
+      '</div>';
+    }).join('')+
+    '</div>';
+}
+async function loadKrFundFlow(){
+  const trendEl=document.getElementById('kr-investor-trend');
+  if(trendEl) trendEl.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+  const depositEl=document.getElementById('kr-market-deposit');
+  if(depositEl) depositEl.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+  const [trend, deposit]=await Promise.all([loadKrInvestorTrend(krInvestorMarket), loadKrMarketDeposit(40)]);
+  renderKrInvestorTrend(trend);
+  renderKrMarketDeposit(deposit);
+}
+
 /* ================= 자산간 상관관계 (야선지지 매크로 대시보드 스타일 시각화 구체화) =================
    지수·금리·환율·원자재 등 서로 다른 자산의 일간 수익률로 피어슨 상관계수를 계산해,
    숫자 하나가 아니라 -1~+1 구간을 양방향으로 채우는 막대로 보여준다. avg()·yclose()를 재사용한다. */
