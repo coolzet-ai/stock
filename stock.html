@@ -352,6 +352,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
           <div id="fin-TSLA" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
         </div>
     </div>
+    <div style="margin-top:10px"><button class="btn sm" id="cap2-btn" onclick="toggleMoreRows('cap2')" style="cursor:pointer">11~20위 더 보기 ▾</button></div>
+    <div id="cap2-wrap" style="display:none;margin-top:8px"><div class="scroll"><div class="wl-list" id="cap2-tbl"></div></div></div>
     <p class="mut" style="margin-top:10px;font-size:12px">순위는 미국 증시에 상장된 종목 기준(2026년 9월 초 기준 스냅샷)<br>· 시가총액은 수시로 변동<br>· 종목명을 클릭하면 Finviz 상세 페이지로, 세부내용의 +는 Finviz 상세 지표, X는 @TrendSpider의 해당 티커 게시물 검색, N은 최신 뉴스, 재무는 재무비율·주가지표(Yahoo Finance)로 이동합니다.</p>
     <p class="mut" style="margin-top:4px;font-size:12px">※ 재무비율의 영업이익증가율은 Yahoo Finance가 별도 제공하지 않아 분기 실적(이익) 성장률로 대체 표기 · 일부 종목은 데이터 소스 제약으로 일시적으로 "—"가 표시될 수 있습니다.</p>
 
@@ -566,7 +568,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006r"></script>
+<script src="mrkim-common.js?v=20261006s"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
@@ -612,7 +614,7 @@ async function toggleUsFinancials(ticker){
     el.style.display='block';
     if(!usFinLoaded[ticker]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
-      const cache=await loadUsFundamentalsOnce();
+      const cache=await loadUsFundamentalsOnce(US_FUND_SET2.indexOf(ticker)>=0?2:1);
       let techD=null;
       try{ techD=(typeof tickData!=='undefined'&&tickData[ticker])||await yclose(ticker,'1y'); }catch(e){}
       el.innerHTML=renderUsFinancialRatios(cache?cache[ticker]:null, techD);
