@@ -259,18 +259,33 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="sub">출처: <a href="https://stock.naver.com/market/stock/kr" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">Npay 증권</a> · 코스피/코스닥 당일 투자자 순매수와 고객예탁금·신용잔고·펀드 추이</p>
     <div class="grid" style="margin-top:16px">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
           <h3 style="margin:0">투자자 동향</h3>
-          <div class="tabs" data-group="krinvestor" style="margin:0">
-            <button class="kr-investor-market-btn on" data-m="KOSPI" onclick="setKrInvestorMarket('KOSPI')">코스피</button>
-            <button class="kr-investor-market-btn" data-m="KOSDAQ" onclick="setKrInvestorMarket('KOSDAQ')">코스닥</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="tabs" data-group="krinvmkt" style="margin:0">
+              <button class="kr-investor-market-btn on" data-m="KOSPI" onclick="setKrInvestorMarket('KOSPI')">코스피</button>
+              <button class="kr-investor-market-btn" data-m="KOSDAQ" onclick="setKrInvestorMarket('KOSDAQ')">코스닥</button>
+            </div>
+            <div class="tabs" data-group="krinvper" style="margin:0">
+              <button class="kr-investor-period-btn on" data-p="1d" onclick="setKrInvestorPeriod('1d')">1일</button>
+              <button class="kr-investor-period-btn" data-p="1w" onclick="setKrInvestorPeriod('1w')">1주</button>
+              <button class="kr-investor-period-btn" data-p="1m" onclick="setKrInvestorPeriod('1m')">1개월</button>
+              <button class="kr-investor-period-btn" data-p="3m" onclick="setKrInvestorPeriod('3m')">3개월</button>
+            </div>
           </div>
         </div>
         <div id="kr-investor-trend"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
       </div>
       <div class="card">
-        <h3>증시자금동향</h3>
-        <div id="kr-market-deposit" style="margin-top:12px"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <h3 style="margin:0">증시자금동향</h3>
+          <div class="tabs" data-group="krdepper" style="margin:0">
+            <button class="kr-deposit-period-btn" data-p="1w" onclick="setKrDepositPeriod('1w')">1주</button>
+            <button class="kr-deposit-period-btn" data-p="1m" onclick="setKrDepositPeriod('1m')">1개월</button>
+            <button class="kr-deposit-period-btn on" data-p="3m" onclick="setKrDepositPeriod('3m')">3개월</button>
+          </div>
+        </div>
+        <div id="kr-market-deposit"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
       </div>
     </div>
 
@@ -430,8 +445,9 @@ async function toggleFinancials(stockCode){
     if(!finLoaded[stockCode]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
       const {fin3y,growth,eps,psr}=await dartFinancialsWithRatios(stockCode, KR_TOP10_NAME_BY_CODE[stockCode]);
-      const data=fin3y;
-      el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:8px">손익계산서 최근 3년(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)</div>'+renderFinancialsChart(data)+renderFinancialRatios({growth,eps,psr});
+      el.innerHTML=(fin3y&&fin3y.length)
+        ? renderFinancialsPanel(fin3y,{growth,eps,psr},'손익계산서 최근 3년(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)',null)
+        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.</p>';
       finLoaded[stockCode]=true;
     }
   }else{

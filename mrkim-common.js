@@ -292,6 +292,12 @@ function rebase100(arr){
   return arr.map(v=>v!=null?+(v/first*100).toFixed(3):null);
 }
 const REL_PERIOD_DAYS={'1m':21,'3m':63,'6m':126,'1y':252};
+/* [상호작용] 평상시에는 모든 선을 흐릿하게(REL_DIM_OPACITY) 그리다가, 마우스를 선 근처/범례에
+   올리면 그 종목만 진하고 굵게 강조한다. 범례의 체크박스를 해제하면 그 종목은 차트에서 빠지고
+   (세로축 범위도 남은 종목 기준으로 다시 맞춘다), 기간 탭을 바꿔도 해제 상태가 유지된다. */
+const REL_DIM_OPACITY=0.42;
+const REL_HIDDEN={};   // elId -> {종목라벨: true}  (체크 해제된 종목)
+const REL_LAST={};     // elId -> 마지막으로 그린 입력(체크박스 토글 시 재요청 없이 다시 그리기 위해 보관)
 function relReturnChart(elId, series, loaded){
   const el=document.getElementById(elId); if(!el) return;
   const built=series.map(s=>{
@@ -299,8 +305,8 @@ function relReturnChart(elId, series, loaded){
     let last=null;
     if(reb) for(let i=reb.length-1;i>=0;i--){ if(reb[i]!=null){ last=reb[i]; break; } }
     const chg=last!=null?last-100:null;
-    return {values:reb||[], color:s.color, width:s.width||2.2,
-      label:s.label+(chg!=null?' '+sign(chg):' --')};
+    return {values:reb||[], color:s.color, width:s.width||2.2, key:s.label,
+      chg:chg, label:s.label+(chg!=null?' '+sign(chg):' --')};
   }).filter(s=>s.values.length>1);
   if(!built.length){
     el.innerHTML=loaded
@@ -308,6 +314,21 @@ function relReturnChart(elId, series, loaded){
       : '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
     return;
   }
+  REL_LAST[elId]={built:built};
+  relPaint(elId);
+}
+function relToggle(elId, bi, checked){
+  const st=REL_LAST[elId]; if(!st) return;
+  const hidden=REL_HIDDEN[elId]||(REL_HIDDEN[elId]={});
+  const key=st.built[bi].key;
+  if(checked) delete hidden[key]; else hidden[key]=true;
+  relPaint(elId);
+}
+function relPaint(elId){
+  const el=document.getElementById(elId), st=REL_LAST[elId]; if(!el||!st) return;
+  const hidden=REL_HIDDEN[elId]||{};
+  const built=st.built;
+  const vis=built.filter(s=>!hidden[s.key]);
   // 가로축 날짜 라벨 — yclose()가 실제 거래일 타임스탬프를 주지 않으므로, 영업일수(1주=5거래일)로
   // 역산한 근사 날짜를 쓴다(참고용 표시로 충분 — 휴장일 등으로 하루이틀 오차가 있을 수 있다).
   const n=Math.max.apply(null,built.map(s=>s.values.length).concat([2]));
@@ -318,8 +339,76 @@ function relReturnChart(elId, series, loaded){
   }
   const mid=Math.floor((n-1)/2);
   const xLabels=[{i:0,text:calDate(0),anchor:'start'},{i:mid,text:calDate(mid),anchor:'middle'},{i:n-1,text:calDate(n-1),anchor:'end'}];
-  el.innerHTML=miniLineChart(built,{h:250,padL:40,padR:8,padTop:14,padBottom:18,
-    axis:true, axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(1)+'%', xLabels});
+  // 범례는 직접 그리므로(체크박스) 차트에는 label을 넘기지 않는다
+  const plain=vis.map(s=>({values:s.values, color:s.color, width:s.width, opacity:REL_DIM_OPACITY}));
+  const chartHtml=vis.length
+    ? miniLineChart(plain,{h:250,padL:40,padR:8,padTop:14,padBottom:18,
+        axis:true, axisFmt:v=>(v-100>=0?'+':'')+(v-100).toFixed(1)+'%', xLabels})
+    : '<p class="mut" style="font-size:12.5px;padding:60px 0;text-align:center">표시할 종목을 아래 범례에서 체크해주세요.</p>';
+  const chips=built.map((s,bi)=>{
+    const off=!!hidden[s.key];
+    return '<label class="rel-chip" data-bi="'+bi+'" style="display:inline-flex;align-items:center;gap:5px;margin:0 12px 6px 0;font-size:12px;cursor:pointer;'+
+        'color:'+(off?'var(--tx2)':'var(--tx)')+';opacity:'+(off?'.5':'1')+'">'+
+      '<input type="checkbox" '+(off?'':'checked')+' onchange="relToggle(\''+elId+'\','+bi+',this.checked)" style="margin:0;accent-color:'+s.color+'">'+
+      '<i style="width:12px;height:3px;border-radius:2px;background:'+s.color+';display:inline-block"></i>'+
+      '<span>'+s.label+'</span></label>';
+  }).join('');
+  el.innerHTML=
+    '<div class="rel-readout mut" style="font-size:12px;min-height:18px;margin-bottom:4px">선 근처에 마우스를 올리면 해당 종목이 진하게 표시됩니다 · 아래 체크박스로 종목을 숨길 수 있습니다</div>'+
+    chartHtml+
+    '<div style="margin-top:8px;display:flex;flex-wrap:wrap">'+chips+'</div>';
+  const svg=el.querySelector('svg.mlc');
+  if(!svg) return;
+  const g=k=>+svg.getAttribute('data-'+k);
+  const W=g('w'),H=g('h'),padL=g('padl'),padR=g('padr'),padT=g('padt'),padB=g('padb'),mn=g('min'),mx=g('max'),nn=g('n');
+  const stepX=nn>1?(W-padL-padR)/(nn-1):0;
+  const yOf=v=>H-padB-((v-mn)/((mx-mn)||1))*(H-padT-padB);
+  const paths=Array.from(svg.querySelectorAll('path.mlc-s'));
+  const readout=el.querySelector('.rel-readout');
+  const defText=readout.textContent;
+  const NS='http://www.w3.org/2000/svg';
+  const guide=document.createElementNS(NS,'line');
+  guide.setAttribute('y1',padT); guide.setAttribute('y2',H-padB);
+  guide.setAttribute('stroke','var(--tx2)'); guide.setAttribute('stroke-width','1'); guide.setAttribute('stroke-dasharray','3 3');
+  guide.style.display='none'; svg.appendChild(guide);
+  const dot=document.createElementNS(NS,'circle'); dot.setAttribute('r','4'); dot.style.display='none'; svg.appendChild(dot);
+  function highlight(k,i){
+    paths.forEach((p,idx)=>{
+      const base=vis[idx].width||2.2;
+      if(k<0){ p.setAttribute('opacity',REL_DIM_OPACITY); p.setAttribute('stroke-width',base); }
+      else if(idx===k){ p.setAttribute('opacity',1); p.setAttribute('stroke-width',base+1.3); p.parentNode.appendChild(p); }
+      else { p.setAttribute('opacity',0.12); p.setAttribute('stroke-width',base); }
+    });
+    el.querySelectorAll('.rel-chip').forEach(c=>{
+      const s=built[+c.dataset.bi];
+      const idx=vis.indexOf(s);
+      c.style.fontWeight=(k>=0 && idx===k)?'800':'400';
+    });
+    if(k<0){ readout.textContent=defText; guide.style.display='none'; dot.style.display='none'; return; }
+    const s=vis[k], v=s.values[i];
+    readout.innerHTML='<b style="color:'+s.color+'">'+s.key+'</b> · '+calDate(i)+' · '+(v!=null?sign(v-100):'--')+' (기간 시작=100 대비)';
+    guide.setAttribute('x1',padL+i*stepX); guide.setAttribute('x2',padL+i*stepX); guide.style.display='';
+    if(v!=null){ dot.setAttribute('cx',padL+i*stepX); dot.setAttribute('cy',yOf(v)); dot.setAttribute('fill',s.color); dot.style.display=''; }
+    else dot.style.display='none';
+  }
+  svg.style.cursor='crosshair';
+  svg.addEventListener('mousemove',ev=>{
+    const r=svg.getBoundingClientRect(); if(!r.width) return;
+    const vx=(ev.clientX-r.left)/r.width*W, vy=(ev.clientY-r.top)/r.height*H;
+    const i=Math.max(0,Math.min(nn-1,Math.round((vx-padL)/(stepX||1))));
+    let best=-1, bd=1e9;
+    vis.forEach((s,k)=>{ const v=s.values[i]; if(v==null) return; const d=Math.abs(yOf(v)-vy); if(d<bd){ bd=d; best=k; } });
+    highlight(best,i);
+  });
+  svg.addEventListener('mouseleave',()=>highlight(-1));
+  // 범례에 마우스를 올려도 해당 종목 강조
+  el.querySelectorAll('.rel-chip').forEach(c=>{
+    c.addEventListener('mouseenter',()=>{
+      const k=vis.indexOf(built[+c.dataset.bi]);
+      if(k>=0) highlight(k, vis[k].values.length-1);
+    });
+    c.addEventListener('mouseleave',()=>highlight(-1));
+  });
 }
 /* 시가총액 TOP10 카드(cap/krcap)의 순위·색상 순서를 그대로 상대수익률 비교 시리즈로 변환 */
 function capRelDefsFromGroup(group, capData){
@@ -445,17 +534,38 @@ function renderBreadthFlow(elId, breadth){
 }
 
 /* ================= 한국지수 "투자자 동향" / "증시자금동향" (Npay 증권) =================
-   stock.naver.com(Npay 증권)이 자체 집계해 공개하는 지수별 당일 투자자 순매수와 증시자금
-   추이를 Worker(/kr-investor-trend, /kr-market-deposit)가 CORS 중계해준다. */
+   stock.naver.com(Npay 증권)이 공개하는 지수별 투자자 순매수와 증시자금 추이를
+   Worker(/kr-investor-trend, /kr-investor-history, /kr-market-deposit)가 CORS 중계해준다.
+   - 투자자 동향: 1일(네이버 공식 요약값) / 1주·1개월·3개월(일별 이력을 합산한 누적 순매수)
+   - 막대는 0을 정중앙에 둔 위·아래 대칭 축(세로 범례)으로 순매수(▲ 빨강)·순매도(▼ 파랑)를 구분한다.
+   - 증시자금동향: 5개 지표 카드마다 가로(날짜)·세로(금액) 범례를 가진 추이선을 그린다. */
 let krInvestorMarket='KOSPI';
+let krInvestorPeriod='1d';   // '1d'|'1w'|'1m'|'3m'
+let krDepositPeriod='3m';    // '1w'|'1m'|'3m'
+let krDepositRows=null;
+const KR_FLOW_DAYS={'1w':5,'1m':21,'3m':63};
+const KR_PERIOD_LABEL={'1d':'1일','1w':'1주','1m':'1개월','3m':'3개월'};
+const KR_INV_HIST={};        // market -> {t:타임스탬프, rows:[...]}
+function krOrigin(){ return PROXY_BASE.replace(/\?url=$/,''); }
 async function loadKrInvestorTrend(market){
   try{
-    const origin=PROXY_BASE.replace(/\?url=$/,'');
-    const r=await fetch(origin+'kr-investor-trend?market='+market,{signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
+    const r=await fetch(krOrigin()+'kr-investor-trend?market='+market,{signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
     if(!r.ok) return null;
     const j=await r.json();
     return (j && j.bizdate)?j:null;
   }catch(e){ console.warn('투자자 동향 로딩 실패:', e); return null; }
+}
+async function loadKrInvestorHistory(market){
+  const c=KR_INV_HIST[market];
+  if(c && Date.now()-c.t<5*60*1000) return c.rows;
+  try{
+    const r=await fetch(krOrigin()+'kr-investor-history?market='+market+'&size=70',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    if(!Array.isArray(j)||!j.length) return null;
+    KR_INV_HIST[market]={t:Date.now(), rows:j};
+    return j;
+  }catch(e){ console.warn('투자자 동향 이력 로딩 실패:', e); return null; }
 }
 function parseKrAmt(s){ // "+2,654" / "-986" 같은 네이버 표기 문자열 → 숫자(억원)
   if(s==null) return null;
@@ -465,50 +575,111 @@ function parseKrAmt(s){ // "+2,654" / "-986" 같은 네이버 표기 문자열 �
 function fmtKrDate(bizdate){
   return bizdate?String(bizdate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1. $2. $3.'):'';
 }
-async function setKrInvestorMarket(market){
-  krInvestorMarket=market;
-  document.querySelectorAll('.kr-investor-market-btn').forEach(b=>b.classList.toggle('on', b.dataset.m===market));
-  const el=document.getElementById('kr-investor-trend');
-  if(el) el.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
-  renderKrInvestorTrend(await loadKrInvestorTrend(market));
+function fmtKrMD(bizdate){
+  const m=/^(\d{4})(\d{2})(\d{2})$/.exec(String(bizdate||'')); return m?(+m[2])+'/'+(+m[3]):'';
 }
-function renderKrInvestorTrend(data){
+/* 억원 단위 값을 읽기 쉽게: 1만억 이상은 조 단위로 */
+function fmtEok(v, signed){
+  if(v==null||!isFinite(v)) return '--';
+  const a=Math.abs(v), s=v<0?'-':(signed&&v>0?'+':'');
+  if(a>=10000) return s+(a/10000).toFixed(a>=100000?1:2)+'조';
+  return s+Math.round(a).toLocaleString('ko-KR')+'억';
+}
+/* 0을 정중앙에 둔 대칭 세로 막대 — 위=순매수(빨강), 아래=순매도(파랑), 세로축 범례 5눈금 */
+function krDivergingBars(bars){
+  const W=340,H=240,padL=58,padR=12,padT=26,padB=28;
+  const maxAbs=Math.max(1,...bars.map(b=>Math.abs(b.v||0)));
+  const mag=Math.pow(10,Math.floor(Math.log10(maxAbs)));
+  let M=mag*10;
+  for(const c of [1,1.5,2,2.5,3,4,5,6,8,10]){ if(c*mag>=maxAbs*1.3){ M=c*mag; break; } }
+  const plotH=H-padT-padB;
+  const yOf=v=>padT+(M-v)/(2*M)*plotH;
+  const y0=yOf(0);
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-width:560px;display:block;margin:0 auto">';
+  // 눈금선 + 세로 범례
+  [M,M/2,0,-M/2,-M].forEach(t=>{
+    const y=yOf(t);
+    svg+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" stroke="'+(t===0?'var(--tx2)':'var(--line)')+'" stroke-width="'+(t===0?1.4:1)+'"'+(t===0?'':' stroke-dasharray="2 3"')+'/>';
+    svg+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="var(--tx2)"'+(t===0?' font-weight="700"':'')+'>'+(t===0?'0':fmtEok(t,true))+'</text>';
+  });
+  svg+='<text x="'+(padL+4)+'" y="'+(padT-10)+'" font-size="10" fill="var(--up)" font-weight="700">▲ 순매수</text>';
+  svg+='<text x="'+(padL+4)+'" y="'+(H-padB+11)+'" font-size="10" fill="var(--down)" font-weight="700">▼ 순매도</text>';
+  const slot=(W-padL-padR)/bars.length, bw=slot*0.42;
+  bars.forEach((b,i)=>{
+    const cx=padL+slot*(i+0.5);
+    if(b.v==null){
+      svg+='<text x="'+cx+'" y="'+(y0-6)+'" text-anchor="middle" font-size="11" fill="var(--tx2)">--</text>';
+    }else{
+      const y=yOf(b.v), up=b.v>=0, col=up?'var(--up)':'var(--down)';
+      svg+='<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+Math.min(y,y0).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,Math.abs(y-y0)).toFixed(1)+'" rx="3" fill="'+col+'"/>';
+      svg+='<text x="'+cx.toFixed(1)+'" y="'+(up?y-5:y+13).toFixed(1)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+col+'">'+fmtEok(b.v,true)+'</text>';
+    }
+    svg+='<text x="'+cx.toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="12" font-weight="700" fill="var(--tx)">'+b.name+'</text>';
+  });
+  return svg+'</svg>';
+}
+function renderKrInvestorBlock(title, bars, series, xLabels){
   const el=document.getElementById('kr-investor-trend'); if(!el) return;
-  if(!data){
-    el.innerHTML='<p class="mut" style="font-size:12.5px">투자자 동향 데이터를 가져오지 못했습니다 — Worker(/kr-investor-trend)가 배포되어 있는지 확인해주세요.</p>';
+  let html='<div class="mut" style="font-size:11.5px;margin-bottom:6px">'+title+' · 단위 억원(1만억 이상은 조)</div>'+krDivergingBars(bars);
+  if(series){
+    html+='<div class="mut" style="font-size:11.5px;margin:14px 0 4px">기간 중 누적 순매수 추이 (0선 위=누적 매수 우위, 아래=매도 우위)</div>'+
+      miniLineChart(series,{h:170,padL:52,padR:8,padTop:12,padBottom:18,zeroLine:true,axis:true,axisFmt:v=>fmtEok(v,true),xLabels:xLabels});
+  }
+  el.innerHTML=html;
+}
+async function refreshKrInvestor(){
+  const el=document.getElementById('kr-investor-trend'); if(!el) return;
+  const m=krInvestorMarket, p=krInvestorPeriod;
+  el.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
+  const NOTE='<p class="mut" style="font-size:12.5px">투자자 동향 데이터를 가져오지 못했습니다 — Worker(/kr-investor-trend, /kr-investor-history)가 배포되어 있는지 확인해주세요.</p>';
+  if(p==='1d'){
+    let t=await loadKrInvestorTrend(m);
+    let bars=null, date=null;
+    if(t){ bars=[{name:'개인',v:parseKrAmt(t.personal)},{name:'외국인',v:parseKrAmt(t.foreign)},{name:'기관',v:parseKrAmt(t.institutional)}]; date=t.bizdate; }
+    else{
+      const h=await loadKrInvestorHistory(m);
+      if(h && h.length){ const r=h[h.length-1]; bars=[{name:'개인',v:r.personal},{name:'외국인',v:r.foreign},{name:'기관',v:r.institutional}]; date=r.bizdate; }
+    }
+    if(!bars){ el.innerHTML=NOTE; return; }
+    renderKrInvestorBlock(fmtKrDate(date)+' 기준 당일 순매수', bars, null, null);
     return;
   }
-  const rows=[
-    ['개인', parseKrAmt(data.personal)],
-    ['외국인', parseKrAmt(data.foreign)],
-    ['기관', parseKrAmt(data.institutional)]
-  ];
-  const maxAbs=Math.max(1, ...rows.map(([,v])=>Math.abs(v||0)));
-  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(data.bizdate)+' 기준 · 순매수(억원)</div>'+
-    rows.map(([name,v])=>{
-      if(v==null) return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:44px;font-size:12.5px;color:var(--tx2)">'+name+'</div><div class="mut" style="font-size:12.5px">--</div></div>';
-      const isBuy=v>=0;
-      const pct=Math.abs(v)/maxAbs*100;
-      const color=isBuy?'var(--up)':'var(--down)'; // 국내 관례: 순매수(+)=빨강, 순매도(-)=파랑
-      return '<div style="margin-bottom:10px">'+
-        '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">'+
-          '<span style="color:var(--tx2)">'+name+'</span>'+
-          '<span style="font-weight:800;color:'+color+'">'+(isBuy?'+':'')+v.toLocaleString('ko-KR')+'억</span>'+
-        '</div>'+
-        '<div style="height:10px;border-radius:5px;background:var(--panel2);overflow:hidden">'+
-          '<div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+color+'"></div>'+
-        '</div></div>';
-    }).join('');
+  const h=await loadKrInvestorHistory(m);
+  if(!h || !h.length){ el.innerHTML=NOTE; return; }
+  const rows=h.slice(-KR_FLOW_DAYS[p]);
+  const sum=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
+  const bars=[{name:'개인',v:sum('personal')},{name:'외국인',v:sum('foreign')},{name:'기관',v:sum('institutional')}];
+  const cum=k=>{ let s=0; return rows.map(r=>(s+=(r[k]||0))); };
+  const series=[{values:cum('personal'),color:'#f59e0b',width:2,label:'개인'},
+                {values:cum('foreign'),color:'#3d9dff',width:2,label:'외국인'},
+                {values:cum('institutional'),color:'#16a34a',width:2,label:'기관'}];
+  const n=rows.length, mid=Math.floor((n-1)/2);
+  const xl=[{i:0,text:fmtKrMD(rows[0].bizdate),anchor:'start'},{i:mid,text:fmtKrMD(rows[mid].bizdate),anchor:'middle'},{i:n-1,text:fmtKrMD(rows[n-1].bizdate),anchor:'end'}];
+  renderKrInvestorBlock('최근 '+KR_PERIOD_LABEL[p]+'('+n+'영업일, '+fmtKrDate(rows[0].bizdate)+' ~ '+fmtKrDate(rows[n-1].bizdate)+') 누적 순매수', bars, series, xl);
+}
+function setKrInvestorMarket(market){
+  krInvestorMarket=market;
+  document.querySelectorAll('.kr-investor-market-btn').forEach(b=>b.classList.toggle('on', b.dataset.m===market));
+  refreshKrInvestor();
+}
+function setKrInvestorPeriod(p){
+  krInvestorPeriod=p;
+  document.querySelectorAll('.kr-investor-period-btn').forEach(b=>b.classList.toggle('on', b.dataset.p===p));
+  refreshKrInvestor();
 }
 
 async function loadKrMarketDeposit(size){
   try{
-    const origin=PROXY_BASE.replace(/\?url=$/,'');
-    const r=await fetch(origin+'kr-market-deposit?size='+(size||40),{signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
+    const r=await fetch(krOrigin()+'kr-market-deposit?size='+(size||70),{signal:AbortSignal.timeout?AbortSignal.timeout(12000):undefined});
     if(!r.ok) return null;
     const j=await r.json();
     return (Array.isArray(j)&&j.length)?j:null;
   }catch(e){ console.warn('증시자금동향 로딩 실패:', e); return null; }
+}
+function setKrDepositPeriod(p){
+  krDepositPeriod=p;
+  document.querySelectorAll('.kr-deposit-period-btn').forEach(b=>b.classList.toggle('on', b.dataset.p===p));
+  renderKrMarketDeposit(krDepositRows);
 }
 function renderKrMarketDeposit(rows){
   const el=document.getElementById('kr-market-deposit'); if(!el) return;
@@ -516,7 +687,8 @@ function renderKrMarketDeposit(rows){
     el.innerHTML='<p class="mut" style="font-size:12.5px">증시자금동향 데이터를 가져오지 못했습니다 — Worker(/kr-market-deposit)가 배포되어 있는지 확인해주세요.</p>';
     return;
   }
-  const last=rows[rows.length-1];
+  const win=rows.slice(-(KR_FLOW_DAYS[krDepositPeriod]+1)); // 기간 시작 기준점 1개 포함
+  const last=win[win.length-1], first=win[0];
   const metrics=[
     ['고객예탁금','customerDeposit','customerDepositDiff'],
     ['신용잔고','creditLoan','creditLoanDiff'],
@@ -524,31 +696,40 @@ function renderKrMarketDeposit(rows){
     ['혼합형펀드','mixedFund','mixedFundDiff'],
     ['채권형펀드','bondFund','bondFundDiff']
   ];
-  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 단위 억원</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px">'+
+  const n=win.length, mid=Math.floor((n-1)/2);
+  const xl=[{i:0,text:fmtKrMD(first.bizdate),anchor:'start'},{i:mid,text:fmtKrMD(win[mid].bizdate),anchor:'middle'},{i:n-1,text:fmtKrMD(last.bizdate),anchor:'end'}];
+  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">'+
     metrics.map(([name,key,diffKey])=>{
       const v=last[key], diff=last[diffKey];
-      const values=rows.map(r=>r[key]);
+      const values=win.map(r=>r[key]);
+      const nums=values.filter(x=>x!=null);
+      const lo=Math.min(...nums), hi=Math.max(...nums);
+      const dec=((hi-lo)/10000<1)?2:1;
+      const fmtAx=x=>x>=10000?(x/10000).toFixed(dec)+'조':Math.round(x).toLocaleString('ko-KR');
       const diffUp=(diff!=null && diff>=0);
       const diffColor=diff==null?'var(--tx2)':(diffUp?'var(--up)':'var(--down)');
       const diffText=diff==null?'--':(diffUp?'▲':'▼')+Math.abs(diff).toLocaleString('ko-KR');
+      const pChg=(first[key]&&v!=null)?(v-first[key])/first[key]*100:null;
+      const pCol=pChg==null?'var(--tx2)':(pChg>=0?'var(--up)':'var(--down)');
       return '<div style="padding:10px 12px;background:var(--panel2);border-radius:10px">'+
-        '<div style="font-size:11.5px;color:var(--tx2);margin-bottom:4px">'+name+'</div>'+
-        '<div style="font-weight:800;font-size:15px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'</div>'+
-        '<div style="font-size:11.5px;color:'+diffColor+';font-weight:700;margin-bottom:6px">'+diffText+'</div>'+
-        miniLineChart([{values:values, color:diffColor, width:1.5}], {w:140,h:34,padL:0,padR:0,padTop:3,padBottom:3})+
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'+
+          '<span style="font-size:12px;color:var(--tx2);font-weight:700">'+name+'</span>'+
+          '<span style="font-size:11px;color:'+pCol+';font-weight:700">'+KR_PERIOD_LABEL[krDepositPeriod]+' '+(pChg==null?'--':(pChg>=0?'+':'')+pChg.toFixed(2)+'%')+'</span></div>'+
+        '<div style="font-weight:800;font-size:16px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'<span style="font-size:11px;font-weight:400;color:var(--tx2)"> 억</span>'+
+          ' <span style="font-size:12px;color:'+diffColor+';font-weight:700">'+diffText+'</span></div>'+
+        miniLineChart([{values:values, color:(pChg!=null&&pChg>=0?'var(--up)':'var(--down)'), width:1.8}],
+          {w:300,h:120,padL:46,padR:8,padTop:8,padBottom:18,axis:true,axisFmt:fmtAx,xLabels:xl})+
       '</div>';
     }).join('')+
     '</div>';
 }
 async function loadKrFundFlow(){
-  const trendEl=document.getElementById('kr-investor-trend');
-  if(trendEl) trendEl.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
   const depositEl=document.getElementById('kr-market-deposit');
   if(depositEl) depositEl.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
-  const [trend, deposit]=await Promise.all([loadKrInvestorTrend(krInvestorMarket), loadKrMarketDeposit(40)]);
-  renderKrInvestorTrend(trend);
-  renderKrMarketDeposit(deposit);
+  refreshKrInvestor();
+  krDepositRows=await loadKrMarketDeposit(70);
+  renderKrMarketDeposit(krDepositRows);
 }
 
 /* ================= 자산간 상관관계 (야선지지 매크로 대시보드 스타일 시각화 구체화) =================
@@ -1590,18 +1771,45 @@ async function loadUsFundamentalsOnce(){
 function kimValuationVerdict(growthPct, psr){
   if(growthPct==null && psr==null) return null;
   let score=0;
-  if(growthPct!=null){ if(growthPct>=15) score+=1; else if(growthPct<=0) score-=1; }
-  if(psr!=null){ if(psr>0 && psr<2) score+=1; else if(psr>8) score-=1; }
-  if(score>=1) return {label:'저평가', color:'var(--accent)'};
-  if(score<=-1) return {label:'고평가', color:'var(--up)'};
-  return {label:'관망', color:'var(--gold)'};
+  const reasons=[];
+  if(growthPct!=null){
+    if(growthPct>=15){ score+=1; reasons.push({txt:'매출액증가율 '+(growthPct>=0?'+':'')+growthPct.toFixed(1)+'% — 성장세 양호', pt:+1}); }
+    else if(growthPct<=0){ score-=1; reasons.push({txt:'매출액증가율 '+growthPct.toFixed(1)+'% — 역성장', pt:-1}); }
+    else reasons.push({txt:'매출액증가율 +'+growthPct.toFixed(1)+'% — 보통', pt:0});
+  }
+  if(psr!=null){
+    if(psr>0 && psr<2){ score+=1; reasons.push({txt:'PSR '+psr.toFixed(2)+'배 — 매출 대비 저평가 구간', pt:+1}); }
+    else if(psr>8){ score-=1; reasons.push({txt:'PSR '+psr.toFixed(2)+'배 — 매출 대비 고평가 구간', pt:-1}); }
+    else reasons.push({txt:'PSR '+psr.toFixed(2)+'배 — 보통', pt:0});
+  }
+  if(score>=1) return {label:'저평가', color:'var(--accent)', score:score, idx:0, reasons:reasons};
+  if(score<=-1) return {label:'고평가', color:'var(--up)', score:score, idx:2, reasons:reasons};
+  return {label:'관망', color:'var(--gold)', score:score, idx:1, reasons:reasons};
 }
+/* 3단 게이지(저평가 | 관망 | 고평가) — 해당 구간만 진하게 채우고 ▼ 마커로 현재 위치를 표시,
+   판정에 반영된 근거(지표별 +1/0/-1점)를 함께 보여준다. */
 function renderKimVerdictBadge(growthPct, psr){
   const v=kimValuationVerdict(growthPct, psr);
   if(!v) return '';
-  return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
-    '<span style="display:inline-block;padding:4px 12px;border-radius:8px;background:'+v.color+'22;color:'+v.color+';font-weight:800;font-size:12.5px">김군 판정 · '+v.label+'</span>'+
-    '<div class="mut" style="font-size:10px;margin-top:4px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div></div>';
+  const segs=[['저평가','var(--accent)'],['관망','var(--gold)'],['고평가','var(--up)']];
+  const bar=segs.map(([nm,c],i)=>{
+    const on=(i===v.idx);
+    return '<div style="flex:1;text-align:center;padding:7px 0;font-size:12px;font-weight:'+(on?800:600)+';'+
+      'background:'+(on?c:c+'1f')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:8px 0 0 8px;':'')+(i===2?'border-radius:0 8px 8px 0;':'')+
+      (on?'box-shadow:0 0 0 2px '+c+'55;position:relative;z-index:1':'')+'">'+nm+'</div>';
+  }).join('');
+  const reasons=v.reasons.map(r=>
+    '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-top:3px">'+
+      '<span class="mut">'+r.txt+'</span>'+
+      '<b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+';flex:none">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>'
+  ).join('');
+  return '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
+      '<span style="font-weight:800;font-size:13px">김군 판정</span>'+
+      '<span style="font-weight:800;font-size:13px;color:'+v.color+'">'+v.label+'</span></div>'+
+    '<div style="display:flex">'+bar+'</div>'+
+    '<div style="margin-top:8px">'+reasons+'</div>'+
+    '<div class="mut" style="font-size:10px;margin-top:6px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div></div>';
 }
 function renderUsFinancialRatios(it){
   if(!it || (it.revenueGrowth==null && it.earningsGrowth==null && it.trailingEps==null && it.forwardEps==null && it.psr==null && it.trailingPE==null)){
@@ -1835,7 +2043,7 @@ function ipoBuildItem(raw){
   // 이걸 구분 안 하면 "데이터를 못 가져온 것"처럼(계속 '미정'/'수요예측 전') 보여 로딩 실패로
   // 오해하기 쉬웠다 — market 문구로 이전상장 여부를 판별해 안내 문구를 다르게 준다.
   const isTransfer=/이전상장/.test(raw.market||'');
-  const stageNote=isTransfer?'일반공모 없음(이전상장)':raw.stage==='청약중'?'청약 진행중(수요예측 결과 아직 미반영)':raw.stage==='수요예측'?'수요예측 진행중':null;
+  const stageNote=isTransfer?'일반공모 없음(이전상장)':raw.stage==='청약중'?'수요예측 결과 미집계(38.co.kr 반영 대기)':raw.stage==='수요예측'?'수요예측 진행중':raw.stage==='상장예정'?'수요예측 결과 미집계':raw.stage==='신규상장'?'미집계':null;
   const descParts=[];
   if(raw.subRatioText) descParts.push('개인 청약경쟁률 '+raw.subRatioText);
   if(raw.totalShares) descParts.push('총공모주식수 '+raw.totalShares);
@@ -1845,9 +2053,10 @@ function ipoBuildItem(raw){
     no: raw.no||null, // 38.co.kr 상세페이지 id — 동종업체 비교(/ipo-peer) 조회용
     name: raw.name,
     market: raw.market||'',
-    stage: raw.stage||null, // '수요예측'·'청약중'·'신규상장' — 카드에 진행 상태 배지를 표시하기 위해 전달
+    stage: raw.stage||null, // '수요예측'·'청약중'·'상장예정'·'신규상장(=상장완료)' — 카드에 진행 상태 배지를 표시하기 위해 전달
     isTransfer: isTransfer,
-    subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.predictDate?('수요예측 '+raw.predictDate):'미정')),
+    subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.stage==='신규상장'?'상장완료':(raw.predictDate?('수요예측 '+raw.predictDate):'미정'))),
+    subRatio: raw.subRatioText||(raw.stage==='청약중'?'청약 종료 후 발표':raw.stage==='수요예측'?'청약 전':null),
     listDate: raw.listDate||'미정',
     underwriter: raw.underwriter||'미정',
     offerPriceBand: raw.offerPriceBand||null,
@@ -2043,12 +2252,27 @@ async function dartFinancialYear(corpCode, year){
       console.warn('DART 재무제표 실패('+corpCode+','+year+'):', j&&j.message);
       return null;
     }
-    const pick=nm=>{
-      const row=j.list.find(r=>r.account_nm===nm && r.fs_div==='CFS') // 연결재무제표 우선
-             || j.list.find(r=>r.account_nm===nm); // 없으면 개별재무제표
-      return row?(+row.thstrm_amount.replace(/,/g,'')):null;
+    // [버그 수정] 적자 기업은 계정명이 "당기순이익(손실)"·"영업손실" 등으로 오거나 금액이 "-1,234"/"△1,234"
+    // 형태라 예전 정확일치(===) + 단순 숫자변환이 실패해 null/NaN → 막대가 사라지거나 양수처럼 그려졌다.
+    // 계정명 후보를 여러 개 허용하고, 괄호음수·△·▲·"-" 표기를 모두 음수로 해석한다.
+    const parseAmt=str=>{
+      if(str==null) return null;
+      let t=String(str).trim();
+      if(!t||t==='-') return null;
+      let neg=false;
+      if(/^[\(△▲-]/.test(t)||/\)$/.test(t)) neg=true;
+      t=t.replace(/[^0-9.]/g,'');
+      if(!t) return null;
+      const n=parseFloat(t);
+      return isFinite(n)?(neg?-n:n):null;
     };
-    return { year, revenue:pick('매출액'), opProfit:pick('영업이익'), netProfit:pick('당기순이익') };
+    const pick=names=>{
+      const ok=r=>names.some(nm=>r.account_nm===nm || (r.account_nm||'').replace(/\s/g,'').indexOf(nm)===0);
+      const row=j.list.find(r=>ok(r) && r.fs_div==='CFS' && parseAmt(r.thstrm_amount)!=null) // 연결재무제표 우선
+             || j.list.find(r=>ok(r) && parseAmt(r.thstrm_amount)!=null); // 없으면 개별재무제표
+      return row?parseAmt(row.thstrm_amount):null;
+    };
+    return { year, revenue:pick(['매출액','수익(매출액)','영업수익']), opProfit:pick(['영업이익','영업손실','영업손익']), netProfit:pick(['당기순이익','당기순손실','당기순손익']) };
   }catch(e){ console.warn('DART 호출 실패('+corpCode+','+year+'):', e); return null; }
 }
 
@@ -2212,54 +2436,128 @@ async function renderIpoPeerPriceChart(elId, peer, listDateStr){
   }
 }
 
-/* 손익계산서 3년 막대그래프(매출액·영업이익·당기순이익) — 반환된 HTML 문자열을 그대로 넣어 쓴다 */
+/* 손익계산서 3년 시각화 — 연도별 묶음 세로막대(매출액·영업이익·당기순이익). 적자(음수)는 0선 아래로
+   내려가고 "적자" 표시가 붙으며, 세로축(금액)·가로축(연도) 범례와 3년 변화 요약표를 함께 그린다.
+   data: [{year, revenue, opProfit, netProfit}] (원 단위) */
+const FIN_METRICS=[['매출액','revenue','#3d9dff'],['영업이익','opProfit','#f59e0b'],['당기순이익','netProfit','#16a34a']];
+function finNiceStep(x){
+  const mag=Math.pow(10,Math.floor(Math.log10(x||1)));
+  for(const c of [1,2,2.5,5,10]){ if(c*mag>=x) return c*mag; }
+  return 10*mag;
+}
+function finChange(first, last){ // 3년 변화 라벨 {txt,color}
+  if(first==null||last==null) return {txt:'—',color:'var(--tx2)'};
+  if(first>0 && last>0){ const p=(last-first)/first*100; return {txt:(p>=0?'+':'')+p.toFixed(0)+'%', color:p>=0?'var(--up)':'var(--down)'}; }
+  if(first<=0 && last>0) return {txt:'흑자전환', color:'var(--up)'};
+  if(first>0 && last<=0) return {txt:'적자전환', color:'var(--down)'};
+  return last>first?{txt:'적자 축소',color:'var(--tx2)'}:{txt:'적자 확대',color:'var(--down)'};
+}
+/* 한 묶음의 지표(metrics)를 연도별 세로막대로 그린 SVG. 매출액은 이익보다 훨씬 커서 한 축에 같이 그리면
+   영업이익·순이익(특히 적자)이 점처럼 보이므로, 아래 renderFinancialsChart에서 매출 차트와 이익 차트를
+   각자의 세로축으로 따로 그린다. */
+function finSvg(data, metrics, H){
+  const eok=v=>v==null?null:v/100000000; // 원 → 억원
+  const vals=[];
+  data.forEach(d=>metrics.forEach(([,k])=>{ const e=eok(d[k]); if(e!=null&&isFinite(e)) vals.push(e); }));
+  if(!vals.length) return '';
+  const hi=Math.max(0,...vals), lo=Math.min(0,...vals);
+  const step=finNiceStep((hi-lo)/4||1);
+  const yMax=Math.ceil(hi/step)*step, yMin=Math.floor(lo/step)*step;
+  const W=360,padL=58,padR=8,padT=12,padB=24;
+  const yOf=v=>padT+(yMax-v)/((yMax-yMin)||1)*(H-padT-padB);
+  const y0=yOf(0);
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-width:520px;display:block">';
+  for(let t=yMin;t<=yMax+step/2;t+=step){
+    const y=yOf(t);
+    svg+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>';
+    svg+='<text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="var(--tx2)">'+(Math.abs(t)<1e-9?'0':fmtEok(t,false))+'</text>';
+  }
+  svg+='<line x1="'+padL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y0.toFixed(1)+'" stroke="var(--tx2)" stroke-width="1.4"/>';
+  const slot=(W-padL-padR)/data.length, gw=slot*0.7, bw=gw/metrics.length;
+  data.forEach((d,gi)=>{
+    const gx=padL+slot*gi+(slot-gw)/2;
+    metrics.forEach(([nm,k,col],mi)=>{
+      const e=eok(d[k]); if(e==null||!isFinite(e)) return;
+      const y=yOf(e), x=gx+bw*mi, neg=e<0;
+      svg+='<rect x="'+(x+1).toFixed(1)+'" y="'+Math.min(y,y0).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+Math.max(1.5,Math.abs(y-y0)).toFixed(1)+'" rx="2" fill="'+col+'"'+(neg?' fill-opacity=".55" stroke="'+col+'" stroke-width="1.2" stroke-dasharray="3 2"':'')+'><title>'+d.year+'년 '+nm+' '+fmtEok(e,true)+(neg?' (적자)':'')+'</title></rect>';
+      svg+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(neg?y+10:y-3).toFixed(1)+'" text-anchor="middle" font-size="8.5" font-weight="800" fill="'+(neg?'var(--down)':'var(--tx2)')+'">'+(neg?'적자 ':'')+fmtEok(e,false)+'</text>';
+    });
+    svg+='<text x="'+(padL+slot*(gi+0.5)).toFixed(1)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--tx)">'+d.year+'년</text>';
+  });
+  return svg+'</svg>';
+}
 function renderFinancialsChart(data){
   if(!data || !data.length) return '<p class="mut" style="font-size:12.5px">재무제표 데이터를 가져오지 못했습니다.</p>';
-  const w=320,barH=22,gap=6,leftLabelW=90;
-  const metrics=[['매출액','revenue','var(--tx)'],['영업이익','opProfit','var(--up)'],['당기순이익','netProfit','#2dd4bf']];
-  const allVals=data.flatMap(d=>metrics.map(([,k])=>d[k]||0));
-  const maxV=Math.max(...allVals,1);
-  const fmtOk=v=>{
-    if(v==null) return '--';
-    const eok=v/100000000; // 원 → 억원
-    return eok.toFixed(0)+'억';
-  };
-  let rows='';
-  data.forEach(d=>{
-    rows+='<div style="margin-bottom:10px"><div class="mut" style="font-size:11.5px;margin-bottom:4px">'+d.year+'년</div>';
-    metrics.forEach(([label,key,color])=>{
-      const v=d[key]||0;
-      const pct=Math.max(2,(Math.abs(v)/maxV)*100);
-      rows+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'+
-        '<span style="width:'+leftLabelW+'px;font-size:11px;color:var(--tx2);flex:none">'+label+'</span>'+
-        '<div style="flex:1;background:var(--panel2);border-radius:4px;overflow:hidden;height:'+barH+'px">'+
-          '<div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+color+'"></div>'+
-        '</div>'+
-        '<span style="width:64px;text-align:right;font-size:11.5px;font-weight:700;flex:none">'+fmtOk(v)+'</span>'+
-      '</div>';
-    });
-    rows+='</div>';
-  });
-  return '<div style="max-width:'+w+'px">'+rows+'</div>';
+  const eok=v=>v==null?null:v/100000000;
+  const revSvg=finSvg(data,[FIN_METRICS[0]],150);
+  const profSvg=finSvg(data,[FIN_METRICS[1],FIN_METRICS[2]],190);
+  if(!revSvg && !profSvg) return '<p class="mut" style="font-size:12.5px">재무제표 데이터를 가져오지 못했습니다.</p>';
+  const lg=(nm,col)=>'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-size:11.5px;color:var(--tx2)"><i style="width:10px;height:10px;border-radius:2px;background:'+col+';display:inline-block"></i>'+nm+'</span>';
+  const svg=(revSvg?'<div style="margin-bottom:2px">'+lg('매출액',FIN_METRICS[0][2])+'</div>'+revSvg:'')+
+    (profSvg?'<div style="margin:8px 0 2px">'+lg('영업이익',FIN_METRICS[1][2])+lg('당기순이익',FIN_METRICS[2][2])+'<span style="font-size:11px;color:var(--down)">점선 막대 = 적자(0선 아래)</span></div>'+profSvg:'');
+  const legend='';
+  // 한눈에 보는 요약표: 연도별 값 + 3년 변화 + 영업이익률
+  const th='<tr><th style="text-align:left">항목(억원)</th>'+data.map(d=>'<th style="text-align:right">'+d.year+'</th>').join('')+'<th style="text-align:right">변화</th></tr>';
+  const valCell=v=>{ const e=eok(v); return e==null?'<td style="text-align:right" class="mut">—</td>':'<td style="text-align:right;font-weight:700;'+(e<0?'color:var(--down)':'')+'">'+fmtEok(e,false)+'</td>'; };
+  const rows=FIN_METRICS.map(([nm,k,col])=>{
+    const arr=data.map(d=>d[k]).filter(v=>v!=null);
+    const ch=finChange(arr.length>1?arr[0]:null, arr.length>1?arr[arr.length-1]:null);
+    return '<tr><td><i style="width:8px;height:8px;border-radius:2px;background:'+col+';display:inline-block;margin-right:5px"></i>'+nm+'</td>'+
+      data.map(d=>valCell(d[k])).join('')+'<td style="text-align:right;font-weight:800;color:'+ch.color+'">'+ch.txt+'</td></tr>';
+  }).join('');
+  const marginRow='<tr><td class="mut">영업이익률</td>'+data.map(d=>{
+    const m=(d.revenue&&d.opProfit!=null)?d.opProfit/d.revenue*100:null;
+    return '<td style="text-align:right;'+(m!=null&&m<0?'color:var(--down)':'')+'">'+(m==null?'—':m.toFixed(1)+'%')+'</td>';
+  }).join('')+'<td></td></tr>';
+  return svg+
+    '<div class="scroll" style="margin-top:8px"><table style="font-size:11.5px"><thead>'+th+'</thead><tbody>'+rows+marginRow+'</tbody></table></div>';
 }
 
-/* 재무비율(매출액증가율·영업이익증가율) + 주가지표(EPS·PSR) — dartFinancialsWithRatios()가
-   모아준 값을 손익 막대그래프 아래에 작은 표로 붙인다. */
+/* 0을 중앙으로 한 증가율 막대(±clip% 에서 잘림) */
+function finDivBar(v, clip){
+  if(v==null) return '<div class="mut" style="font-size:11px">—</div>';
+  const w=Math.min(Math.abs(v),clip)/clip*50, col=v>=0?'var(--up)':'var(--down)';
+  return '<div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden">'+
+    '<div style="position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:var(--tx2);z-index:1"></div>'+
+    '<div style="position:absolute;top:0;bottom:0;'+(v>=0?'left:50%':'right:50%')+';width:'+w.toFixed(1)+'%;background:'+col+'"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx2);margin-top:2px"><span>−'+clip+'%</span><span>0</span><span>+'+clip+'%</span></div>';
+}
+/* PSR 구간 바: 0~2 저평가, 2~8 보통, 8~12+ 고평가 */
+function finPsrBar(psr){
+  if(psr==null) return '<div class="mut" style="font-size:11px">—</div>';
+  const MAX=12, pos=Math.max(0,Math.min(MAX,psr))/MAX*100;
+  return '<div style="position:relative;height:10px;border-radius:5px;overflow:hidden;display:flex">'+
+      '<div style="width:'+(2/MAX*100)+'%;background:var(--accent);opacity:.55"></div>'+
+      '<div style="width:'+(6/MAX*100)+'%;background:var(--gold);opacity:.55"></div>'+
+      '<div style="flex:1;background:var(--up);opacity:.55"></div></div>'+
+    '<div style="position:relative;height:8px"><div style="position:absolute;left:'+pos.toFixed(1)+'%;top:0;transform:translateX(-50%);font-size:9px;color:var(--tx);line-height:8px">▲</div></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx2)"><span>0</span><span>2 저평가↑</span><span>8 고평가↓</span><span>12+</span></div>';
+}
+/* 재무비율(매출액증가율·영업이익증가율) + 주가지표(EPS·PSR) 시각화 + 김군 판정 — 오른쪽 패널용 */
 function renderFinancialRatios(ratios){
   if(!ratios) return '';
   const g=ratios.growth, eps=ratios.eps, psr=ratios.psr;
-  if(g==null && eps==null && psr==null) return '<p class="mut" style="font-size:11.5px;margin-top:6px">재무비율·주가지표 데이터를 가져오지 못했습니다.</p>';
+  if(g==null && eps==null && psr==null) return '<p class="mut" style="font-size:11.5px">재무비율·주가지표 데이터를 가져오지 못했습니다.</p>';
   const pctStr=v=>(v==null)?'—':((v>=0?'+':'')+v.toFixed(1)+'%');
   const pctColor=v=>(v==null)?'var(--tx2)':(v>=0?'var(--up)':'var(--down)');
   const rg=g?g.revenueGrowth:null, og=g?g.opProfitGrowth:null;
-  return '<div style="max-width:320px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
-    '<div class="mut" style="font-size:11px;margin-bottom:6px">재무비율 · 주가지표(최신 사업연도, DART 성장성지표 기준)</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px">'+
-      '<div><span class="mut" style="font-size:10.5px">매출액증가율</span><br><b style="color:'+pctColor(rg)+'">'+pctStr(rg)+'</b></div>'+
-      '<div><span class="mut" style="font-size:10.5px">영업이익증가율</span><br><b style="color:'+pctColor(og)+'">'+pctStr(og)+'</b></div>'+
-      '<div><span class="mut" style="font-size:10.5px">EPS(주당순이익)</span><br><b>'+(eps==null?'—':eps.toLocaleString()+'원')+'</b></div>'+
-      '<div><span class="mut" style="font-size:10.5px">PSR(주가매출비율)</span><br><b>'+(psr==null?'—':psr.toFixed(2)+'배')+'</b></div>'+
-    '</div>'+renderKimVerdictBadge(rg, psr)+'</div>';
+  const row=(label,valHtml,visual)=>'<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px"><span class="mut" style="font-size:11.5px">'+label+'</span>'+valHtml+'</div>'+visual+'</div>';
+  const epsHtml=eps==null?'<b>—</b>':'<b style="color:'+(eps<0?'var(--down)':'var(--tx)')+'">'+eps.toLocaleString()+'원'+(eps<0?' <span style="font-size:10.5px">(적자)</span>':'')+'</b>';
+  return '<div>'+
+    '<div class="mut" style="font-size:11px;margin-bottom:10px">재무비율 · 주가지표(최신 사업연도, DART 성장성지표 기준)</div>'+
+    row('매출액증가율(YoY)','<b style="color:'+pctColor(rg)+'">'+pctStr(rg)+'</b>',finDivBar(rg,60))+
+    row('영업이익증가율(YoY)','<b style="color:'+pctColor(og)+'">'+pctStr(og)+'</b>',finDivBar(og,100))+
+    row('EPS(주당순이익)',epsHtml,'')+
+    row('PSR(주가매출비율)','<b>'+(psr==null?'—':psr.toFixed(2)+'배')+'</b>',finPsrBar(psr))+
+    renderKimVerdictBadge(rg, psr)+'</div>';
+}
+/* 한국지수·공모주 공용 재무 패널: 왼쪽=손익 3년 시각화, 오른쪽=재무비율·주가지표·김군 판정 */
+function renderFinancialsPanel(fin3y, ratios, headNote, footNote){
+  return '<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+headNote+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start">'+
+      '<div style="flex:1 1 340px;min-width:0">'+renderFinancialsChart(fin3y)+'</div>'+
+      '<div style="flex:1 1 270px;min-width:0;max-width:420px">'+renderFinancialRatios(ratios)+'</div>'+
+    '</div>'+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
 }
 
 async function loadKrxIndicators(){
@@ -2998,7 +3296,10 @@ function miniLineChart(seriesArr, opts){
   // preserveAspectRatio="none": 기본값(xMidYMid meet)은 viewBox 가로세로비(w:h)를 유지하려고
   // 실제 컨테이너보다 훨씬 좁은 폭으로 그림을 가운데에 레터박스 처리해버려, 카드 폭이 넓을수록
   // 곡선이 화면 가운데의 좁은 영역에만 몰려 보이는 문제가 있었다. none으로 폭 전체를 채운다.
-  let svg='<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:'+h+'px;display:block">';
+  // data-* 속성: 상대수익률 차트 등에서 마우스 좌표→값을 역산해 가까운 선을 강조할 때 쓴다
+  let svg='<svg class="mlc" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:'+h+'px;display:block"'+
+    ' data-w="'+w+'" data-h="'+h+'" data-padl="'+padL+'" data-padr="'+padR+'" data-padt="'+padTop+'" data-padb="'+padBottom+
+    '" data-min="'+min+'" data-max="'+max+'" data-n="'+n+'">';
   if(zeroLine) svg+='<line x1="'+padL+'" y1="'+yOf(0).toFixed(1)+'" x2="'+(w-padR)+'" y2="'+yOf(0).toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3"/>';
   if(opts.axis){
     // 세로축: 최고/중간/최저 3개 지점에 보조선+값 라벨(axisFmt로 서식 지정, 기본은 소수 1자리)
@@ -3025,7 +3326,7 @@ function miniLineChart(seriesArr, opts){
       svg+='<text x="'+vx+'" y="'+(padTop+9)+'" text-anchor="'+(nearRightEdge?'end':'start')+'" dx="'+(nearRightEdge?-4:4)+'" font-size="9" fill="'+vColor+'" font-weight="700">'+opts.vLine.label+'</text>';
     }
   }
-  seriesArr.forEach(s=>{
+  seriesArr.forEach((s,si)=>{
     if(s.area){
       const pts=s.values.map((v,i)=>v!=null?[padL+i*stepX,yOf(v)]:null).filter(Boolean);
       if(pts.length){
@@ -3033,7 +3334,7 @@ function miniLineChart(seriesArr, opts){
         svg+='<path d="'+areaPath+'" fill="'+s.area+'" stroke="none"/>';
       }
     }
-    svg+='<path d="'+pathOf(s.values)+'" fill="none" stroke="'+s.color+'" stroke-width="'+(s.width||2)+'"'+(s.dashed?' stroke-dasharray="5 3"':'')+(s.opacity?' opacity="'+s.opacity+'"':'')+'/>';
+    svg+='<path class="mlc-s" data-si="'+si+'" d="'+pathOf(s.values)+'" fill="none" stroke="'+s.color+'" stroke-width="'+(s.width||2)+'"'+(s.dashed?' stroke-dasharray="5 3"':'')+(s.opacity?' opacity="'+s.opacity+'"':'')+'/>';
   });
   svg+='</svg>';
   const legend=seriesArr.filter(s=>s.label).map(s=>

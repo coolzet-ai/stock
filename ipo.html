@@ -440,10 +440,11 @@ function renderIpoList(m){
     ).join('') : '';
     const detailRows=[
       ['청약일', item.subscDate||'미정'],
-      ['상장일', item.listDate||'미정'],
+      ['상장일', item.stage==='신규상장' ? '✓ 상장완료'+(item.listDate&&item.listDate!=='미정'?' ('+item.listDate+')':'') : (item.listDate||'미정')],
       ['주간사', item.underwriter||'미정'],
       ['공모가', item.offerPriceFinal||item.offerPriceBand||'미정'],
       ['기관경쟁률', item.instCount||'--'],
+      ['청약경쟁률', item.subRatio||'--'],
       ['밴드 제시 현황', item.topBandRatio||'--'],
       ['의무보유확약비율', item.lockupRatio||'미발표'],
       ['유통비율', item.floatRatio||'미발표'],
@@ -451,13 +452,14 @@ function renderIpoList(m){
     ];
     const stageBadge=item.stage==='신규상장'
       ? '<span class="ipo-market" style="background:rgba(0,117,74,.15);color:var(--accent);font-weight:700">✓ 상장완료</span>'
+      : item.stage==='상장예정' ? '<span class="ipo-market" style="background:rgba(0,117,74,.10);color:var(--accent)">상장예정</span>'
       : item.stage==='청약중' ? '<span class="ipo-market" style="background:rgba(203,162,88,.22);color:var(--gold)">청약중</span>'
       : item.stage==='수요예측' ? '<span class="ipo-market" style="background:rgba(0,0,0,.1);color:var(--tx2)">수요예측중</span>'
       : '';
     return '<div class="ipo-card">'+
       '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
         '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+stageBadge+
-          '<div class="ipo-dates">'+(item.subscDate||'')+'</div></div>'+
+          '<div class="ipo-dates">'+(item.stage==='신규상장'?'<b style="color:var(--accent)">상장완료</b>'+(item.listDate&&item.listDate!=='미정'?' · '+item.listDate:''):(item.subscDate||''))+'</div></div>'+
         '<div class="ipo-verdict"><div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
       '</div>'+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
@@ -506,9 +508,7 @@ async function toggleIpoFinancials(key, companyName){
     }else if(!fin3y || !fin3y.length){
       el.innerHTML='<p class="mut" style="font-size:12.5px">아직 DART에 제출된 사업보고서가 없어 재무제표를 표시할 수 없습니다(상장 초기 종목에서 흔합니다).</p>';
     }else{
-      el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:8px">손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)</div>'+
-        renderFinancialsChart(fin3y)+renderFinancialRatios({growth,eps,psr})+
-        '<p class="mut" style="font-size:11px;margin-top:6px">※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.</p>';
+      el.innerHTML=renderFinancialsPanel(fin3y,{growth,eps,psr},'손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)','※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.');
     }
     ipoFinLoaded[key]=true;
   }
