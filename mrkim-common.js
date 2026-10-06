@@ -4558,8 +4558,17 @@ const IPOQ_CACHE={};
 async function hydrateIpoQuotes(){
   const els=document.querySelectorAll('[data-ipoq]');
   for(const el of els){
-    const code=el.getAttribute('data-ipoq'), mk=el.getAttribute('data-mk');
+    let code=el.getAttribute('data-ipoq'); const mk=el.getAttribute('data-mk'), nm=el.getAttribute('data-nm');
     try{
+      if(!code && nm){   /* Worker가 종목코드를 못 준 경우: DART 종목명→종목코드로 보완 */
+        try{
+          const base=PROXY_BASE.replace(/\?url=$/,'');
+          const r=await fetch(base+'/dart-corp?names='+encodeURIComponent(nm.replace(/\(.*$/,'').trim()));
+          const j=await r.json(); const o=j.byName&&j.byName[nm.replace(/\(.*$/,'').trim()];
+          if(o&&o.stockCode) code=o.stockCode;
+        }catch(e){}
+      }
+      if(!code){ el.innerHTML='<span class="mut" style="font-size:11.5px">📈 종목코드를 확인하지 못해 시세를 표시할 수 없습니다.</span>'; continue; }
       if(!(code in IPOQ_CACHE)) IPOQ_CACHE[code]=await ipoQuoteFetch(code,mk);
       const d=IPOQ_CACHE[code];
       el.innerHTML=d?ipoQuoteHtml(d):'<span class="mut" style="font-size:11.5px">시세를 불러오지 못했습니다.</span>';
