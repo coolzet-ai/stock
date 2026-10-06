@@ -5256,7 +5256,7 @@ function ipoSubscribeInfoHtml(item){
 }
 
 /* 보호예수 해제 일정(상장일 기준 15일·1개월·3개월·6개월…) — 경과(해제 완료)/예정(D-day) 시각화 */
-function ipoLockupHtml(sched, listDate, lockRatio){
+function ipoLockupHtml(sched, listDate, lockRatio, qrows, offer){
   if(!sched||!sched.length){
     const lr=parseFloat(String(lockRatio==null?'':lockRatio).replace(/[^\d.]/g,''));
     return '<div style="margin-top:2px"><div style="font-size:11px;color:var(--tx2);margin-bottom:5px">🔒 보호예수·의무보유확약</div>'+
@@ -5277,12 +5277,23 @@ function ipoLockupHtml(sched, listDate, lockRatio){
     const done=diff<=0;
     const col=done?'var(--tx2)':(diff<=14?'var(--up)':'var(--accent)');
     const ds=(d.getMonth()+1)+'/'+d.getDate();
-    return '<div style="flex:1 1 110px;min-width:110px;padding:7px 8px;border-radius:10px;border:'+(isMax?'2.5px solid #f0a400':'1.5px solid '+(done?'var(--line)':col))+';background:'+(isMax?'rgba(240,164,0,.12)':done?'rgba(127,127,127,.08)':'var(--panel)')+';opacity:'+(done?.8:1)+'">'+(isMax?'<div style="font-size:10px;font-weight:900;color:#c77d00;margin-bottom:2px">🔥 최대 물량 구간</div>':'')+
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px"><b style="font-size:12.5px">'+o.label+'</b>'+
-        '<span style="font-size:10.5px;font-weight:800;color:'+(done?'var(--tx2)':'#fff')+';background:'+(done?'transparent':col)+';border-radius:8px;padding:1px 6px">'+(done?'✓ 경과':'D-'+diff+' 예정')+'</span></div>'+
-      '<div style="font-size:13px;font-weight:800;margin-top:3px;color:'+col+'">'+fmtSh(o.shares)+' <span style="font-size:12px">('+o.pct.toFixed(2)+'%)</span></div>'+
-      '<div style="height:5px;border-radius:3px;background:var(--panel2);margin:5px 0 3px"><div style="height:5px;border-radius:3px;width:'+Math.min(100,o.pct/maxPct*100).toFixed(0)+'%;background:'+(isMax?'#f0a400':col)+'"></div></div>'+
-      '<div style="font-size:10.5px;color:var(--tx2)">'+ds+' 해제</div></div>';
+    // 해제일 종가·공모가 대비 수익률 (해제일이 지난 경우: 해제일 이전 마지막 거래일 종가)
+    let cl=null;
+    if(done&&qrows&&qrows.length){
+      const lim=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/1000+86400-1;
+      for(let i=qrows.length-1;i>=0;i--){ if(qrows[i].t<=lim){ cl=qrows[i].c; break; } }
+    }
+    const cr=(cl!=null&&offer)?(cl/offer-1)*100:null;
+    const priceLine=done
+      ? (cl!=null?'<div style="font-size:11.5px;margin-top:3px;white-space:nowrap">종가 <b>'+cl.toLocaleString('ko-KR')+'원</b>'+(cr!=null?'<br><b style="color:'+(cr>=0?'var(--up)':'var(--down)')+'">공모가比 '+(cr>=0?'+':'')+cr.toFixed(1)+'%</b>':'')+'</div>':'<div style="font-size:11px;color:var(--tx2);margin-top:3px">종가 —</div>')
+      : '<div style="font-size:11px;color:var(--tx2);margin-top:3px">종가 해제 후 표시</div>';
+    return '<div style="flex:1 1 118px;min-width:118px;padding:7px 8px;border-radius:10px;border:'+(isMax?'2.5px solid #f0a400':'1.5px solid '+(done?'var(--line)':col))+';background:'+(isMax?'rgba(240,164,0,.12)':done?'rgba(127,127,127,.08)':'var(--panel)')+';opacity:'+(done?.9:1)+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;white-space:nowrap"><b style="font-size:12.5px">'+o.label+(isMax?' <span style="font-size:11px;color:#c77d00">🔥최대</span>':'')+'</b>'+
+        '<span style="font-size:10.5px;font-weight:800;color:'+(done?'var(--tx2)':'#fff')+';background:'+(done?'transparent':col)+';border-radius:8px;padding:1px 6px">'+(done?'✓ 경과':'D-'+diff)+'</span></div>'+
+      '<div style="font-size:13px;font-weight:800;margin-top:3px;color:'+col+';white-space:nowrap">'+fmtSh(o.shares)+'</div>'+
+      '<div style="font-size:12px;font-weight:700;color:'+col+'">('+o.pct.toFixed(2)+'%)</div>'+
+      '<div style="height:5px;border-radius:3px;background:var(--panel2);margin:4px 0 3px"><div style="height:5px;border-radius:3px;width:'+Math.min(100,o.pct/maxPct*100).toFixed(0)+'%;background:'+(isMax?'#f0a400':col)+'"></div></div>'+
+      '<div style="font-size:10.5px;color:var(--tx2)">해제일 '+d.getFullYear()+'/'+ds+'</div>'+priceLine+'</div>';
   }).join('');
   // 일자별 타임라인: 상장일 ~ 마지막 해제일, 해제 시점마다 마커(경과=회색, 예정=색)와 해제 비율
   const pts=sched.map(o=>{ const d=new Date(base.getTime()); if(o.months) d.setMonth(d.getMonth()+o.months); else d.setDate(d.getDate()+o.days); return {o:o,d:d,off:Math.round((d-base)/86400000)}; });
@@ -5396,7 +5407,7 @@ async function hydrateIpoQuotes(){
         if((!sched||!sched.length)&&PROXY_BASE&&nm){
           try{ const o=PROXY_BASE.replace(/\?url=$/,''); const rr=await fetch(o+'ipo-lockup?name='+encodeURIComponent(nm),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined}); const jj=rr.ok?await rr.json():null; if(jj&&jj.schedule) sched=jj.schedule; }catch(e){}
         }
-        lk=ipoLockupHtml(sched, el.getAttribute('data-ld'), el.getAttribute('data-lr'));
+        lk=ipoLockupHtml(sched, el.getAttribute('data-ld'), el.getAttribute('data-lr'), d&&d.rows, offer);
       }catch(e){}
       try{ if(d&&offer){ const stt=ipoQuoteStats(d.rows,offer,el.getAttribute('data-ld')); const nmEl=el.closest('.ipo-card')&&el.closest('.ipo-card').querySelector('.ipo-name'); if(nmEl&&stt.firstDay&&stt.firstDay.close<offer&&!nmEl.parentNode.querySelector('.ipo-below')){ const b=document.createElement('span'); b.className='ipo-market ipo-below'; b.style.cssText='background:rgba(26,111,168,.15);color:var(--down);font-weight:800'; b.textContent='공모가 하회'; nmEl.parentNode.insertBefore(b,nmEl.parentNode.querySelector('.ipo-dates')); } } }catch(e){}
       try{
