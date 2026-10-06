@@ -784,32 +784,63 @@ function renderKrMarketDeposit(rows){
   ];
   const n=win.length, mid=Math.floor((n-1)/2);
   const xl=[{i:0,text:fmtKrMD(first.bizdate),anchor:'start'},{i:mid,text:fmtKrMD(win[mid].bizdate),anchor:'middle'},{i:n-1,text:fmtKrMD(last.bizdate),anchor:'end'}];
-  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">'+
-    metrics.map(([name,key,diffKey])=>{
-      const v=last[key], diff=last[diffKey];
-      const values=win.map(r=>r[key]);
-      const nums=values.filter(x=>x!=null);
-      const lo=Math.min(...nums), hi=Math.max(...nums);
-      const dec=((hi-lo)/10000<1)?2:1;
-      const fmtAx=x=>x>=10000?(x/10000).toFixed(dec)+'조':Math.round(x).toLocaleString('ko-KR');
-      const diffUp=(diff!=null && diff>=0);
-      const diffColor=diff==null?'var(--tx2)':(diffUp?'var(--up)':'var(--down)');
-      const diffText=diff==null?'--':(diffUp?'▲':'▼')+Math.abs(diff).toLocaleString('ko-KR');
-      const pChg=(first[key]&&v!=null)?(v-first[key])/first[key]*100:null;
-      const pCol=pChg==null?'var(--tx2)':(pChg>=0?'var(--up)':'var(--down)');
-      return '<div style="padding:10px 12px;background:var(--panel2);border-radius:10px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'+
-          '<span style="font-size:12px;color:var(--tx2);font-weight:700">'+name+'</span>'+
-          '<span style="font-size:11px;color:'+pCol+';font-weight:700">'+KR_PERIOD_LABEL[krDepositPeriod]+' '+(pChg==null?'--':(pChg>=0?'+':'')+pChg.toFixed(2)+'%')+'</span></div>'+
-        '<div style="font-weight:800;font-size:16px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'<span style="font-size:11px;font-weight:400;color:var(--tx2)"> 억</span>'+
-          ' <span style="font-size:12px;color:'+diffColor+';font-weight:700">'+diffText+'</span></div>'+
-        miniLineChart([{values:values, color:(pChg!=null&&pChg>=0?'var(--up)':'var(--down)'), width:1.8}],
-          {w:300,h:120,padL:46,padR:8,padTop:8,padBottom:18,axis:true,axisFmt:fmtAx,xLabels:xl})+
-      '</div>';
-    }).join('')+
+  // 3개월 추이 신호등 — 선택한 기간과 무관하게 항상 최근 3개월 변화율로 판정한다
+  const win3=rows.slice(-((KR_FLOW_DAYS['3m']||62)+1));
+  function lampFor(key){
+    const f0=win3[0][key], l0=win3[win3.length-1][key];
+    if(!f0||l0==null||win3.length<10) return null;
+    const ch=(l0-f0)/f0*100;
+    let lv;
+    if(key==='customerDeposit'){
+      lv=ch>=5?{i:'🟢',t:'유입 증가',c:'var(--up)'}:ch<=-5?{i:'🔴',t:'유출 감소',c:'var(--down)'}:{i:'🟡',t:'보합권',c:'var(--tx2)'};
+    }else{
+      lv=ch>=8?{i:'🔴',t:'과열 주의',c:'var(--up)'}:ch<=-3?{i:'🟢',t:'부담 완화',c:'var(--down)'}:{i:'🟡',t:'보합권',c:'var(--tx2)'};
+    }
+    const rule=key==='customerDeposit'
+      ?'고객예탁금 3개월 변화율 기준: +5% 이상 🟢(대기자금 유입) / -5% 이하 🔴(자금 이탈) / 그 외 🟡'
+      :'신용잔고 3개월 변화율 기준: +8% 이상 🔴(빚투 과열) / -3% 이하 🟢(레버리지 부담 완화) / 그 외 🟡';
+    return {ch:ch, lv:lv, rule:rule};
+  }
+  function card(name,key,diffKey,withLamp){
+    const v=last[key], diff=last[diffKey];
+    const values=win.map(r=>r[key]);
+    const nums=values.filter(x=>x!=null);
+    const lo=Math.min(...nums), hi=Math.max(...nums);
+    const dec=((hi-lo)/10000<1)?2:1;
+    const fmtAx=x=>x>=10000?(x/10000).toFixed(dec)+'조':Math.round(x).toLocaleString('ko-KR');
+    const diffUp=(diff!=null && diff>=0);
+    const diffColor=diff==null?'var(--tx2)':(diffUp?'var(--up)':'var(--down)');
+    const diffText=diff==null?'--':(diffUp?'▲':'▼')+Math.abs(diff).toLocaleString('ko-KR');
+    const pChg=(first[key]&&v!=null)?(v-first[key])/first[key]*100:null;
+    const pCol=pChg==null?'var(--tx2)':(pChg>=0?'var(--up)':'var(--down)');
+    let lampHtml='';
+    if(withLamp){
+      const L=lampFor(key);
+      if(L) lampHtml='<div title="'+L.rule+'" style="margin:8px 0 2px;padding:7px 10px;border-radius:8px;border:1.5px solid '+L.lv.c+';display:flex;align-items:center;gap:8px;cursor:help;background:var(--panel)">'+
+        '<span style="font-size:22px;line-height:1">'+L.lv.i+'</span>'+
+        '<span style="font-size:14px;font-weight:900;color:'+L.lv.c+'">'+L.lv.t+'</span>'+
+        '<span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--tx2)">3개월 '+(L.ch>=0?'+':'')+L.ch.toFixed(2)+'%</span></div>';
+    }
+    return '<div style="padding:10px 12px;background:var(--panel2);border-radius:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'+
+        '<span style="font-size:12px;color:var(--tx2);font-weight:700">'+name+'</span>'+
+        '<span style="font-size:11px;color:'+pCol+';font-weight:700">'+KR_PERIOD_LABEL[krDepositPeriod]+' '+(pChg==null?'--':(pChg>=0?'+':'')+pChg.toFixed(2)+'%')+'</span></div>'+
+      '<div style="font-weight:800;font-size:16px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'<span style="font-size:11px;font-weight:400;color:var(--tx2)"> 억</span>'+
+        ' <span style="font-size:12px;color:'+diffColor+';font-weight:700">'+diffText+'</span></div>'+
+      lampHtml+
+      miniLineChart([{values:values, color:(pChg!=null&&pChg>=0?'var(--up)':'var(--down)'), width:1.8}],
+        {w:300,h:120,padL:46,padR:8,padTop:8,padBottom:18,axis:true,axisFmt:fmtAx,xLabels:xl})+
     '</div>';
+  }
+  const grid='display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px';
+  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜 · 신호등은 최근 3개월 변화 기준</div>'+
+    '<div style="'+grid+'">'+card('고객예탁금','customerDeposit','customerDepositDiff',true)+card('신용잔고','creditLoan','creditLoanDiff',true)+'</div>'+
+    '<div style="margin-top:14px"><button type="button" onclick="toggleKrFundDetail()" style="cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700">'+
+      '펀드상세보기 '+(krFundOpen?'▲':'▼')+'</button> <span class="mut" style="font-size:11.5px">주식형·혼합형·채권형 펀드</span></div>'+
+    (krFundOpen?'<div style="'+grid+';margin-top:12px">'+card('주식형펀드','stockFund','stockFundDiff',false)+card('혼합형펀드','mixedFund','mixedFundDiff',false)+card('채권형펀드','bondFund','bondFundDiff',false)+'</div>':'');
 }
+let krFundOpen=false;
+function toggleKrFundDetail(){ krFundOpen=!krFundOpen; renderKrMarketDeposit(krDepositRows); }
 async function loadKrFundFlow(){
   const depositEl=document.getElementById('kr-market-deposit');
   if(depositEl) depositEl.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
