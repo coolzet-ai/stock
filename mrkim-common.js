@@ -2021,34 +2021,28 @@ function kimValuationVerdict(growthPct, psr){
 function renderKimVerdictBig(growthPct, psr){
   const v=kimValuationVerdict(growthPct, psr);
   if(!v) return '';
-  const segs=[['저평가','#1fa463','var(--accent)'],['관망','#f0b429','var(--gold)'],['고평가','#e5332a','var(--up)']];
+  const segs=[['저평가','#1fa463'],['관망','#f0b429'],['고평가','#e5332a']];
   const lampOn=v.idx===0?'g':v.idx===1?'y':'r';
   const lampCol={g:'#1fa463',y:'#f0b429',r:'#e5332a'};
   const main=segs[v.idx][1];
-  const emoji=v.idx===0?'🟢':v.idx===1?'🟡':'🔴';
-  const lamp=['r','y','g'].map(c=>'<i style="display:block;width:26px;height:26px;border-radius:50%;background:'+(c===lampOn?lampCol[c]:'var(--line)')+';opacity:'+(c===lampOn?1:.4)+';'+(c===lampOn?'box-shadow:0 0 16px 3px '+lampCol[c]+'99;':'')+'"></i>').join('');
+  const lamp=['r','y','g'].map(c=>'<i style="display:block;width:15px;height:15px;border-radius:50%;background:'+(c===lampOn?lampCol[c]:'var(--line)')+';opacity:'+(c===lampOn?1:.4)+';'+(c===lampOn?'box-shadow:0 0 8px '+lampCol[c]+'99;':'')+'"></i>').join('');
   const bar=segs.map(([nm,c],i)=>{
     const on=(i===v.idx);
-    return '<div style="flex:'+(on?1.5:1)+';text-align:center;padding:'+(on?'16px 0':'12px 0')+';font-size:'+(on?24:15)+'px;font-weight:'+(on?900:600)+';letter-spacing:'+(on?'1px':'0')+';'+
-      'background:'+(on?c:c+'22')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:14px 0 0 14px;':'')+(i===2?'border-radius:0 14px 14px 0;':'')+
-      (on?'box-shadow:0 4px 18px '+c+'88;position:relative;z-index:1;transform:scale(1.04)':'')+'">'+(on?emoji+' ':'')+nm+'</div>';
+    return '<div style="flex:1;text-align:center;padding:7px 0;font-size:'+(on?14:12)+'px;font-weight:'+(on?900:600)+';background:'+(on?c:c+'22')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:8px 0 0 8px;':'')+(i===2?'border-radius:0 8px 8px 0;':'')+'">'+nm+'</div>';
   }).join('');
   const reasons=v.reasons.map(r=>
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;padding:8px 12px;margin-top:6px;border-radius:9px;background:rgba(127,127,127,.09)">'+
-      '<span>'+r.txt+'</span>'+
-      '<b style="font-size:15px;color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+';flex:none">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>'
+    '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:4px"><span class="mut">'+r.txt+'</span>'+
+    '<b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+';flex:none">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>'
   ).join('');
-  return '<div style="margin-top:22px;border:3px solid '+main+';border-radius:18px;overflow:hidden;background:var(--panel2);box-shadow:0 6px 22px '+main+'33">'+
-    '<div style="background:'+main+';color:#fff;padding:9px 18px;font-weight:900;font-size:16px;letter-spacing:1px">⚖️ 김군 판정</div>'+
-    '<div style="padding:20px 20px 16px">'+
-      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px 28px">'+
-        '<div style="display:flex;align-items:center;gap:16px">'+
-          '<div style="display:flex;flex-direction:column;gap:8px;padding:10px 9px;border-radius:16px;background:rgba(0,0,0,.14)">'+lamp+'</div>'+
-          '<div style="font-weight:900;font-size:clamp(38px,9vw,54px);line-height:1.05;color:'+main+';text-shadow:0 2px 12px '+main+'44">'+v.label+'</div></div>'+
-        '<div style="flex:1 1 280px;min-width:0"><div style="display:flex;align-items:stretch">'+bar+'</div></div>'+
-      '</div>'+
-      '<div style="margin-top:14px">'+reasons+'</div>'+
-      '<div class="mut" style="font-size:11px;margin-top:10px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div>'+
+  return '<div style="margin-top:14px;border:2px solid '+main+';border-radius:12px;overflow:hidden;background:var(--panel2)">'+
+    '<div style="background:'+main+';color:#fff;padding:5px 12px;font-weight:800;font-size:12.5px">김군 판정</div>'+
+    '<div style="padding:12px 14px">'+
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'+
+        '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 5px;border-radius:10px;background:rgba(0,0,0,.12)">'+lamp+'</div>'+
+        '<div style="font-weight:900;font-size:26px;line-height:1.1;color:'+main+'">'+v.label+'</div></div>'+
+      '<div style="display:flex">'+bar+'</div>'+
+      '<div style="margin-top:8px">'+reasons+'</div>'+
+      '<div class="mut" style="font-size:10.5px;margin-top:6px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div>'+
     '</div></div>';
 }
 function renderKimVerdictBadge(growthPct, psr){
@@ -2926,8 +2920,8 @@ function renderFinancialsPanel(fin3y, ratios, headNote, footNote){
   return '<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+headNote+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start">'+
       '<div style="flex:1 1 340px;min-width:0">'+renderFinancialsChart(fin3y)+'</div>'+
-      '<div style="flex:1 1 270px;min-width:0;max-width:420px">'+renderFinancialRatios(ratios,true)+'</div>'+
-    '</div>'+(ratios?renderKimVerdictBig(ratios.growth?ratios.growth.revenueGrowth:null, ratios.psr):'')+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
+      '<div style="flex:1 1 270px;min-width:0;max-width:420px">'+renderFinancialRatios(ratios,true)+(ratios?renderKimVerdictBig(ratios.growth?ratios.growth.revenueGrowth:null, ratios.psr):'')+'</div>'+
+    '</div>'+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
 }
 
 async function loadKrxIndicators(){
