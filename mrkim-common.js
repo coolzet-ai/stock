@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
 const curPer={us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
-  usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m'};
+  usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m',cryrel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
 const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
@@ -298,7 +298,7 @@ const REL_PERIOD_DAYS={'1m':21,'3m':63,'6m':126,'1y':252};
 const REL_DIM_OPACITY=0.42;
 const REL_HIDDEN={};   // elId -> {종목라벨: true}  (체크 해제된 종목)
 const REL_LAST={};     // elId -> 마지막으로 그린 입력(체크박스 토글 시 재요청 없이 다시 그리기 위해 보관)
-function relReturnChart(elId, series, loaded){
+function relReturnChart(elId, series, loaded, opts){
   const el=document.getElementById(elId); if(!el) return;
   const built=series.map(s=>{
     const reb=s.values?rebase100(s.values):null;
@@ -314,7 +314,7 @@ function relReturnChart(elId, series, loaded){
       : '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
     return;
   }
-  REL_LAST[elId]={built:built};
+  REL_LAST[elId]={built:built, daily:!!(opts&&opts.daily)};
   relPaint(elId);
 }
 function relToggle(elId, bi, checked){
@@ -334,7 +334,7 @@ function relPaint(elId){
   const n=Math.max.apply(null,built.map(s=>s.values.length).concat([2]));
   const today=new Date();
   function calDate(i){
-    const d=new Date(today.getTime()-Math.round((n-1-i)*7/5)*86400000);
+    const d=new Date(today.getTime()-Math.round((n-1-i)*(st.daily?1:7/5))*86400000);
     return (d.getMonth()+1)+'/'+d.getDate();
   }
   const mid=Math.floor((n-1)/2);
@@ -461,6 +461,92 @@ function renderIdxRelKR(period){
     return {label:d.label, color:d.color, values:c?c.slice(-days):null};
   });
   relReturnChart('kr-idxrel-chart', series, true);
+}
+
+
+/* ===================== 가상화폐 — Npay 증권 글로벌 마켓 트렌드 + 4대 코인 상대수익률 ===================== */
+function cryGaugeSvg(v){
+  // 반원 게이지(0~100, 보라→빨강). 바늘 대신 현재값 위치에 흰 점을 찍는다.
+  const cx=80, cy=84, r=62, a=Math.PI*(1-Math.max(0,Math.min(100,v))/100);
+  const pt=(ang,rad)=>[cx+rad*Math.cos(ang), cy-rad*Math.sin(ang)];
+  const stops=['#8e5cf0','#6a7df0','#3fb6a8','#f0b429','#ef7a2f','#e5332a'];
+  let segs='';
+  const N=stops.length;
+  for(let i=0;i<N;i++){
+    const a0=Math.PI*(1-i/N), a1=Math.PI*(1-(i+1)/N);
+    const [x0,y0]=pt(a0,r), [x1,y1]=pt(a1,r);
+    segs+='<path d="M'+x0.toFixed(1)+' '+y0.toFixed(1)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+'" stroke="'+stops[i]+'" stroke-width="16" fill="none"/>';
+  }
+  const [px,py]=pt(a,r);
+  return '<svg viewBox="0 0 160 100" style="width:100%;max-width:190px;display:block;margin:0 auto">'+segs+
+    '<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="6" fill="#fff" stroke="#999" stroke-width="1.5"/>'+
+    '<text x="80" y="76" text-anchor="middle" font-size="30" font-weight="800" fill="var(--tx)">'+v+'</text>'+
+    '<text x="80" y="94" text-anchor="middle" font-size="12" font-weight="700" fill="var(--tx2)" id="cry-fg-lbl"></text>'+
+    '<text x="12" y="98" font-size="9" fill="var(--tx2)">0</text><text x="136" y="98" font-size="9" fill="var(--tx2)">100</text></svg>';
+}
+function renderCryptoGlobalTrend(d){
+  const el=document.getElementById('cry-global-trend'); if(!el) return;
+  if(!d||!d.fearAndGreed){
+    el.innerHTML='<p class="mut" style="font-size:12.5px">⚠ 글로벌 마켓 트렌드를 불러오지 못했습니다. (Worker에 /coin-global-trend 라우트가 배포되어 있는지 확인해주세요)</p>';
+    return;
+  }
+  const fg=d.fearAndGreed, gl=d.gainersLosers||{}, dom=d.coinDominance||{}, alt=d.altcoinSeasonIndex;
+  const tot=(gl.gainersCount||0)+(gl.flatCount||0)+(gl.losersCount||0)||1;
+  const wUp=(gl.gainersCount||0)/tot*100, wFlat=(gl.flatCount||0)/tot*100, wDn=(gl.losersCount||0)/tot*100;
+  const btc=dom.btcDominance||0, eth=dom.ethDominance||0, oth=dom.othersDominance||0;
+  const colBox='flex:1 1 200px;min-width:190px;padding:4px 16px;border-left:1px solid var(--line)';
+  const row=(c,l,v,vc)=>'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;margin-top:10px"><span style="display:inline-flex;align-items:center;gap:7px"><i style="width:8px;height:8px;border-radius:50%;background:'+c+';display:inline-block"></i>'+l+'</span><b style="color:'+vc+'">'+Number(v).toLocaleString('ko-KR')+'</b></div>';
+  const altPos=Math.max(2,Math.min(98,alt||0));
+  el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:12px 0">'+
+    '<div style="flex:1 1 190px;min-width:180px;padding:4px 16px 4px 0">'+
+      '<div style="font-size:13px;font-weight:800">공포·탐욕지수</div>'+cryGaugeSvg(fg.value)+'</div>'+
+    '<div style="'+colBox+'">'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800"><span>상승 자산 비중</span><span style="font-size:15px">'+(gl.gainersRatio!=null?gl.gainersRatio.toFixed(2):wUp.toFixed(2))+'%</span></div>'+
+      '<div style="display:flex;height:5px;margin-top:10px;border-radius:3px;overflow:hidden"><div style="width:'+wUp+'%;background:var(--up)"></div><div style="width:'+wFlat+'%;background:#aaa"></div><div style="width:'+wDn+'%;background:var(--down)"></div></div>'+
+      row('var(--up)','상승',gl.gainersCount||0,'var(--up)')+row('#999','보합',gl.flatCount||0,'var(--tx2)')+row('var(--down)','하락',gl.losersCount||0,'var(--down)')+
+    '</div>'+
+    '<div style="'+colBox+'">'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800"><span>비트코인 도미넌스</span><span style="font-size:15px">'+btc.toFixed(2)+'%</span></div>'+
+      '<div style="display:flex;height:22px;margin-top:10px;border-radius:5px;overflow:hidden;font-size:0"><div style="width:'+btc+'%;background:#f7931a"></div><div style="width:'+eth+'%;background:#627eea"></div><div style="width:'+oth+'%;background:#c9c9c9"></div></div>'+
+      '<div style="margin-top:8px;font-size:12px;color:var(--tx2);display:flex;flex-wrap:wrap;gap:4px 12px">'+
+        '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f7931a"></i> 비트코인 '+btc.toFixed(1)+'%</span>'+
+        '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#627eea"></i> 이더리움 '+eth.toFixed(1)+'%</span>'+
+        '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9c9c9"></i> 기타 '+oth.toFixed(1)+'%</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;margin-top:18px"><span>알트코인 시즌 지수</span><span style="font-size:15px">'+(alt!=null?alt:'--')+'<span style="font-weight:400;color:var(--tx2)">/100</span></span></div>'+
+      '<div style="position:relative;height:8px;margin-top:10px;border-radius:4px;background:linear-gradient(90deg,#f7931a 0,#f7931a 25%,#f5a623 25%,#f5a623 75%,#c9c9c9 75%)"><i style="position:absolute;left:'+altPos+'%;top:-2px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#fff;border:2px solid #888"></i></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--tx2);margin-top:6px"><span>비트코인 시즌</span><span>알트코인 시즌</span></div>'+
+    '</div>'+
+  '</div>';
+  const lbl=document.getElementById('cry-fg-lbl'); if(lbl) lbl.textContent=fg.valueClassification||'';
+}
+async function loadCryptoGlobalTrend(){
+  if(!PROXY_BASE){ renderCryptoGlobalTrend(null); return; }
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'coin-global-trend',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    renderCryptoGlobalTrend(r.ok?await r.json():null);
+  }catch(e){ console.warn('coin-global-trend 실패:',e.message); renderCryptoGlobalTrend(null); }
+}
+
+/* 4대 코인 상대수익률 비교 — 코인은 24시간·365일 거래라 달력일 기준(1개월=30일 등)으로 자른다 */
+const CRYREL_DEFS=[
+  {t:'BTC-USD', label:'비트코인(BTC)', color:'#f7931a'},
+  {t:'ETH-USD', label:'이더리움(ETH)', color:'#627eea'},
+  {t:'SOL-USD', label:'솔라나(SOL)', color:'#14c98a'},
+  {t:'XRP-USD', label:'리플(XRP)', color:'#00aae4'}
+];
+const CRYREL_DAYS={'1m':30,'3m':90,'6m':180,'1y':365};
+async function loadCryptoRel(){
+  await Promise.all(CRYREL_DEFS.map(d=>relFetch(d.t,'1y')));
+  renderCryptoRel(curPer.cryrel);
+}
+function renderCryptoRel(period){
+  const days=CRYREL_DAYS[period]||90;
+  const series=CRYREL_DEFS.map(d=>{
+    const c=tickData[d.t]||RELCACHE[d.t];
+    return {label:d.label, color:d.color, values:c?c.slice(-days):null};
+  });
+  relReturnChart('cry-rel-chart', series, true, {daily:true});
 }
 
 /* 이벤트 캘린더(MONTH_EVENTS/KR_MONTH_EVENTS)에서 오늘 이후 가장 가까운 일정을 찾아
@@ -1355,6 +1441,66 @@ function render52wBar(el, d, last, cur, f){
     '<i style="position:absolute;top:-2.5px;left:'+pos.toFixed(1)+'%;width:9px;height:9px;border-radius:50%;'+
     'background:var(--tx);border:1.5px solid var(--panel);transform:translateX(-50%);display:block"></i></div>';
 }
+/* ===== 티커 옆 기술지표 아이콘: 5일선·200일선 위/아래 + RSI(14) =====
+   tickData(최근 1년 일봉 종가)로 계산하므로 별도 네트워크 호출이 없다. 200일선은 최소 200거래일이
+   필요해 데이터가 부족하면(신규 상장 등) 해당 아이콘만 생략한다. RSI는 Wilder 평활 방식. */
+function smaLast(d,n){
+  if(!d||d.length<n) return null;
+  let s=0; for(let i=d.length-n;i<d.length;i++) s+=d[i];
+  return s/n;
+}
+function rsiLast(d,n){
+  n=n||14;
+  if(!d||d.length<n+1) return null;
+  let g=0,l=0;
+  for(let i=1;i<=n;i++){ const c=d[i]-d[i-1]; if(c>=0) g+=c; else l-=c; }
+  g/=n; l/=n;
+  for(let i=n+1;i<d.length;i++){
+    const c=d[i]-d[i-1];
+    g=(g*(n-1)+(c>0?c:0))/n; l=(l*(n-1)+(c<0?-c:0))/n;
+  }
+  if(l===0) return 100;
+  return 100-100/(1+g/l);
+}
+function techBadgesHtml(d){
+  if(!d||d.length<30) return '';
+  const last=d[d.length-1];
+  const mk=(n)=>{
+    const m=smaLast(d,n); if(m==null) return '';
+    const up=last>=m, gap=(last/m-1)*100;
+    return '<span class="tb '+(up?'tb-up':'tb-dn')+'" title="'+n+'일 이동평균선 '+(up?'위':'아래')+' (이격 '+(gap>=0?'+':'')+gap.toFixed(1)+'%)">'+n+(up?'▲':'▼')+'</span>';
+  };
+  const r=rsiLast(d,14);
+  let rs='';
+  if(r!=null){
+    const cl=r>=70?'tb-hot':(r<=30?'tb-cold':'tb-mid');
+    const tip=r>=70?'과매수 구간(70 이상)':(r<=30?'과매도 구간(30 이하)':'중립 구간(30~70)');
+    rs='<span class="tb '+cl+'" title="RSI(14) '+r.toFixed(1)+' · '+tip+'">RSI '+Math.round(r)+(r>=70?'🔥':(r<=30?'🧊':''))+'</span>';
+  }
+  return mk(5)+mk(200)+rs;
+}
+function injectTechBadgeCss(){
+  if(document.getElementById('tb-css')) return;
+  const st=document.createElement('style'); st.id='tb-css';
+  st.textContent='.wl-name{white-space:normal!important;overflow:visible!important}'+
+    '.wl-ind{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:middle}'+
+    '.tb{display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 6px;border-radius:5px;white-space:nowrap;cursor:help}'+
+    '.tb-up{background:rgba(200,32,20,.13);color:var(--up)}'+
+    '.tb-dn{background:rgba(26,111,168,.14);color:var(--down)}'+
+    '.tb-mid{background:rgba(0,0,0,.08);color:var(--tx2)}'+
+    '.tb-hot{background:rgba(200,32,20,.2);color:var(--up)}'+
+    '.tb-cold{background:rgba(26,111,168,.2);color:var(--down)}';
+  document.head.appendChild(st);
+}
+function renderTickBadges(row,d){
+  const nm=row.querySelector('.wl-name'); if(!nm) return;
+  injectTechBadgeCss();
+  let box=nm.querySelector('.wl-ind');
+  const html=techBadgesHtml(d);
+  if(!html){ if(box) box.remove(); return; }
+  if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
+  box.innerHTML=html;
+}
 function renderTick(g,p){
   const cfg=TICKGROUPS[g]; if(!cfg)return;
   const cur=cfg.cur||'$', f=cfg.fmt||fmt;
@@ -1403,6 +1549,7 @@ function renderTick(g,p){
       sp.innerHTML=sparkSVG(pts);
     }
     render52wBar(w52, d, last, cur, f);
+    renderTickBadges(row,d);
   });
 }
 
@@ -1423,6 +1570,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
     else if(g==='caprel') renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,p);
     else if(g==='krrel') renderIdxRelKR(p);
     else if(g==='krcaprel') renderCapRelCompare('krcap-caprel-chart','krcap',KRCAP_CAP_DATA,p);
+    else if(g==='cryrel') renderCryptoRel(p);
   });
 });
 
