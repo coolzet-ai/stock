@@ -1462,6 +1462,32 @@ function rsiLast(d,n){
   if(l===0) return 100;
   return 100-100/(1+g/l);
 }
+/* ===== 내부 자체 저평가·중립·고평가 신호등 (5일선·200일선 이격 + RSI 점수합) =====
+   ① RSI(14): ≤30 -2 / ≤40 -1 / <60 0 / <70 +1 / ≥70 +2
+   ② 200일선 이격률: ≤-10% -2 / ≤-3% -1 / <+10% 0 / <+25% +1 / ≥+25% +2   (장기 과열·침체)
+   ③ 5일선 이격률: ≤-4% -1 / <+4% 0 / ≥+4% +1                              (단기 과열·침체, 가중치 작음)
+   합계 -5~+5 : ≤-2 저평가(🟢) / -1~+1 중립(🟡) / ≥+2 고평가(🔴)
+   200거래일 미만 종목은 ②를 생략하고 나머지 점수만 합산한다. 투자 권유가 아닌 참고용 내부 지표다. */
+function valuationSignal(d){
+  if(!d||d.length<30) return null;
+  const last=d[d.length-1];
+  const r=rsiLast(d,14); if(r==null) return null;
+  let sr=r<=30?-2:r<=40?-1:r<60?0:r<70?1:2;
+  const m200=smaLast(d,200), m5=smaLast(d,5);
+  let s200=0, g200=null;
+  if(m200!=null){ g200=(last/m200-1)*100; s200=g200<=-10?-2:g200<=-3?-1:g200<10?0:g200<25?1:2; }
+  const g5=(last/m5-1)*100;
+  const s5=g5<=-4?-1:g5<4?0:1;
+  const total=sr+s200+s5;
+  const lv=total<=-2?{k:'low',icon:'🟢',label:'저평가'}:total>=2?{k:'high',icon:'🔴',label:'고평가'}:{k:'mid',icon:'🟡',label:'중립'};
+  const fmtS=v=>(v>0?'+':'')+v;
+  const tip='[자체 판정] '+lv.label+' (점수 '+fmtS(total)+')\n'+
+    'RSI '+r.toFixed(0)+' → '+fmtS(sr)+'\n'+
+    (g200!=null?'200일선 이격 '+(g200>=0?'+':'')+g200.toFixed(1)+'% → '+fmtS(s200)+'\n':'200일선 데이터 부족 → 제외\n')+
+    '5일선 이격 '+(g5>=0?'+':'')+g5.toFixed(1)+'% → '+fmtS(s5)+'\n'+
+    '※ 5일선·200일선·RSI 기반 참고용 지표(투자 권유 아님)';
+  return {total:total, level:lv.k, icon:lv.icon, label:lv.label, tip:tip};
+}
 function techBadgesHtml(d){
   if(!d||d.length<30) return '';
   const last=d[d.length-1];
@@ -1483,6 +1509,7 @@ function injectTechBadgeCss(){
   if(document.getElementById('tb-css')) return;
   const st=document.createElement('style'); st.id='tb-css';
   st.textContent='.wl-name{white-space:normal!important;overflow:visible!important}'+
+    '.wl-sig{display:inline-block;margin-right:6px;font-size:14px;line-height:1;cursor:help;vertical-align:middle}'+
     '.wl-ind{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:middle}'+
     '.tb{display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 6px;border-radius:5px;white-space:nowrap;cursor:help}'+
     '.tb-up{background:rgba(200,32,20,.13);color:var(--up)}'+
@@ -1500,6 +1527,12 @@ function renderTickBadges(row,d){
   if(!html){ if(box) box.remove(); return; }
   if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
   box.innerHTML=html;
+  // 티커명 앞 신호등
+  let sg=nm.querySelector('.wl-sig');
+  const sig=valuationSignal(d);
+  if(!sig){ if(sg) sg.remove(); return; }
+  if(!sg){ sg=document.createElement('span'); sg.className='wl-sig'; nm.insertBefore(sg,nm.firstChild); }
+  sg.textContent=sig.icon; sg.title=sig.tip;
 }
 function renderTick(g,p){
   const cfg=TICKGROUPS[g]; if(!cfg)return;
@@ -2184,6 +2217,18 @@ function ipoFormatOfferFinal(item){
   }
   return item.offerPriceFinal.trim()+suffix;
 }
+/* "1741.48:1 (비례 3483:1)" → "1,741.48:1 (비례 3,483:1)" — 숫자에 천단위 구분을 넣어 읽기 쉽게 한다 */
+function ipoFormatSubRatio(txt){
+  if(!txt) return null;
+  const t=String(txt).trim();
+  if(!/\d/.test(t)) return null;
+  return t.replace(/\d[\d,]*(?:\.\d+)?/g,m=>{
+    const n=parseFloat(m.replace(/,/g,''));
+    if(!isFinite(n)) return m;
+    const dec=(m.split('.')[1]||'').length;
+    return n.toLocaleString('ko-KR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  });
+}
 function ipoBuildItem(raw){
   const offerPriceFinal=ipoFormatOfferFinal(raw);
   // [버그 수정] 코스피/코스닥 "이전상장"(코넥스→코스닥, 코스닥→코스피 등)은 일반공모(청약) 절차
@@ -2191,7 +2236,7 @@ function ipoBuildItem(raw){
   // 이걸 구분 안 하면 "데이터를 못 가져온 것"처럼(계속 '미정'/'수요예측 전') 보여 로딩 실패로
   // 오해하기 쉬웠다 — market 문구로 이전상장 여부를 판별해 안내 문구를 다르게 준다.
   const isTransfer=/이전상장/.test(raw.market||'');
-  const stageNote=isTransfer?'일반공모 없음(이전상장)':raw.stage==='청약중'?'수요예측 결과 미집계(38.co.kr 반영 대기)':raw.stage==='수요예측'?'수요예측 진행중':raw.stage==='상장예정'?'수요예측 결과 미집계':raw.stage==='신규상장'?'미집계':null;
+  const stageNote=isTransfer?'일반공모 없음(이전상장)':raw.stage==='청약중'?'수요예측 결과 미집계(38.co.kr 반영 대기)':raw.stage==='수요예측'?'수요예측 진행중':(raw.stage==='상장예정'||raw.stage==='청약완료'||raw.stage==='청약예정')?'수요예측 결과 미집계':raw.stage==='신규상장'?'미집계':null;
   const descParts=[];
   if(raw.subRatioText) descParts.push('개인 청약경쟁률 '+raw.subRatioText);
   if(raw.totalShares) descParts.push('총공모주식수 '+raw.totalShares);
@@ -2204,7 +2249,7 @@ function ipoBuildItem(raw){
     stage: raw.stage||null, // '수요예측'·'청약중'·'상장예정'·'신규상장(=상장완료)' — 카드에 진행 상태 배지를 표시하기 위해 전달
     isTransfer: isTransfer,
     subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.stage==='신규상장'?'상장완료':(raw.predictDate?('수요예측 '+raw.predictDate):'미정'))),
-    subRatio: raw.subRatioText||(raw.stage==='청약중'?'청약 종료 후 발표':raw.stage==='수요예측'?'청약 전':null),
+    subRatio: ipoFormatSubRatio(raw.subRatioText)||(raw.stage==='청약중'?'청약 종료 후 발표':raw.stage==='청약완료'?'집계 중':(raw.stage==='수요예측'||raw.stage==='청약예정')?'청약 전':null),
     listDate: raw.listDate||'미정',
     underwriter: raw.underwriter||'미정',
     offerPriceBand: raw.offerPriceBand||null,
