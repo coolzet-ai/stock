@@ -189,6 +189,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .fx-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
 @media(max-width:560px){.fx-2col{grid-template-columns:1fr}}
+@media(max-width:700px){#fx-tbl .fx-pc{flex-direction:column;align-items:flex-end;gap:2px}#fx-tbl td:first-child{white-space:nowrap;font-size:13px}#fx-tbl .wl-ind{display:block;margin:3px 0 0}#fx-tbl td{padding:8px 5px}#fx-tbl td:first-child .mut{font-size:10.5px}#fx-tbl svg{width:56px;height:20px}#fx-tbl td.num{font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -292,7 +293,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007a"></script>
+<script src="mrkim-common.js?v=20261007b"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }

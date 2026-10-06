@@ -1419,9 +1419,9 @@ function subTable(rows,src){
   const el=$('#us-sub'); if(!el)return;
   el.innerHTML=rows.map(([n,v],i)=>{
     const link=SUBSRC[n];
-    const label_=SUB_NUM[i]+' '+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+' ↗</a>':n);
+    const label_=SUB_NUM[i]+' '+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n);
     const [tl,tc]=label(v);
-    return '<tr><td>'+label_+'</td><td style="width:26%;min-width:56px">'+subBarCell(v)+'</td>'+
+    return '<tr><td style="white-space:nowrap;font-size:12.5px">'+label_+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
     '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
   }).join('');
   $('#us-src').textContent=src;
@@ -2078,7 +2078,7 @@ function renderFinEvents(data){
   const tbodies={증권:document.getElementById('fin-ev-sec'), 은행:document.getElementById('fin-ev-bank'), 카드:document.getElementById('fin-ev-card')};
   if(!data || !data.byCat){
     if(statusEl) statusEl.textContent='⚠ 이벤트 목록을 가져오지 못했습니다 — Worker(/fin-events)가 배포되어 있고 스케줄러가 한 번 이상 실행됐는지 확인해주세요.';
-    Object.values(tbodies).forEach(tb=>{ if(tb) tb.innerHTML='<tr><td class="mut" colspan="4">불러오지 못했습니다</td></tr>'; });
+    Object.values(tbodies).forEach(tb=>{ if(tb) tb.innerHTML='<tr><td class="mut" colspan="3">불러오지 못했습니다</td></tr>'; });
     return;
   }
   if(statusEl){
@@ -2088,7 +2088,7 @@ function renderFinEvents(data){
   Object.keys(tbodies).forEach(cat=>{
     const tb=tbodies[cat]; if(!tb) return;
     const rows=(data.byCat[cat]||[]);
-    if(!rows.length){ tb.innerHTML='<tr><td class="mut" colspan="4">표시할 이벤트가 없습니다</td></tr>'; return; }
+    if(!rows.length){ tb.innerHTML='<tr><td class="mut" colspan="3">표시할 이벤트가 없습니다</td></tr>'; return; }
     const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
     const rowHtml=ev=>{
       const dstr=ev.deadlineTs?new Date(ev.deadlineTs).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'})+'까지':'상시·미표기';
@@ -2097,14 +2097,13 @@ function renderFinEvents(data){
       return '<tr style="'+(hi?'background:rgba(229,51,42,.08);box-shadow:inset 3px 0 0 #e5332a':'')+'">'+
         '<td style="white-space:nowrap;font-weight:'+(hi?800:500)+'">'+esc(ev.source)+(home?' <a href="'+home+'" target="_blank" rel="noopener" title="'+esc(ev.source)+' 공식 사이트(이벤트 메뉴)로 이동" style="text-decoration:none">🔗</a>':'')+'</td>'+
         '<td><a href="'+esc(ev.url)+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:'+(hi?'underline':'none')+';font-weight:'+(hi?800:500)+'">'+esc(ev.title)+'</a></td>'+
-        '<td class="mut" style="white-space:nowrap;'+(ev.deadlineTs&&ev.deadlineTs-Date.now()<3*864e5?'color:var(--up);font-weight:800':'')+'">'+dstr+'</td>'+
         '<td style="text-align:center;color:'+(hi?'#e5332a':'var(--accent)')+';white-space:nowrap">'+stars+'</td></tr>';
     };
     const top=rows.filter(e=>(e.star||1)>=3), rest=rows.filter(e=>(e.star||1)<3);
-    let html=top.length?top.map(rowHtml).join(''):'<tr><td class="mut" colspan="4">★★★ 이벤트가 없습니다'+(rest.length?' — 아래 상세보기에서 나머지 '+rest.length+'건을 확인하세요':'')+'</td></tr>';
+    let html=top.length?top.map(rowHtml).join(''):'<tr><td class="mut" colspan="3">★★★ 이벤트가 없습니다'+(rest.length?' — 아래 상세보기에서 나머지 '+rest.length+'건을 확인하세요':'')+'</td></tr>';
     if(rest.length){
       const id='fin-more-'+cat;
-      html+='<tr><td colspan="4" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
+      html+='<tr><td colspan="3" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
         rest.map(ev=>rowHtml(ev).replace('<tr style="','<tr class="'+id+'" style="display:none;')).join('');
     }
     tb.innerHTML=html;
@@ -2717,7 +2716,7 @@ function renderFinSavingsTable(listId, list){
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
   if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">표시할 상품이 없습니다</span></div>'; return; }
   const capped=filtered.slice(0,30);
-  const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,10);
+  const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,3);
   const rowsHtml=capped.slice(0,showCount).map(it=>{
     const rsrv=it.rsrvType?' · '+it.rsrvType:'';
     const barCls=it.group==='은행'?'bank':'saving';
@@ -2735,7 +2734,7 @@ function renderFinSavingsTable(listId, list){
     '</div>';
   }).join('');
   let moreBtn='';
-  if(capped.length>10){
+  if(capped.length>3){
     moreBtn=finSavingsExpanded
       ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">접기</button>'
       : '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">금리 Top10 외 '+(capped.length-10)+'개 자세히 보기</button>';
@@ -2987,7 +2986,7 @@ function renderFxWatchlist(p){
     const sw={d:5,w:21,m:63,y:252}[p]||5;
     const spark=sparkSVG(closes.slice(-(sw+1)));
     return '<tr>'+nameCell+
-      '<td class="num"><span style="display:inline-flex;align-items:center;gap:10px;justify-content:flex-end"><span style="display:inline-block;line-height:0">'+spark+'</span><span>'+priceStr+'</span></span></td>'+
+      '<td class="num"><span class="fx-pc" style="display:inline-flex;align-items:center;gap:10px;justify-content:flex-end"><span style="display:inline-block;line-height:0">'+spark+'</span><span>'+priceStr+'</span></span></td>'+
       '<td class="num '+dir+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</td></tr>';
   }).join('');
 }
@@ -3522,6 +3521,7 @@ function krInvestorPanel(fin, ratios){
       price:px, pegRatio:null, trend:{growth5y:(gEst!=null&&gEst>0)?gEst:null}
     };
     const dv=ratios.dividend;
+    it.div={};
     if(dv){
       it.div={yield:dv.yield, rate:dv.dps, payout:dv.payout, avg5y:null};
       it.divHist={growth5:dv.growth5, growthYears:dv.growthYears, lastAnnual:dv.dps, lastYear:dv.year, freq:null};
@@ -3725,18 +3725,18 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
   const el=document.getElementById('kr-sub'); if(!el) return;
   const strengthNote=breadth&&breadth.strength?' ('+breadth.strength.daysAccumulated+'일 누적, '+breadth.market+')':'';
   const rows=[
-    ['1', krSubLabel('1','1. 시장 모멘텀 (코스피 vs 125일 이평)'), momentumScore],
-    ['2', krSubLabel('2','2. 주가 강도 (52주 신고가/신저가 비율)'+strengthNote), breadth&&breadth.strength?breadth.strength.score:null],
-    ['3', krSubLabel('3','3. 주가 폭 (상승/하락 거래대금 비율)'), breadth&&breadth.breadth?breadth.breadth.score:null],
-    ['4', krSubLabel('4','4. 풋/콜 옵션 비율 (KOSPI200 지수옵션)'), krx&&krx.putCallScore!=null?krx.putCallScore:null],
-    ['5', krSubLabel('5','5. 시장 변동성 (VKOSPI)'), krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
-    ['6', krSubLabel('6','6. 안전자산 수요 (코스피 vs 국고채)'), ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
-    ['7', krSubLabel('7','7. 정크본드 수요 (AA-/BBB- 스프레드)'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
+    ['1', krSubLabel('1','1. 시장 모멘텀'), momentumScore],
+    ['2', krSubLabel('2','2. 주가 강도'), breadth&&breadth.strength?breadth.strength.score:null],
+    ['3', krSubLabel('3','3. 주가 폭'), breadth&&breadth.breadth?breadth.breadth.score:null],
+    ['4', krSubLabel('4','4. 풋/콜 옵션'), krx&&krx.putCallScore!=null?krx.putCallScore:null],
+    ['5', krSubLabel('5','5. 시장 변동성'), krx&&krx.vkospiScore!=null?krx.vkospiScore:null],
+    ['6', krSubLabel('6','6. 안전자산 수요'), ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
+    ['7', krSubLabel('7','7. 정크본드 수요'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
   el.innerHTML=rows.map(([num,n,v])=>{
-    if(v==null) return '<tr><td>'+n+'</td><td style="width:26%;min-width:56px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
+    if(v==null) return '<tr><td style="white-space:nowrap;font-size:12.5px">'+n+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
-    return '<tr><td>'+n+'</td><td style="width:26%;min-width:56px">'+subBarCell(v)+'</td>'+
+    return '<tr><td style="white-space:nowrap;font-size:12.5px">'+n+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
       '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+c+'33;color:'+(v<=55&&v>=45?'var(--tx2)':c)+'">'+t+'</span></td></tr>';
   }).join('');
   const kn=document.getElementById('kr-sub-note');
@@ -5268,18 +5268,21 @@ function ipoLockupHtml(sched, listDate, lockRatio){
   const base=new Date(+m[1],+m[2]-1,+m[3]);
   const now=new Date(Date.now()+ (new Date().getTimezoneOffset()+540)*60000); now.setHours(0,0,0,0);
   const fmtSh=n=>n>=10000?(Math.round(n/100)/100).toLocaleString('ko-KR')+'만주':n.toLocaleString('ko-KR')+'주';
+  const maxPct=Math.max.apply(null,sched.map(o=>o.pct))||1;
   const chips=sched.map(o=>{
+    const isMax=o.pct===maxPct;
     const d=new Date(base.getTime());
     if(o.months) d.setMonth(d.getMonth()+o.months); else d.setDate(d.getDate()+o.days);
     const diff=Math.round((d-now)/86400000);
     const done=diff<=0;
     const col=done?'var(--tx2)':(diff<=14?'var(--up)':'var(--accent)');
     const ds=(d.getMonth()+1)+'/'+d.getDate();
-    return '<div style="flex:1 1 92px;min-width:92px;padding:7px 8px;border-radius:10px;border:1.5px '+(done?'solid var(--line)':'solid '+col)+';background:'+(done?'rgba(127,127,127,.08)':'var(--panel)')+';opacity:'+(done?.8:1)+'">'+
+    return '<div style="flex:1 1 110px;min-width:110px;padding:7px 8px;border-radius:10px;border:'+(isMax?'2.5px solid #f0a400':'1.5px solid '+(done?'var(--line)':col))+';background:'+(isMax?'rgba(240,164,0,.12)':done?'rgba(127,127,127,.08)':'var(--panel)')+';opacity:'+(done?.8:1)+'">'+(isMax?'<div style="font-size:10px;font-weight:900;color:#c77d00;margin-bottom:2px">🔥 최대 물량 구간</div>':'')+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px"><b style="font-size:12.5px">'+o.label+'</b>'+
         '<span style="font-size:10.5px;font-weight:800;color:'+(done?'var(--tx2)':'#fff')+';background:'+(done?'transparent':col)+';border-radius:8px;padding:1px 6px">'+(done?'✓ 경과':'D-'+diff+' 예정')+'</span></div>'+
-      '<div style="font-size:13px;font-weight:800;margin-top:3px;color:'+col+'">'+fmtSh(o.shares)+'</div>'+
-      '<div style="font-size:10.5px;color:var(--tx2)">'+o.pct.toFixed(2)+'% · '+ds+(done?' 해제':' 해제')+'</div></div>';
+      '<div style="font-size:13px;font-weight:800;margin-top:3px;color:'+col+'">'+fmtSh(o.shares)+' <span style="font-size:12px">('+o.pct.toFixed(2)+'%)</span></div>'+
+      '<div style="height:5px;border-radius:3px;background:var(--panel2);margin:5px 0 3px"><div style="height:5px;border-radius:3px;width:'+Math.min(100,o.pct/maxPct*100).toFixed(0)+'%;background:'+(isMax?'#f0a400':col)+'"></div></div>'+
+      '<div style="font-size:10.5px;color:var(--tx2)">'+ds+' 해제</div></div>';
   }).join('');
   // 일자별 타임라인: 상장일 ~ 마지막 해제일, 해제 시점마다 마커(경과=회색, 예정=색)와 해제 비율
   const pts=sched.map(o=>{ const d=new Date(base.getTime()); if(o.months) d.setMonth(d.getMonth()+o.months); else d.setDate(d.getDate()+o.days); return {o:o,d:d,off:Math.round((d-base)/86400000)}; });
@@ -5294,7 +5297,7 @@ function ipoLockupHtml(sched, listDate, lockRatio){
         '<i style="display:block;width:12px;height:12px;border-radius:50%;margin:3px auto 0;background:'+(done?'var(--tx2)':'var(--up)')+';border:2px solid var(--panel)"></i>'+
         '<div style="font-size:9.5px;color:var(--tx2);margin-top:2px">'+(done?'해제':'D-'+diff)+'</div></div>'; }).join('')+
     '</div>';
-  return '<div style="flex:1 1 100%;margin-top:2px"><div style="font-size:11px;color:var(--tx2);margin-bottom:5px">🔒 보호예수 해제 일정 (상장일 '+(base.getMonth()+1)+'/'+base.getDate()+' 기준 · 경과/예정 · 보호예수 합계 '+totalPct.toFixed(1)+'%)</div>'+tl+
+  return '<div style="flex:1 1 100%;margin-top:2px"><div style="font-size:11px;color:var(--tx2);margin-bottom:5px">🔒 보호예수 해제 일정 (상장일 '+(base.getMonth()+1)+'/'+base.getDate()+' 기준 · 경과/예정 · 보호예수 합계 '+totalPct.toFixed(1)+'%)</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:6px">'+chips+'</div></div>';
 }
 /* 상장일 이후 시세 분석 — 공모가 대비 최고가 수익률, 상한가(전일比 +29.5%↑, 상장일은 공모가×4 근접) 일수, 상장일 공모가 대비 등락 */
