@@ -1482,6 +1482,72 @@ const TICKGROUPS={
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
   krkq: {table:'krkq-tbl',  list:['196170.KQ','086520.KQ','247540.KQ','036930.KQ','277810.KQ','240810.KQ','039030.KQ','058470.KQ','222800.KQ','108490.KQ'], cur:'₩', fmt:fmtWon}
 };
+/* ===== PC 화면: 종목명과 스파크라인 사이 핵심 지표(매출액증가율·영업이익증가율·PER·EPS(TTM)·EPS(Fwd)·PSR) ===== */
+function injectRowStatCss(){
+  if(document.getElementById('rowstat-css')) return;
+  const st=document.createElement('style'); st.id='rowstat-css';
+  st.textContent='.wl-stats{display:none;flex:none;grid-template-columns:repeat(6,minmax(56px,1fr));gap:2px 6px;width:372px;text-align:center;padding:0 4px}'+
+    '@media(min-width:1000px){.wl-stats{display:grid}}'+
+    '.wl-stats .k{font-size:10px;color:var(--tx2);white-space:nowrap}.wl-stats .v{font-size:12.5px;font-weight:800;white-space:nowrap}';
+  document.head.appendChild(st);
+}
+function rowStatsHtml(o){
+  const pc=v=>v==null||isNaN(v)?'<span class="mut">—</span>':'<span style="color:'+(v>=0?'var(--up)':'var(--down)')+'">'+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
+  const nm=(v,d)=>v==null||isNaN(v)?'<span class="mut">—</span>':v.toFixed(d);
+  const won=v=>v==null||isNaN(v)?'<span class="mut">—</span>':Math.round(v).toLocaleString('ko-KR');
+  const cell=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
+  return cell('매출증가율',pc(o.rg))+cell('영업이익증가율',pc(o.og))+cell('PER',nm(o.per,1))+cell('EPS(TTM)',o.kr?won(o.eps):nm(o.eps,2))+cell('EPS(Fwd)',o.kr?won(o.feps):nm(o.feps,2))+cell('PSR',nm(o.psr,2));
+}
+function putRowStats(row,o){
+  injectRowStatCss();
+  let box=row.querySelector('.wl-stats');
+  if(!box){ box=document.createElement('div'); box.className='wl-stats'; const info=row.querySelector('.wl-info'); if(info) info.after(box); else return; }
+  box.innerHTML=rowStatsHtml(o);
+}
+async function fillUsRowStats(tableId,set){
+  if(window.innerWidth<1000) return;
+  const map=await loadUsFundamentalsOnce(set); if(!map) return;
+  document.querySelectorAll('#'+tableId+' .wl-row').forEach(row=>{
+    const it=map[row.dataset.t]; if(!it) return;
+    putRowStats(row,{rg:it.revenueGrowth!=null?it.revenueGrowth*100:null, og:it.earningsGrowth!=null?it.earningsGrowth*100:null, per:it.trailingPE, eps:it.trailingEps, feps:it.forwardEps, psr:it.psr});
+  });
+}
+const KR_STAT_CACHE={};
+async function krStatsLite(code){
+  if(KR_STAT_CACHE[code]) return KR_STAT_CACHE[code];
+  const [corp]=await resolveDartCorpCodes([code]);
+  const out={kr:true};
+  if(corp){
+    const y=new Date().getFullYear()-1;
+    const [fin,gr,eps,cons]=await Promise.all([dartFinancialYear(corp,y),dartGrowthIndicators(corp,y),dartEps(corp,y),krConsensusEst(code)]);
+    out.rg=gr?gr.revenueGrowth:null; out.og=gr?gr.opProfitGrowth:null; out.eps=eps;
+    const nmx=(typeof KR_TOP10_NAME_BY_CODE!=='undefined')?KR_TOP10_NAME_BY_CODE[code]:null;
+    const cap=nmx?findKrMarketCapByName(nmx):null;
+    if(cap!=null&&fin&&fin.revenue) out.psr=cap*1e12/fin.revenue;
+    if(eps>0&&cons&&cons.est&&cons.est.length&&cons.lastAct&&cons.lastAct.netProfit>0&&cons.est[0].netProfit!=null){
+      out.feps=eps*(cons.est[0].netProfit/1e8/cons.lastAct.netProfit);
+    }
+  }
+  KR_STAT_CACHE[code]=out; return out;
+}
+async function fillKrRowStats(tableId){
+  if(window.innerWidth<1000) return;
+  const rows=Array.from(document.querySelectorAll('#'+tableId+' .wl-row'));
+  await resolveDartCorpCodes(rows.map(r=>(r.dataset.t||'').split('.')[0]));
+  let idx=0;
+  async function worker(){
+    while(idx<rows.length){
+      const row=rows[idx++], code=(row.dataset.t||'').split('.')[0];
+      try{
+        const o=Object.assign({},await krStatsLite(code));
+        const d=tickData[row.dataset.t];
+        o.per=(d&&d.length&&o.eps>0)?d[d.length-1]/o.eps:null;
+        putRowStats(row,o);
+      }catch(e){ console.warn('KR 행 지표 실패',code,e); }
+    }
+  }
+  await Promise.all([worker(),worker(),worker()]);
+}
 /* ===== 시가총액 11~20위 "더 보기" — 클릭 시 행 생성 + 시세 로딩 ===== */
 const MORE_LOADED={};
 const US_MORE=[['MU','마이크론'],['BRK-B','버크셔해서웨이'],['AMD','AMD'],['LLY','일라이릴리'],['JPM','JP모건'],['WMT','월마트'],['V','비자'],['XOM','엑슨모빌'],['INTC','인텔'],['JNJ','존슨앤드존슨']];
@@ -1514,6 +1580,7 @@ async function toggleMoreRows(g){
     tbl.innerHTML=moreRowsHtml(g);
     curPer[g]=curPer[g.replace(/2$/,'')]||'d';
     await loadTickGroup(g);
+    if(g==='cap2') fillUsRowStats('cap2-tbl',2); else fillKrRowStats(TICKGROUPS[g].table);
   }
 }
 const tickData={};

@@ -568,7 +568,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006t"></script>
+<script src="mrkim-common.js?v=20261006u"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
@@ -595,7 +595,7 @@ renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','
 renderCapShareChart('us-cap-chart', US_CAP_DATA);
 applyRankHistory();
 loadUS();
-loadTickGroup('tick'); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); loadTickGroup('lev');
+loadTickGroup('tick'); fillUsRowStats('cap-tbl',1); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); loadTickGroup('lev');
 loadIdxRelUS();
 loadUSCorr();
 initKrwToggle('#krw-toggle');
