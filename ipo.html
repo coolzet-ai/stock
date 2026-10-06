@@ -294,7 +294,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006q"></script>
+<script src="mrkim-common.js?v=20261006r"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -585,7 +585,12 @@ async function toggleIpoFinancials(key, companyName, no){
     }else if(!fin3y || !fin3y.length){
       el.innerHTML='<p class="mut" style="font-size:12.5px">아직 DART에 제출된 사업보고서가 없어 재무제표를 표시할 수 없습니다(상장 초기 종목에서 흔합니다).</p>';
     }else{
-      el.innerHTML=renderFinancialsPanel(fin3y,{growth,eps,psr},source==='38'?'손익계산서(증권신고서 요약재무제표, 단위: 억원) · 출처: 38.co.kr — DART 사업보고서가 아직 없는 신규 종목 대체 자료':'손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)','※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.'+(source==='38'?' 반기·분기 값은 누적 기준입니다.':''));
+      let techD=null;
+      try{
+        const q=el.closest('.ipo-card')&&el.closest('.ipo-card').querySelector('.ipo-quote');
+        if(q&&typeof IPOQ_CACHE!=='undefined'){ const ck=q.getAttribute('data-ipoq')||q.getAttribute('data-nm'); const dq=IPOQ_CACHE[ck]; if(dq&&dq.rows&&dq.rows.length>=15) techD=dq.rows.map(r=>r.c); }
+      }catch(e){}
+      el.innerHTML=renderFinancialsPanel(fin3y,{growth,eps,psr,techD},source==='38'?'손익계산서(증권신고서 요약재무제표, 단위: 억원) · 출처: 38.co.kr — DART 사업보고서가 아직 없는 신규 종목 대체 자료':'손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)','※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.'+(source==='38'?' 반기·분기 값은 누적 기준입니다.':''));
     }
     ipoFinLoaded[key]=true;
   }
