@@ -233,6 +233,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .ipo-lamp i{width:13px;height:13px;border-radius:50%;background:var(--line);display:block;opacity:.55}
 .ipo-lamp i.on{opacity:1;box-shadow:0 0 7px currentColor}
 .ipo-lamp i.r.on{background:#e5332a;color:#e5332a}.ipo-lamp i.y.on{background:#f0b429;color:#f0b429}.ipo-lamp i.g.on{background:#1fa463;color:#1fa463}
+
+.ipo-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px;align-items:end}
+.ipo-scale>div{text-align:center}
+.ipo-scale i{display:block;height:7px;border-radius:4px;opacity:.28;transition:all .2s}
+.ipo-scale span{display:block;font-size:11px;margin-top:7px;color:var(--tx2);letter-spacing:.2px}
+.ipo-scale .on i{height:13px;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.ipo-scale .on span{font-weight:900;font-size:12.5px}
+.ipo-verdict-badge.pend{font-size:14px;font-weight:700;border:1.5px dashed var(--tx2);background:transparent!important;color:var(--tx2)!important;display:inline-flex;align-items:center;gap:7px}
+.ipo-pulse{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block;animation:ipoPulse 1.4s ease-in-out infinite}
+@keyframes ipoPulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.ipo-judge.pend{border-style:dashed;background:transparent}
+.ipo-judge.pend .ipo-judge-label{font-size:21px;font-weight:800;color:var(--tx2)!important;display:flex;align-items:center;gap:9px}
+.ipo-skel{height:6px;border-radius:3px;margin-top:12px;background:linear-gradient(90deg,var(--line) 0,var(--panel2) 50%,var(--line) 100%);background-size:200% 100%;animation:ipoShimmer 1.8s linear infinite}
+@keyframes ipoShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .ipo-judge{margin-top:16px;border:2px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--panel2)}
 .ipo-judge-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .ipo-judge-title{font-size:14px;font-weight:800;color:var(--tx2)}
@@ -390,7 +404,7 @@ function ipoVerdict(item){
     const why = st==='수요예측' ? '수요예측이 진행 중이라 기관경쟁률·의무보유확약이 아직 없습니다.'
       : (st==='청약예정'||st==='청약중') ? '수요예측은 마감됐으나 기관경쟁률·의무보유확약이 38.co.kr에 아직 공시되지 않았습니다(공모가 확정 공고 후 반영). 발표되는 대로 자동으로 판정됩니다.'
       : '수요예측 결과가 아직 발표되지 않았습니다.';
-    return {tier:-1, label:'결과 대기', color:'var(--tx2)', reason:why+' 그동안은 희망공모가·청약일·배정물량 등 확인 가능한 세부 정보를 아래에 표시합니다.', factors:null};
+    return {tier:-1, label:'집계 중', color:'var(--tx2)', reason:why+' 그동안은 희망공모가·청약일·배정물량 등 확인 가능한 정보를 표시합니다.', factors:null};
   }
 
   const r=item.instRatio;
@@ -471,7 +485,8 @@ function renderIpoList(m){
     const v=ipoVerdict(item);
     const tierNames=['포기','신중','중립','추천','적극추천'];
     const tierColors=['var(--down)','var(--gold)','var(--tx2)','var(--accent)','var(--up)'];
-    const tierBar=tierNames.map((t,idx)=>'<span'+(v.tier===idx?' class="on" style="background:'+tierColors[idx]+'"':'')+'>'+t+'</span>').join('');
+    const tierBar='<div class="ipo-scale">'+tierNames.map((t,idx)=>'<div'+(v.tier===idx?' class="on"':'')+'><i style="background:'+tierColors[idx]+'"></i><span'+(v.tier===idx?' style="color:'+tierColors[idx]+'"':'')+'>'+t+'</span></div>').join('')+'</div>';
+    const pend=(v.tier===-1&&v.label==='집계 중');
     const factorRows=v.factors ? v.factors.map(f=>
       '<div class="ipo-factor">'+
         '<div class="ipo-factor-top"><span>'+f.name+'</span><span style="color:'+f.color+'">'+f.note+'</span></div>'+
@@ -509,24 +524,31 @@ function renderIpoList(m){
       '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
         '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+stageBadge+
           '<div class="ipo-dates">'+(item.stage==='청약완료'?'<b style="color:var(--down)">청약완료</b> · '+(item.subscDate||'')+(item.listDate&&item.listDate!=='미정'?' · 상장 '+item.listDate:''):item.stage==='신규상장'?'<b style="color:var(--accent)">상장완료</b>'+(item.listDate&&item.listDate!=='미정'?' · '+item.listDate:''):(item.subscDate||''))+'</div></div>'+
-        '<div class="ipo-verdict">'+ipoLamp(v.tier)+'<div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
+        '<div class="ipo-verdict">'+(pend?'':ipoLamp(v.tier))+'<div class="ipo-verdict-badge'+(pend?' pend':'')+'" style="background:'+v.color+'22;color:'+v.color+'">'+(pend?'<i class="ipo-pulse"></i>':'')+v.label+'</div></div>'+
       '</div>'+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
         '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
         '<div class="ipo-detail-grid">'+
           detailRows.map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+
         '</div>'+
-        '<div class="ipo-judge" style="border-color:'+v.color+'">'+
-          '<div class="ipo-judge-top">'+ipoLamp(v.tier)+
-            '<div><div class="ipo-judge-title">김군판정</div><div class="ipo-judge-label" style="color:'+v.color+'">'+v.label+'</div></div>'+
-            (v.total!=null?'<div class="ipo-judge-score" style="color:'+v.color+'">'+v.total+'점 / 100</div>':'')+
-          '</div>'+
-          '<div class="ipo-tier-bar" style="margin-top:12px">'+tierBar+'</div>'+
-          (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
-          '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
-        '</div>'+
+        (pend
+          ? '<div class="ipo-judge pend">'+
+              '<div class="ipo-judge-title">김군판정</div>'+
+              '<div class="ipo-judge-label"><i class="ipo-pulse"></i>수요예측 결과 집계 중</div>'+
+              '<div class="ipo-skel"></div>'+
+              '<p class="mut" style="margin-top:10px;font-size:12.5px">'+v.reason+'</p>'+
+            '</div>'
+          : '<div class="ipo-judge" style="border-color:'+v.color+'">'+
+              '<div class="ipo-judge-top">'+ipoLamp(v.tier)+
+                '<div><div class="ipo-judge-title">김군판정</div><div class="ipo-judge-label" style="color:'+v.color+'">'+v.label+'</div></div>'+
+                (v.total!=null?'<div class="ipo-judge-score" style="color:'+v.color+'">'+v.total+'점 / 100</div>':'')+
+              '</div>'+
+              tierBar+
+              (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
+              '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
+            '</div>')+
         '<div style="margin-top:14px">'+
-          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoFinancials(\''+i+'-'+m+'\',\''+item.name.replace(/'/g,"\\'")+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">📊 재무비율·주가지표 보기(DART 전자공시)</a>'+
+          '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoFinancials(\''+i+'-'+m+'\',\''+item.name.replace(/'/g,"\\'")+'\',\''+(item.no||'')+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">📊 재무비율·주가지표 보기(DART 전자공시)</a>'+
           '<div id="ipo-fin-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
         '</div>'+
         (item.no?(
@@ -547,20 +569,20 @@ function renderIpoList(m){
 /* IPO 카드의 "재무비율·주가지표 보기" — 회사명으로 DART corp_code를 찾아 최근 재무제표를
    불러온다. 막 상장했거나 아직 사업보고서를 제출하지 않은 종목은 데이터가 없을 수 있다. */
 const ipoFinLoaded={};
-async function toggleIpoFinancials(key, companyName){
+async function toggleIpoFinancials(key, companyName, no){
   const el=document.getElementById('ipo-fin-'+key);
   if(!el) return;
   const willOpen=(el.style.display==='none');
   el.style.display=willOpen?'block':'none';
   if(willOpen && !ipoFinLoaded[key]){
     el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
-    const {fin3y,growth,eps,psr,notFound}=await dartFinancialsForIpoCompany(companyName);
+    const {fin3y,growth,eps,psr,notFound,source}=await dartFinancialsForIpoCompany(companyName, no);
     if(notFound){
       el.innerHTML='<p class="mut" style="font-size:12.5px">DART에서 "'+companyName+'"과(와) 일치하는 회사를 찾지 못했습니다(상장 직후라 아직 반영되지 않았을 수 있습니다).</p>';
     }else if(!fin3y || !fin3y.length){
       el.innerHTML='<p class="mut" style="font-size:12.5px">아직 DART에 제출된 사업보고서가 없어 재무제표를 표시할 수 없습니다(상장 초기 종목에서 흔합니다).</p>';
     }else{
-      el.innerHTML=renderFinancialsPanel(fin3y,{growth,eps,psr},'손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)','※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.');
+      el.innerHTML=renderFinancialsPanel(fin3y,{growth,eps,psr},source==='38'?'손익계산서(증권신고서 요약재무제표, 단위: 억원) · 출처: 38.co.kr — DART 사업보고서가 아직 없는 신규 종목 대체 자료':'손익계산서(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)','※ PSR은 상장 직후 유통주식수 변동이 커 제공하지 않습니다.'+(source==='38'?' 반기·분기 값은 누적 기준입니다.':''));
     }
     ipoFinLoaded[key]=true;
   }

@@ -2022,24 +2022,28 @@ function renderKimVerdictBadge(growthPct, psr){
   const v=kimValuationVerdict(growthPct, psr);
   if(!v) return '';
   const segs=[['저평가','var(--accent)'],['관망','var(--gold)'],['고평가','var(--up)']];
+  const lampOn=v.idx===0?'g':v.idx===1?'y':'r';   // 저평가=초록, 관망=노랑, 고평가=빨강
+  const lampCol={g:'#1fa463',y:'#f0b429',r:'#e5332a'};
+  const lamp=['r','y','g'].map(c=>'<i style="display:block;width:16px;height:16px;border-radius:50%;background:'+(c===lampOn?lampCol[c]:'var(--line)')+';opacity:'+(c===lampOn?1:.5)+';'+(c===lampOn?'box-shadow:0 0 9px '+lampCol[c]+';':'')+'"></i>').join('');
   const bar=segs.map(([nm,c],i)=>{
     const on=(i===v.idx);
-    return '<div style="flex:1;text-align:center;padding:7px 0;font-size:12px;font-weight:'+(on?800:600)+';'+
-      'background:'+(on?c:c+'1f')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:8px 0 0 8px;':'')+(i===2?'border-radius:0 8px 8px 0;':'')+
-      (on?'box-shadow:0 0 0 2px '+c+'55;position:relative;z-index:1':'')+'">'+nm+'</div>';
+    return '<div style="flex:1;text-align:center;padding:10px 0;font-size:'+(on?16:13)+'px;font-weight:'+(on?900:600)+';'+
+      'background:'+(on?c:c+'1f')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:10px 0 0 10px;':'')+(i===2?'border-radius:0 10px 10px 0;':'')+
+      (on?'box-shadow:0 0 0 3px '+c+'55;position:relative;z-index:1':'')+'">'+nm+'</div>';
   }).join('');
   const reasons=v.reasons.map(r=>
-    '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-top:3px">'+
+    '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;margin-top:5px">'+
       '<span class="mut">'+r.txt+'</span>'+
       '<b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+';flex:none">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>'
   ).join('');
-  return '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'+
-    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
-      '<span style="font-weight:800;font-size:13px">김군 판정</span>'+
-      '<span style="font-weight:800;font-size:13px;color:'+v.color+'">'+v.label+'</span></div>'+
+  return '<div style="margin-top:16px;padding:16px 18px;border:2.5px solid '+v.color+';border-radius:14px;background:var(--panel2)">'+
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">'+
+      '<div style="display:flex;flex-direction:column;gap:5px;padding:7px 6px;border-radius:12px;background:rgba(0,0,0,.08)">'+lamp+'</div>'+
+      '<div><div style="font-weight:800;font-size:14px;color:var(--tx2)">김군 판정</div>'+
+      '<div style="font-weight:900;font-size:30px;line-height:1.15;color:'+v.color+'">'+v.label+'</div></div></div>'+
     '<div style="display:flex">'+bar+'</div>'+
-    '<div style="margin-top:8px">'+reasons+'</div>'+
-    '<div class="mut" style="font-size:10px;margin-top:6px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div></div>';
+    '<div style="margin-top:12px">'+reasons+'</div>'+
+    '<div class="mut" style="font-size:11px;margin-top:8px">매출액증가율·PSR 기준 간이 판정(참고용 · 투자 권유 아님)</div></div>';
 }
 function renderUsFinancialRatios(it){
   if(!it || (it.revenueGrowth==null && it.earningsGrowth==null && it.trailingEps==null && it.forwardEps==null && it.psr==null && it.trailingPE==null)){
@@ -2615,14 +2619,44 @@ async function dartFinancialsWithRatios(stockCode, stockName){
    막 상장한 종목은 아직 사업보고서(연간)를 못 냈을 수 있어 최근 3년이 다 안 채워질 수 있다.
    PSR은 상장 직후 실제 유통주식수/시가총액을 신뢰성 있게 구하기 어려워 제공하지 않는다
    (동종업체 비교 카드에서 시가총액 대비 밸류에이션은 별도로 안내). */
-async function dartFinancialsForIpoCompany(companyName){
+/* 38.co.kr "5.요약재무제표"(증권신고서 발췌) 대체 자료 — DART 사업보고서가 아직 없는 신규 상장 종목용 */
+async function ipoSummaryFinFallback(no){
+  if(!PROXY_BASE||!no) return null;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'ipo-fin?no='+encodeURIComponent(no),{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    if(!r.ok) return null;
+    const j=await r.json();
+    const per=j&&j.fin&&j.fin.periods;
+    if(!per||!per.length) return null;
+    const fin3y=per.slice().reverse().map(p=>({year:p.label,revenue:p.revenue,opProfit:p.opProfit,netProfit:p.netProfit}))
+      .filter(p=>p.revenue!=null||p.opProfit!=null||p.netProfit!=null);
+    if(!fin3y.length) return null;
+    // 성장률: 연간(라벨이 4자리 연도뿐인) 데이터 중 최근 두 해로 계산
+    const full=fin3y.filter(p=>/^\d{4}$/.test(String(p.year)));
+    let growth=null;
+    if(full.length>=2){
+      const a=full[full.length-2], b=full[full.length-1];
+      const g=(x,y)=>(x!=null&&y!=null&&x>0)?(y/x-1)*100:null;
+      growth={revenueGrowth:g(a.revenue,b.revenue), opProfitGrowth:g(a.opProfit,b.opProfit)};
+    }
+    return {fin3y, growth, eps:null, psr:null, notFound:false, source:'38'};
+  }catch(e){ console.warn('요약재무제표 대체 조회 실패:',e); return null; }
+}
+async function dartFinancialsForIpoCompany(companyName, no){
   const [corpCode]=await resolveDartCorpCodesByName([companyName]);
-  if(!corpCode) return { fin3y:null, growth:null, eps:null, psr:null, notFound:true };
+  if(!corpCode){
+    const fb=await ipoSummaryFinFallback(no);
+    return fb||{ fin3y:null, growth:null, eps:null, psr:null, notFound:true };
+  }
   const thisYear=new Date().getFullYear();
   const years=[thisYear-2, thisYear-1, thisYear];
   const results=await Promise.all(years.map(y=>dartFinancialYear(corpCode, y)));
   const fin3y=results.filter(r=>r && (r.revenue!=null||r.opProfit!=null||r.netProfit!=null));
-  if(!fin3y.length) return { fin3y:null, growth:null, eps:null, psr:null, notFound:false };
+  if(!fin3y.length){
+    const fb=await ipoSummaryFinFallback(no);
+    return fb||{ fin3y:null, growth:null, eps:null, psr:null, notFound:false };
+  }
   const latestYear=fin3y[fin3y.length-1].year;
   const [growth, eps]=await Promise.all([ dartGrowthIndicators(corpCode, latestYear), dartEps(corpCode, latestYear) ]);
   return { fin3y, growth, eps, psr:null, notFound:false };
@@ -2645,12 +2679,43 @@ async function loadIpoPeerComparison(no){
    문구가 basis 위에 있으나 파서가 별도 필드로 넘기지 않아, 값 크기로 억원 환산 여부를 짐작하지
    않고 원안 그대로 "천원" 단위 표기를 유지한다 — 오해를 막기 위해 표 상단에 명시). */
 function renderIpoPeerTable(peer){
-  if(!peer || !peer.rows || !peer.rows.length) return '<p class="mut" style="font-size:12.5px">동종업체 비교 자료를 찾지 못했습니다(증권신고서에 해당 항목이 없거나 아직 미제출).</p>';
+  if(!peer || !peer.rows || !peer.rows.length) return '<p class="mut" style="font-size:12.5px">동종업체 비교 자료를 찾지 못했습니다(증권신고서에 해당 항목이 없거나 아직 미제출, 스팩은 해당 없음).</p>';
+  const unit=peer.unit||'천원';
+  const toEok=v=>v==null?null:(unit==='백만원'?v/100:unit==='천원'?v/100000:unit==='원'?v/1e8:v); // 억원 환산
+  const find=re=>peer.rows.find(r=>re.test(r.label.replace(/[\[\]\s]/g,'')) && !/지배/.test(r.label));
+  const pick=(re)=>{ const r=find(re); return r?r.values.map(toEok):null; };
+  const rev=pick(/^매출액/), op=pick(/^영업이익/), np=pick(/^당기순이익/), asset=pick(/^자산총계/), debt=pick(/^부채총계/), eq=pick(/^자본총계/);
+  const ratio=(a,b)=>(a&&b)?a.map((x,i)=>(x!=null&&b[i])?x/b[i]*100:null):null;
+  const metrics=[
+    {t:'매출액',v:rev,u:'억원'},{t:'영업이익',v:op,u:'억원'},{t:'당기순이익',v:np,u:'억원'},
+    {t:'영업이익률',v:ratio(op,rev),u:'%'},{t:'순이익률',v:ratio(np,rev),u:'%'},
+    {t:'부채비율',v:ratio(debt,eq),u:'%',low:true},{t:'자산총계',v:asset,u:'억원'}
+  ].filter(m=>m.v&&m.v.some(x=>x!=null));
+  const names=peer.companies;
+  const fmtV=(x,u)=>x==null?'—':(u==='%'?x.toFixed(1)+'%':(Math.abs(x)>=10000?(x/10000).toFixed(2)+'조':Math.round(x).toLocaleString('ko-KR')+'억'));
+  const card=m=>{
+    const mx=Math.max.apply(null,m.v.map(x=>x==null?0:Math.abs(x)))||1;
+    const rank=m.v.map((x,i)=>({x,i})).filter(o=>o.x!=null).sort((a,b)=>m.low?a.x-b.x:b.x-a.x).findIndex(o=>o.i===0)+1;
+    const total=m.v.filter(x=>x!=null).length;
+    const rows=names.map((nm,i)=>{
+      const x=m.v[i]; const neg=x!=null&&x<0; const w=x==null?0:Math.max(2,Math.abs(x)/mx*100);
+      const me=(i===0);
+      const col=neg?'var(--down)':(me?'var(--accent)':'var(--tx2)');
+      return '<div style="display:grid;grid-template-columns:minmax(64px,28%) 1fr auto;gap:8px;align-items:center;margin-top:5px;font-size:12px">'+
+        '<span style="'+(me?'font-weight:900;color:var(--accent)':'color:var(--tx2)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(me?'★ ':'')+nm.replace(/^동사.*/,'공모기업')+'</span>'+
+        '<div style="height:'+(me?12:9)+'px;border-radius:5px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:'+w.toFixed(1)+'%;background:'+col+';opacity:'+(me?1:.55)+';border-radius:5px"></i></div>'+
+        '<b style="min-width:62px;text-align:right;color:'+(neg?'var(--down)':'var(--tx)')+'">'+fmtV(x,m.u)+'</b></div>';
+    }).join('');
+    return '<div style="padding:11px 13px;background:var(--panel2);border-radius:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:800;font-size:13.5px">'+m.t+'</span>'+
+      (rank?'<span style="font-size:11px;font-weight:800;color:'+(rank===1?'var(--accent)':'var(--tx2)')+'">'+(m.low?'낮을수록 우수 · ':'')+'공모기업 '+rank+'/'+total+'위</span>':'')+'</div>'+rows+'</div>';
+  };
   const fmt=v=>v==null?'—':v.toLocaleString('ko-KR');
-  const head='<tr><th>구분</th>'+peer.companies.map((c,idx)=>'<th style="text-align:right">'+c+(idx===0?' <span class="mut" style="font-weight:400">(공모기업)</span>':'')+'</th>').join('')+'</tr>';
+  const head='<tr><th>구분</th>'+names.map((c,idx)=>'<th style="text-align:right">'+c+'</th>').join('')+'</tr>';
   const body=peer.rows.map(r=>'<tr><td>'+r.label.replace(/[\[\]]/g,'')+'</td>'+r.values.map(v=>'<td style="text-align:right">'+fmt(v)+'</td>').join('')+'</tr>').join('');
-  return '<div class="mut" style="font-size:11px;margin-bottom:6px">단위: 천원 · 출처: 증권신고서(38.co.kr 발췌)</div>'+
-    '<div class="scroll"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  return '<div class="mut" style="font-size:11px;margin-bottom:8px">공모기업(★)과 동종업체 비교 · 억원 환산(원자료 단위: '+unit+') · 출처: 증권신고서(38.co.kr 발췌)</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">'+metrics.map(card).join('')+'</div>'+
+    '<details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-size:12px">원본 표 보기('+unit+')</summary><div class="scroll"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div></details>';
 }
 
 /* 동종업체(피어) 주가 정보 시각화 — 회사명으로 종목코드를 찾아(DART corp_code 맵의 stockCode)
