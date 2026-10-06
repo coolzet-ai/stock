@@ -704,14 +704,31 @@ function krDivergingBars(bars){
   });
   return svg+'</svg>';
 }
-function renderKrInvestorBlock(title, bars, series, xLabels){
+function renderKrInvestorBlock(title, bars, series, xLabels, lampsHtml){
   const el=document.getElementById('kr-investor-trend'); if(!el) return;
-  let html='<div class="mut" style="font-size:11.5px;margin-bottom:6px">'+title+' · 단위 억원(1만억 이상은 조)</div>'+krDivergingBars(bars);
+  let html=(lampsHtml||'')+'<div class="mut" style="font-size:11.5px;margin-bottom:6px">'+title+' · 단위 억원(1만억 이상은 조)</div>'+krDivergingBars(bars);
   if(series){
     html+='<div class="mut" style="font-size:11.5px;margin:14px 0 4px">기간 중 누적 순매수 추이 (0선 위=누적 매수 우위, 아래=매도 우위)</div>'+
       miniLineChart(series,{h:170,padL:52,padR:8,padTop:12,padBottom:18,zeroLine:true,axis:true,axisFmt:v=>fmtEok(v,true),xLabels:xLabels});
   }
   el.innerHTML=html;
+}
+/* 투자자 주체별 신호등 — 선택한 기간과 무관하게 최근 5영업일 누적 + 당일 순매수 방향으로 판정한다
+   (둘 다 순매수=🟢 순매수 우위 / 둘 다 순매도=🔴 순매도 우위 / 엇갈림=🟡 혼조) */
+function krInvestorLamps(h){
+  if(!h||h.length<5) return '';
+  const rows5=h.slice(-5), today=h[h.length-1];
+  const defs=[['개인','personal'],['외국인','foreign'],['기관','institutional']];
+  const boxes=defs.map(([nm,k])=>{
+    const s5=rows5.reduce((a,r)=>a+(r[k]||0),0), t=today[k]||0;
+    const lv=(s5>0&&t>0)?{i:'🟢',t:'순매수 우위',c:'var(--up)'}:(s5<0&&t<0)?{i:'🔴',t:'순매도 우위',c:'var(--down)'}:{i:'🟡',t:'혼조',c:'var(--tx2)'};
+    return '<div title="최근 5영업일 누적 '+fmtEok(s5)+' / 당일 '+fmtEok(t)+'\n둘 다 순매수 🟢 · 둘 다 순매도 🔴 · 엇갈림 🟡" style="padding:8px 10px;border-radius:10px;border:2px solid '+lv.c+';background:var(--panel);cursor:help;text-align:center">'+
+      '<div style="font-size:12px;font-weight:700;color:var(--tx2)">'+nm+'</div>'+
+      '<div style="font-size:24px;line-height:1.2">'+lv.i+'</div>'+
+      '<div style="font-size:14px;font-weight:900;color:'+lv.c+'">'+lv.t+'</div>'+
+      '<div style="font-size:11px;color:var(--tx2);margin-top:2px">5일 '+fmtEok(s5)+'</div></div>';
+  }).join('');
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'+boxes+'</div>';
 }
 async function refreshKrInvestor(){
   const el=document.getElementById('kr-investor-trend'); if(!el) return;
@@ -727,7 +744,8 @@ async function refreshKrInvestor(){
       if(h && h.length){ const r=h[h.length-1]; bars=[{name:'개인',v:r.personal},{name:'외국인',v:r.foreign},{name:'기관',v:r.institutional}]; date=r.bizdate; }
     }
     if(!bars){ el.innerHTML=NOTE; return; }
-    renderKrInvestorBlock(fmtKrDate(date)+' 기준 당일 순매수', bars, null, null);
+    const h1=await loadKrInvestorHistory(m);
+    renderKrInvestorBlock(fmtKrDate(date)+' 기준 당일 순매수', bars, null, null, krInvestorLamps(h1));
     return;
   }
   const h=await loadKrInvestorHistory(m);
@@ -741,7 +759,7 @@ async function refreshKrInvestor(){
                 {values:cum('institutional'),color:'#16a34a',width:2,label:'기관'}];
   const n=rows.length, mid=Math.floor((n-1)/2);
   const xl=[{i:0,text:fmtKrMD(rows[0].bizdate),anchor:'start'},{i:mid,text:fmtKrMD(rows[mid].bizdate),anchor:'middle'},{i:n-1,text:fmtKrMD(rows[n-1].bizdate),anchor:'end'}];
-  renderKrInvestorBlock('최근 '+KR_PERIOD_LABEL[p]+'('+n+'영업일, '+fmtKrDate(rows[0].bizdate)+' ~ '+fmtKrDate(rows[n-1].bizdate)+') 누적 순매수', bars, series, xl);
+  renderKrInvestorBlock('최근 '+KR_PERIOD_LABEL[p]+'('+n+'영업일, '+fmtKrDate(rows[0].bizdate)+' ~ '+fmtKrDate(rows[n-1].bizdate)+') 누적 순매수', bars, series, xl, krInvestorLamps(h));
 }
 function setKrInvestorMarket(market){
   krInvestorMarket=market;
@@ -813,27 +831,26 @@ function renderKrMarketDeposit(rows){
     const diffText=diff==null?'--':(diffUp?'▲':'▼')+Math.abs(diff).toLocaleString('ko-KR');
     const pChg=(first[key]&&v!=null)?(v-first[key])/first[key]*100:null;
     const pCol=pChg==null?'var(--tx2)':(pChg>=0?'var(--up)':'var(--down)');
-    let lampHtml='';
-    if(withLamp){
-      const L=lampFor(key);
-      if(L) lampHtml='<div title="'+L.rule+'" style="margin:8px 0 2px;padding:7px 10px;border-radius:8px;border:1.5px solid '+L.lv.c+';display:flex;align-items:center;gap:8px;cursor:help;background:var(--panel)">'+
-        '<span style="font-size:22px;line-height:1">'+L.lv.i+'</span>'+
-        '<span style="font-size:14px;font-weight:900;color:'+L.lv.c+'">'+L.lv.t+'</span>'+
-        '<span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--tx2)">3개월 '+(L.ch>=0?'+':'')+L.ch.toFixed(2)+'%</span></div>';
-    }
     return '<div style="padding:10px 12px;background:var(--panel2);border-radius:10px">'+
       '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'+
         '<span style="font-size:12px;color:var(--tx2);font-weight:700">'+name+'</span>'+
         '<span style="font-size:11px;color:'+pCol+';font-weight:700">'+KR_PERIOD_LABEL[krDepositPeriod]+' '+(pChg==null?'--':(pChg>=0?'+':'')+pChg.toFixed(2)+'%')+'</span></div>'+
       '<div style="font-weight:800;font-size:16px">'+(v!=null?v.toLocaleString('ko-KR'):'--')+'<span style="font-size:11px;font-weight:400;color:var(--tx2)"> 억</span>'+
         ' <span style="font-size:12px;color:'+diffColor+';font-weight:700">'+diffText+'</span></div>'+
-      lampHtml+
       miniLineChart([{values:values, color:(pChg!=null&&pChg>=0?'var(--up)':'var(--down)'), width:1.8}],
         {w:300,h:120,padL:46,padR:8,padTop:8,padBottom:18,axis:true,axisFmt:fmtAx,xLabels:xl})+
     '</div>';
   }
   const grid='display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px';
-  el.innerHTML='<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜 · 신호등은 최근 3개월 변화 기준</div>'+
+  function lampBox(name,key){
+    const L=lampFor(key); if(!L) return '';
+    return '<div title="'+L.rule+'" style="padding:9px 12px;border-radius:10px;border:2px solid '+L.lv.c+';display:flex;align-items:center;gap:10px;cursor:help;background:var(--panel)">'+
+      '<span style="font-size:26px;line-height:1">'+L.lv.i+'</span>'+
+      '<span style="font-size:12px;font-weight:700;color:var(--tx2)">'+name+'</span>'+
+      '<span style="font-size:17px;font-weight:900;color:'+L.lv.c+'">'+L.lv.t+'</span></div>';
+  }
+  const lampTop='<div style="'+grid+';margin-bottom:12px">'+lampBox('고객예탁금','customerDeposit')+lampBox('신용잔고','creditLoan')+'</div>';
+  el.innerHTML=lampTop+'<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜 · 신호등은 최근 3개월 변화 기준</div>'+
     '<div style="'+grid+'">'+card('고객예탁금','customerDeposit','customerDepositDiff',true)+card('신용잔고','creditLoan','creditLoanDiff',true)+'</div>'+
     '<div style="margin-top:14px"><button type="button" onclick="toggleKrFundDetail()" style="cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700">'+
       '펀드상세보기 '+(krFundOpen?'▲':'▼')+'</button> <span class="mut" style="font-size:11.5px">주식형·혼합형·채권형 펀드</span></div>'+
