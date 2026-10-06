@@ -225,7 +225,19 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .ipo-market{font-size:11.5px;color:var(--tx2);background:var(--panel2);padding:2px 8px;border-radius:6px;margin-left:8px}
 .ipo-dates{font-size:12.5px;color:var(--tx2);margin-top:6px}
 .ipo-verdict{flex:none;text-align:center;min-width:76px}
-.ipo-verdict-badge{font-size:12px;font-weight:800;padding:5px 10px;border-radius:8px;white-space:nowrap}
+.ipo-verdict-badge{font-size:18px;font-weight:900;padding:8px 14px;border-radius:10px;white-space:nowrap;letter-spacing:.3px;border:2px solid currentColor}
+.ipo-lamp{display:flex;justify-content:center;gap:5px;margin-bottom:7px}
+.ipo-lamp i{width:13px;height:13px;border-radius:50%;background:var(--line);display:block;opacity:.55}
+.ipo-lamp i.on{opacity:1;box-shadow:0 0 7px currentColor}
+.ipo-lamp i.r.on{background:#e5332a;color:#e5332a}.ipo-lamp i.y.on{background:#f0b429;color:#f0b429}.ipo-lamp i.g.on{background:#1fa463;color:#1fa463}
+.ipo-judge{margin-top:16px;border:2px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--panel2)}
+.ipo-judge-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ipo-judge-title{font-size:14px;font-weight:800;color:var(--tx2)}
+.ipo-judge-label{font-size:26px;font-weight:900;line-height:1.1}
+.ipo-judge-score{font-size:15px;font-weight:800}
+.ipo-rbar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:6px}
+.ipo-rbar i{display:block;height:100%;border-radius:5px}
+.ipo-rnum{font-size:16px;font-weight:900}
 .ipo-detail{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);display:none;font-size:13.5px}
 .ipo-detail.open{display:block}
 .ipo-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
@@ -419,6 +431,26 @@ function ipoVerdict(item){
     factors};
 }
 
+
+/* 신호등: 포기·신중=빨강, 중립=노랑, 추천·적극추천=초록 */
+function ipoLamp(tier){
+  const on=tier<=1&&tier>=0?'r':tier===2?'y':tier>=3?'g':'';
+  return '<div class="ipo-lamp" title="'+(tier>=3?'녹색':tier===2?'노랑':tier>=0?'빨강':'판정 보류')+'">'+
+    ['r','y','g'].map(c=>'<i class="'+c+(on===c?' on':'')+'"></i>').join('')+'</div>';
+}
+/* 경쟁률 시각화: 로그 스케일 막대(1:1~3,000:1)와 굵은 수치. 값이 없으면 안내 문구만 */
+function ipoRatioVisual(txt, kind){
+  const m=String(txt||'').match(/([\d,]+(?:\.\d+)?)\s*:\s*1/);
+  if(!m) return '<span class="mut" style="font-weight:600">'+(txt||'--')+'</span>';
+  const r=parseFloat(m[1].replace(/,/g,''));
+  const pct=Math.max(3,Math.min(100,Math.log10(r+1)/Math.log10(3001)*100));
+  const col=kind==='inst'
+    ? (r>=1000?'var(--up)':r>=500?'#e07a1f':r>=300?'var(--gold)':r>=100?'var(--tx2)':'var(--down)')
+    : (r>=1000?'var(--up)':r>=300?'#e07a1f':r>=50?'var(--gold)':r>=10?'var(--tx2)':'var(--down)');
+  return '<div class="ipo-rnum" style="color:'+col+'">'+txt+'</div>'+
+    '<div class="ipo-rbar" title="로그 스케일 (1:1 ~ 3,000:1)"><i style="width:'+pct.toFixed(1)+'%;background:'+col+'"></i></div>';
+}
+
 function renderIpoList(m){
   const el=document.getElementById('ipo-list'); if(!el) return;
   const items=IPO_DATA[m];
@@ -440,18 +472,18 @@ function renderIpoList(m){
     ).join('') : '';
     const detailRows=[
       ['청약일', item.subscDate||'미정'],
-      ['상장일', item.stage==='신규상장' ? '✓ 상장완료'+(item.listDate&&item.listDate!=='미정'?' ('+item.listDate+')':'') : (item.listDate||'미정')],
+      ['상장일', item.stage==='신규상장' ? '상장완료'+(item.listDate&&item.listDate!=='미정'?' ('+item.listDate+')':'') : (item.listDate||'미정')],
       ['주간사', item.underwriter||'미정'],
       ['공모가', item.offerPriceFinal||item.offerPriceBand||'미정'],
-      ['기관경쟁률', item.instCount||'--'],
-      ['청약경쟁률', item.subRatio||'--'],
+      ['기관경쟁률', ipoRatioVisual(item.instCount,'inst')],
+      ['청약경쟁률', ipoRatioVisual(item.subRatio,'sub')],
       ['밴드 제시 현황', item.topBandRatio||'--'],
       ['의무보유확약비율', item.lockupRatio||'미발표'],
       ['유통비율', item.floatRatio||'미발표'],
       ['환매청구권', item.refundRight||'미확인']
     ];
     const stageBadge=item.stage==='신규상장'
-      ? '<span class="ipo-market" style="background:rgba(0,117,74,.15);color:var(--accent);font-weight:700">✓ 상장완료</span>'
+      ? ''
       : item.stage==='청약완료' ? '<span class="ipo-market" style="background:rgba(26,111,168,.15);color:var(--down);font-weight:700">청약완료 · 상장대기</span>'
       : item.stage==='상장예정' ? '<span class="ipo-market" style="background:rgba(0,117,74,.10);color:var(--accent)">상장예정</span>'
       : item.stage==='청약예정' ? '<span class="ipo-market" style="background:rgba(0,0,0,.1);color:var(--tx2)">청약예정</span>'
@@ -462,16 +494,19 @@ function renderIpoList(m){
       '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
         '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+stageBadge+
           '<div class="ipo-dates">'+(item.stage==='청약완료'?'<b style="color:var(--down)">청약완료</b> · '+(item.subscDate||'')+(item.listDate&&item.listDate!=='미정'?' · 상장 '+item.listDate:''):item.stage==='신규상장'?'<b style="color:var(--accent)">상장완료</b>'+(item.listDate&&item.listDate!=='미정'?' · '+item.listDate:''):(item.subscDate||''))+'</div></div>'+
-        '<div class="ipo-verdict"><div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
+        '<div class="ipo-verdict">'+ipoLamp(v.tier)+'<div class="ipo-verdict-badge" style="background:'+v.color+'22;color:'+v.color+'">'+v.label+'</div></div>'+
       '</div>'+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
         '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
         '<div class="ipo-detail-grid">'+
           detailRows.map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+
         '</div>'+
-        '<div style="margin-top:14px">'+
-          '<div class="k" style="color:var(--tx2);font-size:12px">김군코멘트'+(v.total!=null?' <span style="color:'+v.color+';font-weight:800">('+v.total+'점)</span>':'')+'</div>'+
-          '<div class="ipo-tier-bar">'+tierBar+'</div>'+
+        '<div class="ipo-judge" style="border-color:'+v.color+'">'+
+          '<div class="ipo-judge-top">'+ipoLamp(v.tier)+
+            '<div><div class="ipo-judge-title">김군판정</div><div class="ipo-judge-label" style="color:'+v.color+'">'+v.label+'</div></div>'+
+            (v.total!=null?'<div class="ipo-judge-score" style="color:'+v.color+'">'+v.total+'점 / 100</div>':'')+
+          '</div>'+
+          '<div class="ipo-tier-bar" style="margin-top:12px">'+tierBar+'</div>'+
           (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
           '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
         '</div>'+

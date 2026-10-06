@@ -1511,6 +1511,7 @@ function injectTechBadgeCss(){
   st.textContent='.wl-name{white-space:normal!important;overflow:visible!important}'+
     '.wl-sig{display:inline-block;margin-right:6px;font-size:14px;line-height:1;cursor:help;vertical-align:middle}'+
     '.wl-ind{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:middle}'+
+    '@media(max-width:560px){.wl-ind{display:flex;margin-left:0;margin-top:5px}}'+
     '.tb{display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 6px;border-radius:5px;white-space:nowrap;cursor:help}'+
     '.tb-up{background:rgba(200,32,20,.13);color:var(--up)}'+
     '.tb-dn{background:rgba(26,111,168,.14);color:var(--down)}'+
@@ -2248,7 +2249,7 @@ function ipoBuildItem(raw){
     market: raw.market||'',
     stage: raw.stage||null, // '수요예측'·'청약중'·'상장예정'·'신규상장(=상장완료)' — 카드에 진행 상태 배지를 표시하기 위해 전달
     isTransfer: isTransfer,
-    subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.stage==='신규상장'?'상장완료':(raw.predictDate?('수요예측 '+raw.predictDate):'미정'))),
+    subscDate: isTransfer ? '해당없음(이전상장)' : (raw.subscDate || (raw.stage==='신규상장'?'청약 종료':(raw.predictDate?('수요예측 '+raw.predictDate):'미정'))),
     subRatio: ipoFormatSubRatio(raw.subRatioText)||(raw.stage==='청약중'?'청약 종료 후 발표':raw.stage==='청약완료'?'집계 중':(raw.stage==='수요예측'||raw.stage==='청약예정')?'청약 전':null),
     listDate: raw.listDate||'미정',
     underwriter: raw.underwriter||'미정',
@@ -2258,7 +2259,7 @@ function ipoBuildItem(raw){
     instCount: raw.instRatio!=null ? (raw.instRatio.toLocaleString('ko-KR')+':1') : (stageNote||'수요예측 전'),
     topBandRatio: null,
     lockupRatio: raw.lockupRatio!=null ? raw.lockupRatio.toFixed(2)+'%' : null,
-    floatRatio: raw.floatRatio!=null ? raw.floatRatio.toFixed(2)+'%' : null, // ipostock.co.kr 보강(유통가능주식÷공모후 발행주식)
+    floatRatio: raw.isSpac ? '해당없음(스팩)' : (raw.floatRatio!=null ? raw.floatRatio.toFixed(2)+'%' : null), // ipostock.co.kr 보강(유통가능주식÷공모후 발행주식)
     refundRight: null,
     desc: descParts.length?descParts.join(' · '):'상세 정보 준비 중',
     sourceUrl: raw.sourceUrl
