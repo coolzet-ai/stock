@@ -424,7 +424,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006e"></script>
+<script src="mrkim-common.js?v=20261006o"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
@@ -445,8 +445,18 @@ async function toggleFinancials(stockCode){
     if(!finLoaded[stockCode]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
       const {fin3y,growth,eps,psr}=await dartFinancialsWithRatios(stockCode, KR_TOP10_NAME_BY_CODE[stockCode]);
+      /* 기술 평가용 종가(5일선·200일선·RSI) — 이미 불러온 tickData를 쓰고, 없으면 .KS→.KQ 순으로 조회 */
+      let techD=null;
+      try{
+        const tk=Object.keys(tickData).find(k=>k.indexOf(stockCode+'.')===0);
+        techD=tk?tickData[tk]:null;
+        if(!techD){ techD=await yclose(stockCode+'.KS','1y')||await yclose(stockCode+'.KQ','1y'); }
+      }catch(e){}
+      let finAll=fin3y, estInfo=null;
+      try{ estInfo=await krConsensusEst(stockCode); }catch(e){}
+      if(fin3y&&fin3y.length&&estInfo&&estInfo.est&&estInfo.est.length){ finAll=fin3y.concat(estInfo.est); }
       el.innerHTML=(fin3y&&fin3y.length)
-        ? renderFinancialsPanel(fin3y,{growth,eps,psr},'손익계산서 최근 3년(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)',null)
+        ? renderFinancialsPanel(finAll,{growth,eps,psr,techD},'손익계산서 최근 '+fin3y.length+'개년'+(finAll!==fin3y?' + 올해 예상(E)':'')+'(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)'+(finAll!==fin3y?' · 예상치: 네이버 증권(FnGuide 컨센서스)':''),null)
         : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.</p>';
       finLoaded[stockCode]=true;
     }

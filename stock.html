@@ -566,7 +566,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006e"></script>
+<script src="mrkim-common.js?v=20261006o"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
@@ -613,7 +613,9 @@ async function toggleUsFinancials(ticker){
     if(!usFinLoaded[ticker]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
       const cache=await loadUsFundamentalsOnce();
-      el.innerHTML=renderUsFinancialRatios(cache?cache[ticker]:null);
+      let techD=null;
+      try{ techD=(typeof tickData!=='undefined'&&tickData[ticker])||await yclose(ticker,'1y'); }catch(e){}
+      el.innerHTML=renderUsFinancialRatios(cache?cache[ticker]:null, techD);
       usFinLoaded[ticker]=true;
     }
   }else{
@@ -635,7 +637,9 @@ async function toggleEtfHoldings(ticker, ev){
     if(!etfHoldLoaded[ticker]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
       const data=await loadEtfHoldings(ticker);
-      el.innerHTML=renderEtfHoldings(data);
+      let lev='';
+      try{ if(typeof LEV_META!=='undefined'&&LEV_META[ticker]) lev=await renderLevPanel(ticker,data); }catch(e){ console.warn('레버리지 패널 실패',e); }
+      el.innerHTML=lev+renderEtfHoldings(data);
       etfHoldLoaded[ticker]=true;
     }
   }else{

@@ -294,7 +294,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006e"></script>
+<script src="mrkim-common.js?v=20261006o"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -526,7 +526,7 @@ function renderIpoList(m){
           '<div class="ipo-dates">'+(item.stage==='청약완료'?'<b style="color:var(--down)">청약완료</b> · '+(item.subscDate||'')+(item.listDate&&item.listDate!=='미정'?' · 상장 '+item.listDate:''):item.stage==='신규상장'?'<b style="color:var(--accent)">상장완료</b>'+(item.listDate&&item.listDate!=='미정'?' · '+item.listDate:''):(item.subscDate||''))+'</div></div>'+
         '<div class="ipo-verdict">'+(pend?'':ipoLamp(v.tier))+'<div class="ipo-verdict-badge'+(pend?' pend':'')+'" style="background:'+v.color+'22;color:'+v.color+'">'+(pend?'<i class="ipo-pulse"></i>':'')+v.label+'</div></div>'+
       '</div>'+
-      (item.stage==='신규상장'?'<div class="ipo-quote" data-ipoq="'+(item.stockCode||'')+'" data-nm="'+item.name.replace(/"/g,'')+'" data-mk="'+(item.market||'')+'" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><span class="mut" style="font-size:11.5px">📈 상장 후 주가 불러오는 중…</span></div>':'')+
+      (item.stage==='신규상장'?'<div class="ipo-quote" data-ipoq="'+(item.stockCode||'')+'" data-nm="'+item.name.replace(/"/g,'')+'" data-mk="'+(item.market||'')+'" data-ld="'+(item.listDate||'')+'" data-offer="'+(item.offerPriceFinal||'')+'" data-lock="'+(item.lockupSchedule?JSON.stringify(item.lockupSchedule).replace(/"/g,'&quot;'):'')+'" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><span class="mut" style="font-size:11.5px">📈 상장 후 주가 불러오는 중…</span></div>':'')+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
         '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
         '<div class="ipo-detail-grid">'+
@@ -548,6 +548,7 @@ function renderIpoList(m){
               (factorRows?'<div class="ipo-factor-row">'+factorRows+'</div>':'')+
               '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
             '</div>')+
+        (item.stage!=='신규상장'&&typeof ipoScheduleHtml==='function'?ipoScheduleHtml(item):'')+
         '<div style="margin-top:14px">'+
           '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoFinancials(\''+i+'-'+m+'\',\''+item.name.replace(/'/g,"\\'")+'\',\''+(item.no||'')+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">📊 재무비율·주가지표 보기(DART 전자공시)</a>'+
           '<div id="ipo-fin-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
