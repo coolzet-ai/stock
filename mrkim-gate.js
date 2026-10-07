@@ -5,8 +5,8 @@
    · 두 값이 비어 있으면 잠금은 동작하지 않는다.
    ※ 정적 웹페이지의 브라우저 측 잠금이라 '가벼운 접근 제한' 용도입니다(소스 보기·직접 파일 접근까지 막는 서버 보안은 아님). */
 (function(){
-  var USER_HASH  = '';   // ← gate-setup.html 에서 만든 "이용 암호" 해시
-  var ADMIN_HASH = '';   // ← gate-setup.html 에서 만든 "관리자 암호" 해시
+  var USER_HASH  = 'b3e9a9911d67f0454cb582a33bd15d0108196d7e833d65277c4a5ecdc5b131bf';   // ← gate-setup.html 에서 만든 "이용 암호" 해시
+  var ADMIN_HASH = 'a0cd5da6a6e2225ca6a7d8ece1f7ebc1c4c8ed28159dfe85a0110b8b14140f11';   // ← gate-setup.html 에서 만든 "관리자 암호" 해시
   var SALT='mk|';
   try{ if(/[?&]gate=on\b/.test(location.search)) localStorage.removeItem('mk_gate_off'); }catch(e){}
   if(!USER_HASH) return;
