@@ -187,6 +187,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
   font-size:12.5px;color:var(--tx2);margin-top:18px}
 .updated{font-size:12.5px;color:var(--tx2)}
+.disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
+.disc b{color:#c82014;font-size:1.05em}
 </style>
 </head>
 <body>
@@ -196,8 +198,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
-      <li><a href="stock.html">미국지수</a></li>
-      <li><a href="kr-stock.html">한국지수</a></li>
+      <li><a href="stock.html">미국주식</a></li>
+      <li><a href="kr-stock.html">한국주식</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
       <li><a href="fx.html">환율</a></li>
       <li><a href="finprod.html">금융상품</a></li>
@@ -328,14 +330,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
     </ul>
     <div class="disc">
-      <b>투자 유의사항</b> — 본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.
-      투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다. 시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.
+      <b>투자 유의사항</b><br>
+      <span class="dl">본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.</span>
+      <span class="dl">투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다.</span>
+      <span class="dl">시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.</span>
     </div>
     <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261006u"></script>
+<script src="mrkim-common.js?v=20261007p"></script>
 <script>
 const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
 if(cryptoEvMonthTabs){

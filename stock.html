@@ -289,7 +289,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국주식</a></li>
-      <li><a href="kr-stock.html">한국지수</a></li>
+      <li><a href="kr-stock.html">한국주식</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
       <li><a href="fx.html">환율</a></li>
       <li><a href="finprod.html">금융상품</a></li>
@@ -626,7 +626,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007m"></script>
+<script src="mrkim-common.js?v=20261007p"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
@@ -661,7 +661,7 @@ loadUnicornNews();
 
 </script>
 <script>
-/* 미국지수 시가총액 TOP10 재무비율·주가지표 — 한국지수 페이지의 "재무" 클릭식 토글과 동일한 방식.
+/* 미국지수 시가총액 TOP10 재무비율·주가지표 — 한국주식 페이지의 "재무" 클릭식 토글과 동일한 방식.
    /us-fundamentals 는 10개 종목 전체를 한 번에 반환하므로(loadUsFundamentalsOnce, mrkim-common.js
    참고), 처음 "재무"를 누른 시점에 한 번만 불러와 캐시해두고 이후 클릭은 그 캐시에서 즉시 렌더링한다. */
 const usFinLoaded={};
