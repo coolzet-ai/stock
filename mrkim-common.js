@@ -3049,7 +3049,7 @@ function renderFxWatchlist(p){
     const sig=valuationSignal(closes);
     const sigTag=sig?'<span class="wl-sig" title="'+sig.tip.replace(/"/g,'&quot;')+'">'+sig.icon+'</span>':'';
     const badges=techBadgesHtml(closes);
-    const nameCell='<td>'+sigTag+meta.flag+' <a href="'+finvizUrl+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline" title="Finviz에서 '+meta.code+' 상세 차트 보기">'+meta.name+'</a> <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+
+    const nameCell='<td>'+sigTag+meta.flag+' <a href="'+finvizUrl+'" target="_blank" rel="noopener" style="color:inherit;font-weight:800;text-decoration:underline" title="Finviz에서 '+meta.code+' 상세 차트 보기">'+meta.name+'</a> <span class="mut">('+meta.code+'/KRW)</span>'+linkTag+
       (badges?'<span class="wl-ind">'+badges+'</span>':'')+'</td>';
     if(!closes || closes.length<2){
       return '<tr>'+nameCell+'<td class="mut" colspan="2">데이터 없음</td></tr>';

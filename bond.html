@@ -30,6 +30,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
+.updated-top{line-height:1.3;text-align:right}.updated-top .upd-word{display:block;line-height:1.3}
 @media(max-width:640px){.updated-top{display:none}}
 .btn{display:inline-block;background:var(--accent);
   color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
@@ -195,7 +196,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .kb-t{width:100%;border-collapse:collapse;font-size:13.5px}.kb-t th{padding:10px 12px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--line);text-align:center}.kb-t td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center}.kb-t td:nth-child(2){text-align:left}.kb-t .num{text-align:right}.kb-gr{font-weight:800}.kb-rk{font-size:16px;white-space:nowrap}
 @media(max-width:560px){.kb-t th,.kb-t td{padding:9px 6px}.kb-t{font-size:12.5px}}
 </style>
-<script src="mrkim-gate.js?v=20261007zf"></script>
+<script src="mrkim-gate.js?v=20261007zg"></script>
 </head>
 <body>
 
@@ -226,18 +227,18 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   <div class="wrap">
     <div class="sec-h"><div>
       <h2>채권</h2>
-      <p class="sub">한국 회사채 등급별 금리 · 고수익 회사채 Top10 · 브라질 국채 수익률</p>
+      <p class="sub">한국 회사채 등급별 금리<br>고수익 회사채 Top10<br>브라질 국채 수익률</p>
     </div></div>
 
-    <h2 style="font-size:21px;margin-top:28px">🇰🇷 회사채 A·B등급 고수익 채권 Top10</h2>
-    <p class="sub">세전 수익률(YTM)이 높은 순 · 등급이 낮을수록 부도(원금손실) 위험이 커집니다 · 참고용이며 투자 권유가 아닙니다</p>
+    <h2 style="font-size:21px;margin-top:28px">회사채 A·B등급 고수익 채권 Top10 🇰🇷</h2>
+    <p class="sub">세전 수익률(YTM)이 높은 순<br>등급이 낮을수록 부도(원금손실) 위험이 커집니다<br>참고용이며 투자 권유가 아닙니다</p>
     <div class="card" id="kb-bench"><p class="mut">회사채 등급별 시장금리를 불러오는 중…</p></div>
     <div class="card" style="margin-top:14px;padding:0;overflow:hidden" id="kb-top10"><p class="mut" style="padding:16px">불러오는 중…</p></div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 개별 채권의 호가·수익률은 증권사 HTS/MTS에서만 실시간 조회되며, 공개 API가 없어 이 화면은 같은 폴더의 <b>bond-top10.json</b>(채권명·등급·만기·수익률·판매처)을 읽어 수익률 순으로 보여줍니다. 파일이 없으면 위 시장금리(ECOS 한국은행)만 표시하며, 없는 값을 임의로 만들어 보여드리지 않습니다.</p>
 
     <p style="margin-top:12px"><a class="btn sm" href="https://www.kofiabond.or.kr/" target="_blank" rel="noopener">금융투자협회 채권정보센터(공식 시세·수익률) 바로가기 ↗</a></p>
 
-    <h2 style="font-size:21px;margin-top:44px">🇧🇷 브라질 국채</h2>
+    <h2 style="font-size:21px;margin-top:44px">브라질 국채 🇧🇷</h2>
     <p class="sub">수수료·이자율·환위험을 고려한 참고용 코멘트이며 투자 조언이 아닙니다</p>
     <div class="card">
       <div class="fx-2col">
@@ -261,11 +262,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <h3 style="font-size:17px;margin-top:28px">브라질 국채 수익률 시각화</h3>
-    <p class="sub" style="margin-bottom:14px">브라질 중앙은행(BCB) 공개 통계 기준 · 헤알화 환율 변동을 반영한 원화 환산 시나리오 포함 · 참고용</p>
+    <p class="sub" style="margin-bottom:14px">브라질 중앙은행(BCB) 공개 통계 기준<br>헤알화 환율 변동을 반영한 원화 환산 시나리오 포함<br>참고용</p>
     <div class="card" id="br-yield-card"><p class="mut">불러오는 중…</p></div>
 
     <h3 style="font-size:17px;margin-top:28px">수익률 Top3 상품 목록</h3>
-    <p class="sub" style="margin-bottom:14px">표면수익률(세전) 추정이 높은 순입니다 · 기준금리(SELIC)·물가(IPCA) 실시간 값에 상품별 가정 스프레드를 더한 추정치이며 실제 매입 시점 호가와 다릅니다</p>
+    <p class="sub" style="margin-bottom:14px">표면수익률(세전) 추정이 높은 순입니다<br>기준금리(SELIC)·물가(IPCA) 실시간 값에 상품별 가정 스프레드를 더한 추정치이며 실제 매입 시점 호가와 다릅니다</p>
     <div class="grid" id="br-top3"></div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 상품별 수익률은 추정치입니다. 실제 판매 수익률·수수료·환전 스프레드는 취급 증권사 화면에서 확인하세요. 투자 권유가 아닙니다.</p>
   </div>
@@ -290,7 +291,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zf"></script>
+<script src="mrkim-common.js?v=20261007zg"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -330,10 +331,11 @@ async function loadBrazilYield(){
     '<div style="position:relative;height:12px;border-radius:6px;background:var(--panel2);overflow:hidden"><div style="position:absolute;'+(val>=0?'left:50%':'right:50%')+';width:'+Math.min(50,Math.abs(val)/max*50)+'%;height:12px;background:'+col+'"></div><i style="position:absolute;left:50%;top:0;width:1px;height:12px;background:var(--tx2)"></i></div>'+
     '<div class="mut" style="font-size:11.5px;margin-top:3px">'+sub+'</div></div>';
   card.innerHTML=
+    '<div class="mut" style="font-size:11.5px;margin-bottom:10px">가로 막대: 가운데 선 = 0% · 오른쪽 = 플러스, 왼쪽 = 마이너스 · 막대 오른쪽 숫자 = 수익률(%)</div>'+
     bar('표면 수익률 기준 — SELIC(기준금리)',selic,25,'var(--accent)','브라질 중앙은행 기준금리 · 표면 이자율의 기준선')+
     (real!=null?bar('물가 차감 실질금리 — SELIC − IPCA(12개월)',real,15,real>=0?'var(--up)':'var(--down)','IPCA 12개월 '+ipca.toFixed(2)+'% 차감'):'')+
     (krw1y!=null?bar('원화 환산 1년 시나리오 — 표면금리 × 최근 1년 헤알/원 변동',krw1y,25,krw1y>=0?'var(--up)':'var(--down)','최근 1년 BRL/KRW '+(fxChg>=0?'+':'')+fxChg.toFixed(1)+'% 가 그대로 반복된다는 가정(세전·수수료 제외)'):'')+
-    (selicArr&&selicArr.length>5?'<div class="mut" style="font-size:12px;margin-bottom:4px">SELIC 최근 추이</div>'+trendSVG(selicArr):'');
+    (selicArr&&selicArr.length>5?'<div class="mut" style="font-size:12px;margin-bottom:4px">SELIC 최근 추이</div>'+trendSVG(selicArr)+axLegend(selicArr,'SELIC 금리(%)','최근 약 1년 (과거 → 현재)'):'');
   window.__brBase={selic:selic,ipca:ipca,fxChg:fxChg};
   renderBrTop3();
 }
@@ -358,6 +360,8 @@ function renderBrTop3(){
     (b.fxChg!=null?'<p style="margin-top:6px;font-size:12px">원화 환산 1년 시나리오 <b style="color:'+(((1+r.y/100)*(1+b.fxChg/100)-1)>=0?'var(--up)':'var(--down)')+'">'+(((1+r.y/100)*(1+b.fxChg/100)-1)*100).toFixed(1)+'%</b></p>':'')+'</div>').join('');
 }
 loadBrazilYield();
+function axLegend(arr,unit,xt){ if(!arr||arr.length<2) return ''; const mn=Math.min.apply(null,arr), mx=Math.max.apply(null,arr);
+  return '<div class="mut" style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;margin:2px 0 8px"><span>↕ 세로: '+unit+' ('+mn.toFixed(2)+' ~ '+mx.toFixed(2)+')</span><span>↔ 가로: '+xt+'</span></div>'; }
 /* ===== 한국 회사채 등급별 시장금리 (ECOS 817Y002) + A·B등급 Top10 ===== */
 async function loadKrBondBench(){
   const el=document.getElementById('kb-bench'); if(!el) return;
@@ -369,9 +373,9 @@ async function loadKrBondBench(){
   const mx=Math.max.apply(null,rows.map(r=>r[1]).concat([12]));
   const bar=r=>'<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:700">'+r[0]+'</span><b style="font-size:18px;color:'+r[2]+'">'+r[1].toFixed(2)+'%</b></div><div style="height:10px;border-radius:5px;background:var(--panel2)"><div style="height:10px;border-radius:5px;width:'+(r[1]/mx*100).toFixed(1)+'%;background:'+r[2]+'"></div></div></div>';
   const sp=(last(bbb)!=null&&last(aa)!=null)?last(bbb)-last(aa):null;
-  el.innerHTML='<div class="mut" style="font-size:12px;margin-bottom:8px">시장 지표(한국은행 ECOS · 일별) — 등급이 내려갈수록 요구 수익률이 높아집니다</div>'+rows.map(bar).join('')+
+  el.innerHTML='<div class="mut" style="font-size:12px;margin-bottom:8px">시장 지표(한국은행 ECOS · 일별)<br>등급이 내려갈수록 요구 수익률이 높아집니다<br>가로 막대 길이 = 수익률(%) · 세로 순서 = 안전(위) → 위험(아래)</div>'+rows.map(bar).join('')+
     (sp!=null?'<p style="font-size:13px;margin-top:4px">신용스프레드(BBB- − AA-) <b>'+sp.toFixed(2)+'%p</b> <span class="mut">· 이 차이가 곧 낮은 등급이 감수하는 위험 대가입니다</span></p>':'')+
-    (bbb&&bbb.length>5?'<div class="mut" style="font-size:12px;margin:8px 0 2px">BBB- 3년 최근 추이</div>'+trendSVG(bbb.map(x=>x.v)):'');
+    (bbb&&bbb.length>5?'<div class="mut" style="font-size:12px;margin:8px 0 2px">BBB- 3년 최근 추이</div>'+trendSVG(bbb.map(x=>x.v))+axLegend(bbb.map(x=>x.v),'금리(%)','최근 '+bbb.length+'영업일 (과거 → 현재)'):'');
 }
 async function loadKrBondTop10(){
   const el=document.getElementById('kb-top10'); if(!el) return;
