@@ -191,6 +191,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc b{color:#c82014;font-size:1.05em}
 .fg-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fg-hd h3{margin:0}.fg-hd .tabs button{padding:6px 12px;font-size:13px}
 @media(max-width:420px){.fg-hd .tabs button{padding:6px 9px;font-size:12.5px}}
+
+.ev-tbl col.ev-date{width:100px}.ev-tbl col.ev-name{width:44%}
+.ev-tbl tr.ev-hi{background:rgba(200,32,20,.08)}.ev-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
+.ev-tbl a.ev-a{color:inherit;text-decoration:none;font-weight:800;border-bottom:1px dotted var(--tx2)}.ev-tbl a.ev-a:hover{color:var(--accent);border-color:var(--accent)}
+.ev-tbl .ev-i{margin-right:5px}.ev-tbl a.ev-a::after{content:" ↗";font-size:11px;color:var(--tx2);font-weight:600}
+@media(max-width:700px){
+ .ev-tbl,.ev-tbl tbody{display:block;width:100%}.ev-tbl thead,.ev-tbl colgroup{display:none}
+ .ev-tbl tr{display:grid;grid-template-columns:54px 1fr;column-gap:10px;padding:10px 8px;border-bottom:1px solid var(--line)}
+ .ev-tbl td{display:block;padding:0!important;border:0!important;width:auto!important;word-break:keep-all;overflow-wrap:anywhere}
+ .ev-tbl td:nth-child(1){grid-row:1;font-size:12px;font-weight:800;white-space:nowrap}
+ .ev-tbl td:nth-child(2){grid-column:2;font-size:14px;line-height:1.45}
+ .ev-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
+ .ev-tbl tr.ev-hi td:first-child{border-left:0!important}.ev-tbl tr.ev-hi{border-left:3px solid #a01810}
+}
 </style>
 </head>
 <body>
@@ -294,25 +308,27 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <span class="row-break"></span><button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
       <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
     </div>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>날짜</th><th>이벤트</th><th>영향</th><th>중요도</th><th>출처</th></tr></thead>
-        <tbody id="crypto-events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+    <div class="scroll ev-wrap">
+      <table class="ev-tbl">
+        <colgroup><col class="ev-date"><col class="ev-name"><col></colgroup>
+        <thead><tr><th>날짜</th><th>이벤트 <span class="mut" style="font-weight:600;font-size:11px">· 🔴 최상 🟡 중 ⚪ 참고 · 누르면 출처로 이동</span></th><th>영향</th></tr></thead>
+        <tbody id="crypto-events-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
       </table>
     </div>
-    <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC는 위험자산 전반(암호화폐 포함)에 영향을 미치는 미국 금리 결정 일정, 옵션 만기는 디리비트 매월 마지막 금요일 기준입니다.</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC는 위험자산 전반(암호화폐 포함)에 영향을 미치는 미국 금리 결정 일정, 옵션 만기는 디리비트 매월 마지막 금요일 기준입니다. 이벤트 제목을 누르면 출처로 이동합니다.</p>
 
     <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">상시 모니터링 이벤트</h3>
     <p class="sub" style="margin-bottom:12px;font-size:13.5px">특정 날짜가 아닌 상시·수시로 발생하는 이벤트</p>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>주기</th><th>이벤트</th><th>영향</th><th>중요도</th><th>출처</th></tr></thead>
-        <tbody>
-          <tr><td class="mut">수시</td><td><b>미국 현물 ETF 자금 유출입</b></td><td class="mut">BTC·ETH 수급의 핵심 변수</td><td><span class="tag t-h">최상</span></td><td><a href="https://farside.co.uk/btc/" target="_blank" rel="noopener">Farside ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>이더리움 네트워크 업그레이드</b></td><td class="mut">수수료·스테이킹 구조 변화</td><td><span class="tag t-m">상</span></td><td><a href="https://ethereum.org/en/roadmap/" target="_blank" rel="noopener">이더리움 로드맵 ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>SEC·규제 이슈, XRP 소송 관련 판결</b></td><td class="mut">알트코인 급등락 트리거</td><td><span class="tag t-m">상</span></td><td><a href="https://www.sec.gov/litigation/litreleases" target="_blank" rel="noopener">SEC 소송 자료 ↗</a></td></tr>
-          <tr><td class="mut">수시</td><td><b>주요 토큰 언락 스케줄</b></td><td class="mut">개별 코인 매도 압력</td><td><span class="tag t-l">참고</span></td><td><a href="https://cryptorank.io/unlocks" target="_blank" rel="noopener">CryptoRank ↗</a></td></tr>
-          <tr><td class="mut">약 4년</td><td><b>비트코인 반감기</b></td><td class="mut">공급 축소, 장기 사이클 기준점 (2026년 해당 없음, 다음은 2028년 예상)</td><td><span class="tag t-l">참고</span></td><td><a href="https://academy.binance.com/en/articles/what-is-bitcoin-halving" target="_blank" rel="noopener">설명 보기 ↗</a></td></tr>
+    <div class="scroll ev-wrap">
+      <table class="ev-tbl">
+        <colgroup><col class="ev-date"><col class="ev-name"><col></colgroup>
+        <thead><tr><th>주기</th><th>이벤트 <span class="mut" style="font-weight:600;font-size:11px">· 🔴 최상 🟡 중 ⚪ 참고 · 누르면 출처로 이동</span></th><th>영향</th></tr></thead>
+        <tbody id="crypto-always-tbl">
+          <tr class="ev-hi"><td class="mut">수시</td><td><span class="ev-i">🔴</span><a class="ev-a" href="https://farside.co.uk/btc/" target="_blank" rel="noopener" title="출처 보기">미국 현물 ETF 자금 유출입</a></td><td class="mut">BTC·ETH 수급의 핵심 변수</td></tr>
+          <tr><td class="mut">수시</td><td><span class="ev-i">🟡</span><a class="ev-a" href="https://ethereum.org/en/roadmap/" target="_blank" rel="noopener" title="출처 보기">이더리움 네트워크 업그레이드</a></td><td class="mut">수수료·스테이킹 구조 변화</td></tr>
+          <tr><td class="mut">수시</td><td><span class="ev-i">🟡</span><a class="ev-a" href="https://www.sec.gov/litigation/litreleases" target="_blank" rel="noopener" title="출처 보기">SEC·규제 이슈, XRP 소송 관련 판결</a></td><td class="mut">알트코인 급등락 트리거</td></tr>
+          <tr><td class="mut">수시</td><td><span class="ev-i">⚪</span><a class="ev-a" href="https://cryptorank.io/unlocks" target="_blank" rel="noopener" title="출처 보기">주요 토큰 언락 스케줄</a></td><td class="mut">개별 코인 매도 압력</td></tr>
+          <tr><td class="mut">약 4년</td><td><span class="ev-i">⚪</span><a class="ev-a" href="https://academy.binance.com/en/articles/what-is-bitcoin-halving" target="_blank" rel="noopener" title="출처 보기">비트코인 반감기</a></td><td class="mut">공급 축소, 장기 사이클 기준점 (2026년 해당 없음, 다음은 2028년 예상)</td></tr>
         </tbody>
       </table>
     </div>
@@ -338,7 +354,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007x"></script>
+<script src="mrkim-common.js?v=20261007y"></script>
 <script>
 const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
 if(cryptoEvMonthTabs){

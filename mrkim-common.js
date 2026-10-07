@@ -1327,13 +1327,12 @@ const CRYPTO_MONTH_EVENTS={
 function renderCryptoEvents(m){
   const tbody=document.getElementById('crypto-events-tbl'); if(!tbody)return;
   const arr=(CRYPTO_MONTH_EVENTS[m]||[]).slice().sort((a,b)=>a.d-b.d);
-  if(!arr.length){ tbody.innerHTML='<tr><td class="mut" colspan="5">해당 월 일정이 없습니다.</td></tr>'; return; }
-  const TAGLABEL={h:'최상',m:'중',l:'참고'}, TAGCLASS={h:'t-h',m:'t-m',l:'t-l'};
+  if(!arr.length){ tbody.innerHTML='<tr><td class="mut" colspan="3">해당 월 일정이 없습니다.</td></tr>'; return; }
+  const IMP={h:['🔴','최상'],m:['🟡','중'],l:['⚪','참고']};
   tbody.innerHTML=arr.map(e=>{
-    const ds='2026-'+String(m).padStart(2,'0')+'-'+String(e.d).padStart(2,'0');
-    return '<tr'+(e.g==='h'?' class="ev-hi"':'')+'><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td><td class="mut">'+e.c+'</td>'+
-      '<td><span class="tag '+TAGCLASS[e.g]+'">'+TAGLABEL[e.g]+'</span></td>'+
-      '<td class="ev-src"><a href="'+e.s+'" target="_blank" rel="noopener" title="출처 보기">+</a></td></tr>';
+    const ds=String(m).padStart(2,'0')+'.'+String(e.d).padStart(2,'0');
+    const im=IMP[e.g]||IMP.l;
+    return '<tr'+(e.g==='h'?' class="ev-hi"':'')+'><td class="mut">'+ds+'</td><td><span class="ev-i" title="중요도 '+im[1]+'">'+im[0]+'</span><a class="ev-a" href="'+e.s+'" target="_blank" rel="noopener" title="출처 보기">'+e.t+'</a></td><td class="mut">'+e.c+'</td></tr>';
   }).join('');
 }
 
