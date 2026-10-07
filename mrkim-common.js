@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
+const curPer={idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
   usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m',cryrel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
@@ -1495,7 +1495,8 @@ const TICKGROUPS={
   cap2:{table:'cap2-tbl', list:['MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ']},
   krcap2:{table:'krcap2-tbl', list:['012450.KS','034020.KS','055550.KS','006400.KS','329180.KS','000270.KS','034730.KS','068270.KS','066570.KS','086790.KS'], cur:'₩', fmt:fmtWon},
   krkq2:{table:'krkq2-tbl', list:['028300.KQ','000250.KQ','403870.KQ','319660.KQ','095340.KQ','440110.KQ','031980.KQ','084370.KQ','067310.KQ','131290.KQ'], cur:'₩', fmt:fmtWon},
-  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','KORU']},
+  idxchg:{table:'idxchg-tbl', list:['ILMN','BE','TTD','BLDR','TAP','FERG','RDDT','EA','AVB','CRWV','MRVL','NBIS','ALAB','RKLB','TER','FLEX','POOL','CPB']},
+  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','WEBL','DFEN','FAS','LABU','HIBL','KORU']},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
   krkq: {table:'krkq-tbl',  list:['196170.KQ','086520.KQ','247540.KQ','036930.KQ','277810.KQ','240810.KQ','039030.KQ','058470.KQ','222800.KQ','108490.KQ'], cur:'₩', fmt:fmtWon}
 };
@@ -2515,6 +2516,11 @@ const LEV_META={
   TECL:{u:'XLK', L:3, nm:'기술섹터 3배'},
   BULZ:{u:'QQQ', L:3, nm:'FANG+ 3배(ETN, 기초 대용 QQQ)'},
   SOXL:{u:'SOXX',L:3, nm:'반도체 3배'},
+  WEBL:{u:'FDN', L:3, nm:'인터넷 3배'},
+  DFEN:{u:'ITA', L:3, nm:'항공우주·방산 3배'},
+  FAS:{u:'XLF', L:3, nm:'금융 3배'},
+  LABU:{u:'XBI', L:3, nm:'바이오텍 3배'},
+  HIBL:{u:'SPHB',L:3, nm:'S&P500 고베타 3배'},
   KORU:{u:'EWY', L:3, nm:'한국 3배'}
 };
 const LEV_UND_CACHE={};
