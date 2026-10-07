@@ -94,6 +94,9 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs button.on{background:var(--accent);color:#ffffff}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
 .tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
+@media(min-width:701px){#evmonth-tabs .row-break,#kr-evmonth-tabs .row-break,#crypto-evmonth-tabs .row-break{display:none}#evmonth-tabs button,#kr-evmonth-tabs button,#crypto-evmonth-tabs button{width:48px}}
+@media(max-width:700px){#evmonth-tabs,#kr-evmonth-tabs,#crypto-evmonth-tabs{display:flex;width:100%;box-sizing:border-box}#evmonth-tabs button,#kr-evmonth-tabs button,#crypto-evmonth-tabs button{flex:1 1 0;width:auto;min-width:0;padding:9px 0}}
+
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 0 .5px rgba(0,0,0,.14),0 1px 1px rgba(0,0,0,.24)}
@@ -296,7 +299,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
  #kr-events-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
  #kr-events-tbl tr.ev-hi td:first-child{border-left:0!important}#kr-events-tbl tr.ev-hi{border-left:3px solid #a01810}
 }
-</style></head>
+</style><script src="mrkim-gate.js?v=20261007zf"></script>
+</head>
 <body>
 
 <header>
@@ -306,11 +310,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <ul id="nav-menu">
       <li><a href="stock.html">미국주식</a></li>
       <li><a href="kr-stock.html">한국주식</a></li>
+      <li><a href="bond.html">채권</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
-      <li><a href="fx.html">환율</a></li>
       <li><a href="finprod.html">금융상품</a></li>
       <li><a href="ipo.html">공모주</a></li>
       <li><a href="p2p.html">P2P</a></li>
+      <li><a href="fx.html">환율</a></li>
       <li><a href="trade.html" class="nav-hi">매매김군</a></li>
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
@@ -562,7 +567,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zb"></script>
+<script src="mrkim-common.js?v=20261007zf"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로

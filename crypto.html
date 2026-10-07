@@ -90,6 +90,9 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs button.on{background:var(--accent);color:#ffffff}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
 .tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
+@media(min-width:701px){#evmonth-tabs .row-break,#kr-evmonth-tabs .row-break,#crypto-evmonth-tabs .row-break{display:none}#evmonth-tabs button,#kr-evmonth-tabs button,#crypto-evmonth-tabs button{width:48px}}
+@media(max-width:700px){#evmonth-tabs,#kr-evmonth-tabs,#crypto-evmonth-tabs{display:flex;width:100%;box-sizing:border-box}#evmonth-tabs button,#kr-evmonth-tabs button,#crypto-evmonth-tabs button{flex:1 1 0;width:auto;min-width:0;padding:9px 0}}
+
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
@@ -189,6 +192,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
+#cry-rel-card .fg-hd{margin-bottom:12px}#cry-rel-card .fg-hd .tabs button{min-width:62px;text-align:center}
+@media(max-width:420px){#cry-rel-card .fg-hd .tabs button{min-width:0;flex:1}#cry-rel-card .fg-hd .tabs{width:100%;display:flex}}
 .fg-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fg-hd h3{margin:0}.fg-hd .tabs button{padding:6px 12px;font-size:13px}
 @media(max-width:420px){.fg-hd .tabs button{padding:6px 9px;font-size:12.5px}}
 
@@ -206,6 +211,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
  .ev-tbl tr.ev-hi td:first-child{border-left:0!important}.ev-tbl tr.ev-hi{border-left:3px solid #a01810}
 }
 </style>
+<script src="mrkim-gate.js?v=20261007zf"></script>
 </head>
 <body>
 
@@ -216,11 +222,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <ul id="nav-menu">
       <li><a href="stock.html">미국주식</a></li>
       <li><a href="kr-stock.html">한국주식</a></li>
+      <li><a href="bond.html">채권</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
-      <li><a href="fx.html">환율</a></li>
       <li><a href="finprod.html">금융상품</a></li>
       <li><a href="ipo.html">공모주</a></li>
       <li><a href="p2p.html">P2P</a></li>
+      <li><a href="fx.html">환율</a></li>
       <li><a href="trade.html" class="nav-hi">매매김군</a></li>
     </ul>
     <div style="display:flex;align-items:center;gap:14px">
@@ -294,11 +301,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <h2 style="font-size:21px;margin-top:44px">4대 코인 상대수익률 비교</h2>
     <p class="sub">BTC·ETH·SOL·XRP를 기간 시작일=100으로 환산해 비교 · 마우스를 올린 코인만 진하게, 체크 해제 시 숨김</p>
-    <div class="tabs" data-group="cryrel">
-      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
-      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    <div class="card" style="margin-top:16px" id="cry-rel-card">
+      <div class="fg-hd"><h3 style="font-size:14px">기간 선택</h3><div class="tabs" data-group="cryrel">
+        <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+        <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+      </div></div>
+      <div id="cry-rel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
     </div>
-    <div class="card" style="margin-top:16px" id="cry-rel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
 
     <h2 style="font-size:21px;margin-top:44px">가상화폐 주요 이벤트 일정</h2>
     <p class="sub">월을 선택하면 해당 월의 날짜별 일정을 확인할 수 있습니다 · 2026년</p>
@@ -354,7 +363,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007y"></script>
+<script src="mrkim-common.js?v=20261007zf"></script>
 <script>
 const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
 if(cryptoEvMonthTabs){

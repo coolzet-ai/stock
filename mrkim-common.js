@@ -2030,7 +2030,7 @@ async function loadP2pOpenSoon(){
         '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="mut" style="font-size:11.5px">'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+'</span>'+
         (x.grade?'<b style="font-size:12px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'')+'</div>'+
         '<div style="margin:6px 0 8px"><div style="font-size:'+(hi?17:15)+'px;font-weight:900;color:'+(hi?'#1fa463':'var(--tx)')+'">'+esc(head)+'</div>'+
-        (tail?'<div class="mut" style="font-size:12.5px;line-height:1.4;margin-top:2px">'+esc(tail)+'</div>':'')+'</div>'+
+        (tail?'<div style="font-size:13.5px;font-weight:800;color:var(--tx);line-height:1.4;margin-top:3px">'+esc(tail)+'</div>':'')+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
           '<div><div class="mut" style="font-size:10.5px">연 수익률</div><b style="font-size:17px;color:var(--accent)">'+(x.rate!=null?x.rate.toFixed(1)+'%':'—')+'</b></div>'+
           '<div><div class="mut" style="font-size:10.5px">기간</div><b style="font-size:15px">'+(x.months?x.months+'개월':'—')+'</b></div>'+
@@ -2786,8 +2786,8 @@ function renderUnicornNews(newsByKey){
 /* 미국지수·한국지수 페이지의 "관심종목" 모바일 워치리스트(.wl-list/.wl-row)와 동일한 패턴 —
    좁은 화면에서 표(table)의 셀 줄바꿈으로 가독성이 떨어지는 문제를 피하기 위해 행 카드형으로 렌더링.
    정기예금/적금 탭으로 하나만 골라서 보고, 은행/저축은행 필터를 그 위에 추가로 적용한다. */
-// 목록(이미 Worker에서 금리 내림차순 정렬됨)이 길어 기본은 금리 Top10만 보여주고,
-// "더보기" 클릭 시에만 나머지(최대 30개)를 펼친다. 탭/필터를 바꾸면 다시 Top10부터 시작한다.
+// 목록(이미 Worker에서 금리 내림차순 정렬됨)이 길어 기본은 금리 Top3만 보여주고,
+// "더보기" 클릭 시에만 나머지(최대 30개)를 펼친다. 탭/필터를 바꾸면 다시 Top3부터 시작한다.
 let finSavingsExpanded=false;
 function renderFinSavingsTable(listId, list){
   const el=document.getElementById(listId);
@@ -2817,7 +2817,7 @@ function renderFinSavingsTable(listId, list){
   if(capped.length>3){
     moreBtn=finSavingsExpanded
       ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">접기</button>'
-      : '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">금리 Top10 외 '+(capped.length-10)+'개 자세히 보기</button>';
+      : '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">금리 Top3 외 '+(capped.length-3)+'개 자세히 보기</button>';
   }
   el.innerHTML=rowsHtml+moreBtn;
 }
