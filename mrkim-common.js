@@ -569,28 +569,37 @@ function renderNextEventBanner(elId, monthEvents, opts){
   opts=opts||{};
   const now=new Date();
   const today=new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let best=null, bestDate=null;
+  const list=[];
   Object.keys(monthEvents).forEach(mKey=>{
     const m=+mKey;
     (monthEvents[mKey]||[]).forEach(ev=>{
       if(opts.excludeHoliday && ev.hol) return;
       const dt=new Date(now.getFullYear(), m-1, ev.d);
       if(dt<today) return;
-      if(!bestDate || dt<bestDate){ bestDate=dt; best={ev, m}; }
+      list.push({ev, m, dt});
     });
   });
-  if(!best){ el.style.display='none'; return; }
-  const dday=Math.round((bestDate-today)/86400000);
-  const dtext=dday===0?'오늘':'D-'+dday;
-  const gradeColor={h:'var(--up)',m:'var(--accent)',l:'var(--tx2)'}[best.ev.g]||'var(--tx2)';
-  el.style.display='flex';
-  el.innerHTML=
-    '<span class="tag" style="background:'+gradeColor+';color:#fff;flex:none">'+dtext+'</span>'+
-    '<div style="flex:1;min-width:0">'+
-      '<div style="font-weight:800;font-size:14px">'+best.ev.t+'</div>'+
-      '<div class="mut" style="font-size:12px;margin-top:2px">'+best.m+'월 '+best.ev.d+'일 · '+best.ev.c+'</div>'+
-    '</div>'+
-    (best.ev.s?'<a href="'+best.ev.s+'" target="_blank" rel="noopener" class="mut" style="font-size:12px;text-decoration:underline;flex:none">출처</a>':'');
+  list.sort((a,b)=>a.dt-b.dt);
+  const lim=new Date(today.getTime()+30*86400000);
+  let shown=list.filter(x=>x.dt<=lim).slice(0,6);
+  if(!shown.length) shown=list.slice(0,1);
+  if(!shown.length){ el.style.display='none'; return; }
+  const row=(x,first)=>{
+    const dday=Math.round((x.dt-today)/86400000), dtext=dday===0?'오늘':'D-'+dday;
+    const gc={h:'var(--up)',m:'var(--accent)',l:'var(--tx2)'}[x.ev.g]||'var(--tx2)';
+    return '<div style="display:flex;align-items:center;gap:12px;'+(first?'':'padding-top:10px;margin-top:10px;border-top:1px dashed var(--line);')+'">'+
+      '<span class="tag" style="background:'+gc+';color:#fff;flex:none;min-width:44px;text-align:center">'+dtext+'</span>'+
+      '<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px;line-height:1.4">'+x.ev.t+'</div>'+
+      '<div class="mut" style="font-size:12px;margin-top:2px;line-height:1.4">'+x.m+'월 '+x.ev.d+'일 · '+x.ev.c+'</div></div>'+
+      (x.ev.s?'<a href="'+x.ev.s+'" target="_blank" rel="noopener" class="mut" style="font-size:12px;text-decoration:underline;flex:none">출처</a>':'')+'</div>';
+  };
+  const rest=shown.slice(1);
+  el.style.display='block';
+  el.innerHTML='<div style="font-size:12.5px;font-weight:900;color:var(--accent);margin-bottom:8px">📅 주요 일정</div>'+row(shown[0],true)+
+    (rest.length?'<div class="ev-more" style="display:none">'+rest.map(x=>row(x,false)).join('')+'</div>'+
+      '<button type="button" class="ev-more-btn" style="margin-top:10px;width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--accent);font-weight:800;font-size:12.5px;cursor:pointer">자세히 보기 ▾ (+'+rest.length+'건)</button>':'');
+  const b=el.querySelector('.ev-more-btn');
+  if(b) b.onclick=function(){ const m=el.querySelector('.ev-more'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; b.textContent=o?'접기 ▴':'자세히 보기 ▾ (+'+rest.length+'건)'; };
 }
 
 /* 한국 수급 플로우 시각화 — Worker가 코스피·코스닥 전종목을 집계한 상승/하락 거래대금 비율과
@@ -2368,6 +2377,45 @@ function usPeg(it){
   if(it.forwardPE!=null&&it.forwardPE>0&&g5!=null&&g5>0) return {v:it.forwardPE/(g5*100), fwd:true};
   return {v:null};
 }
+
+/* 김군 등급(A~D) 카드 — Seeking Alpha 'Quant Rating'식: 종합 등급 + 5개 팩터 미니 등급 + 근거 3줄 */
+function kimGradeCard(it, techD, opt){
+  opt=opt||{};
+  if(!it) return '';
+  const fs=usFactorScores(it,techD);
+  const NM={value:'밸류',growth:'성장',profit:'수익성',momentum:'모멘텀',revision:'이익수정'};
+  const keys=Object.keys(NM).filter(k=>fs[k]!=null);
+  if(keys.length<3) return '';
+  const avg=keys.reduce((a,k)=>a+fs[k],0)/keys.length;
+  const G=avg>=75?{g:'A',c:'#1fa463',m:'전반적으로 강한 종목'}:avg>=60?{g:'B',c:'#4fa383',m:'양호 — 일부 보완점 확인'}:avg>=45?{g:'C',c:'#f0b429',m:'평범 — 선별적 접근'}:{g:'D',c:'#e5832a',m:'약세 — 보수적 접근'};
+  const sorted=keys.slice().sort((a,b)=>fs[b]-fs[a]);
+  const best=sorted[0], worst=sorted[sorted.length-1];
+  const rg=it.revenueGrowth, om=it.operatingMargins, peg=usPeg(it).v, t=it.trend||{};
+  const pc=v=>(v>=0?'+':'')+(v*100).toFixed(1)+'%';
+  let r1=null; if(techD&&techD.length>30) r1=(techD[techD.length-1]/techD[0]-1)*100;
+  const D={
+    value:()=>peg!=null?'PEG '+peg.toFixed(2)+(peg<1?' — 성장 대비 저평가':peg<=1.5?' — 무난한 수준':' — 성장 대비 부담')+(it.psr!=null?' · PSR '+it.psr.toFixed(1)+(it.psr>=10?'배로 매출 대비 부담':it.psr>=5?'배(다소 높음)':'배'):''):(it.psr!=null?'PSR '+it.psr.toFixed(1)+'배':'밸류에이션 지표'),
+    growth:()=>'매출증가율 '+(rg==null?'—':pc(rg))+(rg!=null?(rg>=0.15?' — 고성장':rg>=0.05?' — 완만한 성장':rg>=0?' — 정체':' — 역성장'):''),
+    profit:()=>'영업이익률 '+(om==null?'—':(om*100).toFixed(1)+'%')+(om!=null?(om>=0.2?' — 높은 수익성':om>=0.1?' — 보통':om>=0?' — 낮은 편':' — 적자'):''),
+    momentum:()=>'최근 1년 '+(r1==null?'—':(r1>=0?'+':'')+r1.toFixed(1)+'%')+(r1!=null?(r1>=20?' — 강한 추세':r1>=0?' — 완만한 상승':' — 하락 추세'):''),
+    revision:()=>'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합')
+  };
+  const chip=k=>{const g=usGradeOf(fs[k]);return '<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;background:var(--panel);border:1px solid var(--line)"><b style="display:block;font-size:15px;color:'+g.c+'">'+g.g+'</b><span style="font-size:10px;color:var(--tx2)">'+NM[k]+'</span></div>';};
+  const line=(ic,lb,tx,col)=>'<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin-top:7px"><span style="flex:none;font-weight:900;color:'+col+';min-width:52px;white-space:nowrap">'+ic+' '+lb+'</span><span>'+tx+'</span></div>';
+  const pos=Math.max(2,Math.min(98,avg));
+  return '<div style="margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);border-left:5px solid '+G.c+'">'+
+    '<div style="display:flex;align-items:center;gap:14px"><div style="flex:none;width:68px;height:68px;border-radius:16px;background:'+G.c+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;box-shadow:0 4px 14px '+G.c+'66">'+G.g+'</div>'+
+    '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:800;color:var(--tx2)">김군 등급 · 종합 '+Math.round(avg)+'점</div><div style="font-size:16px;font-weight:900;margin-top:2px">'+G.m+'</div>'+
+    '<div style="position:relative;height:8px;border-radius:4px;margin-top:8px;background:linear-gradient(90deg,#e5832a 0 45%,#f0b429 45% 60%,#4fa383 60% 75%,#1fa463 75% 100%)"><span style="position:absolute;left:'+pos+'%;top:-4px;width:4px;height:16px;border-radius:2px;background:#111;transform:translateX(-50%)"></span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--tx2);margin-top:2px"><span>D</span><span>C</span><span>B</span><span>A</span></div></div></div>'+
+    '<div style="display:flex;gap:6px;margin-top:12px">'+keys.map(chip).join('')+'</div>'+
+    '<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)">'+
+    line('👍','강점','<b>'+NM[best]+' '+usGradeOf(fs[best]).g+'</b> · '+D[best](),'#1fa463')+
+    line('⚠','주의','<b>'+NM[worst]+' '+usGradeOf(fs[worst]).g+'</b> · '+D[worst](),'#e5332a')+
+    line('📌','결론',G.g==='A'||G.g==='B'?'강점이 약점을 앞섭니다. 밸류·추세를 확인하며 분할 접근을 고려할 수 있습니다.':G.g==='C'?'강점과 약점이 엇갈립니다. 약점 지표가 개선되는지 지켜볼 구간입니다.':'약점이 두드러집니다. 비중을 줄이거나 관망이 낫습니다.','var(--accent)')+'</div>'+
+    '<div class="mut" style="font-size:10.5px;margin-top:8px">자체 계산 절대 기준 등급(Seeking Alpha 공식 등급 아님) · 참고용이며 투자 권유가 아닙니다.</div></div>';
+}
+
 function renderUsFinancialRatios(it, techD, opt){
   opt=opt||{};
   const won=opt.cur==='won';
@@ -2462,6 +2510,7 @@ function renderUsFinancialRatios(it, techD, opt){
   if(fs.revision!=null) extra.push({grp:'재무', txt:'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합'), pt:fs.revision>=75?1:fs.revision<=40?-1:0});
   return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'+
     '<div class="mut" style="font-size:11.5px;margin-bottom:6px;text-align:center;font-weight:700">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+
+    kimGradeCard(it,techD,opt)+
     '<div style="display:flex;flex-wrap:wrap;gap:0 24px;align-items:flex-start"><div style="flex:1 1 360px;min-width:0">'+
     ((window.innerWidth>=1000)?'':'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;font-size:13px;text-align:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)">'+
       '<div><span class="mut" style="font-size:10.5px">매출액증가율</span><br><b style="color:'+rgColor+'">'+usFundPct(rg)+'</b></div>'+
