@@ -39,7 +39,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:6px 12px;line-height:1.5;text-align:center;white-space:normal}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -161,18 +161,36 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
+.hero-p{max-width:1000px!important;word-break:keep-all}.hero-p .sl{display:inline}
+@media(min-width:701px){.hero-p .sl{display:block}}
+@media(max-width:700px){body,body *{word-break:keep-all;overflow-wrap:break-word}}
+/* hero-fit */
+@media(max-width:700px){
+.hero{padding:26px 0 22px!important}.hero .badge{margin-bottom:12px!important;padding:5px 12px}
+.hero h1{font-size:27px!important;letter-spacing:-.8px}
+.hero p{margin:12px auto 16px!important;font-size:14px!important;line-height:1.55}
+.hero-p .sl{display:block}
+.hero .cta .btn{padding:10px 22px!important}.hero .updated{margin-top:12px!important;font-size:13px}
+footer{padding:14px 0 16px!important}footer .logo{margin-bottom:4px!important;font-size:17px}
+footer p{margin:0!important;font-size:12px}footer ul{margin:8px 0 0!important;font-size:12px!important;line-height:1.55!important}
+footer .disc{margin-top:10px!important;padding:10px 12px!important;font-size:12px;line-height:1.5}
+footer .disc .dl{margin-top:3px}
+footer p[style*="margin-top:16px"]{margin-top:8px!important}
+}
+@media(max-width:700px){.hero{padding:16px 0 14px!important}.hero h1{font-size:24px!important}.hero .badge{margin-bottom:8px!important;font-size:11px}.hero p{font-size:13px!important;margin:8px auto 12px!important}.hero .updated{margin-top:8px!important}footer>.wrap>p:first-of-type{display:none}footer{padding:10px 0 12px!important}footer ul{font-size:11.5px!important}footer .disc{font-size:11.5px!important;padding:8px 10px!important}header .nav{padding-top:6px;padding-bottom:6px}}
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap nav">
-    <div class="logo">Mr.<span>Kim Signal</span></div>
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국주식</a></li>
       <li><a href="kr-stock.html">한국주식</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
+      <li><a href="fx.html">환율</a></li>
       <li><a href="finprod.html">금융상품</a></li>
       <li><a href="ipo.html">공모주</a></li>
       <li><a href="p2p.html">P2P</a></li>
@@ -187,52 +205,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 <main>
 <section class="hero" style="border:0">
-<section class="hero" style="border:0">
   <div class="wrap">
     <span class="badge">● 주식 · 가상화폐 시장 신호 대시보드</span>
     <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
-    <p>미국주식·한국주식 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.
-       일간·주간·월간·연간 흐름을 한 화면에서 확인하세요. 가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</p>
+    <p class="hero-p"><span class="sl">미국주식·한국주식 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.</span> <span class="sl">일간·주간·월간·연간 흐름을 한 화면에서 확인하세요.</span> <span class="sl">가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</span></p>
     <div class="cta">
       <a class="btn ghost btn sm" href="stock.html" style="padding:13px 26px">대시보드 보기</a>
     </div>
     <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
   </div>
 </section>
-</section>
 
-<section>
-  <div class="wrap">
-    <h2>바로가기</h2>
-    <p class="sub">원하는 섹션을 선택하세요</p>
-    <div class="grid">
-      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국주식</h3>
-        <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
-      </a>
-      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국주식</h3>
-        <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
-      </a>
-      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
-        <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
-      </a>
-      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
-        <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
-      </a>
-      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
-        <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
-      </a>
-      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
-        <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
-      </a>
-    </div>
-  </div>
-</section>
 </main>
 
 <footer>

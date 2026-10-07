@@ -1,3 +1,7 @@
+/* 상단 여백 축소: 메뉴↔제목, 제목↔첫 박스 간격 */
+(function(){ try{ const st=document.createElement('style'); st.id='mk-toptight';
+  st.textContent='main>section:first-of-type{padding-top:18px!important}main>section:first-of-type .sec-h{margin-bottom:0}main>section:first-of-type .sec-h .sub{margin-bottom:10px}@media(max-width:700px){main>section:first-of-type{padding-top:12px!important}}';
+  document.head.appendChild(st);}catch(e){} })();
 /* 모바일: 한글을 어절(띄어쓰기) 단위로 줄바꿈. 너무 긴 단어만 예외적으로 잘라 가로 넘침을 막는다 */
 (function(){ try{ const st=document.createElement('style'); st.id='mk-wordbreak';
   st.textContent='@media(max-width:700px){body,body *{word-break:keep-all;overflow-wrap:break-word}}';
