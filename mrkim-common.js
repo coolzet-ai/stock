@@ -1,3 +1,7 @@
+/* 모바일: 한글을 어절(띄어쓰기) 단위로 줄바꿈. 너무 긴 단어만 예외적으로 잘라 가로 넘침을 막는다 */
+(function(){ try{ const st=document.createElement('style'); st.id='mk-wordbreak';
+  st.textContent='@media(max-width:700px){body,body *{word-break:keep-all;overflow-wrap:break-word}}';
+  document.head.appendChild(st);}catch(e){} })();
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
 const curPer={idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
@@ -1702,7 +1706,8 @@ function injectTechBadgeCss(){
   st.textContent='.wl-name{white-space:normal!important;overflow:visible!important}'+
     '.wl-sig{display:inline-block;margin-right:6px;font-size:14px;line-height:1;cursor:help;vertical-align:middle}'+
     '.wl-ind{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px;vertical-align:middle}'+
-    '@media(max-width:560px){.wl-ind{display:flex;margin-left:0;margin-top:5px}}'+
+    '@media(max-width:560px){.wl-ind{display:flex;flex-wrap:nowrap;gap:3px;margin-left:0;margin-top:5px}.tb{font-size:9.5px;padding:3px 4px;letter-spacing:-.3px}}'+
+    '@media(max-width:380px){.wl-ind{gap:2px}.tb{font-size:8.5px;padding:3px 3px;letter-spacing:-.4px}}'+
     '.tb{display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 6px;border-radius:5px;white-space:nowrap;cursor:help}'+
     '.tb-up{background:rgba(200,32,20,.13);color:var(--up)}'+
     '.tb-dn{background:rgba(26,111,168,.14);color:var(--down)}'+
