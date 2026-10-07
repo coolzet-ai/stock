@@ -2028,17 +2028,23 @@ async function loadP2pOpenSoon(){
     const fmtAmt=v=>v>=1e8?(v/1e8).toFixed(v%1e8?1:0).replace(/\.0$/,'')+'억원':Math.round(v/1e4).toLocaleString('ko-KR')+'만원';
     const fmtDt=iso=>{ if(!iso) return '—'; const m=String(iso).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/); return m?(+m[2])+'/'+(+m[3])+' '+m[4]+':'+m[5]:'—'; };
     const GC={'A+':'#1fa463','A':'#1fa463','A-':'#4fa383','B+':'#c99a00','B':'#c99a00','B-':'#d98a00'};
-    if(st) st.textContent='A+ 등급 우선 표시 · 총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
+    if(st) st.textContent='S급·A+ 등급 우선, 연 수익률 높은 순 · 총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
+    /* S급(자체 추가 평가): 에잇퍼센트 A-이상 + LTV 40% 이하 + 차주 KCB 3등급 이내 + 연체·체납 이력 없음 */
+    const isS=x=>(['A+','A','A-'].indexOf(x.grade)>=0)&&x.ltv!=null&&Number(x.ltv)<=40&&x.kcbGrade!=null&&x.kcbGrade<=3&&x.clean!==false;
+    const byRate=(a,b)=>(b.rate||0)-(a.rate||0);
+    const sList=d.items.filter(isS).sort(byRate); const sRank=new Map(sList.map((x,i)=>[x.id,i+1]));
     const card=x=>{
-      const hi=x.grade==='A+';
+      const S=sRank.has(x.id);
+      const hi=x.grade==='A+'||S;
+      const AC=S?'#7c3aed':'#1fa463';
       const m=String(x.title||'').match(/^(.*?\d+호)\s*(.*)$/);
       const head=m?m[1]:x.title, tail=m?m[2]:'';
       const ltv=x.ltv!=null?Number(x.ltv):null;
       const lc=ltv==null?'var(--tx2)':ltv<=50?'#1fa463':ltv<=65?'#c99a00':'#e5332a';
-      return '<a href="'+esc(x.url)+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;padding:12px 14px;border:'+(hi?'2px solid #1fa463':'1.5px solid var(--line)')+';border-radius:12px;background:'+(hi?'rgba(31,164,99,.08)':'var(--panel2)')+'">'+
+      return '<a href="'+esc(x.url)+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;padding:12px 14px;border:'+(S?'2.5px solid #7c3aed':hi?'2px solid #1fa463':'1.5px solid var(--line)')+';border-radius:12px;background:'+(S?'linear-gradient(135deg,rgba(124,58,237,.14),rgba(203,162,88,.12))':hi?'rgba(31,164,99,.08)':'var(--panel2)')+';position:relative">'+(S?'<div style="margin:-4px 0 6px;font-size:12px;font-weight:900;color:#7c3aed">⭐ S급 · 우선 '+sRank.get(x.id)+'순위</div>':'')+
         '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="mut" style="font-size:11.5px">'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+'</span>'+
-        (x.grade?'<b style="font-size:12px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'')+'</div>'+
-        '<div style="margin:6px 0 8px"><div style="font-size:'+(hi?17:15)+'px;font-weight:900;color:'+(hi?'#1fa463':'var(--tx)')+'">'+esc(head)+'</div>'+
+        (S?'<b style="font-size:12px;color:#fff;background:linear-gradient(135deg,#7c3aed,#c026d3);border-radius:8px;padding:1px 8px;margin-right:4px">S</b>':'')+(x.grade?'<b style="font-size:12px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'')+'</div>'+
+        '<div style="margin:6px 0 8px"><div style="font-size:'+(hi?17:15)+'px;font-weight:900;color:'+(hi?AC:'var(--tx)')+'">'+esc(head)+'</div>'+
         (tail?'<div style="font-size:13.5px;font-weight:800;color:var(--tx);line-height:1.4;margin-top:3px">'+esc(tail)+'</div>':'')+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'+
           '<div><div class="mut" style="font-size:10.5px">연 수익률</div><b style="font-size:17px;color:var(--accent)">'+(x.rate!=null?x.rate.toFixed(1)+'%':'—')+'</b></div>'+
@@ -2048,13 +2054,15 @@ async function loadP2pOpenSoon(){
           '<div style="position:relative;height:9px;border-radius:5px;background:var(--panel);overflow:hidden;margin-top:3px"><div style="height:9px;width:'+Math.min(100,ltv)+'%;background:'+lc+'"></div>'+
           '<i style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--tx2);opacity:.5"></i><i style="position:absolute;left:65%;top:0;bottom:0;width:1px;background:var(--tx2);opacity:.5"></i></div>'+
           '<div class="mut" style="display:flex;justify-content:space-between;font-size:9.5px;margin-top:1px"><span>0</span><span>50 안전</span><span>65 주의</span><span>100%</span></div></div>':'')+
+        (x.kcbGrade!=null?'<div style="display:flex;justify-content:space-between;font-size:11.5px;margin-top:8px"><span class="mut">차주 신용도(KCB)</span><b style="color:'+(x.kcbGrade<=3?'#1fa463':x.kcbGrade<=5?'#c99a00':'#e5332a')+'">'+x.kcbGrade+'등급'+(x.kcbScore?' · '+x.kcbScore+'점':'')+'</b></div>':'')+
         '<div class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.55">⏰ 오픈 '+fmtDt(x.openAt)+(x.reservationStart?'<br>📝 예약 '+fmtDt(x.reservationStart)+' ~ '+fmtDt(x.reservationClose):'')+'</div></a>';
     };
-    const top=d.items.filter(x=>x.grade==='A+'), rest=d.items.filter(x=>x.grade!=='A+');
+    const top=d.items.filter(x=>x.grade==='A+'||sRank.has(x.id)).sort((a,b)=>(sRank.has(b.id)-sRank.has(a.id))||(sRank.has(a.id)&&sRank.has(b.id)?sRank.get(a.id)-sRank.get(b.id):byRate(a,b))), rest=d.items.filter(x=>!(x.grade==='A+'||sRank.has(x.id))).sort(byRate);
     const gridS='display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-top:8px';
-    box.innerHTML=(top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>')+
+    box.innerHTML=(top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>')+(sList.length?'':'')+
       (rest.length?'<div style="text-align:center;margin-top:12px"><button type="button" class="btn sm" id="p2p-more-btn" style="padding:6px 18px">상세보기 ▼ (나머지 '+rest.length+'건)</button></div>'+
         '<div id="p2p-more" style="display:none"><div style="'+gridS+'">'+rest.map(card).join('')+'</div></div>':'');
+    box.insertAdjacentHTML('beforeend','<p class="mut" style="font-size:11.5px;margin:12px 0 0;line-height:1.55">⭐ <b style="color:#7c3aed">S급</b>은 김군 자체 추가 평가입니다 — 에잇퍼센트 A-등급 이상 · LTV 40% 이하 · 차주 KCB 3등급 이내 · 연체/체납 이력 없음(현재 '+sList.length+'건). 공식 등급이 아니며 투자 권유가 아닙니다.</p>');
     const mb=document.getElementById('p2p-more-btn');
     if(mb) mb.onclick=function(){ const m=document.getElementById('p2p-more'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; mb.textContent=o?'접기 ▲':'상세보기 ▼ (나머지 '+rest.length+'건)'; };
   }catch(e){ console.warn('P2P 오픈예정 실패',e); fail('⚠ 오픈예정 상품을 불러오지 못했습니다.'); }

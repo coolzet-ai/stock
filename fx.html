@@ -194,7 +194,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
 </style>
-<script src="mrkim-gate.js?v=20261007zg"></script>
+<script src="mrkim-gate.js?v=20261007zo"></script>
 </head>
 <body>
 
@@ -243,9 +243,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="mut" style="margin-top:10px;font-size:12px">통화명을 클릭하면 Finviz 상세 차트로 이동합니다(원화 교차환율은 Finviz에서 지원하지 않을 수 있습니다)<br>· 🔗는 해당 통화 발행국(또는 유로존)의 중앙은행 공식 사이트로 연결됩니다<br>· RSI는 14일 단순평균 기반 근사치이며 70 이상 과매수, 30 이하 과매도 참고 구간입니다<br>· 이격도는 (현재가 ÷ 200일 이동평균 − 1)×100, 데이터가 200일 미만인 경우 "--"로 표시됩니다.</p>
 
     <h2 style="font-size:21px;margin-top:44px">화폐별 환율우대 Top3 추천</h2>
-    <p class="sub">통화별로 환전 수수료·우대율이 유리한 곳 3곳입니다<br>자체 정리 참고용이며 실시간 조회값이 아닙니다<br>조건·한도·이벤트는 수시로 바뀌므로 신청 전 공식 앱에서 확인하세요</p>
+    <p class="sub">트래블로그·토스뱅크·트래블월렛·은행 앱을 기준으로, 통화별 환율 우대율이 높은 수단 Top3입니다<br>공개된 안내·기사 기준 자체 정리이며 실시간 조회값이 아닙니다(근거 일자 표기)<br>막대 빗금 = 우대율이 확인되지 않은 항목 · 신청 전 공식 앱에서 반드시 확인하세요</p>
     <div class="grid" id="fx-perk-grid"></div>
-    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 우대율 막대는 공개된 일반 안내(수수료 무료·최대 우대율 등)를 100점 기준으로 환산한 자체 참고 지표이며, 실제 적용 환율은 시점·한도·가입 조건에 따라 다릅니다. 특정 금융사의 가입을 권유하지 않습니다.</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 우대율은 공개된 안내(수수료 무료=100%)를 옮긴 값이며, 기사 시점 이후 바뀌었을 수 있습니다. 실제 적용 환율은 시점·한도·가입 조건에 따라 다릅니다. 특정 금융사의 가입을 권유하지 않습니다.</p>
   </div>
 </section>
 </main>
@@ -268,7 +268,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zg"></script>
+<script src="mrkim-common.js?v=20261007zo"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -277,46 +277,51 @@ const now=new Date();
 loadFxWatchlist();
 setInterval(loadFxWatchlist, 60000);
 
-/* ===== 화폐별 환율우대 Top3 (자체 정리 · 수정은 이 객체만 고치면 됩니다) =====
-   score = 우대 수준 환산 지표(100=수수료 사실상 무료). note = 조건 요약. */
+/* ===== 화폐별 환율우대 Top3 — 수단(트래블로그·토스뱅크·트래블월렛·은행앱) 기준 =====
+   pct   : 환율우대율(%) · 100 = 환전 수수료 사실상 무료  / null = 확인된 수치 없음
+   st    : 'ok'(공개 안내로 확인) | 'fee'(수수료 부과·우대율 미확인) | 'gen'(일반 안내 수준) | 'unk'(통화 지원·우대 미확인) | 'na'(미지원)
+   근거 기사 일자가 오래된 항목은 asOf 로 표시합니다. 약관은 수시로 바뀌므로 수정은 이 객체만 고치면 됩니다. */
+const FX_MEANS={
+  log:{n:'트래블로그(하나카드)',c:'#1fa463',asOf:'2025.06',src:'https://www.kkday.com/ko/blog/31760/world-travelwallet',desc:'18개 통화 환율 우대 100%'},
+  toss:{n:'토스뱅크 외화통장',c:'#2563eb',asOf:'2024.01',src:'https://www.newsis.com/view/NISX20240118_0002596868',desc:'17개 통화 환전 수수료 평생 무료(100% 우대)'},
+  wal:{n:'트래블월렛',c:'#7c3aed',asOf:'2025.06',src:'https://www.kkday.com/ko/blog/31760/world-travelwallet',desc:'USD·EUR·JPY만 100% 우대, 그 외 통화는 수수료 부과'},
+  bank:{n:'은행 앱 환전',c:'#8a94a6',asOf:'일반 안내',src:'https://mokdol.com/%ED%99%98%EC%A0%84-%EC%9A%B0%EB%8C%80-%EB%B0%9B%EB%8A%94-%EB%B2%95-%EC%9D%80%ED%96%89%EB%B3%84-90-%EC%9A%B0%EB%8C%80-%ED%8A%B8%EB%9E%98%EB%B8%94%EC%9B%94%EB%A0%9B-vs-%ED%8A%B8%EB%9E%98%EB%B8%94/',desc:'앱·이벤트 쿠폰 시 우대 90% 안팎(통화·은행별 상이)'}
+};
+const _o=(pct,note)=>({pct,st:'ok',note}), _f=note=>({pct:null,st:'fee',note}), _u=note=>({pct:null,st:'unk',note}), _n=note=>({pct:null,st:'na',note}), _b={pct:90,st:'gen',note:'앱 환전 우대 90% 안팎(은행·이벤트별 상이)'};
 const FX_PERK={
-  USD:{name:'미국 달러',flag:'🇺🇸',list:[
-    {n:'트래블월렛',score:100,note:'환전 수수료 0원(충전 시 실시간 환율) · 해외 결제·ATM 연계'},
-    {n:'토스뱅크 외화통장',score:100,note:'환전 수수료 무료 · 24시간 환전 · 외화 보관 이자'},
-    {n:'증권사 외화 환전',score:90,note:'환전 우대 90% 안팎(증권사·이벤트별 상이) · 해외주식 연계'}]},
-  JPY:{name:'일본 엔',flag:'🇯🇵',list:[
-    {n:'트래블로그(하나카드)',score:100,note:'환전 수수료 100% 우대 · 엔화 지원 · 한도 조건 확인'},
-    {n:'토스뱅크 외화통장',score:100,note:'환전 수수료 무료 · 엔화 지원'},
-    {n:'트래블월렛',score:95,note:'환전 수수료 0원 · 충전 시 환율 변동 주의'}]},
-  EUR:{name:'유로',flag:'🇪🇺',list:[
-    {n:'트래블로그(하나카드)',score:100,note:'환전 수수료 100% 우대 · 유로 지원'},
-    {n:'트래블월렛',score:100,note:'환전 수수료 0원 · 유로 지원'},
-    {n:'토스뱅크 외화통장',score:95,note:'환전 수수료 무료 · 지원 통화 확인'}]},
-  CNY:{name:'중국 위안',flag:'🇨🇳',list:[
-    {n:'트래블월렛',score:95,note:'위안 지원 · 환전 수수료 0원 · 알리페이 연계는 별도 확인'},
-    {n:'은행 앱 환전(하나·신한·우리)',score:90,note:'앱 환전 우대 90% 안팎 · 수령 지점 한도 확인'},
-    {n:'증권사 외화 환전',score:85,note:'위안 취급 여부·우대율 증권사별 상이'}]},
-  CHF:{name:'스위스 프랑',flag:'🇨🇭',list:[
-    {n:'트래블월렛',score:95,note:'프랑 지원 · 환전 수수료 0원'},
-    {n:'트래블로그(하나카드)',score:95,note:'프랑 지원 여부·한도 확인'},
-    {n:'은행 앱 환전',score:85,note:'우대 80~90% 안팎 · 주요 통화 외 스프레드 큼'}]},
-  BRL:{name:'브라질 헤알',flag:'🇧🇷',list:[
-    {n:'증권사 외화 환전(브라질국채용)',score:90,note:'국채 매입 시 환전 우대 · 증권사별 상이'},
-    {n:'하나은행 등 시중은행',score:70,note:'헤알 환전 취급 제한적 · 사전 문의 필요'},
-    {n:'핀테크 외화 앱',score:60,note:'헤알 미지원 앱이 많아 지원 여부 확인 필수'}]}
+  USD:{name:'미국 달러',flag:'🇺🇸',m:{log:_o(100,'100% 우대'),toss:_o(100,'수수료 무료'),wal:_o(100,'100% 우대(USD·EUR·JPY)'),bank:_b}},
+  JPY:{name:'일본 엔',flag:'🇯🇵',m:{log:_o(100,'100% 우대'),toss:_o(100,'수수료 무료'),wal:_o(100,'100% 우대(USD·EUR·JPY)'),bank:_b}},
+  EUR:{name:'유로',flag:'🇪🇺',m:{log:_o(100,'100% 우대'),toss:_o(100,'수수료 무료'),wal:_o(100,'100% 우대(USD·EUR·JPY)'),bank:_b}},
+  GBP:{name:'영국 파운드',flag:'🇬🇧',m:{log:_o(100,'100% 우대'),toss:_o(100,'수수료 무료(기사에 명시된 통화)'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  CNY:{name:'중국 위안',flag:'🇨🇳',m:{log:_o(100,'100% 우대'),toss:_u('지원·우대 여부 확인 필요'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  CHF:{name:'스위스 프랑',flag:'🇨🇭',m:{log:_o(100,'100% 우대'),toss:_u('지원·우대 여부 확인 필요'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  AUD:{name:'호주 달러',flag:'🇦🇺',m:{log:_o(100,'100% 우대'),toss:_u('지원·우대 여부 확인 필요'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  THB:{name:'태국 바트',flag:'🇹🇭',m:{log:_o(100,'100% 우대'),toss:_u('지원·우대 여부 확인 필요'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  HKD:{name:'홍콩 달러',flag:'🇭🇰',m:{log:_o(100,'100% 우대'),toss:_u('지원·우대 여부 확인 필요'),wal:_f('수수료 부과 · 우대율 미확인'),bank:_b}},
+  BRL:{name:'브라질 헤알',flag:'🇧🇷',m:{log:_n('공개된 지원 통화 목록에 없음'),toss:_u('지원·우대 여부 확인 필요'),wal:_u('지원·우대 여부 확인 필요'),bank:{pct:null,st:'unk',note:'헤알 취급 은행 제한적 · 사전 문의'}}}
 };
 function renderFxPerk(){
   const el=document.getElementById('fx-perk-grid'); if(!el) return;
   const medal=['🥇','🥈','🥉'];
-  el.innerHTML=Object.keys(FX_PERK).map(k=>{
+  const ST={ok:'확인',gen:'일반안내',fee:'수수료 부과',unk:'미확인',na:'미지원'};
+  const head='<div class="card" style="grid-column:1/-1"><h3>수단별 환전 우대 요약</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:6px">'+
+    Object.keys(FX_MEANS).map(k=>{const m=FX_MEANS[k];return '<div style="border-left:4px solid '+m.c+';padding:4px 10px"><b style="font-size:14px">'+m.n+'</b><div class="mut" style="font-size:12px;margin-top:2px">'+m.desc+'</div><a href="'+m.src+'" target="_blank" rel="noopener" class="mut" style="font-size:11px">근거 '+m.asOf+' ↗</a></div>';}).join('')+'</div></div>';
+  el.innerHTML=head+Object.keys(FX_PERK).map(k=>{
     const c=FX_PERK[k];
-    return '<div class="card"><h3>'+c.flag+' '+c.name+' ('+k+')</h3>'+c.list.slice(0,3).map((x,i)=>
-      '<div style="margin-top:'+(i?12:4)+'px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:14px">'+medal[i]+' '+x.n+'</b><span style="font-size:12px;font-weight:800;color:var(--accent)">'+x.score+'점</span></div>'+
-      '<div style="height:7px;border-radius:4px;background:var(--panel2);margin:5px 0"><div style="height:7px;border-radius:4px;width:'+x.score+'%;background:'+(i===0?'var(--accent)':i===1?'#4fa383':'#9cc9b9')+'"></div></div>'+
-      '<div class="mut" style="font-size:12px">'+x.note+'</div></div>').join('')+'</div>';
+    const arr=Object.keys(c.m).map(mk=>({mk,...c.m[mk]}));
+    const rank={ok:0,gen:1,fee:2,unk:3,na:4};
+    arr.sort((a,b)=>(b.pct||0)-(a.pct||0)||rank[a.st]-rank[b.st]);
+    const top=arr.slice(0,3);
+    const tied=top.length>1&&top[0].pct===100&&top[1].pct===100;
+    return '<div class="card"><h3>'+c.flag+' '+c.name+' ('+k+')</h3>'+top.map((x,i)=>{
+      const m=FX_MEANS[x.mk], has=x.pct!=null;
+      return '<div style="margin-top:'+(i?12:4)+'px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:14px">'+(has?medal[i]+' ':'')+m.n+'</b>'+
+        '<span style="font-size:12.5px;font-weight:800;color:'+(has?m.c:'var(--tx2)')+'">'+(has?x.pct+'%':ST[x.st])+'</span></div>'+
+        '<div style="height:8px;border-radius:4px;background:var(--panel2);margin:5px 0;overflow:hidden">'+(has?'<div style="height:8px;border-radius:4px;width:'+x.pct+'%;background:'+m.c+(x.st==='gen'?';opacity:.55':'')+'"></div>':'<div style="height:8px;width:100%;background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(138,148,166,.35) 5px 8px)"></div>')+'</div>'+
+        '<div class="mut" style="font-size:12px">'+x.note+'</div></div>';
+    }).join('')+(tied?'<div class="mut" style="font-size:11.5px;margin-top:10px">※ 100% 우대 수단이 여럿이면 동률입니다. 한도·ATM·충전 방식은 수단별로 달라 직접 비교가 필요합니다.</div>':'')+'</div>';
   }).join('');
 }
-
 renderFxPerk();
 
 </script>
