@@ -5520,3 +5520,136 @@ async function hydrateIpoQuotes(){
     }catch(e){ el.innerHTML='<span class="mut" style="font-size:11.5px">시세를 불러오지 못했습니다.</span>'; }
   }
 }
+
+/* ================= 가상화폐: 공포탐욕지수 추이 차트 / 코인 스파크라인 / 레인보우 차트 ================= */
+(function(){
+  if(!document.getElementById('cf-trend')) return;
+  const $q=s=>document.querySelector(s);
+  const fmtD=ts=>{const d=new Date(ts*1000);return (d.getMonth()+1)+'.'+String(d.getDate()).padStart(2,'0');};
+  const fmtFull=ts=>{const d=new Date(ts*1000);return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');};
+
+  /* ---- 1) 공포·탐욕지수 추이 차트 ---- */
+  const ZONES=[[0,25,'#ff4d4f','극단적 공포'],[25,45,'#ff8a00','공포'],[45,55,'#9aa4b2','중립'],[55,75,'#7bc043','탐욕'],[75,100,'#22a34a','극단적 탐욕']];
+  function drawCFChart(p){
+    const el=document.getElementById('cf-trend'); if(!el||!cfData||!cfData.length) return;
+    const days={d:30,w:90,m:180,y:365}[p]||90;
+    const arr=cfData.slice(0,days).slice().reverse();
+    if(arr.length<2) return;
+    const W=640,H=230,L=34,R=10,T=10,B=24,cw=W-L-R,ch=H-T-B;
+    const X=i=>L+i*cw/(arr.length-1), Y=v=>T+ch-(v/100)*ch;
+    let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;touch-action:pan-y">';
+    ZONES.forEach(z=>{s+='<rect x="'+L+'" y="'+Y(z[1]).toFixed(1)+'" width="'+cw+'" height="'+((z[1]-z[0])/100*ch).toFixed(1)+'" fill="'+z[2]+'" opacity=".13"/>';});
+    [0,25,50,75,100].forEach(v=>{s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="var(--tx2)">'+v+'</text>';});
+    const n=Math.min(5,arr.length);
+    for(let k=0;k<n;k++){const i=Math.round(k*(arr.length-1)/(n-1));s+='<text x="'+X(i).toFixed(1)+'" y="'+(H-6)+'" text-anchor="'+(k===0?'start':k===n-1?'end':'middle')+'" font-size="11" fill="var(--tx2)">'+fmtD(arr[i].t)+'</text>';}
+    const d=arr.map((x,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(x.v).toFixed(1)).join(' ');
+    const last=arr[arr.length-1];
+    s+='<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>'+
+       '<circle cx="'+X(arr.length-1)+'" cy="'+Y(last.v)+'" r="4.5" fill="'+label(last.v)[1]+'" stroke="#fff" stroke-width="1.5"/>'+
+       '<g id="cf-hv" style="display:none"><line y1="'+T+'" y2="'+(T+ch)+'" stroke="var(--tx2)" stroke-dasharray="3 3"/><circle r="4.5" fill="var(--accent)" stroke="#fff" stroke-width="1.5"/></g></svg>';
+    el.innerHTML='<div id="cf-ro" class="mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px;font-weight:700">'+fmtFull(last.t)+' · <b style="color:'+label(last.v)[1]+'">'+last.v+'점 '+label(last.v)[0]+'</b> <span style="font-weight:400">(터치·마우스로 날짜별 확인 · '+arr.length+'일)</span></div>'+s;
+    const svg=el.querySelector('svg'),hv=el.querySelector('#cf-hv'),ro=el.querySelector('#cf-ro');
+    const mv=e=>{const r=svg.getBoundingClientRect();const x=((e.clientX-r.left)/r.width)*W;let i=Math.round((x-L)/cw*(arr.length-1));i=Math.max(0,Math.min(arr.length-1,i));const a=arr[i];
+      hv.style.display='';hv.querySelector('line').setAttribute('x1',X(i));hv.querySelector('line').setAttribute('x2',X(i));hv.querySelector('circle').setAttribute('cx',X(i));hv.querySelector('circle').setAttribute('cy',Y(a.v));
+      ro.innerHTML=fmtFull(a.t)+' · <b style="color:'+label(a.v)[1]+'">'+a.v+'점 '+label(a.v)[0]+'</b>';};
+    svg.addEventListener('pointermove',mv);svg.addEventListener('pointerdown',mv);
+  }
+  const _renderCF=renderCF;
+  renderCF=function(p){ _renderCF(p); try{drawCFChart(p);}catch(e){console.warn('FNG 차트 실패',e);} };
+
+  /* ---- 2) 코인 스파크라인 (미국주식과 동일: 가격 왼쪽 64px 미니 차트) ---- */
+  function drawSparks(p){
+    document.querySelectorAll('#coin-tbl .wl-row').forEach(row=>{
+      const id=row.dataset.c, sp=row.querySelector('.wl-spark'); if(!sp) return;
+      const sc=sparklineCache[id], tc=(typeof COIN_TECH!=='undefined')&&COIN_TECH[id];
+      let pts=null;
+      if(p==='d'&&sc&&sc.length>24) pts=sc.slice(-24);
+      else if(p==='w'&&sc&&sc.length>7) pts=sc;
+      else if(p==='m'&&tc&&tc.length>30) pts=tc.slice(-30);
+      else if(p==='y'&&tc&&tc.length>30) pts=tc;
+      if(!pts){ const b=COIN_BASE[id]; pts=b?fallbackSeries(b,p):null; }
+      sp.innerHTML=pts?sparkSVG(pts):'';
+    });
+  }
+  const _renderCoin=renderCoin;
+  renderCoin=function(p){ _renderCoin(p); try{drawSparks(p);}catch(e){} };
+  const _loadTech=loadCoinTech;
+  loadCoinTech=function(){ return _loadTech().then(()=>drawSparks(curPer.coin)); };
+
+  /* ---- 3) 레인보우 차트 (코인 행 여백 클릭) ----
+     로그 회귀: ln(가격) = a + b·ln(경과일). 잔차 표준편차(σ) 기준 9개 색 밴드.
+     BTC는 제네시스(2009-01-03) 기준, 나머지는 상장 데이터 시작 180일 전 기준(근사). 투자 권유 아님. */
+  const RB=[['#2563eb','대폭 할인'],['#06b6d4','매수'],['#22c55e','축적'],['#84cc16','아직 저렴'],['#facc15','보유'],['#fb923c','과열 주의'],['#f97316','FOMO'],['#ef4444','매도 구간'],['#b91c1c','극단적 거품']];
+  const RB_EDGE=[-1.75,-1.25,-.75,-.25,.25,.75,1.25,1.75];
+  const RB_NAME={bitcoin:'비트코인',ethereum:'이더리움',solana:'솔라나',ripple:'리플(XRP)'};
+  const rbCache={};
+  async function rbData(id){
+    if(rbCache[id]) return rbCache[id];
+    const r=await yCloseWithDates(COIN_YSYM[id],'max');
+    if(!r) return null;
+    const dates=[],px=[];
+    r.closes.forEach((c,i)=>{ if(c!=null&&c>0){dates.push(r.dates[i]);px.push(c);} });
+    if(px.length<200) return null;
+    const t0=(id==='bitcoin')?Date.UTC(2009,0,3):(Date.parse(dates[0])-180*86400000);
+    const xs=dates.map(d=>Math.log((Date.parse(d)-t0)/86400000)), ys=px.map(Math.log);
+    const n=xs.length, mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
+    let sxy=0,sxx=0; for(let i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sxx+=(xs[i]-mx)**2;}
+    const b=sxy/sxx, a=my-b*mx;
+    const sd=Math.sqrt(ys.reduce((s,y,i)=>s+(y-(a+b*xs[i]))**2,0)/n);
+    return rbCache[id]={dates,px,xs,a,b,sd};
+  }
+  function rbSVG(D,id){
+    const W=640,H=320,L=52,R=10,T=10,B=26,cw=W-L-R,ch=H-T-B, n=D.px.length;
+    const fit=i=>D.a+D.b*D.xs[i];
+    const lo=Math.min(...D.px.map((p,i)=>Math.min(Math.log(p),fit(i)-2.4*D.sd))), hi=Math.max(...D.px.map((p,i)=>Math.max(Math.log(p),fit(i)+2.4*D.sd)));
+    const X=i=>L+i*cw/(n-1), Y=v=>T+ch-((v-lo)/(hi-lo))*ch;
+    const E=[-2.4].concat(RB_EDGE,[2.4]);
+    let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;touch-action:pan-y">';
+    for(let k=0;k<9;k++){
+      let up='',dn='';
+      for(let i=0;i<n;i+=Math.max(1,Math.floor(n/160))){up+=(up?'L':'M')+X(i).toFixed(1)+','+Y(fit(i)+E[k+1]*D.sd).toFixed(1);}
+      for(let i=n-1;i>=0;i-=Math.max(1,Math.floor(n/160))){dn+='L'+X(i).toFixed(1)+','+Y(fit(i)+E[k]*D.sd).toFixed(1);}
+      s+='<path d="'+up+dn+'Z" fill="'+RB[k][0]+'" opacity=".55"/>';
+    }
+    const ticks=[]; for(let e=Math.ceil(lo/Math.LN10*2)/2;e<=hi/Math.LN10;e+=0.5){ if(Number.isInteger(e)||true) ticks.push(e); }
+    const pickT=[]; for(let e=Math.ceil(lo/Math.LN10);e<=Math.floor(hi/Math.LN10);e++) pickT.push(e);
+    pickT.forEach(e=>{const y=Y(e*Math.LN10);const v=Math.pow(10,e);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".8" opacity=".7"/><text x="'+(L-5)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="var(--tx2)">$'+(v>=1000?(v/1000)+'k':v)+'</text>';});
+    const yrs=[]; D.dates.forEach((d,i)=>{ if(d.slice(5,10)==='01-01'||i===0) yrs.push([i,d.slice(0,4)]); });
+    let lastX=-99; yrs.forEach(([i,y])=>{ const x=X(i); if(x-lastX>46){ s+='<text x="'+x.toFixed(1)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11" fill="var(--tx2)">'+y+'</text>'; lastX=x; }});
+    const dd=D.px.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(Math.log(p)).toFixed(1)).join(' ');
+    s+='<path d="'+dd+'" fill="none" stroke="var(--tx)" stroke-width="1.8" stroke-linejoin="round"/>'+
+       '<g class="rb-hv" style="display:none"><line y1="'+T+'" y2="'+(T+ch)+'" stroke="var(--tx)" stroke-dasharray="3 3"/><circle r="4.5" fill="var(--tx)" stroke="#fff" stroke-width="1.5"/></g></svg>';
+    return {svg:s,X,Y,W,L,cw};
+  }
+  function rbZone(D,i){ const z=(Math.log(D.px[i])-(D.a+D.b*D.xs[i]))/D.sd; let k=0; while(k<8&&z>RB_EDGE[k]) k++; return [k,z]; }
+  async function openRainbow(row){
+    const id=row.dataset.c;
+    let pn=row.nextElementSibling;
+    if(pn&&pn.classList.contains('wl-rb')){ pn.remove(); row.classList.remove('rb-open'); return; }
+    document.querySelectorAll('#coin-tbl .wl-rb').forEach(e=>e.remove()); document.querySelectorAll('#coin-tbl .rb-open').forEach(e=>e.classList.remove('rb-open'));
+    pn=document.createElement('div'); pn.className='wl-rb'; pn.innerHTML='<div class="mut" style="font-size:12.5px">'+RB_NAME[id]+' 레인보우 차트 불러오는 중…</div>';
+    row.after(pn); row.classList.add('rb-open');
+    let D=null; try{ D=await rbData(id); }catch(e){}
+    if(!pn.isConnected) return;
+    if(!D){ pn.innerHTML='<div class="mut" style="font-size:12.5px">가격 이력을 불러오지 못했습니다. 잠시 후 다시 눌러 주세요.</div>'; return; }
+    const g=rbSVG(D,id), n=D.px.length;
+    const cur=rbZone(D,n-1);
+    const legend=RB.map((r,k)=>'<span class="rb-lg'+(k===cur[0]?' on':'')+'"><i style="background:'+r[0]+'"></i>'+r[1]+'</span>').join('');
+    pn.innerHTML='<div style="font-weight:800;font-size:14px;margin-bottom:4px">🌈 '+RB_NAME[id]+' 레인보우 가격 차트 <span class="mut" style="font-weight:400;font-size:12px">(로그 스케일 · '+D.dates[0].slice(0,4)+'년~현재)</span></div>'+
+      '<div class="rb-ro mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px;font-weight:700"></div>'+g.svg+
+      '<div class="rb-legend">'+legend+'</div>'+
+      '<p class="mut" style="font-size:11.5px;margin:8px 0 0;line-height:1.5">현재 가격은 <b style="color:var(--tx)">'+RB[cur[0]][1]+'</b> 밴드(회귀선 대비 '+(cur[1]>=0?'+':'')+cur[1].toFixed(2)+'σ)에 있습니다. 이 차트는 Yahoo 일봉 전체 이력에 로그 회귀를 적용해 직접 계산한 근사 모델이며'+(id==='bitcoin'?'':' (비트코인 외 코인은 상장 이력이 짧아 신뢰도가 낮습니다)')+', 투자 권유가 아닙니다. 참고: <a href="https://coinmarketcap.com/ko/charts/crypto-market-cycle-indicators/" target="_blank" rel="noopener">CoinMarketCap 사이클 지표</a></p>';
+    const svg=pn.querySelector('svg'),hv=pn.querySelector('.rb-hv'),ro=pn.querySelector('.rb-ro');
+    const show=i=>{const z=rbZone(D,i);ro.innerHTML=D.dates[i].replace(/-/g,'.')+' · $'+fmtCoin(D.px[i])+' · <b style="color:'+RB[z[0]][0]+'">'+RB[z[0]][1]+'</b>';};
+    show(n-1);
+    const mv=e=>{const r=svg.getBoundingClientRect();const x=((e.clientX-r.left)/r.width)*g.W;let i=Math.round((x-g.L)/g.cw*(n-1));i=Math.max(0,Math.min(n-1,i));
+      hv.style.display='';hv.querySelector('line').setAttribute('x1',g.X(i));hv.querySelector('line').setAttribute('x2',g.X(i));hv.querySelector('circle').setAttribute('cx',g.X(i));hv.querySelector('circle').setAttribute('cy',g.Y(Math.log(D.px[i])));show(i);};
+    svg.addEventListener('pointermove',mv);svg.addEventListener('pointerdown',mv);
+  }
+  const tbl=document.getElementById('coin-tbl');
+  if(tbl) tbl.addEventListener('click',e=>{
+    if(e.target.closest('a,.wl-rb,button')) return;
+    const row=e.target.closest('.wl-row'); if(!row||!row.dataset.c) return;
+    openRainbow(row);
+  });
+})();

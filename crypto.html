@@ -115,6 +115,15 @@ h2{font-size:26px;letter-spacing:-.6px}
 .bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
 .bars-labels{display:none;gap:6px;margin-top:4px}
 .bars-labels span{flex:1;text-align:center;font-size:12px;font-weight:600;color:var(--tx2);overflow:hidden;white-space:nowrap}
+.wl-spark{display:none;flex:none;width:64px;margin:0 6px}
+.wl-spark svg{display:block;width:100%;height:28px}
+@media(min-width:761px){.wl-spark{display:block}}
+#coin-tbl .wl-row{cursor:pointer}#coin-tbl .wl-row.rb-open{background:var(--panel2)}
+.wl-rb{padding:14px 16px 16px;border-bottom:1px solid var(--line);background:var(--panel);cursor:default}
+.rb-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12px;color:var(--tx2)}
+.rb-lg{display:inline-flex;align-items:center;gap:5px;opacity:.7}.rb-lg.on{opacity:1;font-weight:800;color:var(--tx)}
+.rb-lg i{width:10px;height:10px;border-radius:2px;display:inline-block}
+#cf-bars{display:none}#cf-trend.trend-lg svg{height:auto}
 .trend-lg{margin-top:8px}
 .trend-lg svg{width:100%;height:44px;display:block}
 
@@ -223,7 +232,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
  .ev-tbl tr.ev-hi td:first-child{border-left:0!important}.ev-tbl tr.ev-hi{border-left:3px solid #a01810}
 }
 </style>
-<script src="mrkim-gate.js?v=20261007zg"></script>
+<script src="mrkim-gate.js?v=20261007zk"></script>
 </head>
 <body>
 
@@ -274,11 +283,12 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </div>
         <div class="bars" id="cf-bars"></div>
         <div class="trend-lg" id="cf-trend"></div>
-        <div class="mut" style="margin-top:8px">최근 흐름</div>
+        
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
           <div class="mut" style="font-weight:700;margin-bottom:8px">김군코멘트</div>
           <div id="cf-kimcomment" class="kimcomment" style="font-weight:800;font-size:26px;line-height:1.3">불러오는 중…</div>
         </div>
+        <div id="cry-next-event" style="display:none;margin-top:14px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
       </div>
       <div class="card">
         <h3>글로벌 마켓 트렌드</h3>
@@ -293,7 +303,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
 
     <h2 style="font-size:21px;margin-top:44px">주요 코인 가격 — BTC · ETH · SOL · XRP</h2>
-    <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률</p>
+    <p class="sub">CoinGecko 실시간 시세 · 기간별 등락률 · 코인 행을 누르면 레인보우 차트</p>
 
     <h3 style="font-size:15px;color:var(--tx2);margin-bottom:10px">4종 시가총액 비중</h3>
     <div id="mcap-chart" style="margin-bottom:28px"></div>
@@ -304,10 +314,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <div class="scroll">
       <div class="wl-list" id="coin-tbl">
-          <div class="wl-row" data-c="bitcoin"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">비트코인</div><div class="wl-name"><a href="https://bitcoin.org" target="_blank" rel="noopener" title="비트코인 공식 사이트">BTC</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
-          <div class="wl-row" data-c="ethereum"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">이더리움</div><div class="wl-name"><a href="https://ethereum.org" target="_blank" rel="noopener" title="이더리움 공식 사이트">ETH</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
-          <div class="wl-row" data-c="solana"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">솔라나</div><div class="wl-name"><a href="https://solana.com" target="_blank" rel="noopener" title="솔라나 공식 사이트">SOL</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
-          <div class="wl-row" data-c="ripple"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">리플</div><div class="wl-name"><a href="https://xrpl.org" target="_blank" rel="noopener" title="XRP 렛저 공식 사이트">XRP</a></div></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="bitcoin"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">비트코인</div><div class="wl-name"><a href="https://bitcoin.org" target="_blank" rel="noopener" title="비트코인 공식 사이트">BTC</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="ethereum"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">이더리움</div><div class="wl-name"><a href="https://ethereum.org" target="_blank" rel="noopener" title="이더리움 공식 사이트">ETH</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="solana"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">솔라나</div><div class="wl-name"><a href="https://solana.com" target="_blank" rel="noopener" title="솔라나 공식 사이트">SOL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
+          <div class="wl-row" data-c="ripple"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">리플</div><div class="wl-name"><a href="https://xrpl.org" target="_blank" rel="noopener" title="XRP 렛저 공식 사이트">XRP</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div></div></div>
         </div>
     </div>
 
@@ -375,7 +385,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zg"></script>
+<script src="mrkim-common.js?v=20261007zk"></script>
 <script>
 const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
 if(cryptoEvMonthTabs){
@@ -390,6 +400,7 @@ if(cryptoEvMonthTabs){
   const defBtnCrypto=cryptoEvMonthTabs.querySelector('button[data-m="'+defMonthCrypto+'"]');
   if(defBtnCrypto) defBtnCrypto.classList.add('on');
   renderCryptoEvents(defMonthCrypto);
+  renderNextEventBanner('cry-next-event', CRYPTO_MONTH_EVENTS, {});
 }
 
 
