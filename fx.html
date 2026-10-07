@@ -194,7 +194,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
 </style>
-<script src="mrkim-gate.js?v=20261007zo"></script>
+<script src="mrkim-gate.js?v=20261007zs"></script>
+<style>
+.fxm{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:520px}
+.fxm th,.fxm td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.fxm thead th{font-size:14px;font-weight:900;border-bottom:2px solid var(--line)}
+.fxm .fxm-d{font-size:11px;font-weight:600;color:var(--tx2);margin-top:3px;line-height:1.4}.fxm .fxm-d a{color:var(--tx2)}
+.fxm thead th:first-child,.fxm .fxm-r{width:112px}
+.fxm .fxm-r{font-size:14px;font-weight:800;white-space:nowrap}.fxm .fxm-r small{display:block;font-size:11px;color:var(--tx2);font-weight:600}
+.fxm-top b{font-size:20px;letter-spacing:-.5px}
+.fxm-bar{height:10px;border-radius:5px;background:var(--panel2);overflow:hidden;margin:6px 0}.fxm-bar i{display:block;height:10px;border-radius:5px}
+.fxm-bar i.fxm-h{width:100%;background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(138,148,166,.38) 5px 8px)}
+.fxm-n{font-size:11.5px;color:var(--tx2);line-height:1.4}
+@media(max-width:560px){.fxm{min-width:0}.fxm th,.fxm td{padding:8px 6px}.fxm thead th:first-child,.fxm .fxm-r{width:84px}.fxm .fxm-r{font-size:12px;white-space:normal;word-break:keep-all}.fxm-top b{font-size:16px}.fxm .fxm-d{display:none}.fxm thead th{font-size:12.5px}.fxm-n{font-size:10.5px}}
+</style>
 </head>
 <body>
 
@@ -243,7 +256,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="mut" style="margin-top:10px;font-size:12px">통화명을 클릭하면 Finviz 상세 차트로 이동합니다(원화 교차환율은 Finviz에서 지원하지 않을 수 있습니다)<br>· 🔗는 해당 통화 발행국(또는 유로존)의 중앙은행 공식 사이트로 연결됩니다<br>· RSI는 14일 단순평균 기반 근사치이며 70 이상 과매수, 30 이하 과매도 참고 구간입니다<br>· 이격도는 (현재가 ÷ 200일 이동평균 − 1)×100, 데이터가 200일 미만인 경우 "--"로 표시됩니다.</p>
 
     <h2 style="font-size:21px;margin-top:44px">화폐별 환율우대 Top3 추천</h2>
-    <p class="sub">트래블로그·토스뱅크·트래블월렛·은행 앱을 기준으로, 통화별 환율 우대율이 높은 수단 Top3입니다<br>공개된 안내·기사 기준 자체 정리이며 실시간 조회값이 아닙니다(근거 일자 표기)<br>막대 빗금 = 우대율이 확인되지 않은 항목 · 신청 전 공식 앱에서 반드시 확인하세요</p>
+    <p class="sub">트래블로그·트래블월렛의 통화별 환율 우대율을 한눈에 비교합니다<br>공개된 안내·기사 기준 자체 정리이며 실시간 조회값이 아닙니다(근거 일자 표기)<br>막대 빗금 = 우대율이 확인되지 않은 항목 · 신청 전 공식 앱에서 반드시 확인하세요</p>
     <div class="grid" id="fx-perk-grid"></div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 우대율은 공개된 안내(수수료 무료=100%)를 옮긴 값이며, 기사 시점 이후 바뀌었을 수 있습니다. 실제 적용 환율은 시점·한도·가입 조건에 따라 다릅니다. 특정 금융사의 가입을 권유하지 않습니다.</p>
   </div>
@@ -268,7 +281,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zo"></script>
+<script src="mrkim-common.js?v=20261007zs"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -302,25 +315,18 @@ const FX_PERK={
 };
 function renderFxPerk(){
   const el=document.getElementById('fx-perk-grid'); if(!el) return;
-  const medal=['🥇','🥈','🥉'];
+  const COLS=['log','wal'], ROWS=['USD','JPY','CNY','EUR','CHF','BRL'];
   const ST={ok:'확인',gen:'일반안내',fee:'수수료 부과',unk:'미확인',na:'미지원'};
-  const head='<div class="card" style="grid-column:1/-1"><h3>수단별 환전 우대 요약</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:6px">'+
-    Object.keys(FX_MEANS).map(k=>{const m=FX_MEANS[k];return '<div style="border-left:4px solid '+m.c+';padding:4px 10px"><b style="font-size:14px">'+m.n+'</b><div class="mut" style="font-size:12px;margin-top:2px">'+m.desc+'</div><a href="'+m.src+'" target="_blank" rel="noopener" class="mut" style="font-size:11px">근거 '+m.asOf+' ↗</a></div>';}).join('')+'</div></div>';
-  el.innerHTML=head+Object.keys(FX_PERK).map(k=>{
-    const c=FX_PERK[k];
-    const arr=Object.keys(c.m).map(mk=>({mk,...c.m[mk]}));
-    const rank={ok:0,gen:1,fee:2,unk:3,na:4};
-    arr.sort((a,b)=>(b.pct||0)-(a.pct||0)||rank[a.st]-rank[b.st]);
-    const top=arr.slice(0,3);
-    const tied=top.length>1&&top[0].pct===100&&top[1].pct===100;
-    return '<div class="card"><h3>'+c.flag+' '+c.name+' ('+k+')</h3>'+top.map((x,i)=>{
-      const m=FX_MEANS[x.mk], has=x.pct!=null;
-      return '<div style="margin-top:'+(i?12:4)+'px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:14px">'+(has?medal[i]+' ':'')+m.n+'</b>'+
-        '<span style="font-size:12.5px;font-weight:800;color:'+(has?m.c:'var(--tx2)')+'">'+(has?x.pct+'%':ST[x.st])+'</span></div>'+
-        '<div style="height:8px;border-radius:4px;background:var(--panel2);margin:5px 0;overflow:hidden">'+(has?'<div style="height:8px;border-radius:4px;width:'+x.pct+'%;background:'+m.c+(x.st==='gen'?';opacity:.55':'')+'"></div>':'<div style="height:8px;width:100%;background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(138,148,166,.35) 5px 8px)"></div>')+'</div>'+
-        '<div class="mut" style="font-size:12px">'+x.note+'</div></div>';
-    }).join('')+(tied?'<div class="mut" style="font-size:11.5px;margin-top:10px">※ 100% 우대 수단이 여럿이면 동률입니다. 한도·ATM·충전 방식은 수단별로 달라 직접 비교가 필요합니다.</div>':'')+'</div>';
-  }).join('');
+  const cell=(x,m)=>{
+    const has=x.pct!=null;
+    return '<td class="fxm-c"><div class="fxm-top"><b style="color:'+(has?m.c:'var(--tx2)')+'">'+(has?x.pct+'%':ST[x.st])+'</b></div>'+
+      '<div class="fxm-bar">'+(has?'<i style="width:'+x.pct+'%;background:'+m.c+'"></i>':'<i class="fxm-h"></i>')+'</div>'+
+      '<div class="fxm-n">'+x.note+'</div></td>';
+  };
+  el.style.display='block';
+  el.innerHTML='<div class="card"><div class="scroll"><table class="fxm"><thead><tr><th>통화</th>'+COLS.map(k=>'<th style="color:'+FX_MEANS[k].c+'">'+FX_MEANS[k].n+'<div class="fxm-d">'+FX_MEANS[k].desc+' · <a href="'+FX_MEANS[k].src+'" target="_blank" rel="noopener">근거 '+FX_MEANS[k].asOf+' ↗</a></div></th>').join('')+'</tr></thead><tbody>'+
+    ROWS.map(r=>{const c=FX_PERK[r];return '<tr><th class="fxm-r"><span>'+c.flag+'</span> '+c.name+'<small>'+r+'</small></th>'+COLS.map(k=>cell(c.m[k],FX_MEANS[k])).join('')+'</tr>';}).join('')+
+    '</tbody></table></div><p class="mut" style="font-size:11.5px;margin:10px 0 0">막대 길이 = 환율 우대율(100% = 환전 수수료 무료) · 빗금 = 우대율 확인 불가 · 100% 끼리는 동률입니다(한도·ATM·충전 방식은 수단별로 다름)</p></div>';
 }
 renderFxPerk();
 
