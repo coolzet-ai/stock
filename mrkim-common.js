@@ -276,7 +276,7 @@ function renderCapShareChart(elId, entries){
       e.label+' '+pct.toFixed(1)+'%</span>';
   }).join('');
   el.innerHTML='<div style="display:flex;height:20px;border-radius:6px;overflow:hidden">'+bars+'</div>'+
-    '<div style="margin-top:10px;display:flex;flex-wrap:wrap">'+legend+'</div>';
+    '<div class="cap-lg" style="margin-top:10px;display:flex;flex-wrap:wrap">'+legend+'</div>';
 }
 /* 시가총액 스냅샷 (근사치 · US는 USD 조 단위, 코스피/코스닥은 원화 조 단위 — 단위가 달라도 비중 계산에는 무관) */
 const US_CAP_DATA=[

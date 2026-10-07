@@ -265,6 +265,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .hm-k .hm div{min-height:92px;flex:1 1 0;box-shadow:0 4px 14px rgba(0,0,0,.18);border:2px solid rgba(255,255,255,.55)}
 .hm-k .hm div span{font-size:20px}.hm-k .hm div small{font-size:14px}
 .hm div.star{outline:3px solid var(--gold);outline-offset:-3px}
+/* 시가총액 TOP10: PC에서 5개씩 2줄, 1~3·8~10위는 가격/등락률 줄바꿈 */
+.pulse .hm div.tl{container-type:inline-size}.pulse .hm.hm-g5 div.tl small{align-items:flex-start}
+.pulse .hm div.tl.st small{flex-direction:column;align-items:flex-start}
+@media(min-width:701px){.pulse .hm.hm-g5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}.pulse .hm.hm-g5 div.tl.big{min-height:84px}.pulse .hm.hm-g5 div.tl small{font-size:13px}}
+@media(max-width:700px){.pulse .hm div.tl>span{white-space:nowrap!important;font-size:min(13px,calc((100cqw - 14px)/(var(--n,4) + 1.6)));padding-left:6px;padding-right:6px}.pulse .hm div.tl.big>span{font-size:min(15px,calc((100cqw - 14px)/(var(--n,4) + 1.6)))}.pulse .hm div.tl small{padding-left:6px;padding-right:6px;font-size:11.5px}}
+/* 시가총액 비중 범례: PC 5열(1~5위 / 6~10위) */
+@media(min-width:701px){.cap-lg{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:0 10px}.cap-lg>span{margin-right:0!important}}
+
 /* 히트맵: 티커명 영역은 중립색, 가격·등락률 영역만 색상 */
 .pulse .hm div.tl{background:var(--panel2);color:var(--tx);padding:0;justify-content:flex-start;overflow:hidden;border:1px solid var(--line)}
 .pulse .hm div.tl span{padding:8px 10px 6px;white-space:normal;word-break:keep-all;line-height:1.25}
@@ -314,7 +322,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
  #kr-events-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
  #kr-events-tbl tr.ev-hi td:first-child{border-left:0!important}#kr-events-tbl tr.ev-hi{border-left:3px solid #a01810}
 }
-</style><script src="mrkim-gate.js?v=20261007zi"></script>
+</style><script src="mrkim-gate.js?v=20261007zj"></script>
 </head>
 <body>
 
@@ -582,7 +590,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zi"></script>
+<script src="mrkim-common.js?v=20261007zj"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
@@ -716,7 +724,7 @@ function draw(){
  '<div class="breadth"><i style="width:'+up/all.length*100+'%;background:var(--up)"></i><i style="width:'+fl/all.length*100+'%;background:#aaa"></i><i style="width:'+dn/all.length*100+'%;background:var(--down)"></i></div>'+
  '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
  '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">코스피 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">코스닥 TOP10</button></div>'+
- '<div class="hm">'+rows.map((x,i)=>'<div class="tl '+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span>'+(x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+(x.nm||x.t)+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b>'+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</b></small></div>').join('')+'</div>'+
+ '<div class="hm '+(true?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7)||mode!=='cap')?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span style="--n:'+String(x.nm||x.t).length+'">'+(x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+(x.nm||x.t)+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b>'+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</b></small></div>').join('')+'</div>'+
  '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
 }
 setTimeout(draw,5000);setInterval(draw,20000);
