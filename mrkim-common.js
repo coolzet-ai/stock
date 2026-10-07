@@ -377,7 +377,7 @@ function relPaint(elId){
   el.innerHTML=
     '<div class="rel-readout mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px">선 근처에 마우스를 올리면 해당 종목이 진하게 표시됩니다 · 아래 체크박스로 종목을 숨길 수 있습니다</div>'+
     chartHtml+
-    '<div style="margin-top:8px;display:flex;flex-wrap:wrap">'+chips+'</div>';
+    '<div class="rel-chips" style="margin-top:8px;display:flex;flex-wrap:wrap">'+chips+'</div>';
   const svg=el.querySelector('svg.mlc');
   if(!svg) return;
   const g=k=>+svg.getAttribute('data-'+k);
@@ -1433,9 +1433,9 @@ function subTable(rows,src){
   const el=$('#us-sub'); if(!el)return;
   el.innerHTML=rows.map(([n,v],i)=>{
     const link=SUBSRC[n];
-    const label_=SUB_NUM[i]+' '+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n);
+    const label_='<span class="sub-no">'+SUB_NUM[i]+'</span><span class="sub-nm">'+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n)+'</span>';
     const [tl,tc]=label(v);
-    return '<tr><td style="white-space:nowrap;font-size:12.5px">'+label_+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
+    return '<tr><td class="sub-lab" style="white-space:nowrap">'+label_+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
     '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
   }).join('');
   $('#us-src').textContent=src;
@@ -3801,6 +3801,7 @@ function krSubLabel(num, text){
   if(!desc) return text;
   return text+' <span class="mut" title="'+desc.replace(/"/g,'&quot;')+'" style="cursor:help;font-weight:700;border:1px solid var(--line);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;vertical-align:middle;margin-left:2px">ⓘ</span>';
 }
+function krLab(num,n){ return '<span class="sub-no">'+SUB_NUM[+num-1]+'</span><span class="sub-nm">'+String(n).replace(/^\d+\.\s*/,'')+'</span>'; }
 function renderKRSub(momentumScore, ecos, krx, breadth){
   const el=document.getElementById('kr-sub'); if(!el) return;
   const strengthNote=breadth&&breadth.strength?' ('+breadth.strength.daysAccumulated+'일 누적, '+breadth.market+')':'';
@@ -3814,9 +3815,9 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     ['7', krSubLabel('7','7. 정크본드 수요'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
   el.innerHTML=rows.map(([num,n,v])=>{
-    if(v==null) return '<tr><td style="white-space:nowrap;font-size:12.5px">'+n+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
+    if(v==null) return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
-    return '<tr><td style="white-space:nowrap;font-size:12.5px">'+n+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
+    return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
       '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+c+'33;color:'+(v<=55&&v>=45?'var(--tx2)':c)+'">'+t+'</span></td></tr>';
   }).join('');
   const kn=document.getElementById('kr-sub-note');

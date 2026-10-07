@@ -275,6 +275,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:420px){.hm-k{padding:8px}.hm-k .hm{gap:3px}.hm-k .hm div{padding:8px 6px;min-height:72px}.hm-k .hm div span{font-size:13.5px}.hm-k .hm div small{font-size:11px}}
 .hm-t{overflow-x:auto;white-space:nowrap}.hm-t button{white-space:nowrap;flex:none}
 @media(max-width:420px){.hm-t button{font-size:11px;padding:5px 9px}.pulse h3 small{display:none}}
+#us-sub td.sub-lab{font-size:15px!important;font-weight:800;color:var(--tx)}#us-sub .sub-no{color:var(--accent);margin-right:6px;font-size:16px}#us-sub .sub-nm a{color:var(--tx);font-weight:800;text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px}
+@media(max-width:700px){#us-sub td.sub-lab{font-size:14.5px!important}#us-sub .sub-no{margin-right:4px;font-size:15px}}
+@media(max-width:380px){#us-sub td.sub-lab{font-size:12.5px!important}#us-sub .sub-no,#kr-sub .sub-no{font-size:13px!important;margin-right:3px!important}#us-sub td:nth-child(2),#kr-sub td:nth-child(2){width:18%!important;min-width:28px!important}}
+@media(max-width:700px){#us-caprel-chart .rel-chips{display:grid!important;grid-template-columns:1fr 1fr;gap:6px 10px}#us-caprel-chart .rel-chip{margin:0!important;min-width:0;white-space:nowrap;font-size:12.5px!important}}
+@media(max-width:360px){#us-caprel-chart .rel-chip{font-size:11.5px!important}}
+#us-idxrel-card .fg-hd,#us-caprel-card .fg-hd{margin-bottom:12px}#us-idxrel-card .fg-hd .tabs button,#us-caprel-card .fg-hd .tabs button{min-width:62px;text-align:center}
+@media(max-width:420px){#us-idxrel-card .fg-hd .tabs button,#us-caprel-card .fg-hd .tabs button{min-width:0;flex:1}#us-idxrel-card .fg-hd .tabs,#us-caprel-card .fg-hd .tabs{width:100%;display:flex}}
 .fg-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fg-hd h3{margin:0}.fg-hd .tabs button{padding:6px 12px;font-size:13px}
 @media(max-width:420px){.fg-hd .tabs button{padding:6px 9px;font-size:12.5px}}
 .hm-kw{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.hm-kw .hm-k{flex:1 1 320px;margin-bottom:0;min-width:0}
@@ -341,11 +348,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <h2 style="font-size:21px;margin-top:44px">주요 지수 ETF 상대수익률 비교</h2>
     <p class="sub">S&amp;P500·나스닥100·다우존스·러셀2000·반도체 ETF를 기간 시작일=100으로 환산해 비교 · 어떤 지수가 더 잘 버텼는지 한눈에 확인</p>
-    <div class="tabs" data-group="usrel">
-      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
-      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    <div class="card" style="margin-top:16px" id="us-idxrel-card">
+      <div class="fg-hd"><h3 style="font-size:14px">기간 선택</h3><div class="tabs" data-group="usrel">
+        <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+        <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+      </div></div>
+      <div id="us-idxrel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
     </div>
-    <div class="card" style="margin-top:16px" id="us-idxrel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
 
     <h3 style="font-size:15px;color:var(--tx2);margin:32px 0 10px">자산간 상관관계 — S&amp;P500 기준</h3>
     <p class="sub" style="margin-bottom:0">VIX·금·달러인덱스·비트코인과 최근 90거래일 상관계수 · 매크로 환경 파악용</p>
@@ -386,12 +395,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
     <div id="us-cap-chart" style="margin-bottom:24px"></div>
 
-    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">TOP10 상대수익률 비교</h3>
-    <div class="tabs" data-group="caprel">
-      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
-      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    <div class="card" style="margin:16px 0 24px" id="us-caprel-card">
+      <div class="fg-hd"><h3 style="font-size:14px">TOP10 상대수익률 비교</h3><div class="tabs" data-group="caprel">
+        <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+        <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+      </div></div>
+      <div id="us-caprel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
     </div>
-    <div class="card" style="margin:16px 0 24px" id="us-caprel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
 
     <div class="tabs" data-group="cap">
       <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
@@ -626,7 +636,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007s"></script>
+<script src="mrkim-common.js?v=20261007za"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){

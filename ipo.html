@@ -194,19 +194,28 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="card" style="margin-bottom:20px">
       <h3>김군코멘트 산정 기준 (참고용 · 투자 권유 아님)</h3>
-      <p class="mut">기관경쟁률(45점)·의무보유확약비율(30점)·유통비율(25점) 3가지 지표를 100점 만점으로 합산해 5단계로 표시합니다.</p>
+      <p class="mut">기관경쟁률(30점)·의무보유확약(20점)·유통비율(15점)·공모가 위치(15점)·매출 성장(10점)·영업이익(10점) 6가지 지표를 100점 만점으로 합산해 5단계로 표시합니다.</p>
       <details style="margin-top:10px">
         <summary style="cursor:pointer;font-weight:800;color:var(--accent);font-size:13.5px">자세히 보기 ▾</summary>
         <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
-          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">① 기관경쟁률 <span class="mut">(45점)</span></b>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">① 기관경쟁률 <span class="mut">(30점)</span></b>
             <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#9cc9b9"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>~100:1</span><span>100</span><span>300</span><span>500</span><span>1,000:1↑</span></div>
             <div class="mut" style="font-size:11.5px;margin-top:6px">수요예측 참여 기관의 경쟁이 치열할수록 고득점. 수요예측이 끝나야 발표되므로 그 전에는 "판정 보류"입니다.</div></div>
-          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">② 의무보유확약비율 <span class="mut">(30점)</span></b>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">② 의무보유확약비율 <span class="mut">(20점)</span></b>
             <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>~5%</span><span>5%↑</span><span>15%↑</span><span>30%↑</span></div>
             <div class="mut" style="font-size:11.5px;margin-top:6px">기관이 일정 기간 팔지 않겠다고 약속한 물량 비율. 높을수록 상장 직후 매도 부담이 적습니다. 없으면 중립 점수.</div></div>
-          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">③ 유통비율 <span class="mut">(25점 · 낮을수록 유리)</span></b>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">③ 유통비율 <span class="mut">(15점 · 낮을수록 유리)</span></b>
             <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#0b8a4a"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#c9ccd1"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>15%↓</span><span>25%↓</span><span>40%↓</span><span>40%↑</span></div>
             <div class="mut" style="font-size:11.5px;margin-top:6px">상장 직후 시장에 풀리는 물량 비율. 낮을수록 수급이 가벼워 고득점. 없으면 중립 점수.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">④ 공모가 위치 <span class="mut">(15점)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#e5332a"></i><i style="flex:1;background:#f0b429"></i><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#1fa463"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:2px"><span>하단 미만</span><span>하단</span><span>하단부</span><span>상단부</span><span>상단</span><span>상단 초과</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">확정공모가가 희망밴드 상단을 넘으면(상단 초과) 최고점, 하단 아래로 확정(하단 미만)되면 0점. 기관 수요가 강할수록 위쪽에서 확정됩니다. 미확정이면 중립.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">⑤ 매출 성장 <span class="mut">(10점)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#e5332a"></i><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>역성장</span><span>0%↑</span><span>10%↑</span><span>30%↑</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">최근 사업연도 매출의 전년 대비 증가율(DART·증권신고서 요약재무). 자료가 없으면 중립 5점.</div></div>
+          <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">⑥ 영업이익 <span class="mut">(10점)</span></b>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:1;background:#e5332a"></i><i style="flex:1;background:#c9ccd1"></i><i style="flex:1;background:#4fa383"></i><i style="flex:1;background:#0b8a4a"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>적자</span><span>3%↑</span><span>8%↑</span><span>15%↑</span></div>
+            <div class="mut" style="font-size:11.5px;margin-top:6px">영업이익률 기준(적자 0점, 흑자전환 가산). 자료가 없으면 중립 5점.</div></div>
           <div style="padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><b style="font-size:13px">종합 판정 (100점 만점)</b>
             <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:6px 0 4px"><i style="flex:34;background:#e5332a"></i><i style="flex:20;background:#f0b429"></i><i style="flex:15;background:#9aa0a6"></i><i style="flex:15;background:#4fa383"></i><i style="flex:16;background:#1fa463"></i></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);gap:4px"><span>포기</span><span>신중</span><span>중립</span><span>추천</span><span>적극추천</span></div>
             <div class="mut" style="font-size:11.5px;margin-top:6px">적극추천 85↑ · 추천 70~84 · 중립 55~69 · 신중 35~54 · 포기 34↓</div></div>
@@ -309,7 +318,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007s"></script>
+<script src="mrkim-common.js?v=20261007z"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -406,9 +415,10 @@ function ipoFactorGrade(score,max){
   if(pct>=25) return {pct,label:'보통',color:'var(--tx2)'};
   return {pct,label:'미흡',color:'var(--down)'};
 }
-/* 기관경쟁률(45) · 의무보유확약비율(30) · 유통비율(25, 낮을수록 고득점) 3요인을 합산해 100점 만점으로 종합판정한다.
+/* 기관경쟁률(30) · 의무보유확약(20) · 유통비율(15) · 공모가 위치(15, 상단 초과↑/하단 미만↓) · 매출 성장(10) · 영업이익(10) 6요인을 합산해 100점 만점으로 종합판정한다.
    기관경쟁률이 아직 없으면(수요예측 전) 전체를 '판정 보류'로 둔다. 확약비율·유통비율이 개별적으로 없으면
    중립 절반 점수를 주고 사유에 "데이터 없음"을 남긴다 — 데이터가 없다고 0점 처리해 과도하게 불리해지지 않도록 한다. */
+const IPO_FIN_CACHE={}, IPO_FIN_TRY={};
 function ipoVerdict(item){
   // [버그 수정] 이전상장(코넥스→코스닥, 코스닥→코스피 등)은 일반공모 절차가 없어 기관경쟁률이
   // "아직 발표 안 됨"이 아니라 "원래 존재하지 않음"이다. 둘을 구분 안 하면 영원히 "수요예측
@@ -424,30 +434,73 @@ function ipoVerdict(item){
 
   const r=item.instRatio;
   let instScore, instNote;
-  if(r>=1000){instScore=45; instNote='매우 우수';}
-  else if(r>=500){instScore=36; instNote='우수';}
-  else if(r>=300){instScore=27; instNote='양호';}
-  else if(r>=100){instScore=17; instNote='보통';}
-  else{instScore=6; instNote='저조';}
+  if(r>=1000){instScore=30; instNote='매우 우수';}
+  else if(r>=500){instScore=24; instNote='우수';}
+  else if(r>=300){instScore=18; instNote='양호';}
+  else if(r>=100){instScore=11; instNote='보통';}
+  else{instScore=4; instNote='저조';}
 
   const lockupPct=ipoParsePct(item.lockupRatio);
   let lockupScore, lockupNote;
-  if(lockupPct==null){lockupScore=15; lockupNote='데이터 없음';}
-  else if(lockupPct>=30){lockupScore=30; lockupNote='매우 우수';}
-  else if(lockupPct>=15){lockupScore=22; lockupNote='우수';}
-  else if(lockupPct>=5){lockupScore=12; lockupNote='보통';}
-  else{lockupScore=3; lockupNote='저조';}
+  if(lockupPct==null){lockupScore=10; lockupNote='데이터 없음';}
+  else if(lockupPct>=30){lockupScore=20; lockupNote='매우 우수';}
+  else if(lockupPct>=15){lockupScore=15; lockupNote='우수';}
+  else if(lockupPct>=5){lockupScore=8; lockupNote='보통';}
+  else{lockupScore=2; lockupNote='저조';}
 
   const floatPct=ipoParsePct(item.floatRatio);
   let floatScore, floatNote;
-  if(floatPct==null){floatScore=12; floatNote='데이터 없음';}
-  else if(floatPct<=15){floatScore=25; floatNote='매우 우수';}
-  else if(floatPct<=25){floatScore=20; floatNote='우수';}
-  else if(floatPct<=40){floatScore=13; floatNote='보통';}
-  else if(floatPct<=60){floatScore=6; floatNote='저조';}
+  if(floatPct==null){floatScore=8; floatNote='데이터 없음';}
+  else if(floatPct<=15){floatScore=15; floatNote='매우 우수';}
+  else if(floatPct<=25){floatScore=12; floatNote='우수';}
+  else if(floatPct<=40){floatScore=8; floatNote='보통';}
+  else if(floatPct<=60){floatScore=4; floatNote='저조';}
   else{floatScore=0; floatNote='과다'; }
 
-  const total=instScore+lockupScore+floatScore;
+  /* ④ 공모가 위치(15): 확정공모가가 희망밴드 상단 초과/상단/중단 위쪽/하단 위쪽/하단/하단 미만 */
+  const bandM=String(item.offerPriceBand||'').match(/([\d,]+)\s*~\s*([\d,]+)/);
+  const fm=String(item.offerPriceFinal||'').match(/[\d,]{3,}/);
+  let bandScore=8, bandNote='공모가 미확정', bandText=item.offerPriceFinal||item.offerPriceBand||'미확정';
+  if(bandM && fm){
+    const lo=+bandM[1].replace(/,/g,''), hi=+bandM[2].replace(/,/g,''), fp=+fm[0].replace(/,/g,''), mid=(lo+hi)/2;
+    if(fp>hi){bandScore=15; bandNote='상단 초과';}
+    else if(fp===hi){bandScore=12; bandNote='상단 확정';}
+    else if(fp>mid){bandScore=8; bandNote='밴드 상단부';}
+    else if(fp>lo){bandScore=5; bandNote='밴드 하단부';}
+    else if(fp===lo){bandScore=2; bandNote='하단 확정';}
+    else{bandScore=0; bandNote='하단 미만';}
+    bandText=fp.toLocaleString('ko-KR')+'원 (밴드 '+lo.toLocaleString('ko-KR')+'~'+hi.toLocaleString('ko-KR')+')';
+  }
+
+  /* ⑤ 재무(20): 매출 성장(10) + 영업이익(10) — DART/38 요약재무에서 불러온 값(IPO_FIN_CACHE). 없으면 중립 5점 */
+  const fin=(typeof IPO_FIN_CACHE!=='undefined')?IPO_FIN_CACHE[item.name]:null;
+  let revScore=5, revNote='데이터 없음', revText='미확인', opScore=5, opNote='데이터 없음', opText='미확인';
+  if(fin && fin.length){
+    const annual=fin.filter(p=>/^\d{4}$/.test(String(p.year)));
+    const base=annual.length?annual:fin;
+    const cur=base[base.length-1], prev=base.length>1?base[base.length-2]:null;
+    const eok=v=>v==null?'—':(Math.abs(v)>=10000?(v/10000).toFixed(2)+'조':Math.round(v).toLocaleString('ko-KR')+'억');
+    if(cur.revenue!=null){
+      if(prev&&prev.revenue>0){
+        const g=(cur.revenue/prev.revenue-1)*100;
+        if(g>=30){revScore=10;revNote='고성장';} else if(g>=10){revScore=7;revNote='성장';} else if(g>=0){revScore=5;revNote='정체';} else {revScore=1;revNote='역성장';}
+        revText=cur.year+' '+eok(cur.revenue)+' ('+(g>=0?'+':'')+g.toFixed(0)+'%)';
+      }else{ revScore=5; revNote='비교 불가'; revText=cur.year+' '+eok(cur.revenue); }
+    }
+    if(cur.opProfit!=null){
+      const mg=cur.revenue>0?cur.opProfit/cur.revenue*100:null;
+      if(cur.opProfit<0){opScore=0;opNote='적자';}
+      else if(mg==null){opScore=4;opNote='흑자';}
+      else if(mg>=15){opScore=10;opNote='고수익';}
+      else if(mg>=8){opScore=7;opNote='양호';}
+      else if(mg>=3){opScore=5;opNote='보통';}
+      else {opScore=3;opNote='저수익';}
+      if(prev&&prev.opProfit!=null&&prev.opProfit<0&&cur.opProfit>0){opScore=Math.min(10,opScore+1);opNote='흑자전환';}
+      opText=cur.year+' '+eok(cur.opProfit)+(mg!=null?' (이익률 '+mg.toFixed(1)+'%)':'');
+    }
+  }
+
+  const total=instScore+lockupScore+floatScore+bandScore+revScore+opScore;
   const tiers=[
     {min:0,  tier:0, label:'포기',    color:'var(--down)'},
     {min:35, tier:1, label:'신중',    color:'var(--gold)'},
@@ -459,13 +512,16 @@ function ipoVerdict(item){
   for(const t of tiers){ if(total>=t.min) v=t; }
 
   const factors=[
-    {name:'기관경쟁률', valueText:item.instCount||(r.toLocaleString()+':1'), note:instNote, ...ipoFactorGrade(instScore,45)},
-    {name:'의무보유확약', valueText:item.lockupRatio||'미발표', note:lockupNote, ...ipoFactorGrade(lockupScore,30)},
-    {name:'유통비율', valueText:item.floatRatio||'미발표', note:floatNote, ...ipoFactorGrade(floatScore,25)}
+    {name:'기관경쟁률', valueText:item.instCount||(r.toLocaleString()+':1'), note:instNote, ...ipoFactorGrade(instScore,30)},
+    {name:'의무보유확약', valueText:item.lockupRatio||'미발표', note:lockupNote, ...ipoFactorGrade(lockupScore,20)},
+    {name:'유통비율', valueText:item.floatRatio||'미발표', note:floatNote, ...ipoFactorGrade(floatScore,15)},
+    {name:'공모가 위치', valueText:bandText, note:bandNote, ...ipoFactorGrade(bandScore,15)},
+    {name:'매출 성장', valueText:revText, note:revNote, ...ipoFactorGrade(revScore,10)},
+    {name:'영업이익', valueText:opText, note:opNote, ...ipoFactorGrade(opScore,10)}
   ];
 
   return {tier:v.tier, label:v.label, color:v.color, total,
-    reason:'기관경쟁률 '+r.toLocaleString()+':1('+instNote+') · 의무보유확약 '+(item.lockupRatio||'미발표')+'('+lockupNote+') · 유통비율 '+(item.floatRatio||'미발표')+'('+floatNote+') — 종합 '+total+'점',
+    reason:'기관경쟁률 '+r.toLocaleString()+':1('+instNote+') · 확약 '+(item.lockupRatio||'미발표')+'('+lockupNote+') · 유통 '+(item.floatRatio||'미발표')+'('+floatNote+') · 공모가 '+bandNote+' · 매출 '+revNote+' · 영업이익 '+opNote+' — 종합 '+total+'점',
     factors};
 }
 
@@ -583,6 +639,24 @@ function renderIpoList(m){
     '</div>';
   }).join('');
   try{ if(typeof hydrateIpoQuotes==='function') hydrateIpoQuotes(); }catch(e){}
+  ipoLoadFinForMonth(m);
+}
+
+/* 판정 대상(기관경쟁률 발표된) 종목의 매출·영업이익을 백그라운드로 불러와 캐시한 뒤, 열려 있는 카드를 유지한 채 다시 그린다 */
+async function ipoLoadFinForMonth(m){
+  const items=(IPO_DATA[m]||[]).filter(it=>it.instRatio!=null&&!it.isTransfer&&!IPO_FIN_TRY[it.name]);
+  if(!items.length||typeof dartFinancialsForIpoCompany!=='function') return;
+  items.forEach(it=>IPO_FIN_TRY[it.name]=1);
+  await Promise.all(items.map(async it=>{
+    try{ const r=await dartFinancialsForIpoCompany(it.name,it.no||''); if(r&&r.fin3y&&r.fin3y.length) IPO_FIN_CACHE[it.name]=r.fin3y; }catch(e){}
+  }));
+  if(!items.some(it=>IPO_FIN_CACHE[it.name])||ipoSelectedMonth!==m) return;
+  const open=[...document.querySelectorAll('.ipo-detail.open')].map(e=>e.id);
+  const el=document.getElementById('ipo-list'); if(!el) return;
+  const y=window.scrollY;
+  renderIpoList(m);
+  open.forEach(id=>{const e=document.getElementById(id); if(e) e.classList.add('open');});
+  window.scrollTo(0,y);
 }
 
 /* IPO 카드의 "재무비율·주가지표 보기" — 회사명으로 DART corp_code를 찾아 최근 재무제표를
