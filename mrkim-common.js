@@ -375,7 +375,7 @@ function relPaint(elId){
       '<span>'+s.label+'</span></label>';
   }).join('');
   el.innerHTML=
-    '<div class="rel-readout mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px">선 근처에 마우스를 올리면 해당 종목이 진하게 표시됩니다 · 아래 체크박스로 종목을 숨길 수 있습니다</div>'+
+    '<div class="rel-readout mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px"></div>'+
     chartHtml+
     '<div class="rel-chips" style="margin-top:8px;display:flex;flex-wrap:wrap">'+chips+'</div>';
   const svg=el.querySelector('svg.mlc');
@@ -1199,6 +1199,15 @@ const MONTH_EVENTS={
   ]
 };
 
+
+function mkDday(y,m,d){
+  const kst=new Date(Date.now()+9*3600*1000);
+  const t0=Date.UTC(kst.getUTCFullYear(),kst.getUTCMonth(),kst.getUTCDate());
+  const n=Math.round((Date.UTC(y,m-1,d)-t0)/86400000);
+  if(n===0)return '<span class="tag dd-now">오늘</span>';
+  if(n>0)return '<span class="tag dd-fut">D-'+n+'</span>';
+  return '<span class="tag dd-past">D+'+(-n)+' 종료</span>';
+}
 function renderEvents(m){
   const tbody=document.getElementById('events-tbl'); if(!tbody)return;
   const all=(MONTH_EVENTS[m]||[]).slice().sort((a,b)=>a.d-b.d);
@@ -1215,13 +1224,13 @@ function renderEvents(m){
   }
   const htbody=document.getElementById('holidays-tbl');
   if(htbody){
-    if(!holidays.length){ htbody.innerHTML='<tr><td class="mut" colspan="3">해당 월 휴장일이 없습니다.</td></tr>'; }
+    if(!holidays.length){ htbody.innerHTML='<tr><td class="mut" colspan="4">해당 월 휴장일이 없습니다.</td></tr>'; }
     else{
       htbody.innerHTML=holidays.map(e=>{
-        const ds='2026-'+String(m).padStart(2,'0')+'-'+String(e.d).padStart(2,'0');
+        const ds=String(m).padStart(2,'0')+'.'+String(e.d).padStart(2,'0');
         const kind=e.c==='전일 휴장'?'휴장':(e.c.indexOf('채권시장')>-1?'채권시장만 휴장':'조기 폐장');
         return '<tr><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td>'+
-          '<td><span class="tag t-close">'+kind+'</span></td></tr>';
+          '<td><span class="tag t-close">'+kind+'</span></td><td>'+mkDday(2026,m,e.d)+'</td></tr>';
       }).join('');
     }
   }
@@ -1287,11 +1296,11 @@ function renderKrEvents(m){
   const htbody=document.getElementById('kr-holidays-tbl');
   if(htbody){
     const hs=(KR_HOLIDAYS[m]||[]).slice().sort((a,b)=>a.d-b.d);
-    if(!hs.length){ htbody.innerHTML='<tr><td class="mut" colspan="3">해당 월 휴장일이 없습니다.</td></tr>'; }
+    if(!hs.length){ htbody.innerHTML='<tr><td class="mut" colspan="4">해당 월 휴장일이 없습니다.</td></tr>'; }
     else{
       htbody.innerHTML=hs.map(e=>{
-        const ds='2026-'+String(m).padStart(2,'0')+'-'+String(e.d).padStart(2,'0');
-        return '<tr><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td><td><span class="tag t-close">휴장</span></td></tr>';
+        const ds=String(m).padStart(2,'0')+'.'+String(e.d).padStart(2,'0');
+        return '<tr><td class="mut">'+ds+'</td><td><b>'+e.t+'</b></td><td><span class="tag t-close">휴장</span></td><td>'+mkDday(2026,m,e.d)+'</td></tr>';
       }).join('');
     }
   }
@@ -2060,8 +2069,12 @@ async function loadCardTop(){
   try{
     const origin=PROXY_BASE.replace(/\?url=$/,'');
     const r=await fetch(origin+'card-top10',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
-    const d=r.ok?await r.json():null;
-    if(!d||!d.items||!d.items.length){ fail('⚠ 카드고릴라 Top10을 가져오지 못했습니다. 아래 바로가기로 확인해 주세요.'); return; }
+    let d=r.ok?await r.json():null;
+    if(!d||!d.items||!d.items.length){
+      /* Worker가 카드고릴라에서 빈 응답을 받는 경우를 위한 대체: 같은 폴더의 card-top10.json([{rank,name,corp,annualFee,img}])을 읽는다 */
+      try{ const r2=await fetch('card-top10.json?_='+Date.now()); if(r2.ok){ const j2=await r2.json(); const it=Array.isArray(j2)?j2:(j2.items||[]); if(it.length) d={items:it,date:(j2&&j2.date)||''}; } }catch(e){}
+    }
+    if(!d||!d.items||!d.items.length){ fail('⚠ 카드고릴라 Top10을 가져오지 못했습니다(카드고릴라 서버가 자동 조회에 빈 응답을 줍니다). 아래 바로가기로 확인해 주세요.'); return; }
     if(st) st.textContent='카드고릴라 인기순위'+(d.date?' · '+d.date+' 기준':'');
     const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
     box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-top:6px">'+d.items.map(x=>
