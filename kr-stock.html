@@ -275,6 +275,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
 #kr-stock{padding-top:18px!important;padding-bottom:0!important}#kr-stock>.wrap>.sec-h{margin-bottom:0}#kr-stock>.wrap>.sec-h .sub{margin-bottom:10px}
 .ix-kp{background:rgba(0,117,74,.14);color:var(--accent)}
+
+#kr-events-tbl-wrap col.ev-date{width:100px}#kr-events-tbl-wrap col.ev-name{width:44%}
+#kr-events-tbl tr.ev-hi{background:rgba(200,32,20,.08)}#kr-events-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
+#kr-events-tbl a.ev-a{color:inherit;text-decoration:none;font-weight:800;border-bottom:1px dotted var(--tx2)}#kr-events-tbl a.ev-a:hover{color:var(--accent);border-color:var(--accent)}
+#kr-events-tbl .ev-i{margin-right:5px}#kr-events-tbl a.ev-a::after{content:" ↗";font-size:11px;color:var(--tx2);font-weight:600}
+@media(max-width:700px){
+ #kr-events-tbl-wrap table,#kr-events-tbl-wrap tbody{display:block;width:100%}#kr-events-tbl-wrap thead,#kr-events-tbl-wrap colgroup{display:none}
+ #kr-events-tbl tr{display:grid;grid-template-columns:54px 1fr;column-gap:10px;padding:10px 8px;border-bottom:1px solid var(--line)}
+ #kr-events-tbl td{display:block;padding:0!important;border:0!important;width:auto!important;word-break:keep-all;overflow-wrap:anywhere}
+ #kr-events-tbl td:nth-child(1){grid-row:1;font-size:12px;font-weight:800;white-space:nowrap}
+ #kr-events-tbl td:nth-child(2){grid-column:2;font-size:14px;line-height:1.45}
+ #kr-events-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
+ #kr-events-tbl tr.ev-hi td:first-child{border-left:0!important}#kr-events-tbl tr.ev-hi{border-left:3px solid #a01810}
+}
 </style></head>
 <body>
 
@@ -467,10 +481,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="scroll" id="kr-events-tbl-wrap">
       <table>
         <colgroup>
-          <col class="ev-date"><col class="ev-name"><col><col class="ev-imp"><col class="ev-src">
+          <col class="ev-date"><col class="ev-name"><col>
         </colgroup>
-        <thead><tr><th>날짜</th><th>이벤트</th><th>영향/구분</th><th>중요도</th><th>출처</th></tr></thead>
-        <tbody id="kr-events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+        <thead><tr><th>날짜</th><th>이벤트 <span class="mut" style="font-weight:600;font-size:11px">· 🔴 최상 🟡 중 ⚪ 참고 · 누르면 출처로 이동</span></th><th>영향/구분</th></tr></thead>
+        <tbody id="kr-events-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
       </table>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">⚠ 한국은행 기준금리 결정일 8회(1·2·4·5·7·8·10·11월), 코스피200 옵션 만기일(매월 둘째 목요일), 코스피200·코스닥150 정기변경(연 2회, 6월·12월)을 포함합니다<br>· 6월은 KRX 확정 발표 기준, 12월은 과거 패턴 기반 예상일입니다<br>· 통계청 CPI·고용 등 세부 발표일은 추후 추가 예정입니다.</p>
@@ -538,7 +552,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007q"></script>
+<script src="mrkim-common.js?v=20261007r"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
