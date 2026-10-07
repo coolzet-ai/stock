@@ -160,6 +160,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
+#p2p .band{padding:16px 20px!important}#p2p .band h2{margin:0 0 6px!important;line-height:1.3}#p2p .band p{margin:4px auto 0!important;line-height:1.5}
+#p2p .band p[style*="color:#e5332a"]{margin-top:8px!important;padding:6px 12px!important}
+#p2p .sl{display:inline}
+@media(min-width:701px){#p2p .sl{display:block}#p2p .card .sl,#p2p .band .sl{display:block}}
+@media(max-width:700px){#p2p .band{padding:12px 14px!important}}
 </style>
 </head>
 <body>
@@ -193,20 +198,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <div class="band" style="margin:0">
       <h2 style="font-size:24px">부동산담보·증권계좌담보 상품<br>연 9~11%대</h2>
-      <p>담보 기반 상품 · 부동산담보 연 11% 내외, 증권계좌담보 연 9% 내외(과거 실적) · 매달 이자 수령형</p>
-      <p style="margin-top:10px;font-size:13px;font-weight:800;color:#e5332a;border:1.5px solid #e5332a;border-radius:10px;padding:8px 12px;background:rgba(229,51,42,.08)">⚠ 수익을 보장하지 않으며 원금 손실 위험이 있습니다. 과거 수익률은 미래를 보장하지 않습니다.</p>
+      <p><span class="sl">담보 기반 상품 · 매달 이자 수령형</span> <span class="sl">부동산담보 연 11% 내외, 증권계좌담보 연 9% 내외(과거 실적)</span></p>
+      <p style="margin-top:10px;font-size:13px;font-weight:800;color:#e5332a;border:1.5px solid #e5332a;border-radius:10px;padding:8px 12px;background:rgba(229,51,42,.08)"><span class="sl">⚠ 수익을 보장하지 않으며 원금 손실 위험이 있습니다.</span> <span class="sl">과거 수익률은 미래를 보장하지 않습니다.</span></p>
     </div>
 
     <div class="grid" style="margin-top:24px">
       <div class="card" style="border:2.5px solid var(--accent);background:rgba(0,117,74,.10);box-shadow:0 0 0 4px rgba(0,117,74,.10)">
         <h3 style="color:var(--accent);font-weight:900">🎁 추천인코드 혜택</h3>
         <p style="font-size:26px;font-weight:800;color:var(--accent);letter-spacing:1px;margin:6px 0">0OH1UN</p>
-        <p class="mut">가입 시 코드를 입력하면 리워드가 지급될 수 있습니다. 조건·금액은 가입 화면에서 확인하세요.</p>
+        <p class="mut"><span class="sl">가입 시 코드를 입력하면 리워드가 지급될 수 있습니다.</span> <span class="sl">조건·금액은 가입 화면에서 확인하세요.</span></p>
         <button class="btn sm" id="p2p-code-btn" style="margin-top:10px">코드 복사하기</button>
       </div>
       <div class="card">
         <h3>블랙멤버십 혜택</h3>
-        <p class="mut">전문투자자·소득적격 투자자를 위한 에잇퍼센트의 VIP 등급입니다(일반 회원은 가입 자격이 제한됩니다). 실제 가입자 평균 투자금은 1.6억 원, 연환산 평균 수익률은 10.42%로 알려져 있습니다.</p>
+        <p class="mut"><span class="sl">전문투자자·소득적격 투자자를 위한 에잇퍼센트의 VIP 등급입니다(일반 회원은 가입 자격이 제한됩니다).</span> <span class="sl">실제 가입자 평균 투자금은 1.6억 원, 연환산 평균 수익률은 10.42%로 알려져 있습니다.</span></p>
         <ul style="font-size:13px;color:var(--tx2);line-height:1.6;padding-left:18px;margin-top:8px">
           <li>1:1 투자 브리핑</li>
           <li>멤버십 전용 네트워킹</li>
@@ -222,7 +227,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <div id="p2p-open-list"></div>
     </div>
 
-    <p class="mut" style="margin-top:16px;font-size:12px">⚠ P2P(온라인투자연계금융) 투자는 원금 손실 위험이 있으며 예금자보호법의 보호 대상이 아닙니다. 투자 전 상품별 연체율·부실률을 반드시 확인하세요.</p>
+    <p class="mut" style="margin-top:16px;font-size:12px"><span class="sl">⚠ P2P(온라인투자연계금융) 투자는 원금 손실 위험이 있으며 예금자보호법의 보호 대상이 아닙니다.</span> <span class="sl">투자 전 상품별 연체율·부실률을 반드시 확인하세요.</span></p>
   </div>
 </section>
 </main>
@@ -245,7 +250,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007s"></script>
+<script src="mrkim-common.js?v=20261007v"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }

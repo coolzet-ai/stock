@@ -189,6 +189,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
+.fg-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fg-hd h3{margin:0}.fg-hd .tabs button{padding:6px 12px;font-size:13px}
+@media(max-width:420px){.fg-hd .tabs button{padding:6px 9px;font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -220,24 +222,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <main>
 <section id="crypto">
   <div class="wrap">
-    <h2 style="font-size:21px">글로벌 마켓 트렌드</h2>
-    <p class="sub">공포·탐욕지수 · 상승 자산 비중 · 비트코인 도미넌스 · 알트코인 시즌 지수 · 출처: <a href="https://stock.naver.com/market/crypto" target="_blank" rel="noopener" style="color:var(--accent)">Npay 증권</a></p>
-    <div class="card" style="margin:16px 0 40px" id="cry-global-trend"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
-
     <div class="sec-h">
       <div>
         <h2>가상화폐 공포탐욕지수</h2>
         <p class="sub">Alternative.me Crypto Fear &amp; Greed Index 실시간 연동</p>
       </div>
-      <div class="tabs" data-group="cf">
-        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
-        <button data-p="m">월간</button><button data-p="y">연간</button>
-      </div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3>현재 지수 <span id="cf-per" class="mut">· 일간</span></h3>
+        <div class="fg-hd"><h3>현재 지수 <span id="cf-per" class="mut">· 일간</span></h3><div class="tabs" data-group="cf"><button class="on" data-p="d">일간</button><button data-p="w">주간</button><button data-p="m">월간</button><button data-p="y">연간</button></div></div>
         <div class="gauge">
           <div class="dial" id="cf-dial"><a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="Alternative.me 공식 원문 보기"><b id="cf-val">--</b></a></div>
           <div>
@@ -254,9 +248,14 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </div>
       </div>
       <div class="card">
-        <h3>시장 코멘트</h3>
-        <p class="mut" id="cf-comment">지수를 불러오는 중입니다.</p>
-        <p class="mut" style="margin-top:12px">공포 구간은 분할매수, 극단적 탐욕 구간은 비중 축소 관점으로 활용합니다.</p>
+        <h3>글로벌 마켓 트렌드</h3>
+        <p class="mut" style="font-size:12px;margin:-4px 0 10px">공포·탐욕지수 · 상승 자산 비중 · 비트코인 도미넌스 · 알트코인 시즌 지수 · 출처: <a href="https://stock.naver.com/market/crypto" target="_blank" rel="noopener" style="color:var(--accent)">Npay 증권</a></p>
+        <div id="cry-global-trend"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="mut" style="font-weight:700;margin-bottom:8px">시장 코멘트</div>
+          <p class="mut" id="cf-comment" style="margin:0">지수를 불러오는 중입니다.</p>
+          <p class="mut" style="margin-top:12px">공포 구간은 분할매수, 극단적 탐욕 구간은 비중 축소 관점으로 활용합니다.</p>
+        </div>
       </div>
     </div>
 
@@ -339,7 +338,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007s"></script>
+<script src="mrkim-common.js?v=20261007x"></script>
 <script>
 const cryptoEvMonthTabs=document.getElementById('crypto-evmonth-tabs');
 if(cryptoEvMonthTabs){
