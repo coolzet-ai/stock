@@ -5625,7 +5625,7 @@ async function hydrateIpoQuotes(){
   async function openRainbow(row){
     const id=row.dataset.c;
     let pn=row.nextElementSibling;
-    if(pn&&pn.classList.contains('wl-rb')){ pn.remove(); row.classList.remove('rb-open'); return; }
+    if(pn&&pn.classList.contains('wl-rb')&&!pn.classList.contains('wl-etf')){ pn.remove(); row.classList.remove('rb-open'); return; }
     document.querySelectorAll('#coin-tbl .wl-rb').forEach(e=>e.remove()); document.querySelectorAll('#coin-tbl .rb-open').forEach(e=>e.classList.remove('rb-open'));
     pn=document.createElement('div'); pn.className='wl-rb'; pn.innerHTML='<div class="mut" style="font-size:12.5px">'+RB_NAME[id]+' 레인보우 차트 불러오는 중…</div>';
     row.after(pn); row.classList.add('rb-open');
@@ -5652,4 +5652,57 @@ async function hydrateIpoQuotes(){
     const row=e.target.closest('.wl-row'); if(!row||!row.dataset.c) return;
     openRainbow(row);
   });
+})();
+
+/* ================= 가상화폐: ETF 순유입 차트 (코인 행 오른쪽 + 버튼) =================
+   출처: CoinMarketCap ETF 순유입 차트 데이터. CORS 미허용이라 Worker 프록시(api.coinmarketcap.com 허용 필요)로 호출. */
+(function(){
+  const tbl=document.getElementById('coin-tbl'); if(!tbl) return;
+  const CAT={bitcoin:'BTC',ethereum:'ETH',solana:'SOL',ripple:'XRP'};
+  const NAME={bitcoin:'비트코인',ethereum:'이더리움',solana:'솔라나',ripple:'리플(XRP)'};
+  const PAGE={bitcoin:'bitcoin',ethereum:'ethereum',solana:'solana',ripple:'xrp'};
+  const RNG=[['30d','30일 · 일별'],['1y','1년 · 주별'],['all','전체 · 월별']];
+  const cache={};
+  const fmtM=v=>{const a=Math.abs(v),s=v<0?'-':'+';return s+'$'+(a>=1e9?(a/1e9).toFixed(2)+'B':a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a.toFixed(0));};
+  const fmtDt=t=>{const d=new Date(+t);return d.getUTCFullYear()+'.'+String(d.getUTCMonth()+1).padStart(2,'0')+'.'+String(d.getUTCDate()).padStart(2,'0');};
+  async function load(id,r){
+    const k=id+r; if(cache[k]) return cache[k];
+    const j=await getJSON('https://api.coinmarketcap.com/data-api/v3/etf/overview/netflow/chart?category='+CAT[id]+'&range='+r);
+    const pts=j&&j.data&&j.data.points;
+    if(!pts||!pts.length) return null;
+    return cache[k]=pts.map(p=>({t:p.timestamp,v:+p.value})).sort((a,b)=>a.t-b.t);
+  }
+  function chart(pts){
+    const W=640,H=250,L=58,R=8,T=10,B=24,cw=W-L-R,ch=H-T-B,n=pts.length;
+    const mx=Math.max(...pts.map(p=>Math.abs(p.v)),1), Y=v=>T+ch/2-(v/mx)*(ch/2), bw=cw/n;
+    let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;touch-action:pan-y">';
+    [-1,-.5,0,.5,1].forEach(f=>{const y=Y(f*mx);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="'+(f===0?1.4:.8)+'"/><text x="'+(L-5)+'" y="'+(y+4)+'" text-anchor="end" font-size="10.5" fill="var(--tx2)">'+(f===0?'0':fmtM(f*mx).replace('+',''))+'</text>';});
+    pts.forEach((p,i)=>{const h=Math.abs(p.v)/mx*(ch/2),y=p.v>=0?Y(p.v):Y(0);s+='<rect data-i="'+i+'" x="'+(L+i*bw+bw*.12).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*.76).toFixed(1)+'" height="'+Math.max(h,1).toFixed(1)+'" fill="'+(p.v>=0?'var(--up)':'var(--down)')+'" rx="1.5"/>';});
+    const m=Math.min(5,n);for(let k=0;k<m;k++){const i=m===1?0:Math.round(k*(n-1)/(m-1));const d=new Date(+pts[i].t);s+='<text x="'+(L+i*bw+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="'+(k===0?'start':k===m-1?'end':'middle')+'" font-size="10.5" fill="var(--tx2)">'+(d.getUTCFullYear()%100)+'.'+(d.getUTCMonth()+1)+'.'+d.getUTCDate()+'</text>';}
+    return s+'</svg>';
+  }
+  async function paint(pn,id,r){
+    const box=pn.querySelector('.etf-body'); box.innerHTML='<div class="mut" style="font-size:12.5px">불러오는 중…</div>';
+    pn.querySelectorAll('.etf-r').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+    let pts=null; try{pts=await load(id,r);}catch(e){}
+    if(!pn.isConnected) return;
+    if(!pts){box.innerHTML='<div class="mut" style="font-size:12.5px;line-height:1.55">ETF 순유입 데이터를 불러오지 못했습니다. Worker(cors-proxy-worker.js)에 <b>api.coinmarketcap.com</b> 허용이 반영(재배포)되어야 합니다. 원문: <a href="https://coinmarketcap.com/ko/etf/'+PAGE[id]+'/" target="_blank" rel="noopener">CoinMarketCap '+NAME[id]+' ETF</a></div>';return;}
+    const sum=pts.reduce((a,p)=>a+p.v,0), last=pts[pts.length-1], inn=pts.filter(p=>p.v>0).length;
+    box.innerHTML='<div class="etf-ro mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px;font-weight:700"></div>'+chart(pts)+
+      '<div class="etf-sum"><span>기간 합계 <b class="'+(sum>=0?'up':'down')+'">'+fmtM(sum)+'</b></span><span>최근 <b class="'+(last.v>=0?'up':'down')+'">'+fmtM(last.v)+'</b> ('+fmtDt(last.t)+')</span><span>순유입 '+inn+' / 순유출 '+(pts.length-inn)+'</span></div>';
+    const ro=box.querySelector('.etf-ro'),show=p=>{ro.innerHTML=fmtDt(p.t)+' · <b style="color:var(--'+(p.v>=0?'up':'down')+')">'+fmtM(p.v)+'</b>';};show(last);
+    box.querySelectorAll('rect').forEach(el=>{const h=()=>show(pts[+el.dataset.i]);el.addEventListener('pointerenter',h);el.addEventListener('pointerdown',h);});
+  }
+  function open(row){
+    const id=row.dataset.c; let nx=row.nextElementSibling;
+    if(nx&&nx.classList.contains('wl-etf')){nx.remove();row.classList.remove('rb-open');row.querySelector('.etf-plus').textContent='+';return;}
+    tbl.querySelectorAll('.wl-rb').forEach(e=>e.remove());tbl.querySelectorAll('.rb-open').forEach(e=>e.classList.remove('rb-open'));tbl.querySelectorAll('.etf-plus').forEach(e=>e.textContent='+');
+    const pn=document.createElement('div');pn.className='wl-rb wl-etf';
+    pn.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px"><div style="font-weight:800;font-size:14px">💧 '+NAME[id]+' 현물 ETF 순유입</div><div class="etf-rs">'+RNG.map(r=>'<button type="button" class="etf-r" data-r="'+r[0]+'">'+r[1]+'</button>').join('')+'</div></div><div class="etf-body"></div>'+
+      '<p class="mut" style="font-size:11.5px;margin:8px 0 0;line-height:1.5">빨강=순유입, 파랑=순유출 · 출처: <a href="https://coinmarketcap.com/ko/etf/'+PAGE[id]+'/" target="_blank" rel="noopener">CoinMarketCap ETF</a></p>';
+    row.after(pn);row.classList.add('rb-open');row.querySelector('.etf-plus').textContent='−';
+    pn.addEventListener('click',e=>{const b=e.target.closest('.etf-r');if(b)paint(pn,id,b.dataset.r);});
+    paint(pn,id,'30d');
+  }
+  tbl.addEventListener('click',e=>{const a=e.target.closest('.etf-plus');if(!a)return;e.preventDefault();open(a.closest('.wl-row'));});
 })();
