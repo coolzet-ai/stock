@@ -5585,11 +5585,18 @@ async function hydrateIpoQuotes(){
   const rbCache={};
   async function rbData(id){
     if(rbCache[id]) return rbCache[id];
-    const r=await yCloseWithDates(COIN_YSYM[id],'max');
+    /* range=max 는 Yahoo가 월 단위로만 내려주므로 period1/period2 로 일봉 전체를 요청 → 실패 시 월봉 사용 */
+    let r=null;
+    try{
+      const j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(COIN_YSYM[id])+'?period1=1262304000&period2='+Math.floor(Date.now()/1000)+'&interval=1d');
+      const x=j.chart.result[0], cl=x.indicators.quote[0].close;
+      if(x.timestamp&&x.timestamp.length>200) r={dates:x.timestamp.map(t=>new Date(t*1000).toISOString().slice(0,10)),closes:cl};
+    }catch(e){}
+    if(!r) r=await yCloseWithDates(COIN_YSYM[id],'max');
     if(!r) return null;
     const dates=[],px=[];
     r.closes.forEach((c,i)=>{ if(c!=null&&c>0){dates.push(r.dates[i]);px.push(c);} });
-    if(px.length<200) return null;
+    if(px.length<60) return null;
     const t0=(id==='bitcoin')?Date.UTC(2009,0,3):(Date.parse(dates[0])-180*86400000);
     const xs=dates.map(d=>Math.log((Date.parse(d)-t0)/86400000)), ys=px.map(Math.log);
     const n=xs.length, mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
@@ -5616,6 +5623,13 @@ async function hydrateIpoQuotes(){
     pickT.forEach(e=>{const y=Y(e*Math.LN10);const v=Math.pow(10,e);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width=".8" opacity=".7"/><text x="'+(L-5)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="var(--tx2)">$'+(v>=1000?(v/1000)+'k':v)+'</text>';});
     const yrs=[]; D.dates.forEach((d,i)=>{ if(d.slice(5,10)==='01-01'||i===0) yrs.push([i,d.slice(0,4)]); });
     let lastX=-99; yrs.forEach(([i,y])=>{ const x=X(i); if(x-lastX>46){ s+='<text x="'+x.toFixed(1)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11" fill="var(--tx2)">'+y+'</text>'; lastX=x; }});
+    const HALV=[['2012-11-28','1차'],['2016-07-09','2차'],['2020-05-11','3차'],['2024-04-20','4차']];
+    HALV.forEach(([hd,nm])=>{
+      const i=D.dates.findIndex(d=>d>=hd); if(i<0||(i===0&&D.dates[0]>hd)) return;
+      const x=X(i).toFixed(1), right=(+x>W-70);
+      s+='<line x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+(T+ch)+'" stroke="var(--tx)" stroke-width="1.4" stroke-dasharray="5 4" opacity=".75"/>'+
+         '<text x="'+(right?+x-4:+x+4)+'" y="'+(T+11)+'" text-anchor="'+(right?'end':'start')+'" font-size="10.5" font-weight="800" fill="var(--tx)" stroke="var(--panel)" stroke-width="3" paint-order="stroke">⛏ 반감기 '+nm+' · '+hd.slice(2,7).replace('-','.')+'</text>';
+    });
     const dd=D.px.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(Math.log(p)).toFixed(1)).join(' ');
     s+='<path d="'+dd+'" fill="none" stroke="var(--tx)" stroke-width="1.8" stroke-linejoin="round"/>'+
        '<g class="rb-hv" style="display:none"><line y1="'+T+'" y2="'+(T+ch)+'" stroke="var(--tx)" stroke-dasharray="3 3"/><circle r="4.5" fill="var(--tx)" stroke="#fff" stroke-width="1.5"/></g></svg>';
@@ -5635,7 +5649,7 @@ async function hydrateIpoQuotes(){
     const g=rbSVG(D,id), n=D.px.length;
     const cur=rbZone(D,n-1);
     const legend=RB.map((r,k)=>'<span class="rb-lg'+(k===cur[0]?' on':'')+'"><i style="background:'+r[0]+'"></i>'+r[1]+'</span>').join('');
-    pn.innerHTML='<div style="font-weight:800;font-size:14px;margin-bottom:4px">🌈 '+RB_NAME[id]+' 레인보우 가격 차트 <span class="mut" style="font-weight:400;font-size:12px">(로그 스케일 · '+D.dates[0].slice(0,4)+'년~현재)</span></div>'+
+    pn.innerHTML='<div style="font-weight:800;font-size:14px;margin-bottom:4px">🌈 '+RB_NAME[id]+' 레인보우 가격 차트 <span class="mut" style="font-weight:400;font-size:12px">(로그 스케일 · '+D.dates[0].slice(0,4)+'년~현재 · 점선=비트코인 반감기)</span></div>'+
       '<div class="rb-ro mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px;font-weight:700"></div>'+g.svg+
       '<div class="rb-legend">'+legend+'</div>'+
       '<p class="mut" style="font-size:11.5px;margin:8px 0 0;line-height:1.5">현재 가격은 <b style="color:var(--tx)">'+RB[cur[0]][1]+'</b> 밴드(회귀선 대비 '+(cur[1]>=0?'+':'')+cur[1].toFixed(2)+'σ)에 있습니다. 이 차트는 Yahoo 일봉 전체 이력에 로그 회귀를 적용해 직접 계산한 근사 모델이며'+(id==='bitcoin'?'':' (비트코인 외 코인은 상장 이력이 짧아 신뢰도가 낮습니다)')+', 투자 권유가 아닙니다. 참고: <a href="https://coinmarketcap.com/ko/charts/crypto-market-cycle-indicators/" target="_blank" rel="noopener">CoinMarketCap 사이클 지표</a></p>';
@@ -5705,4 +5719,41 @@ async function hydrateIpoQuotes(){
     paint(pn,id,'30d');
   }
   tbl.addEventListener('click',e=>{const a=e.target.closest('.etf-plus');if(!a)return;e.preventDefault();open(a.closest('.wl-row'));});
+})();
+
+/* ================= 가상화폐: 소셜 언급 (센티먼트 · 토큰 소셜 순위) — CoinGecko(CORS 허용) =================
+   센티먼트 = CoinGecko 커뮤니티 강세/약세 투표 비율, 소셜 순위 = CoinGecko 트렌딩(검색·관심도) 순위 */
+(function(){
+  const sent=document.getElementById('soc-sent'), rank=document.getElementById('soc-rank'); if(!sent||!rank) return;
+  const IDS=[['bitcoin','BTC'],['ethereum','ETH'],['solana','SOL'],['ripple','XRP']];
+  const state=v=>v>=65?['강세 우위','var(--up)']:v>=55?['약간 강세','var(--up)']:v>45?['중립','var(--tx2)']:v>35?['약간 약세','var(--down)']:['약세 우위','var(--down)'];
+  async function loadSent(){
+    const res=await Promise.all(IDS.map(async([id,sym])=>{
+      try{const j=await fetchJSON(cgURL('/coins/'+id+'?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false'),9000);
+        return {sym,up:j.sentiment_votes_up_percentage,dn:j.sentiment_votes_down_percentage};}catch(e){return {sym,up:null};}
+    }));
+    const ok=res.filter(r=>r.up!=null);
+    if(!ok.length){ sent.innerHTML='<p class="mut" style="font-size:12.5px">센티먼트 데이터를 불러오지 못했습니다(CoinGecko 호출 제한). 잠시 후 새로고침해 주세요.</p>'; return; }
+    const avg=ok.reduce((a,r)=>a+r.up,0)/ok.length, st=state(avg);
+    sent.innerHTML='<div class="soc-big"><b style="color:'+st[1]+'">'+st[0]+'</b><span class="mut">4종 평균 강세 '+avg.toFixed(1)+'%</span></div>'+
+      '<div class="soc-bar" style="margin-bottom:12px"><i style="width:'+avg.toFixed(1)+'%;background:var(--up)"></i><i style="width:'+(100-avg).toFixed(1)+'%;background:var(--down)"></i></div>'+
+      res.map(r=>r.up==null?'<div class="soc-row"><span class="soc-nm">'+r.sym+'</span><span class="mut">--</span></div>':
+        '<div class="soc-row"><span class="soc-nm">'+r.sym+'</span><div class="soc-bar"><i style="width:'+r.up+'%;background:var(--up)"></i><i style="width:'+(r.dn!=null?r.dn:100-r.up)+'%;background:var(--down)"></i></div><span class="soc-v"><span style="color:var(--up)">'+r.up.toFixed(0)+'%</span> / <span style="color:var(--down)">'+(r.dn!=null?r.dn:100-r.up).toFixed(0)+'%</span></span></div>').join('')+
+      '<p class="mut" style="font-size:11.5px;margin:10px 0 0;line-height:1.5"><span style="color:var(--up)">■</span> 강세 투표 <span style="color:var(--down)">■</span> 약세 투표 · CoinGecko 커뮤니티 투표 기준(참여자 표본이라 참고용)</p>';
+  }
+  async function loadRank(){
+    let coins=null;
+    try{ const j=await fetchJSON(cgURL('/search/trending'),9000); coins=(j.coins||[]).map(x=>x.item); }catch(e){}
+    if(!coins||!coins.length){ rank.innerHTML='<p class="mut" style="font-size:12.5px">소셜 순위를 불러오지 못했습니다(CoinGecko 호출 제한). 잠시 후 새로고침해 주세요.</p>'; return; }
+    const n=coins.length;
+    rank.innerHTML=coins.map((c,i)=>{
+      const pc=c.data&&c.data.price_change_percentage_24h&&c.data.price_change_percentage_24h.usd;
+      const w=Math.max(8,(n-i)/n*100);
+      return '<div class="soc-row"><span class="soc-rk'+(i<3?' top':'')+'">'+(i+1)+'</span><span class="soc-nm" style="width:auto;min-width:64px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+c.name+'">'+c.symbol+'</span>'+
+        '<div class="soc-bar"><i style="width:'+w.toFixed(0)+'%;background:var(--accent);opacity:'+(0.45+0.55*(n-i)/n).toFixed(2)+'"></i></div>'+
+        '<span class="soc-v soc-ch '+(pc>=0?'up':'down')+'">'+(pc==null?'--':(pc>=0?'▲ +':'▼ ')+pc.toFixed(1)+'%')+'</span></div>';
+    }).join('')+'<p class="mut" style="font-size:11.5px;margin:10px 0 0;line-height:1.5">막대 길이 = 관심도 순위(길수록 상위) · 오른쪽은 24시간 가격 등락 · CoinGecko 트렌딩 기준</p>';
+  }
+  loadSent(); loadRank();
+  setInterval(()=>{loadSent();loadRank();},300000);
 })();
