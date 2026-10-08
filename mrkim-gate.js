@@ -1,16 +1,27 @@
 /* Mr.Kim Signal — 페이지 이동 암호 잠금
    · 각 페이지에 들어올 때마다 이용 암호를 묻는다(같은 페이지 새로고침은 재입력 없음, 다른 페이지로 이동하면 다시 입력).
-   · "관리자 암호"를 입력하면 이 기기에서는 잠금 기능 자체가 꺼진다(localStorage). 다시 켜려면 주소 뒤에 ?gate=on 을 붙여 접속.
+   · "관리자 암호"를 입력하면 이 기기에서는 잠금 기능 자체가 꺼지고 페이지 하단에 '관리자 모드' 배지가 표시된다(localStorage). 다시 켜려면 주소 뒤에 ?gate=on 을 붙여 접속.
    · 암호는 평문이 아니라 SHA-256 해시로만 저장한다. gate-setup.html에서 해시를 만들어 아래 두 줄에 붙여넣는다.
    · 두 값이 비어 있으면 잠금은 동작하지 않는다.
    ※ 정적 웹페이지의 브라우저 측 잠금이라 '가벼운 접근 제한' 용도입니다(소스 보기·직접 파일 접근까지 막는 서버 보안은 아님). */
 (function(){
-  var USER_HASH  = 'b3e9a9911d67f0454cb582a33bd15d0108196d7e833d65277c4a5ecdc5b131bf';   // ← gate-setup.html 에서 만든 "이용 암호" 해시
-  var ADMIN_HASH = 'a0cd5da6a6e2225ca6a7d8ece1f7ebc1c4c8ed28159dfe85a0110b8b14140f11';   // ← gate-setup.html 에서 만든 "관리자 암호" 해시
+  var USER_HASH  = 'c9a89417627c8ea81e2cc8cf31a415d7622cfc28c25846c7bfad15d071cc0e8d';   // ← gate-setup.html 에서 만든 "이용 암호" 해시
+  var ADMIN_HASH = '52628b021df0963d0ed51ecbd523544f9a2890373e90b17e79a4168d03dfe690';   // ← gate-setup.html 에서 만든 "관리자 암호" 해시
   var SALT='mk|';
   try{ if(/[?&]gate=on\b/.test(location.search)) localStorage.removeItem('mk_gate_off'); }catch(e){}
+  /* 관리자 모드 표시: 관리자 암호로 잠금이 꺼진 기기에서는 페이지 맨 아래(푸터)에 관리자 모드 배지를 보여준다. */
+  function showAdminBar(){
+    if(document.getElementById('mk-admin-bar')) return;
+    var b=document.createElement('div'); b.id='mk-admin-bar';
+    b.style.cssText='margin:18px 0 0;padding:10px 14px;border:2px solid #7c3aed;border-radius:12px;background:rgba(124,58,237,.10);color:#6d28d9;font-size:13px;font-weight:800;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;text-align:center';
+    b.innerHTML='<span>🛠 관리자 모드 · 암호 잠금이 해제된 기기입니다</span><button type="button" style="border:1.5px solid #7c3aed;background:transparent;color:inherit;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer">관리자 모드 해제</button>';
+    b.querySelector('button').onclick=function(){ try{localStorage.removeItem('mk_gate_off');}catch(e){} b.remove(); };
+    var f=document.querySelector('footer .wrap')||document.querySelector('footer')||document.body;
+    f.appendChild(b);
+  }
+  function adminBarLater(){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',showAdminBar); else showAdminBar(); }
   if(!USER_HASH) return;
-  try{ if(localStorage.getItem('mk_gate_off')==='1') return; }catch(e){}
+  try{ if(localStorage.getItem('mk_gate_off')==='1'){ adminBarLater(); return; } }catch(e){}
   var page=(location.pathname.split('/').pop()||'index.html');
   try{ if(sessionStorage.getItem('mk_ok')===page) return; }catch(e){}
 
@@ -60,8 +71,10 @@
       '#mk-gate h1{font-size:18px;margin:0 0 4px;font-weight:900}#mk-gate p{font-size:12.5px;opacity:.7;margin:0 0 16px}'+
       '#mk-gate input{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cfd8d3;border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px}'+
       '#mk-gate button{width:100%;padding:12px;border:0;border-radius:10px;background:#00754a;color:#fff;font-size:15px;font-weight:800;cursor:pointer}'+
+      '#mk-gate .gd{margin:-4px 0 14px;padding:10px 12px;border-radius:10px;background:rgba(0,117,74,.10);border:1px solid rgba(0,117,74,.3);font-size:12.5px;line-height:1.55;opacity:1}#mk-gate .gd span{opacity:.8}'+
       '#mk-gate .er{color:#d93025;font-size:12.5px;min-height:18px;margin-top:8px}</style>'+
       '<form class="bx" autocomplete="off"><h1>🔒 Mr.Kim Signal</h1><p>이 페이지에 들어가려면 암호를 입력해 주세요</p>'+
+      '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고 <b>쪽지</b>를 보내면 암호를 알려드립니다.<br><span>네이버포인트 선물 ID : <b>coolzet</b></span></div>'+
       '<input type="password" id="mk-gate-pw" placeholder="암호" autocomplete="current-password" autofocus>'+
       '<button type="submit">확인</button><div class="er" id="mk-gate-er"></div></form>';
     document.documentElement.appendChild(o);
@@ -72,7 +85,7 @@
       var v=inp.value; if(!v) return;
       busy=true;
       sha256(SALT+v).then(function(h){
-        if(ADMIN_HASH&&h===ADMIN_HASH){ try{localStorage.setItem('mk_gate_off','1');}catch(e){} unlock(); return; }
+        if(ADMIN_HASH&&h===ADMIN_HASH){ try{localStorage.setItem('mk_gate_off','1');}catch(e){} unlock(); adminBarLater(); return; }
         if(h===USER_HASH){ try{sessionStorage.setItem('mk_ok',page);}catch(e){} unlock(); return; }
         fails++; inp.value=''; er.textContent='암호가 맞지 않습니다'+(fails>=5?' · 잠시 후 다시 시도해 주세요':'');
         setTimeout(function(){busy=false;},fails>=5?5000:300); return;

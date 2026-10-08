@@ -5253,7 +5253,7 @@ function renderAdminTables(res){
 
 /* 관리자 페이지 버튼 — 비밀번호(coolzet***) 확인 후에만 히든 섹션을 보여준다.
    클라이언트 사이드 체크일 뿐이라 실제 보안 기능은 아니며, 화면 노출만 막는 용도다. */
-const ADMIN_PASSWORD='coolzet***';
+const ADMIN_PASSWORD='coolzet!!!';
 function initTradeAdminPanel(){
   const btn=document.getElementById('bt-admin-btn');
   const panel=document.getElementById('bt-admin-panel');
