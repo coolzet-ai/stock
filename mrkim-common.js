@@ -8,7 +8,7 @@
   document.head.appendChild(st);}catch(e){} })();
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={kridx:'d',idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',
+const curPer={kridx:'d',idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',krlev:'d',
   usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m',cryrel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
@@ -1522,6 +1522,7 @@ const TICKGROUPS={
   lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','WEBL','DFEN','FAS','LABU','HIBL','KORU']},
   kridx:{table:'kridx-tbl', list:['267270.KS','000990.KS','483650.KS','456040.KS','006360.KS','004490.KS','114090.KS','005250.KS','082740.KS','007660.KS','034230.KS','062040.KS','064400.KS','307950.KS','002030.KS','010620.KS','012630.KS','489790.KS','145720.KS','039130.KS','003620.KS','002710.KS','010060.KS'], cur:'₩', fmt:fmtWon},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
+  krlev:{table:'krlev-tbl', list:['122630.KS','243880.KS','494310.KS','0080Y0.KS','233740.KS','0193T0.KS','0193W0.KS'], cur:'₩', fmt:fmtWon},
   krkq: {table:'krkq-tbl',  list:['196170.KQ','086520.KQ','247540.KQ','036930.KQ','277810.KQ','240810.KQ','039030.KQ','058470.KQ','222800.KQ','108490.KQ'], cur:'₩', fmt:fmtWon}
 };
 /* ===== PC 화면: 종목명과 스파크라인 사이 핵심 지표(매출액증가율·영업이익증가율·PER·EPS(TTM)·EPS(Fwd)·PSR) ===== */
