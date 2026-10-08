@@ -55,11 +55,11 @@
   var fgtop=document.querySelector('#stock .fg-top');
   if(fgtop){
     var sc=document.createElement('div'); sc.id='pro-scale';
-    sc.innerHTML='<div class="bar"><i style="width:25%;background:#C2362B"></i><i style="width:20%;background:#E58A3A"></i><i style="width:11%;background:#C9CED4"></i><i style="width:20%;background:#5DA86B"></i><i style="width:24%;background:#1F7A4D"></i><span class="mk" id="pro-mk" style="left:0"></span></div>'+
+    sc.innerHTML='<div class="bar"><i style="width:25%;background:#C2362B"></i><i style="width:20%;background:#E58A3A"></i><i style="width:11%;background:#C9CED4"></i><i style="width:20%;background:#5DA86B"></i><i style="width:24%;background:#1F7A4D"></i><span class="mk" id="pro-mk" style="left:0"><b id="pro-mkv">--</b></span></div>'+
       '<div class="tk"><span>0</span><span>25</span><span>45</span><span>55</span><span>75</span><span>100</span></div>'+
       '<div class="lb"><span>극단적 공포</span><span>공포</span><span>중립</span><span>탐욕</span><span>극단적 탐욕</span></div>';
     fgtop.after(sc);
-    var upd=function(){ var v=document.getElementById('us-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)) mk.style.left=Math.max(0,Math.min(100,n))+'%'; };
+    var upd=function(){ var v=document.getElementById('us-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
     var vv=document.getElementById('us-val'); if(vv){ new MutationObserver(upd).observe(vv,{childList:true,characterData:true,subtree:true}); }
     upd(); setInterval(upd,3000);
   }
@@ -364,5 +364,19 @@
     };
     new MutationObserver(function(){ if(!busy) run(); }).observe(tb,{childList:true});
     run();
+  })();
+
+  /* ⑨ 모바일 전용 접기/펼치기 (CSS가 700px 이하에서만 본문을 숨김) */
+  (function(){
+    function mf(card,key){
+      if(!card||card.dataset.mf) return; var h=card.querySelector('h3'); if(!h) return;
+      card.dataset.mf='1'; card.classList.add('m-fold');
+      var b=document.createElement('button'); b.type='button'; b.className='m-fold-btn'; b.innerHTML='<em>펼치기</em> ➕';
+      h.appendChild(b);
+      var tg=function(){ var o=card.classList.toggle('m-open'); b.innerHTML=o?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; };
+      h.addEventListener('click',function(e){ if(e.target.closest('a')) return; tg(); });
+    }
+    var cnn=document.getElementById('us-sub'); if(cnn) mf(cnn.closest('.card'));
+    mf(document.getElementById('pro-int')); mf(document.getElementById('pro-fwd'));
   })();
 })();
