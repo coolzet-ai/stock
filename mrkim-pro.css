@@ -41,7 +41,8 @@ body.pro{
 
 /* ── 레이아웃 폭/여백 ── */
 .pro .wrap{max-width:1240px;padding:0 16px}
-.pro #stock>.wrap,.pro #unicorn>.wrap,.pro #events>.wrap{padding-top:12px}
+.pro #stock>.wrap{padding-top:12px}
+.pro #unicorn>.wrap,.pro #events>.wrap{padding-top:0}
 .pro section{padding-top:0}
 
 /* ── 제목 ── */
@@ -286,3 +287,61 @@ body.pro{
 .pro [id^="finx"] div[style*="border-radius:14px"][style*="border:1px solid"]{padding:14px!important;margin-top:12px!important}
 .pro [id^="finx"] div[style*="border-radius:10px"],.pro [id^="fin-"] div[style*="border-radius:10px"]{border-radius:3px!important}
 .pro [id^="finx"] b[style*="font-size:24px"]{font-family:'JetBrains Mono',monospace}
+
+/* ═════ v3 : 박스 제목 시인성 ═════ */
+.pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{min-height:38px;background:#fff;border-bottom:2px solid #111418;border-left:4px solid var(--accent);padding-left:11px;font-size:14px;font-weight:800;color:#111418;letter-spacing:-.01em;border-radius:3px 3px 0 0}
+.pro .card>.fg-hd:first-child h3{font-size:14px;font-weight:800;color:#111418}
+.pro .card>h3:first-child .mut,.pro .pulse>h3:first-child small,.pro .card>h3:first-child small{font-size:11px;font-weight:400;color:var(--tx2)}
+.pro .pulse .hm-k h4{border-left:3px solid var(--accent);min-height:32px;font-size:12.5px;font-weight:800;background:#fff;border-bottom:1px solid var(--line)}
+
+/* ═════ v3 : CNN 지표 설명 표 ═════ */
+.pro .subdesc-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.pro .subdesc-tbl th{background:var(--panel2);text-align:left;font-size:11px;font-weight:700;color:var(--tx2);padding:6px 8px;border:1px solid var(--line)}
+.pro .subdesc-tbl td{padding:7px 8px;border:1px solid var(--line);vertical-align:top;line-height:1.5;color:var(--tx)}
+.pro .subdesc-tbl td.sd-no{width:28px;text-align:center;color:var(--accent);font-weight:700;white-space:nowrap}
+.pro .subdesc-tbl td.sd-nm{width:92px;white-space:nowrap}
+.pro .subdesc-tbl tbody tr:nth-child(even) td{background:#FAFBFB}
+@media(max-width:640px){.pro .subdesc-tbl{font-size:11.5px}.pro .subdesc-tbl td.sd-nm{width:70px;white-space:normal}}
+
+/* ═════ v3 : 섹터 라벨(티커) ═════ */
+#pro-sector .shm a span small{font-size:10.5px;font-weight:400;opacity:.8;font-family:'JetBrains Mono',monospace}
+@media(max-width:700px){#pro-sector .shm a span{text-align:center;line-height:1.25}#pro-sector .shm a span small{display:block}}
+
+/* ═════ v3 : 지수 추세 눈금자 ═════ */
+.pro .trd{display:flex;flex-direction:column;gap:12px}
+.pro .tr-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.pro .tr-hd>b{font-family:'JetBrains Mono',monospace;font-size:13px;min-width:38px}
+.pro .tr-hd .st{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:2px;background:#E6E8EB;color:var(--tx2)}
+.pro .tr-hd .st.up{background:var(--up);color:#fff}.pro .tr-hd .st.down{background:var(--down);color:#fff}
+.pro .tr-hd .chips{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.pro .chip.up,.pro .chip.down{font-family:'JetBrains Mono',monospace;font-size:11px;padding:1px 6px;border-radius:2px;border:1px solid}
+.pro .chip.up{color:var(--up);border-color:#F4C7C3;background:#FEF3F2}.pro .chip.down{color:var(--down);border-color:#C3D3F8;background:#EFF4FF}
+.pro .tr-bar{position:relative;height:10px;background:#EEF0F2;border-radius:1px;margin:4px 0 2px}
+.pro .tr-bar .fill{position:absolute;left:0;top:0;bottom:0;background:#CFD6DD;display:block}
+.pro .tr-bar u,.pro .trd-lg i{text-decoration:none;display:block}
+.pro .tr-bar .m{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px}
+.pro .m.m200{background:#B7791F}.pro .m.m50{background:#0A6B48}
+.pro .tr-bar .px{position:absolute;top:-2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#111418;border:2px solid #fff;box-sizing:border-box;box-shadow:0 0 0 1px #111418}
+.pro .tr-sc{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2)}
+.pro .trd-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--tx2);margin-top:8px}
+.pro .trd-lg span{display:inline-flex;align-items:center;gap:4px}
+.pro .trd-lg i.m{width:2px;height:12px}.pro .trd-lg i.px{width:10px;height:10px;border-radius:50%;background:#111418}
+
+/* ═════ v3 : 최상 일정 하이라이트 ═════ */
+.pro .cal-alert{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:9px 12px;background:#FEF3F2;border:1px solid #F4C7C3;border-left:4px solid var(--up);border-radius:0 3px 3px 0}
+.pro .cal-alert .ca-tag{font-size:10.5px;font-weight:700;color:#fff;background:var(--up);padding:2px 7px;border-radius:2px}
+.pro .cal-alert b{font-size:14px;color:#111418}.pro .cal-alert small{font-weight:400;color:var(--tx2);font-size:11px}
+.pro .cal-alert .ca-when{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx2);margin-left:auto}
+.pro .cal-alert em{font-style:normal;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--up);font-size:14px}
+.pro .cal-row.hi{background:#FFF6F5;box-shadow:inset 4px 0 0 var(--up)}
+.pro .cal-row.hi .ct{color:var(--up);font-weight:700}
+.pro .cal-row.next:not(.hi){background:#F1F8F4;box-shadow:inset 3px 0 0 var(--accent)}
+.pro .cal-row.next .ct::after{content:"NEXT";display:block;font-family:'Noto Sans KR';font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.pro .cal-row.hi.next .ct::after{color:var(--up)}
+.pro .hi-tag{text-decoration:none;display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fff;background:var(--up);padding:0 6px;line-height:16px;border-radius:2px;font-family:'Noto Sans KR',sans-serif;vertical-align:1px}
+
+/* v4 : 상세보기 버튼 */
+.pro .cal-more-btn{display:block;width:100%;margin-top:10px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel2);color:var(--accent);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.pro .cal-more-btn:hover{background:#EAF4EF}
+.pro .cn small.cs{font-family:'JetBrains Mono','Noto Sans KR',sans-serif;font-size:10.5px;color:#98A2B3;margin-left:0}
+.pro #cal-body.open{max-height:560px;overflow-y:auto;border:1px solid var(--line);border-radius:3px}

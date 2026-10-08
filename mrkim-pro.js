@@ -72,7 +72,7 @@
     card.innerHTML='<h3><span>섹터 히트맵 · 11개 GICS 섹터</span><span class="mut" style="font-weight:400;font-size:11px">섹터 ETF(SPDR) 당일 등락</span></h3><div class="shm" id="shm"></div><div class="shm-note">색 = 당일 등락 (빨강 상승 · 파랑 하락) · 타일을 누르면 Finviz 차트로 이동합니다.</div>';
     firstGrid.after(card);
     var shm=card.querySelector('#shm');
-    shm.innerHTML=SEC.map(function(s){ return '<a href="https://finviz.com/quote.ashx?t='+s[0]+'" target="_blank" rel="noopener" id="sh-'+s[0]+'" style="background:#F1F2F4"><span>'+s[1]+'</span><em>--</em></a>'; }).join('');
+    shm.innerHTML=SEC.map(function(s){ return '<a href="https://finviz.com/quote.ashx?t='+s[0]+'" target="_blank" rel="noopener" id="sh-'+s[0]+'" style="background:#F1F2F4"><span>'+s[1]+' <small>('+s[0]+')</small></span><em>--</em></a>'; }).join('');
     var mix=function(p){ var a=Math.min(1,Math.abs(p)/2.5), to=p>=0?[217,45,32]:[29,78,216], f=.25+.75*a; return 'rgb('+Math.round(245+(to[0]-245)*f)+','+Math.round(246+(to[1]-246)*f)+','+Math.round(247+(to[2]-247)*f)+')'; };
     var loadSec=async function(){
       var res=await Promise.all(SEC.map(function(s){ return quote(s[0]); }));
@@ -96,7 +96,7 @@
       '<div class="pi-sub">VIX 기간구조 <span id="vts-badge" class="vbadge">--</span></div>'+
       '<div id="vts" class="vts-wrap"></div><div class="vts-stats" id="vts-stats"></div><div class="pi-note" id="vts-note"></div>'+
       '<div class="pi-sub">지수 추세 (이동평균 대비 · 52주 고점 대비)</div>'+
-      '<table class="pi-tbl"><thead><tr><th>ETF</th><th>50일선</th><th>200일선</th><th>52주 고점</th></tr></thead><tbody id="pi-tr"></tbody></table>'+
+      '<div id="pi-tr" class="trd"></div><div class="trd-lg"><span><i class="m m200"></i>200일선</span><span><i class="m m50"></i>50일선</span><span><i class="px"></i>현재가</span><span class="mut">막대 = 52주 저점 ~ 고점</span></div>'+
       '<div class="pi-sub">시장 폭 · NYSE+NASDAQ 보통주 (시총 3억$↑)</div><div id="pi-mb"><div class="pi-note">집계 불러오는 중…</div></div>'+
       '<div class="pi-sub">섹터 폭 (11개 섹터 ETF)</div><div class="pi-brd" id="pi-brd">--</div>'+
       '<div class="pi-note">Put/Call 비율은 무료 소스가 없어 제외했습니다.</div></div>'+
@@ -134,10 +134,33 @@
 
     /* ── 경제지표 카드 ── */
     var cal=document.createElement('div'); cal.className='card'; cal.id='pro-cal'; cal.style.marginTop='12px';
-    cal.innerHTML='<h3><span>경제지표 · 핵심 일정</span><span class="cal-tabs" id="cal-tabs"><button class="on" data-f="hi">핵심만</button><button data-f="all">전체</button></span></h3>'+
-      '<div id="cal-body"><div class="pi-note">불러오는 중…</div></div><div class="pi-note" id="pc-note"></div>';
+    cal.innerHTML='<h3><span>경제지표 · 핵심 일정</span><span class="mut" style="font-weight:400;font-size:11px">중요도 높은 일정만 표시 · 나머지는 상세보기</span></h3>'+
+      '<div id="cal-top"></div><div id="cal-body"><div class="pi-note">불러오는 중…</div></div><div id="cal-more"></div><div class="pi-note" id="pc-note"></div>';
     row.after(cal);
-    var CAL={mode:'fallback',rows:[],f:'hi'};
+    var CAL={mode:'fallback',rows:[],open:false};
+    var KOPPL={Powell:'파월',Waller:'월러',Musalem:'무살렘',Collins:'콜린스',Williams:'윌리엄스',Jefferson:'제퍼슨',Barr:'바',Bowman:'보먼',Cook:'쿡',Kashkari:'카시카리',Logan:'로건',Goolsbee:'굴즈비',Daly:'데일리',Bostic:'보스틱',Harker:'하커',Hammack:'해맥',Schmid:'슈미드',Barkin:'바킨',Mester:'메스터',Kugler:'쿠글러',Miran:'미란',Paulson:'폴슨',Bullard:'불라드',Evans:'에번스',Kaplan:'캐플런',Rosengren:'로젠그렌',Lagarde:'라가르드'};
+    var KORULES=[
+      [/^Fed Interest Rate Decision/i,'연준 기준금리 결정'],[/^FOMC Minutes/i,'FOMC 의사록'],[/^FOMC Press Conference/i,'FOMC 기자회견'],[/^FOMC Economic Projections/i,'FOMC 경제전망(점도표)'],[/^Fed Chair (\w+)/i,function(m){return '연준 의장 '+(KOPPL[m[1]]||m[1])+' 연설';}],
+      [/^Fed (\w+) Speech/i,function(m){return '연준 '+(KOPPL[m[1]]||m[1])+' 연설';}],[/^Fed (\w+) Testimony/i,function(m){return '연준 '+(KOPPL[m[1]]||m[1])+' 의회 증언';}],[/^Beige Book/i,'베이지북'],[/^Philly Fed (Employment|New Orders|Prices Paid|CAPEX|Business Conditions)/i,function(m){return '필라델피아 연은 '+({employment:'고용',neworders:'신규주문',pricespaid:'지불물가',capex:'설비투자',businessconditions:'업황'})[m[1].toLowerCase().replace(/ /g,'')];}],[/^Fed Balance Sheet/i,'연준 대차대조표'],[/^Reserve Balances with Fed Banks/i,'연은 지급준비금'],[/^NY Fed Services Activity/i,'뉴욕 연은 서비스업지수'],[/^NY Fed Bill Purchases/i,'뉴욕 연은 단기국채 매입'],[/^Overall Net Capital Flows/i,'순자본 유입(TIC 전체)'],[/^WASDE Report/i,'WASDE 곡물수급전망'],[/^NOPA Crush/i,'NOPA 대두 압착량'],[/^Columbus Day/i,'콜럼버스 데이'],
+      [/^Non ?Farm Payrolls/i,'비농업 고용(NFP)'],[/^Unemployment Rate/i,'실업률'],[/^Average Hourly Earnings/i,'평균 시간당 임금'],[/^Average Weekly Hours/i,'평균 주당 근로시간'],[/^Participation Rate/i,'경제활동참가율'],
+      [/^Initial Jobless Claims/i,'신규 실업수당 청구'],[/^Continuing Jobless Claims/i,'연속 실업수당 청구'],[/^Jobless Claims 4-week/i,'실업수당 청구 4주 평균'],[/^ADP Employment Change Weekly/i,'ADP 주간 민간고용'],[/^ADP Employment Change/i,'ADP 민간고용'],[/^JOLTs? Job Openings/i,'JOLTS 구인건수'],[/^Challenger Job Cuts/i,'챌린저 감원'],[/^Nonfarm Productivity/i,'비농업 생산성'],[/^Unit Labor Costs/i,'단위노동비용'],[/^Employment Cost Index/i,'고용비용지수'],
+      [/^Core Inflation Rate/i,'근원 소비자물가(근원 CPI)'],[/^Inflation Rate/i,'소비자물가(CPI)'],[/^Core CPI/i,'근원 CPI'],[/^CPI Trimmed-Mean/i,'CPI 절사평균'],[/^CPI Median/i,'CPI 중앙값'],[/^CPI/i,'소비자물가지수(CPI)'],
+      [/^Core PPI/i,'근원 생산자물가(근원 PPI)'],[/^PPI Ex Food/i,'PPI(식품·에너지 제외)'],[/^PPI/i,'생산자물가(PPI)'],[/^Core PCE Price Index/i,'근원 PCE 물가지수'],[/^PCE Price Index/i,'PCE 물가지수'],[/^Personal Income/i,'개인소득'],[/^Personal Spending/i,'개인소비지출'],[/^Export Prices/i,'수출물가'],[/^Import Prices/i,'수입물가'],
+      [/^GDP Growth Rate/i,'GDP 성장률'],[/^GDP Price Index/i,'GDP 물가지수'],[/^Atlanta Fed GDPNow/i,'애틀랜타 연은 GDPNow'],[/^GDP Deflator/i,'GDP 디플레이터'],[/^Gross Domestic Product/i,'GDP'],
+      [/^ISM Manufacturing PMI/i,'ISM 제조업 PMI'],[/^ISM Services PMI/i,'ISM 서비스업 PMI'],[/^ISM Manufacturing Prices/i,'ISM 제조업 물가지수'],[/^ISM Manufacturing Employment/i,'ISM 제조업 고용'],[/^ISM Manufacturing New Orders/i,'ISM 제조업 신규주문'],[/^S&P Global Manufacturing PMI/i,'S&P글로벌 제조업 PMI'],[/^S&P Global Services PMI/i,'S&P글로벌 서비스업 PMI'],[/^S&P Global Composite PMI/i,'S&P글로벌 종합 PMI'],[/^Chicago PMI/i,'시카고 PMI'],
+      [/^Philadelphia Fed Manufacturing/i,'필라델피아 연은 제조업지수'],[/^NY Empire State Manufacturing/i,'뉴욕 엠파이어스테이트 제조업지수'],[/^Richmond Fed Manufacturing/i,'리치먼드 연은 제조업지수'],[/^Kansas Fed Manufacturing/i,'캔자스시티 연은 제조업지수'],[/^Dallas Fed Manufacturing/i,'댈러스 연은 제조업지수'],[/^Industrial Production/i,'산업생산'],[/^Capacity Utilization/i,'설비가동률'],[/^Manufacturing Production/i,'제조업 생산'],
+      [/^Michigan Consumer Sentiment/i,'미시간대 소비자심리지수'],[/^Michigan Inflation Expectations/i,'미시간대 기대인플레이션'],[/^Michigan 5 Year Inflation/i,'미시간대 5년 기대인플레이션'],[/^CB Consumer Confidence/i,'컨퍼런스보드 소비자신뢰지수'],[/^Consumer Confidence/i,'소비자신뢰지수'],[/^NFIB Business Optimism/i,'NFIB 소기업 낙관지수'],[/^CB Leading Index/i,'컨퍼런스보드 경기선행지수'],
+      [/^Retail Sales Control Group/i,'소매판매(컨트롤 그룹)'],[/^Retail Sales Ex Autos/i,'소매판매(자동차 제외)'],[/^Retail Sales Ex Gas/i,'소매판매(자동차·휘발유 제외)'],[/^Retail Sales/i,'소매판매'],[/^Redbook/i,'레드북 소매판매'],[/^Durable Goods Orders Ex Transportation/i,'내구재 주문(운송 제외)'],[/^Durable Goods Orders/i,'내구재 주문'],[/^Core Durable Goods Orders/i,'근원 내구재 주문'],[/^Factory Orders/i,'공장재 주문'],[/^Business Inventories/i,'기업재고'],[/^Wholesale Inventories/i,'도매재고'],
+      [/^Housing Starts/i,'주택착공'],[/^Building Permits/i,'건축허가'],[/^Existing Home Sales/i,'기존주택 매매'],[/^New Home Sales/i,'신규주택 매매'],[/^Pending Home Sales/i,'잠정주택 매매'],[/^NAHB Housing Market Index/i,'NAHB 주택시장지수'],[/^Case.?Shiller/i,'케이스-실러 주택가격'],[/^FHFA House Price/i,'FHFA 주택가격지수'],[/^MBA 30-Year Mortgage Rate/i,'MBA 30년 모기지 금리'],[/^MBA Mortgage Applications/i,'MBA 모기지 신청'],[/^MBA Mortgage Market Index/i,'MBA 모기지 시장지수'],[/^MBA Purchase Index/i,'MBA 주택구입 지수'],[/^MBA Mortgage Refinance/i,'MBA 재융자 지수'],
+      [/^Trade Balance/i,'무역수지'],[/^Goods Trade Balance/i,'상품 무역수지'],[/^Current Account/i,'경상수지'],[/^Monthly Budget Statement/i,'월간 재정수지'],[/^Net Long-term TIC Flows/i,'해외 장기증권 순유입(TIC)'],[/^Foreign Bond Investment/i,'해외 채권 투자'],[/^Consumer Credit Change/i,'소비자신용 변동'],
+      [/^API Crude Oil Stock Change/i,'API 원유 재고 변동'],[/^EIA Crude Oil Stocks Change/i,'EIA 원유 재고 변동'],[/^EIA Gasoline Stocks Change/i,'EIA 휘발유 재고 변동'],[/^EIA Distillate/i,'EIA 정제유 재고 변동'],[/^EIA Natural Gas Stocks Change/i,'EIA 천연가스 재고 변동'],[/^EIA Refinery Crude Runs/i,'EIA 정유시설 가동'],[/^EIA Cushing/i,'EIA 쿠싱 원유 재고'],[/^Baker Hughes Oil Rig Count/i,'베이커휴즈 원유 시추기 수'],[/^Baker Hughes Total Rig Count/i,'베이커휴즈 전체 시추기 수'],[/^Crude Oil Imports/i,'원유 수입'],
+      [/^(\d+)-Year (Note|Bond) Auction/i,function(m){return m[1]+'년물 국채 입찰';}],[/^(\d+)-Month Bill Auction/i,function(m){return m[1]+'개월 단기국채 입찰';}],[/^(\d+)-Week Bill Auction/i,function(m){return m[1]+'주 단기국채 입찰';}],[/^(\d+)-Year TIPS Auction/i,function(m){return m[1]+'년물 물가연동채 입찰';}],[/^(\d+)-Year FRN Auction/i,function(m){return m[1]+'년물 변동금리채 입찰';}]
+    ];
+    var KOMOD=[[/\bMoM\b/i,'전월비'],[/\bYoY\b/i,'전년비'],[/\bQoQ\b/i,'전분기비'],[/\bPrel\b/i,'예비'],[/\bFinal\b/i,'확정'],[/\bFlash\b/i,'속보'],[/\bAdv\b/i,'속보치'],[/\b2nd Est\b/i,'2차 추정'],[/\b3rd Est\b/i,'3차 추정'],[/\bs\.a\b/i,'계절조정'],[/\bn\.s\.a\b/i,'비계절조정']];
+    var koTitle=function(en){
+      for(var i=0;i<KORULES.length;i++){ var m=en.match(KORULES[i][0]); if(m){ var base=typeof KORULES[i][1]==='function'?KORULES[i][1](m):KORULES[i][1], mods=[]; KOMOD.forEach(function(x){ if(x[0].test(en)) mods.push(x[1]); }); return base+(mods.length?' ('+mods.join('·')+')':''); } }
+      return null;
+    };
     var DOW=['일','월','화','수','목','금','토'], pad=function(n){return String(n).padStart(2,'0');};
     var fnum=function(v,e){ if(v==null) return '--'; var x=(Math.abs(v)>=1000?v.toLocaleString('en-US',{maximumFractionDigits:1}):(+v.toFixed(3)).toString()); return x+(e&&e.unit==='%'?'%':''); };
     var buildFallback=function(){
@@ -149,9 +172,15 @@
     };
     var drawCal=function(){
       var body=document.getElementById('cal-body'); if(!body) return;
-      var rows=CAL.rows.filter(function(r){ return CAL.f==='all'||r.imp>=1; });
-      if(CAL.mode==='live'&&CAL.f==='hi'&&!rows.length) rows=CAL.rows;
-      if(!rows.length){ body.innerHTML='<div class="pi-note">표시할 일정이 없습니다.</div>'; return; }
+      var topEl=document.getElementById('cal-top'), nm=Date.now(), nx=null;
+      CAL.rows.forEach(function(r){ if(!nx&&r.imp>=2&&r.d.getTime()>=nm-1800000) nx=r; });
+      if(topEl){ if(nx){ var diff=nx.d.getTime()-nm, td=new Date(); td=new Date(td.getFullYear(),td.getMonth(),td.getDate()); var dd=Math.round((new Date(nx.d.getFullYear(),nx.d.getMonth(),nx.d.getDate())-td)/86400000);
+          var cd=(CAL.mode==='live'&&diff>0&&diff<36e5*24)?(Math.floor(diff/36e5)+'시간 '+Math.floor(diff%36e5/6e4)+'분 후'):(dd===0?'오늘':'D-'+dd);
+          topEl.innerHTML='<div class="cal-alert"><span class="ca-tag">최상 · 다음 일정</span><b>'+nx.title+(nx.period?' <small>'+nx.period+'</small>':'')+'</b><span class="ca-when">'+pad(nx.d.getMonth()+1)+'.'+pad(nx.d.getDate())+' ('+DOW[nx.d.getDay()]+')'+(nx.time?' '+nx.time:'')+'</span><em>'+cd+'</em></div>'; } else topEl.innerHTML=''; }
+      var hiRows=CAL.rows.filter(function(r){ return r.imp>=2; }), rest=CAL.rows.length-hiRows.length, rows=CAL.open?CAL.rows:hiRows;
+      var mo=document.getElementById('cal-more');
+      if(mo){ mo.innerHTML=rest>0?'<button type="button" class="cal-more-btn">'+(CAL.open?'접기 ▴':'상세보기 ▾ · 나머지 '+rest+'건 (중요도 중간·낮음)')+'</button>':''; var bt=mo.querySelector('button'); if(bt) bt.onclick=function(){ CAL.open=!CAL.open; drawCal(); }; }
+      if(!rows.length){ body.innerHTML='<div class="pi-note" style="padding:8px 0">기간 내 중요도 높은 일정이 없습니다.'+(rest>0?' 아래 상세보기에서 나머지 일정을 확인하세요.':'')+'</div>'; return; }
       var today=new Date(); today=new Date(today.getFullYear(),today.getMonth(),today.getDate());
       var nextIdx=-1, nowMs=Date.now();
       rows.forEach(function(r,i){ if(nextIdx<0&&r.d.getTime()>=nowMs-1800000) nextIdx=i; });
@@ -161,18 +190,17 @@
         if(k!==last){ last=k; var dd=Math.round((new Date(r.d.getFullYear(),r.d.getMonth(),r.d.getDate())-today)/86400000);
           h+='<div class="cal-day"><b>'+pad(r.d.getMonth()+1)+'.'+pad(r.d.getDate())+' ('+DOW[r.d.getDay()]+')</b><em>'+(dd===0?'오늘':dd<0?'지남':'D-'+dd)+'</em></div>'; }
         var imp=r.imp>=2?'h':r.imp===1?'m':'l', dots='<span class="imp-dots imp-'+imp+'" title="'+(r.imp>=2?'높음':r.imp===1?'중간':'낮음')+'"><i></i><i></i><i></i></span>';
-        var ttl=r.link?'<a href="'+r.link+'" target="_blank" rel="noopener">'+r.title+'</a>':'<b>'+r.title+'</b>';
+        var hiTag=r.imp>=2?'<s class="hi-tag">최상</s>':''; var ttl=r.link?'<a href="'+r.link+'" target="_blank" rel="noopener">'+r.title+'</a>':'<b>'+r.title+'</b>';
         var vals='';
         if(live){
           var tone='', badge='';
           if(r.actual!=null&&r.forecast!=null){ if(r.actual>r.forecast){tone='up';badge='<s class="bd up">상회</s>';} else if(r.actual<r.forecast){tone='down';badge='<s class="bd down">하회</s>';} else badge='<s class="bd">부합</s>'; }
           vals='<span class="cv" data-l="이전">'+fnum(r.prev,r)+'</span><span class="cv" data-l="예상">'+fnum(r.forecast,r)+'</span><span class="cv res '+tone+'" data-l="결과">'+(r.actual==null?'<em class="wait">대기</em>':'<b>'+fnum(r.actual,r)+'</b>'+badge)+'</span>';
         }
-        h+='<div class="cal-row'+(i===nextIdx?' next':'')+(r.imp>=2?' hi':'')+'"><span class="ct">'+(r.time||'--:--')+'</span><span class="ci">'+dots+'</span><span class="cn">'+ttl+(r.period?' <small>'+r.period+'</small>':'')+(r.sub?'<small class="cs">'+r.sub+'</small>':'')+'</span>'+vals+'</div>';
+        h+='<div class="cal-row'+(i===nextIdx?' next':'')+(r.imp>=2?' hi':'')+'"><span class="ct">'+(r.time||'--:--')+'</span><span class="ci">'+dots+'</span><span class="cn">'+ttl+hiTag+(r.period?' <small>'+r.period+'</small>':'')+(r.sub?'<small class="cs">'+r.sub+'</small>':'')+'</span>'+vals+'</div>';
       });
-      body.innerHTML=h+'</div>';
+      body.className=CAL.open?'open':''; body.innerHTML=h+'</div>';
     };
-    document.getElementById('cal-tabs').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);}); CAL.f=b.dataset.f; drawCal(); });
     CAL.rows=buildFallback(); drawCal();
     document.getElementById('pc-note').textContent='제목을 누르면 발표 기관 페이지로 이동합니다 · 예상·이전·결과는 집계 서버 연결 시 표시됩니다.';
 
@@ -183,7 +211,7 @@
       var KEYRE=/FOMC|Fed Chair|Powell|Nonfarm|Unemployment Rate|Jobless Claims|GDP|PCE|ISM|Retail Sales MoM|Core Inflation|Inflation Rate/i;
       CAL.rows=j.events.map(function(e){
         var d=new Date(e.t); var k=new Date(d.getTime()+9*3600000);
-        return {d:d,time:pad(k.getUTCHours())+':'+pad(k.getUTCMinutes()),imp:e.imp>=1?2:(KEYRE.test(e.title)?1:0),title:e.title,period:e.period,unit:e.unit,actual:e.actual,forecast:e.forecast,prev:e.prev};
+        return {d:d,time:pad(k.getUTCHours())+':'+pad(k.getUTCMinutes()),imp:e.imp>=1?2:(KEYRE.test(e.title)?1:0),title:(koTitle(e.title)||e.title),sub:(koTitle(e.title)?e.title:''),period:e.period,unit:e.unit,actual:e.actual,forecast:e.forecast,prev:e.prev};
       }).sort(function(a,b){return a.d-b.d;});
       /* 표시 시각은 한국시간이지만 날짜 구분도 한국 기준으로 */
       CAL.rows.forEach(function(r){ var k=new Date(r.d.getTime()+9*3600000); r.d=new Date(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate(),k.getUTCHours(),k.getUTCMinutes()); });
@@ -211,7 +239,7 @@
         var p=(r.meta&&r.meta.regularMarketPrice!=null)?r.meta.regularMarketPrice:c[c.length-1];
         if(c.length<60) return null;
         var avg=function(n){ var s=c.slice(-n); return s.reduce(function(a,b){return a+b;},0)/s.length; };
-        return {p:p, m50:avg(50), m200:c.length>=200?avg(200):null, hi:Math.max.apply(null,c.concat([p]))};
+        return {p:p, m50:avg(50), m200:c.length>=200?avg(200):null, hi:Math.max.apply(null,c.concat([p])), lo:Math.min.apply(null,c.concat([p]))};
       }catch(e){ return null; }
     }
     var pc=function(a,b){ return (a/b-1)*100; };
@@ -244,8 +272,14 @@
       } else { box.innerHTML='<div class="pi-note">VIX 기간구조 데이터를 불러오지 못했습니다.</div>'; bd.textContent='--'; }
       var IX=['SPY','QQQ','IWM','RSP'];
       var hs=await Promise.all(IX.map(hist));
-      document.getElementById('pi-tr').innerHTML=IX.map(function(s,i){ var h=hs[i];
-        return h?'<tr><td><b>'+s+'</b></td>'+cell(pc(h.p,h.m50))+cell(h.m200?pc(h.p,h.m200):null)+cell(pc(h.p,h.hi))+'</tr>':'<tr><td><b>'+s+'</b></td><td class="mut">--</td><td class="mut">--</td><td class="mut">--</td></tr>'; }).join('');
+      document.getElementById('pi-tr').innerHTML=IX.map(function(sy,i){ var h=hs[i];
+        if(!h) return '<div class="tr-row"><div class="tr-hd"><b>'+sy+'</b><span class="mut">데이터 없음</span></div></div>';
+        var rg=(h.hi-h.lo)||1, pos=function(v){ return Math.max(0,Math.min(100,(v-h.lo)/rg*100)); };
+        var st=(h.m200&&h.p>h.m50&&h.m50>h.m200)?['정배열','up']:(h.m200&&h.p<h.m50&&h.m50<h.m200)?['역배열','down']:['혼조',''];
+        var chip=function(l,v){ return v==null?'':'<span class="chip '+(v>=0?'up':'down')+'">'+l+' '+sg(v,1)+'%</span>'; };
+        return '<div class="tr-row"><div class="tr-hd"><b>'+sy+'</b><span class="st '+st[1]+'">'+st[0]+'</span><span class="chips">'+chip('50일',pc(h.p,h.m50))+chip('200일',h.m200?pc(h.p,h.m200):null)+chip('고점',pc(h.p,h.hi))+'</span></div>'+
+          '<div class="tr-bar"><i class="fill" style="width:'+pos(h.p)+'%"></i>'+(h.m200?'<u class="m m200" style="left:'+pos(h.m200)+'%"></u>':'')+'<u class="m m50" style="left:'+pos(h.m50)+'%"></u><u class="px" style="left:'+pos(h.p)+'%"></u></div>'+
+          '<div class="tr-sc"><span>저점 '+fmt(h.lo,0)+'</span><span>고점 '+fmt(h.hi,0)+'</span></div></div>'; }).join('');
       var sh=await Promise.all(SEC.map(function(s){return hist(s[0]);}));
       var ok2=sh.filter(Boolean), a50=ok2.filter(function(h){return h.p>h.m50;}).length, a200=ok2.filter(function(h){return h.m200&&h.p>h.m200;}).length;
       document.getElementById('pi-brd').innerHTML=ok2.length?'<div class="brd"><span>50일선 위</span><i><u style="width:'+(a50/ok2.length*100)+'%"></u></i><b>'+a50+' / '+ok2.length+'</b></div><div class="brd"><span>200일선 위</span><i><u style="width:'+(a200/ok2.length*100)+'%"></u></i><b>'+a200+' / '+ok2.length+'</b></div>':'--';
