@@ -1590,7 +1590,7 @@ const TICKGROUPS={
   krcap2:{table:'krcap2-tbl', list:['012450.KS','034020.KS','055550.KS','006400.KS','329180.KS','000270.KS','034730.KS','068270.KS','066570.KS','086790.KS'], cur:'₩', fmt:fmtWon},
   krkq2:{table:'krkq2-tbl', list:['028300.KQ','000250.KQ','403870.KQ','319660.KQ','095340.KQ','440110.KQ','031980.KQ','084370.KQ','067310.KQ','131290.KQ'], cur:'₩', fmt:fmtWon},
   idxchg:{table:'idxchg-tbl', list:['ILMN','BE','TTD','BLDR','TAP','FERG','RDDT','EA','AVB','CRWV','MRVL','NBIS','ALAB','RKLB','TER','FLEX','POOL','CPB']},
-  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','UDOW','TECL','BULZ','SOXL','WEBL','DFEN','FAS','LABU','HIBL','KORU']},
+  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','HIBL','UDOW','TECL','BULZ','SOXL','WEBL','DFEN','FAS','LABU','KORU']},
   kridx:{table:'kridx-tbl', list:['267270.KS','000990.KS','483650.KS','456040.KS','006360.KS','004490.KS','114090.KS','005250.KS','082740.KS','007660.KS','034230.KS','062040.KS','064400.KS','307950.KS','002030.KS','010620.KS','012630.KS','489790.KS','145720.KS','039130.KS','003620.KS','002710.KS','010060.KS'], cur:'₩', fmt:fmtWon},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
   krlev:{table:'krlev-tbl', list:['122630.KS','243880.KS','494310.KS','0080Y0.KS','233740.KS','0193T0.KS','0193W0.KS'], cur:'₩', fmt:fmtWon},
@@ -1696,7 +1696,7 @@ async function toggleMoreRows(g){
     tbl.innerHTML=moreRowsHtml(g);
     curPer[g]=curPer[g.replace(/[23]$/,'')]||'d';
     await loadTickGroup(g);
-    if(g==='cap2') fillUsRowStats('cap2-tbl',2); else if(g==='cap3'){} else fillKrRowStats(TICKGROUPS[g].table);
+    if(g==='cap2') fillUsRowStats('cap2-tbl',2); else if(g==='cap3') fillUsRowStats('cap3-tbl',3); else fillKrRowStats(TICKGROUPS[g].table);
   }
 }
 const tickData={};
@@ -1811,10 +1811,11 @@ function levDropBadges(d){
   const cum=(1-d[d.length-1]/d[i])*100;
   let h='';
   const st='color:#fff;';
-  if(n>=3) h+='<span class="tb" style="'+st+'background:#475569" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
+  if(n>=3) h+='<span class="tb tb-streak'+(n>=4?' s4':' s3')+'" style="'+st+'background:'+(n>=4?'#7E22CE':'#C2410C')+';box-shadow:0 0 0 2px '+(n>=4?'rgba(126,34,206,.28)':'rgba(194,65,12,.28)')+';font-weight:800" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
   if(cum>30) h+='<span class="tb" style="'+st+'background:#dc2626" title="연속 하락 구간 종가 기준 누적 −'+cum.toFixed(1)+'% (30% 초과)">급락 −'+cum.toFixed(0)+'%</span>';
   return h;
 }
+function levStreakN(d){ if(!d||d.length<4) return 0; let n=0,i=d.length-1; while(i>0&&d[i]<d[i-1]){ n++; i--; } return n; }
 function renderTickBadges(row,d){
   const nm=row.querySelector('.wl-name'); if(!nm) return;
   injectTechBadgeCss();
@@ -1823,6 +1824,7 @@ function renderTickBadges(row,d){
   if(!html){ if(box) box.remove(); return; }
   if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
   box.innerHTML=html+(row.closest('#lev-tbl,#krlev-tbl')?levDropBadges(d):'');
+  if(row.closest('#lev-tbl,#krlev-tbl')){ const sn=levStreakN(d); row.classList.toggle('st3',sn===3); row.classList.toggle('st4',sn>=4); }
   // 티커명 앞 신호등
   let sg=nm.querySelector('.wl-sig');
   const sig=valuationSignal(d);
@@ -2384,7 +2386,7 @@ function usFundNum(v,d){ return (v==null||isNaN(v)) ? '—' : v.toFixed(d==null?
    나가도록 Promise 자체를 캐시). */
 const usFundCaches={}, usFundPromises={};
 async function loadUsFundamentalsOnce(set){
-  set=set===2?2:1;
+  set=set===3?3:set===2?2:1;
   if(usFundCaches[set]) return usFundCaches[set];
   if(usFundPromises[set]) return usFundPromises[set];
   usFundPromises[set]=(async()=>{
@@ -2394,7 +2396,7 @@ async function loadUsFundamentalsOnce(set){
       // [버그 대응] Cron으로 미리 캐시가 안 채워진 최초(cold) 요청은 Worker가 Yahoo 인증부터
       // 10개 종목 조회까지 순서대로 처리해 20초를 넘기는 경우가 있어(재무 버튼이 "불러오는 중"에서
       // 멈춰 보이던 원인 중 하나) 타임아웃을 30초로 늘렸다.
-      const r=await fetch(origin+'us-fundamentals'+(set===2?'?set=2':''),{signal:AbortSignal.timeout?AbortSignal.timeout(30000):undefined});
+      const r=await fetch(origin+'us-fundamentals'+(set>=2?'?set='+set:''),{signal:AbortSignal.timeout?AbortSignal.timeout(30000):undefined});
       const data=r.ok?await r.json():null;
       if(data && Array.isArray(data.items)){
         const map={};
@@ -2414,7 +2416,7 @@ async function loadUsFundamentalsOnce(set){
 /* 지수 편입·편출 등 TOP10 밖 종목: Worker /us-fundamental-one 에서 종목별로 받아온다 */
 const usFundOne={};
 async function loadUsFundamentalOne(t){
-  for(const k of [1,2]){ if(usFundCaches[k]&&usFundCaches[k][t]) return usFundCaches[k][t]; }
+  for(const k of [1,2,3]){ if(usFundCaches[k]&&usFundCaches[k][t]) return usFundCaches[k][t]; }
   if(usFundOne[t]) return usFundOne[t];
   usFundOne[t]=(async()=>{
     if(!PROXY_BASE) return null;

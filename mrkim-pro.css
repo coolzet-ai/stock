@@ -719,19 +719,27 @@ body.pro{
   .pro #pc-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
   .pro #pc-note.open{display:block}
   /* 용어 가이드: 제목만 보이고 누르면 설명 */
-  .pro .gl-list dt.acc-h{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:10px 14px;cursor:pointer}
-  .pro .gl-list dt.acc-h::after{content:"＋";font-size:16px;color:#566074;flex:none;margin-left:8px}
-  .pro .gl-list dt.acc-open::after{content:"－"}
+  .pro .gl-list dt.acc-h{padding:0}
+  .pro .acc-btn{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:10px 14px;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+  .pro .gl-list .acc-btn::after{content:"＋";font-size:16px;color:#566074;flex:none;margin-left:8px}
+  .pro .gl-list dt.acc-open .acc-btn::after{content:"－"}
   .pro .gl-list dd.acc-b{display:none;padding-top:0}
   .pro .gl-list dd.acc-show{display:block}
-  .pro .gl-list dt.acc-h:focus-visible{outline:2px solid #0A6B48;outline-offset:-2px}
+  .pro .acc-btn:focus-visible{outline:2px solid #0A6B48;outline-offset:-2px}
   /* 하단 안내문 */
   .pro .disc{font-size:12.5px;line-height:1.6}
   .pro .disc .dl{display:block;font-weight:400;margin-top:6px}
-  .pro .data-notice b.acc-h{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer}
-  .pro .data-notice b.acc-h::after{content:"펼치기 ▾";font-size:12px;font-weight:700;color:#0A6B48}
-  .pro .data-notice b.acc-open::after{content:"접기 ▴"}
+  .pro .data-notice b.acc-h{display:block;padding:0}
+  .pro .data-notice .acc-btn{padding:0;min-height:44px}
+  .pro .data-notice .acc-btn::after{content:"펼치기 ▾";font-size:12px;font-weight:700;color:#0A6B48}
+  .pro .data-notice b.acc-open .acc-btn::after{content:"접기 ▴"}
   .pro .data-notice .acc-b{display:none}
   .pro .data-notice .acc-show{display:block}
 }
 @media(min-width:701px){.acc-b{display:block!important}}
+
+/* v22 레버리지 연속 하락 하이라이트: 3연하=진한 주황, 4연하 이상=진한 보라 */
+.pro .wl-row.st3{background:#FFE9D6;box-shadow:inset 0 0 0 1px #F59E5B}
+.pro .wl-row.st4{background:#F3E4FF;box-shadow:inset 0 0 0 1px #B46BE8}
+.pro .wl-row.st3.m-x{background:#FFE9D6}.pro .wl-row.st4.m-x{background:#F3E4FF}
+.pro .tb-streak{font-size:11.5px!important;letter-spacing:.2px}
