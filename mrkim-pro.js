@@ -76,9 +76,9 @@
   var fgtop=document.querySelector('#stock .fg-top');
   if(fgtop){
     var sc=document.createElement('div'); sc.id='pro-scale';
-    sc.innerHTML='<div class="bar"><i style="width:25%;background:#C2362B"></i><i style="width:20%;background:#E58A3A"></i><i style="width:11%;background:#C9CED4"></i><i style="width:20%;background:#5DA86B"></i><i style="width:24%;background:#1F7A4D"></i><span class="mk" id="pro-mk" style="left:0"><b id="pro-mkv">--</b></span></div>'+
-      '<div class="tk"><span>0</span><span>25</span><span>45</span><span>55</span><span>75</span><span>100</span></div>'+
-      '<div class="lb"><span>극단적 공포</span><span>공포</span><span>중립</span><span>탐욕</span><span>극단적 탐욕</span></div>';
+    sc.innerHTML='<div class="bar"><i style="width:25%;background:#C2362B"></i><i style="width:20%;background:#E58A3A"></i><i style="width:10%;background:#C9CED4"></i><i style="width:20%;background:#5DA86B"></i><i style="width:25%;background:#1F7A4D"></i><span class="mk" id="pro-mk" style="left:0"><b id="pro-mkv">--</b></span></div>'+
+      '<div class="tk" aria-hidden="true">'+[[0,'0'],[25,'25'],[45,'45'],[55,'55'],[75,'75'],[100,'100']].map(function(t){ return '<span style="left:'+t[0]+'%">'+t[1]+'</span>'; }).join('')+'</div>'+
+      '<div class="lb">'+[[12.5,'극단적 공포'],[35,'공포'],[50,'중립'],[65,'탐욕'],[87.5,'극단적 탐욕']].map(function(t){ return '<span style="left:'+t[0]+'%">'+t[1]+'</span>'; }).join('')+'</div>';
     fgtop.after(sc);
     var upd=function(){ var v=document.getElementById('us-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var us=document.getElementById('us-state'); if(us){ us.style.color=['#C42318','#C2410C','#475467','#3F7D20','#0B6B3A'][n<25?0:n<45?1:n<=55?2:n<=75?3:4]; } var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
     var vv=document.getElementById('us-val'); if(vv){ new MutationObserver(upd).observe(vv,{childList:true,characterData:true,subtree:true}); }
@@ -103,7 +103,7 @@
     };
     MKT.retry['pro-sector']=loadSec; loadSec(); setInterval(loadSec,120000);
   }
-  var FWD={"range": ["2019-05-31", "2026-09-09"], "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 533, 1.56, 2.14, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
+  var FWD={"range": ["2019-05-31", "2026-09-10"], "hz": {"20": {"rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]], "end": "2026-09-10"}, "40": {"rows": [["극단적 공포", 229, 5.28, 4.78, 76.4, -11.1, 31.0], ["공포", 530, 2.75, 3.51, 75.8, -18.7, 17.9], ["중립", 317, 0.86, 1.84, 66.2, -25.2, 12.4], ["탐욕", 594, 1.86, 3.13, 75.3, -32.2, 10.6], ["극단적 탐욕", 117, 0.1, 1.78, 60.7, -27.6, 9.6]], "end": "2026-08-12"}, "60": {"rows": [["극단적 공포", 229, 7.01, 6.53, 81.7, -9.0, 39.8], ["공포", 518, 3.56, 4.24, 74.9, -18.4, 19.2], ["중립", 316, 3.09, 4.5, 76.3, -17.6, 15.4], ["탐욕", 587, 3.4, 4.49, 78.4, -21.8, 12.8], ["극단적 탐욕", 117, -2.24, 1.67, 53.8, -30.6, 11.4]], "end": "2026-07-15"}, "80": {"rows": [["극단적 공포", 228, 7.35, 7.26, 75.4, -13.3, 43.9], ["공포", 500, 5.39, 6.29, 73.8, -16.0, 24.5], ["중립", 315, 4.54, 5.65, 81.0, -17.6, 20.6], ["탐욕", 587, 4.4, 6.39, 80.1, -28.9, 15.0], ["극단적 탐욕", 117, -2.07, -1.26, 39.3, -23.1, 12.3]], "end": "2026-06-15"}}, "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
 
   /* ④ 시장 내부지표 · 구간별 이후 20거래일 성과 · 경제지표 */
   var anchor=document.getElementById('pro-sector')||firstGrid;
@@ -121,16 +121,19 @@
       '<div class="pi-sub">지수 추세 (이동평균 대비 · 52주 고점 대비)</div>'+
       '<div id="pi-tr" class="trd"></div><div class="trd-lg"><span><i class="m m200"></i>200일선</span><span><i class="m m50"></i>50일선</span><span><i class="px"></i>현재가</span><span class="mut">막대 = 52주 저점 ~ 고점</span></div>'+
       '</div>'+
-      '<div class="card" id="pro-fwd"><h3><span>공탐 구간별 이후 20거래일 성과</span><span class="mut" style="font-weight:400;font-size:11px">S&amp;P500(SPY) · '+FWD.range[0]+' ~ '+FWD.range[1]+'</span></h3><div id="fwd-body"></div></div>';
+      '<div class="card" id="pro-fwd"><h3><span>공탐 구간별 이후 <span id="fwd-hn">20</span>거래일 성과</span><span class="mut" style="font-weight:400;font-size:11px" id="fwd-rg">S&amp;P500(SPY)</span></h3><div class="tabs fwd-tabs" id="fwd-tabs" role="group" aria-label="보유 기간 선택"><button class="on" data-h="20">20거래일</button><button data-h="40">40거래일</button><button data-h="60">60거래일</button><button data-h="80">80거래일</button></div><div id="fwd-body"></div></div>';
     anchor.after(row);
 
     /* ── 20거래일 성과 카드 ── */
+    var curH='20';
     var renderFwd=function(){
       var vEl=document.getElementById('us-val'), cn=vEl?parseFloat((vEl.textContent||'').replace(/[^\d.]/g,'')):NaN, cz=isFinite(cn)?zoneOf(cn):-1;
-      var R=FWD.rows, lo=0, hi=0;
+      var H=curH, R=FWD.hz[H].rows, lo=0, hi=0;
+      var hn=document.getElementById('fwd-hn'); if(hn) hn.textContent=H; var rg=document.getElementById('fwd-rg'); if(rg) rg.textContent='S&P500(SPY) · '+FWD.range[0]+' ~ '+FWD.hz[H].end;
       R.forEach(function(r){ lo=Math.min(lo,r[2]); hi=Math.max(hi,r[2]); });
       var zp=(-lo/(hi-lo||1))*100;
-      var h='<div class="fwd-cur">'+(cz>=0?'현재 공탐 <b>'+Math.round(cn)+'</b> · <b>'+ZN[cz]+'</b> 구간 — 과거 이 구간의 이후 20거래일 평균 <b class="'+(R[cz][2]>=0?'up':'down')+'">'+sg(R[cz][2])+'%</b>, 상승확률 <b>'+R[cz][4].toFixed(1)+'%</b>':'현재 공탐 값을 불러오는 중…')+'</div>';
+      var h='<div class="fwd-cur">'+(cz>=0?'현재 공탐 <b>'+Math.round(cn)+'</b> · <b>'+ZN[cz]+'</b> 구간 — 과거 이 구간의 이후 '+H+'거래일 평균 <b class="'+(R[cz][2]>=0?'up':'down')+'">'+sg(R[cz][2])+'%</b>, 상승확률 <b>'+R[cz][4].toFixed(1)+'%</b>':'현재 공탐 값을 불러오는 중…')+'</div>';
+      var HS=['20','40','60','80']; h+='<div class="pi-sub">구간 × 보유기간 평균 수익률 (한눈에 비교)</div><table class="pi-tbl fwd-mx"><thead><tr><th>구간</th>'+HS.map(function(k){ return '<th'+(k===H?' class="on"':'')+'>'+k+'일</th>'; }).join('')+'</tr></thead><tbody>'+R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td>'+HS.map(function(k){ var v=FWD.hz[k].rows[i][2]; return '<td class="'+(v>=0?'up':'down')+(k===H?' on':'')+'">'+sg(v,1)+'%</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
       h+='<table class="pi-tbl"><thead><tr><th>구간</th><th>표본</th><th>평균</th><th>중앙값</th><th>상승확률</th><th>최악</th></tr></thead><tbody>'+
         R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="'+(r[2]>=0?'up':'down')+'">'+sg(r[2])+'%</td><td>'+sg(r[3])+'%</td><td>'+r[4].toFixed(1)+'%</td><td class="down">'+r[5].toFixed(1)+'%</td></tr>'; }).join('')+'</tbody></table>';
       h+='<div class="pi-sub">평균 수익률 · 상승확률</div><div class="fwd-bars">'+
@@ -139,8 +142,8 @@
           return '<div class="fb'+(i===cz?' cur':'')+'"><span>'+r[0]+'</span><i class="fb-avg"><u class="zero" style="left:'+zp+'%"></u><u class="bar '+(r[2]>=0?'up':'down')+'" style="left:'+left+'%;width:'+w+'%"></u></i><b class="'+(r[2]>=0?'up':'down')+'">'+sg(r[2])+'%</b>'+
             '<i class="fb-win"><u class="half"></u><u class="bar" style="width:'+r[4]+'%"></u></i><b>'+r[4].toFixed(0)+'%</b></div>';
         }).join('')+'</div><div class="fb-legend"><span><i class="lg lg-a"></i>평균 수익률</span><span><i class="lg lg-w"></i>상승확률 (│ = 50%)</span></div>';
-      var RL=-35, RH=25, rp=function(v){ return ((v-RL)/(RH-RL)*100); };
-      h+='<div class="pi-sub">20일 수익률 범위 · 최악 ~ 최고 (● 평균)</div><div class="fwd-rng">'+
+      var RL=Math.floor(Math.min.apply(null,R.map(function(r){return r[5];}))/5)*5, RH=Math.ceil(Math.max.apply(null,R.map(function(r){return r[6];}))/5)*5, rp=function(v){ return ((v-RL)/(RH-RL)*100); };
+      h+='<div class="pi-sub">'+H+'거래일 수익률 범위 · 최악 ~ 최고 (● 평균)</div><div class="fwd-rng">'+
         R.map(function(r,i){ return '<div class="fr'+(i===cz?' cur':'')+'"><span>'+r[0]+'</span><i><u class="zero" style="left:'+rp(0)+'%"></u><u class="rng" style="left:'+rp(r[5])+'%;width:'+(rp(r[6])-rp(r[5]))+'%"></u><u class="dot" style="left:'+rp(r[2])+'%"></u></i><em>'+r[5].toFixed(0)+'% ~ +'+r[6].toFixed(0)+'%</em></div>'; }).join('')+'</div>';
       /* 데이터에서 계산한 요약 */
       var bestA=R.reduce(function(a,r){return r[2]>a[2]?r:a;}), bestW=R.reduce(function(a,r){return r[4]>a[4]?r:a;}), worstD=R.reduce(function(a,r){return r[5]<a[5]?r:a;});
@@ -148,9 +151,11 @@
       h+='<ul class="fwd-ins"><li>공포 이하(극단적 공포+공포) 합산: 평균 <b>'+sg(fa)+'%</b> · 상승확률 <b>'+fw.toFixed(1)+'%</b> (중립 '+R[2][4].toFixed(1)+'%)</li>'+
         '<li>평균 수익률이 가장 높은 구간 <b>'+bestA[0]+'</b> ('+sg(bestA[2])+'%), 상승확률이 가장 높은 구간 <b>'+bestW[0]+'</b> ('+bestW[4].toFixed(1)+'%)</li>'+
         '<li>최악 낙폭이 가장 컸던 구간은 <b>'+worstD[0]+'</b> ('+worstD[5].toFixed(1)+'%) — 평균이 좋아도 개별 시점의 손실 폭은 큽니다</li></ul>'+
-        '<div class="pi-note">공탐 일별 값이 해당 구간이던 날의 종가 기준 이후 20거래일 수익률(배당 미포함)입니다. 날짜가 겹치는 표본이라 독립적인 횟수가 아니며, 과거 통계가 미래를 보장하지 않습니다.</div>';
+        '<div class="pi-note">공탐 일별 값이 해당 구간이던 날의 종가 기준 이후 '+H+'거래일 수익률(배당 미포함)입니다. 날짜가 겹치는 표본이라 독립적인 횟수가 아니며, 과거 통계가 미래를 보장하지 않습니다.</div>';
       document.getElementById('fwd-body').innerHTML=h;
     };
+    var fwdTabs=document.getElementById('fwd-tabs');
+    if(fwdTabs) fwdTabs.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; curH=b.dataset.h; fwdTabs.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on',x===b); }); renderFwd(); });
     renderFwd(); setInterval(renderFwd,5000);
 
     /* ── 경제지표 카드 ── */
@@ -330,8 +335,9 @@
     var ZC=['#C42318','#C2410C','#566074','#3F7D20','#0B6B3A'], ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], ACT=['매수 시작','매수 시작','관망','매수 금지','매수 금지'];
     var draw=function(){
       var v=document.getElementById('us-val'), n=v?parseFloat((v.textContent||'').replace(/[^\d.]/g,'')):NaN; if(!isFinite(n)) return;
+      var nt=document.getElementById('us-note'), dl=nt?(nt.textContent||'').replace(/\s+/g,' ').trim():''; if(!/전일/.test(dl)) dl='';
       var z=n<25?0:n<45?1:n<=55?2:n<=75?3:4, a=ACT[z], pill=function(t,cls){ return '<span class="act '+cls+(a===t?' on':'')+'">'+t+'</span>'; };
-      box.innerHTML='<div class="kc" style="--zc:'+ZC[z]+'"><div class="kc-l"><span class="kc-k">김군코멘트</span><div class="kc-t"><em>'+ZN[z]+'</em><i>→</i><b>'+a+'</b></div></div>'+
+      box.innerHTML='<div class="kc" style="--zc:'+ZC[z]+'"><div class="kc-l"><span class="kc-k">김군코멘트</span><div class="kc-t"><em>'+ZN[z]+'</em><i>→</i><b>'+a+'</b></div>'+(dl?'<div class="kc-d '+(/▲/.test(dl)?'up':/▼/.test(dl)?'down':'')+'">'+dl+'</div>':'')+'</div>'+
         '<div class="kc-r">'+pill('매수 시작','buy')+pill('관망','wait')+pill('매수 금지','stop')+'</div></div>';
     };
     var vv=document.getElementById('us-val'); if(vv) new MutationObserver(draw).observe(vv,{childList:true,characterData:true,subtree:true});

@@ -83,4 +83,10 @@
       KEYS.forEach(function(key){ var d=document.createElement('div'); d.className='uc-sec uc-'+key; (secs[key]||[]).forEach(function(k){ d.appendChild(k); }); c.appendChild(d); });
       c.classList.add('uc-grid'); });
     g.classList.add('uc-on'); })();
+
+  /* ===== 종목 행 버튼(+ X N 재무) 의미 안내 ===== */
+  (function(){ ['tick-tbl','cap-tbl','idxchg-tbl','lev-tbl'].forEach(function(id){ var h=document.getElementById(id); if(!h||h.previousElementSibling&&h.previousElementSibling.classList.contains('act-legend')) return;
+    var p=document.createElement('p'); p.className='act-legend'; p.setAttribute('aria-label','종목 행 버튼 설명');
+    p.innerHTML='<span class="al-t">버튼 안내</span><span><b>➕ +</b> 상세지표(Finviz)</span><span><b>🐦 X</b> X(트위터) 검색</span><span><b>📰 N</b> 최신 뉴스</span><span><b>📊 재무</b> 재무비율</span><span class="al-m">모바일은 가격 영역을 누르면 펼쳐집니다</span>';
+    h.before(p); }); })();
 })();

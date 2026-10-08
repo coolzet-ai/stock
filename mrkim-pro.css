@@ -756,3 +756,29 @@ body.pro{
 #unicorn .uc-sec{min-width:0}
 #unicorn .uc-sec.uc-head{margin-bottom:0}
 #unicorn .uc-sec.uc-news{align-self:start}
+
+/* v25 */
+.pro #pro-kc .kc-d{margin-top:6px;font-size:13px;font-weight:600;color:var(--tx2);font-variant-numeric:tabular-nums}
+.pro #pro-kc .kc-d.up{color:#B42318}.pro #pro-kc .kc-d.down{color:#1D4ED8}
+.pro #stock .fg-row{display:none}
+.pro .act-legend{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;margin:8px 0 6px;padding:7px 10px;background:#F6F7F8;border:1px solid #E1E4E8;border-radius:6px;font-size:12px;line-height:1.5;color:#4B5563}
+.pro .act-legend .al-t{font-weight:800;color:#0A6B48}.pro .act-legend b{color:#111418;font-weight:700;white-space:nowrap}
+.pro .act-legend .al-m{display:none;flex:1 0 100%;color:#667085}
+.pro .fwd-tabs{display:flex;margin:8px 0 10px;gap:0}.pro .fwd-tabs button{flex:1}
+.pro .fwd-mx th.on,.pro .fwd-mx td.on{background:#ECF7F1}.pro .fwd-mx td{font-variant-numeric:tabular-nums}
+@media(max-width:700px){
+  .pro .act-legend .al-m{display:block}
+  .pro .card>.fg-hd:first-child .tabs,.pro #us-idxrel-card .fg-hd .tabs,.pro #us-caprel-card .fg-hd .tabs{display:flex!important;width:100%;gap:4px;padding:3px;margin:8px 0 0;background:rgba(0,0,0,.2);border:0!important;border-radius:10px;box-sizing:border-box}
+  .pro .card>.fg-hd:first-child .tabs button,.pro #us-idxrel-card .fg-hd .tabs button,.pro #us-caprel-card .fg-hd .tabs button{flex:1 1 0!important;min-width:0!important;min-height:40px;padding:0 4px;border:0!important;border-radius:8px!important;background:transparent!important;color:#fff!important;font-size:14px;font-weight:600;white-space:nowrap}
+  .pro .card>.fg-hd:first-child .tabs button.on,.pro #us-idxrel-card .fg-hd .tabs button.on,.pro #us-caprel-card .fg-hd .tabs button.on{background:#fff!important;color:#0A6B48!important;font-weight:800;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+  .pro .card>.fg-hd:first-child{display:block}
+  .pro .cr-b{display:block;margin:2px 0 0 26px}
+  .pro .fwd-tabs{padding:0}.pro .fwd-tabs button{min-height:40px;font-size:13px}
+}
+.pro .fwd-mx .up{color:#B42318}.pro .fwd-mx .down{color:#1D4ED8}
+
+/* v26: 공탐 선형 스케일 — 눈금·구간 라벨을 실제 위치에 배치(0–25 극단적 공포 · 25–45 공포 · 45–55 중립 · 55–75 탐욕 · 75–100 극단적 탐욕) */
+#pro-scale .tk,#pro-scale .lb{position:relative;display:block;height:16px}
+#pro-scale .tk span,#pro-scale .lb span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+#pro-scale .tk span:first-child{transform:none}#pro-scale .tk span:last-child{transform:translateX(-100%)}
+#pro-scale .lb{margin-top:0;height:18px;font-size:11px;font-weight:600}

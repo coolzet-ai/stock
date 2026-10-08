@@ -972,7 +972,7 @@ function renderCorrGrid(elId, pairs){
       ? 'left:50%;width:'+Math.max(0,pct-50).toFixed(1)+'%'
       : 'right:50%;width:'+Math.max(0,50-pct).toFixed(1)+'%';
     return '<tr style="border-top:1px solid var(--line)">'+
-      '<td style="padding:12px 6px;font-size:14px;font-weight:800;color:var(--tx);white-space:nowrap"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:#0A6B48;color:#fff;font-size:11px;margin-right:6px">'+(i+1)+'</span>'+p.a.label+' <span style="color:var(--tx2);font-weight:600">↔</span> '+p.b.label+'</td>'+
+      '<td style="padding:12px 6px;font-size:14px;font-weight:800;color:var(--tx);white-space:nowrap"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:#0A6B48;color:#fff;font-size:11px;margin-right:6px">'+(i+1)+'</span><span class="cr-a">'+p.a.label+' <span style="color:var(--tx2);font-weight:600">↔</span></span> <span class="cr-b">'+p.b.label+'</span></td>'+
       '<td class="corr-bar" style="padding:12px 10px;width:34%;min-width:110px"><div style="height:12px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);position:relative">'+
         '<div style="position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#111418;opacity:.55"></div>'+
         '<div style="position:absolute;top:0;bottom:0;'+barStyle+';background:'+col+';border-radius:6px"></div></div></td>'+
