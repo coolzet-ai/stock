@@ -15,6 +15,7 @@ const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
 const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
+function zoneTag(t){const m={'극단적 공포':'#D92D20','공포':'#C2570C','중립':'#64748B','탐욕':'#4D7C0F','극단적 탐욕':'#15803D'};return '<span class="tag" style="background:'+(m[t]||'#64748B')+';color:#fff;font-weight:800;padding:2px 8px">'+t+'</span>';}
 function label(v){
   v=Math.round(v); /* 화면에 보이는 정수 점수 기준으로 구간 판정(45 이상=중립) */
   if(v<25)return['극단적 공포','#ff4d4f'];
@@ -1455,7 +1456,7 @@ function subTable(rows,src){
     const label_='<span class="sub-no">'+(i+1)+'</span><span class="sub-nm">'+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n)+'</span>';
     const [tl,tc]=label(v);
     return '<tr><td class="sub-lab" style="white-space:nowrap">'+label_+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
-    '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
+    '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br>'+zoneTag(tl)+'</td></tr>';
   }).join('');
   $('#us-src').textContent=src;
   const nEl=document.getElementById('us-sub-note');
@@ -2423,33 +2424,31 @@ function kimValuationVerdict(growthPct, psr, techD, extra){
 function renderKimVerdictBig(growthPct, psr, techD, extra){
   const v=kimValuationVerdict(growthPct, psr, techD, extra);
   if(!v) return '';
-  const segs=[['저평가','#1fa463'],['관망','#f0b429'],['고평가','#e5332a']];
-  const lampOn=v.idx===0?'g':v.idx===1?'y':'r';
-  const lampCol={g:'#1fa463',y:'#f0b429',r:'#e5332a'};
+  const segs=[['저평가','#0A6B48'],['관망','#B7791F'],['고평가','#D92D20']];
   const main=segs[v.idx][1];
   const bar=segs.map(([nm,c],i)=>{
     const on=(i===v.idx);
-    return '<div style="flex:'+(on?1.6:1)+';text-align:center;padding:'+(on?'14px 0':'10px 0')+';font-size:'+(on?24:15)+'px;font-weight:'+(on?900:600)+';white-space:nowrap;background:'+(on?c:c+'22')+';color:'+(on?'#fff':c)+';'+(i===0?'border-radius:12px 0 0 12px;':'')+(i===2?'border-radius:0 12px 12px 0;':'')+(on?'box-shadow:0 3px 14px '+c+'77;position:relative;z-index:1;':'')+'">'+nm+'</div>';
+    return '<div style="flex:'+(on?1.5:1)+';text-align:center;padding:'+(on?'14px 0':'12px 0')+';font-size:'+(on?24:14)+'px;font-weight:'+(on?900:700)+';white-space:nowrap;background:'+(on?c:'var(--panel)')+';color:'+(on?'#fff':c)+';border:2px solid '+c+';'+(i>0?'margin-left:-2px;':'')+(i===0?'border-radius:12px 0 0 12px;':'')+(i===2?'border-radius:0 12px 12px 0;':'')+(on?'box-shadow:0 4px 14px '+c+'66;position:relative;z-index:1;':'opacity:.85;')+'">'+(on?'✔ ':'')+nm+'</div>';
   }).join('');
   let lastGrp='';
   const fmtP=n=>(n>0?'+':n<0?'−':'')+Math.abs(n)+'점';
+  const chipP=pt=>{const c=pt>0?'#0A6B48':pt<0?'#D92D20':'#64748B';return '<b style="flex:none;min-width:42px;text-align:center;padding:2px 8px;border-radius:999px;background:'+c+';color:#fff;font-size:12px">'+(pt>0?'+1':pt<0?'−1':'0')+'점</b>';};
   const reasons=v.reasons.map(r=>{
     let h='';
     if(r.grp && r.grp!==lastGrp){
       lastGrp=r.grp;
       const sub=r.grp==='재무'?v.fin:v.tech;
-      h='<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-size:11px;font-weight:800;color:var(--tx2)"><span>'+(r.grp==='재무'?'📊 재무 평가':'📈 기술 평가 (RSI·200일선·5일선)')+'</span><span>소계 '+fmtP(sub)+'</span></div>';
+      h='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:6px 10px;border-radius:8px;background:var(--panel);border-left:4px solid '+main+';font-size:12px;font-weight:800;color:var(--tx)"><span>'+(r.grp==='재무'?'📊 재무 평가':'📈 기술 평가 (RSI·200일선·5일선)')+'</span><span style="color:'+main+'">소계 '+fmtP(sub)+'</span></div>';
     }
-    return h+'<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:4px"><span class="mut">'+r.txt+'</span>'+
-    '<b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+';flex:none">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>';
+    return h+'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;padding:6px 4px;border-bottom:1px solid var(--line)"><span style="color:var(--tx)">'+r.txt+'</span>'+chipP(r.pt)+'</div>';
   }).join('');
-  const totalLine='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:7px 10px;border-radius:8px;background:'+main+'1f;font-size:12.5px;font-weight:900"><span>종합 점수'+(v.hasTech?' (재무 '+fmtP(v.fin)+' + 기술 '+fmtP(v.tech)+')':'')+'</span><span style="color:'+main+'">'+fmtP(v.score)+'</span></div>';
+  const totalLine='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 14px;border-radius:10px;background:'+main+';color:#fff;font-weight:900"><span style="font-size:13px">종합 점수'+(v.hasTech?' <span style="font-weight:600;opacity:.9">(재무 '+fmtP(v.fin)+' + 기술 '+fmtP(v.tech)+')</span>':'')+'</span><span style="font-size:20px">'+fmtP(v.score)+'</span></div>';
   return '<div style="margin-top:14px;border:2px solid '+main+';border-radius:12px;overflow:hidden;background:var(--panel2)">'+
-    '<div style="background:'+main+';color:#fff;padding:5px 12px;font-weight:800;font-size:12.5px">김군 판정</div>'+
-    '<div style="padding:12px 14px">'+
+    '<div style="background:'+main+';color:#fff;padding:7px 14px;font-weight:800;font-size:13px">김군 판정</div>'+
+    '<div style="padding:14px">'+
       '<div style="display:flex;align-items:stretch">'+bar+'</div>'+
       '<div style="margin-top:8px">'+reasons+totalLine+'</div>'+
-      '<div class="mut" style="font-size:10.5px;margin-top:6px">'+(v.hasTech?'재무(매출액증가율·PSR) + 기술(RSI·200일선·5일선) 복합 판정':'매출액증가율·PSR 기준 간이 판정')+'(참고용 · 투자 권유 아님)</div>'+
+      '<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(183,121,31,.12);border:1px solid rgba(183,121,31,.45);color:var(--tx);font-size:11.5px;line-height:1.5">⚠ '+(v.hasTech?'재무(매출액증가율·PSR) + 기술(RSI·200일선·5일선) 복합 판정':'매출액증가율·PSR 기준 간이 판정')+' · 참고용이며 투자 권유가 아닙니다.</div>'+
     '</div></div>';
 }
 function renderKimVerdictBadge(growthPct, psr, techD){
@@ -2487,10 +2486,10 @@ function usLamp(level){ // g/y/r → 뱃지
 }
 function usGradeOf(score){
   if(score==null) return {g:'—',c:'var(--tx2)'};
-  if(score>=80) return {g:'A',c:'#1fa463'};
-  if(score>=65) return {g:'B',c:'#4fa383'};
-  if(score>=50) return {g:'C',c:'#f0b429'};
-  if(score>=35) return {g:'D',c:'#e5832a'};
+  if(score>=80) return {g:'A',c:'#0A6B48'};
+  if(score>=65) return {g:'B',c:'#2E8B6A'};
+  if(score>=50) return {g:'C',c:'#B7791F'};
+  if(score>=35) return {g:'D',c:'#C2570C'};
   return {g:'F',c:'#e5332a'};
 }
 function usFactorScores(it, techD){
@@ -2541,7 +2540,7 @@ function kimGradeCard(it, techD, opt){
     momentum:()=>'최근 1년 '+(r1==null?'—':(r1>=0?'+':'')+r1.toFixed(1)+'%')+(r1!=null?(r1>=20?' — 강한 추세':r1>=0?' — 완만한 상승':' — 하락 추세'):''),
     revision:()=>'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합')
   };
-  const chip=k=>{const g=usGradeOf(fs[k]);return '<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;background:var(--panel);border:1px solid var(--line)"><b style="display:block;font-size:15px;color:'+g.c+'">'+g.g+'</b><span style="font-size:10px;color:var(--tx2)">'+NM[k]+'</span></div>';};
+  const chip=k=>{const g=usGradeOf(fs[k]);const sc=fs[k]==null?'—':Math.round(fs[k]);return '<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 6px;border-radius:10px;background:var(--panel);border:1.5px solid '+g.c+'"><b style="display:inline-block;min-width:30px;text-align:center;padding:3px 0;border-radius:8px;background:'+g.c+';color:#fff;font-size:18px;font-weight:900">'+g.g+'</b><span style="font-size:12px;font-weight:800;color:var(--tx)">'+NM[k]+' <span style="color:var(--tx2);font-weight:600">'+sc+'점</span></span></div>';};
   const line=(ic,lb,tx,col)=>'<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin-top:7px"><span style="flex:none;font-weight:900;color:'+col+';min-width:52px;white-space:nowrap">'+ic+' '+lb+'</span><span>'+tx+'</span></div>';
   const pos=Math.max(2,Math.min(98,avg));
   return '<div style="margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);border-left:5px solid '+G.c+'">'+
@@ -2614,7 +2613,7 @@ function renderUsFinancialRatios(it, techD, opt){
   }
   // ⑤ 팩터 등급
   const fs=usFactorScores(it,techD);
-  const gd=(nm,v)=>{const g=usGradeOf(v);return '<div style="text-align:center;padding:8px 2px;border-radius:10px;border:1px solid var(--line);background:var(--panel)"><b style="display:block;font-size:20px;color:'+g.c+'">'+g.g+'</b><span style="font-size:10px;color:var(--tx2)">'+nm+'</span></div>';};
+  const gd=(nm,v)=>{const g=usGradeOf(v);const sc=v==null?'—':Math.round(v);return '<div style="text-align:center;border-radius:10px;border:1.5px solid '+g.c+';background:var(--panel);overflow:hidden"><div style="background:'+g.c+';color:#fff;padding:3px 0;font-size:11px;font-weight:800">'+nm+'</div><div style="padding:8px 0 2px"><b style="display:block;font-size:26px;line-height:1;font-weight:900;color:'+g.c+'">'+g.g+'</b></div><div style="font-size:11px;font-weight:700;padding-bottom:7px;color:var(--tx2)">'+sc+'점</div></div>';};
   const factorHtml='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">'+gd('밸류',fs.value)+gd('성장',fs.growth)+gd('수익성',fs.profit)+gd('모멘텀',fs.momentum)+gd('이익수정',fs.revision)+'</div>'+
     '<div class="mut" style="font-size:10.5px;margin-top:6px">자체 계산 절대 기준 등급(씨킹알파 공식 등급 아님) · 이익수정 = 올해 EPS 추정치 90일 변화(또는 상향/하향 건수)</div>';
   // 배당정보 (배당성향 도넛·배당수익률·연간 배당금·5년 성장률)
@@ -3952,7 +3951,7 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     if(v==null) return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
     return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
-      '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+c+'33;color:'+(v<=55&&v>=45?'var(--tx2)':c)+'">'+t+'</span></td></tr>';
+      '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br>'+zoneTag(t)+'</td></tr>';
   }).join('');
   const kn=document.getElementById('kr-sub-note');
   if(kn) kn.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+['1','2','3','4','5','6','7'].map(k=>SUB_NUM[+k-1]+' '+KR_SUBDESC[k]).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';

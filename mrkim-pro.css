@@ -402,8 +402,9 @@ body.pro{
 
 /* ═════ v6 : 펼침 소제목 hover 강조 ═════ */
 .pro .fold-h{transition:background .18s,color .18s,transform .18s,box-shadow .18s,border-color .18s;cursor:pointer}
-.pro .fold-h:hover,.pro .fold-h.open:hover{background:linear-gradient(90deg,#0A6B48 0%,#16A06F 100%)!important;color:#fff!important;border-color:#0A6B48;transform:translateY(-1px);box-shadow:0 6px 16px rgba(10,107,72,.35),inset 0 -3px 0 rgba(255,255,255,.35)}
+.pro .fold-h:hover,.pro .fold-h.open:hover{background:linear-gradient(90deg,#064E36 0%,#0A6B48 100%)!important;color:#fff!important;border-color:#0A6B48;transform:translateY(-1px);box-shadow:0 6px 16px rgba(10,107,72,.35),inset 0 -3px 0 rgba(255,255,255,.35)}
 .pro .fold-h:hover *{color:#fff!important}
+.pro .fold-h:hover .fold-btn,.pro .fold-h:hover .fold-btn *{color:#0A6B48!important}
 .pro .fold-h:hover .fold-btn{background:#fff!important;color:#0A6B48!important;border-color:#fff!important;font-weight:700}
 .pro .fold-h:active{transform:translateY(0)}
 .pro details>summary{transition:color .15s}
