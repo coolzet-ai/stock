@@ -66,15 +66,18 @@
   function build(){
     var o=document.createElement('div'); o.id='mk-gate';
     o.innerHTML='<style>#mk-gate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:#f4f6f5;color:#1b1f1d;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}'+
-      '@media(prefers-color-scheme:dark){#mk-gate{background:#0f1311;color:#eef2ef}#mk-gate .bx{background:#171d1a;border-color:#2a332e}#mk-gate input{background:#0f1311;color:#eef2ef;border-color:#2f3a34}}'+
       '#mk-gate .bx{width:100%;max-width:340px;background:#fff;border:1px solid #dfe5e1;border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.12)}'+
       '#mk-gate h1{font-size:18px;margin:0 0 4px;font-weight:900}#mk-gate p{font-size:12.5px;opacity:.7;margin:0 0 16px}'+
       '#mk-gate input{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cfd8d3;border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px}'+
       '#mk-gate button{width:100%;padding:12px;border:0;border-radius:10px;background:#00754a;color:#fff;font-size:15px;font-weight:800;cursor:pointer}'+
-      '#mk-gate .gd{margin:-4px 0 14px;padding:10px 12px;border-radius:10px;background:rgba(0,117,74,.10);border:1px solid rgba(0,117,74,.3);font-size:12.5px;line-height:1.55;opacity:1}#mk-gate .gd span{opacity:.8}'+
-      '#mk-gate .er{color:#d93025;font-size:12.5px;min-height:18px;margin-top:8px}</style>'+
+      '#mk-gate .gd{margin:-4px 0 14px;padding:12px;border-radius:10px;background:rgba(0,117,74,.10);border:1px solid rgba(0,117,74,.3);font-size:12.5px;line-height:1.6}'+
+      '#mk-gate .gd .id{margin-top:10px;padding:8px 10px;border-radius:10px;background:#00754a;color:#fff;font-size:12px;line-height:1.3;box-shadow:0 0 0 3px rgba(0,117,74,.22)}#mk-gate .gd .id b{display:block;margin-top:3px;font-size:22px;font-weight:900;letter-spacing:1.5px}'+
+      '#mk-gate .er{color:#d93025;font-size:12.5px;min-height:18px;margin-top:8px}'+
+      '@media(prefers-color-scheme:dark){#mk-gate{background:#0f1311!important;color:#eef2ef!important}#mk-gate .bx{background:#171d1a!important;border-color:#2a332e!important;color:#eef2ef!important;box-shadow:0 10px 30px rgba(0,0,0,.5)!important}#mk-gate h1,#mk-gate p,#mk-gate .gd{color:#eef2ef!important}#mk-gate .gd{background:rgba(0,200,120,.12)!important;border-color:rgba(0,200,120,.35)!important}#mk-gate input{background:#0f1311!important;color:#eef2ef!important;border-color:#2f3a34!important}#mk-gate input::placeholder{color:#8a948e}#mk-gate .er{color:#ff7b72}}'+
+      ':root[data-theme="dark"] #mk-gate{background:#0f1311!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate .bx{background:#171d1a!important;border-color:#2a332e!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate h1,:root[data-theme="dark"] #mk-gate p,:root[data-theme="dark"] #mk-gate .gd{color:#eef2ef!important}:root[data-theme="dark"] #mk-gate input{background:#0f1311!important;color:#eef2ef!important;border-color:#2f3a34!important}'+
+      '</style>'+
       '<form class="bx" autocomplete="off"><h1>🔒 Mr.Kim Signal</h1><p>이 페이지에 들어가려면 암호를 입력해 주세요</p>'+
-      '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고 <b>쪽지</b>를 보내면 암호를 알려드립니다.<br><span>네이버포인트 선물 ID : <b>coolzet</b></span></div>'+
+      '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고<br><b>쪽지</b>를 보내면 암호를 알려드립니다.<div class="id">네이버포인트 선물 ID<b>coolzet</b></div></div>'+
       '<input type="password" id="mk-gate-pw" placeholder="암호" autocomplete="current-password" autofocus>'+
       '<button type="submit">확인</button><div class="er" id="mk-gate-er"></div></form>';
     document.documentElement.appendChild(o);

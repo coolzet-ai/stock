@@ -2242,23 +2242,32 @@ async function loadFinSavings(){
     if(statusEl) statusEl.textContent='⚠ PROXY_BASE가 설정되어 있지 않아 예금·적금 금리를 불러올 수 없습니다.';
     return;
   }
+  const LSK='mk_fin_savings_v1';
+  const apply=(data,cached)=>{
+    finSavingsData.deposit=data.deposit||[];
+    finSavingsData.saving=data.saving||[];
+    if(statusEl){
+      const updated=data.updated?new Date(data.updated).toLocaleString('ko-KR'):'알 수 없음';
+      statusEl.textContent='자료: 금융감독원 금융상품통합비교공시(금융상품한눈에) · 최근 수집 '+updated+' · 12개월 기준 최고우대금리순'+(cached?' · 최신 데이터 확인 중…':'');
+    }
+  };
+  /* 직전에 받은 데이터를 먼저 보여주고(즉시 표시), 서버 응답이 오면 최신으로 교체 */
+  let shown=false;
+  try{ const c=JSON.parse(localStorage.getItem(LSK)||'null'); if(c&&(c.deposit||c.saving)){ apply(c,true); shown=true; try{ renderFinSavings(); }catch(e){} } }catch(e){}
+  if(!shown&&statusEl) statusEl.textContent='예금·적금 금리를 불러오는 중… (서버 캐시가 비어 있으면 처음 한 번은 최대 1분 걸릴 수 있습니다)';
   try{
     const origin=PROXY_BASE.replace(/\?url=$/,'');
-    const r=await fetch(origin+'fin-savings',{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    const r=await fetch(origin+'fin-savings',{signal:AbortSignal.timeout?AbortSignal.timeout(80000):undefined});
     const data=r.ok?await r.json():null;
     if(data && (data.deposit || data.saving)){
-      finSavingsData.deposit=data.deposit||[];
-      finSavingsData.saving=data.saving||[];
-      if(statusEl){
-        const updated=data.updated?new Date(data.updated).toLocaleString('ko-KR'):'알 수 없음';
-        statusEl.textContent='자료: 금융감독원 금융상품통합비교공시(금융상품한눈에) · 최근 수집 '+updated+' · 12개월 기준 최고우대금리순';
-      }
-    }else{
+      apply(data,false);
+      try{ localStorage.setItem(LSK,JSON.stringify(data)); }catch(e){}
+    }else if(!shown){
       if(statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다 — Worker(/fin-savings)가 배포되어 있고 인증키가 설정됐는지 확인해주세요.';
     }
   }catch(e){
     console.warn('예금·적금 금리 로딩 실패:', e);
-    if(statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다.';
+    if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다.';
   }
   renderFinSavings();
 }
