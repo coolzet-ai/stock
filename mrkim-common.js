@@ -2123,13 +2123,16 @@ async function loadP2pOpenSoon(){
     const gridS='display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));grid-auto-rows:1fr;gap:10px;margin-top:8px';
     const SECS=[['부동산담보','🏠 부동산담보 상품'],['증권계좌담보','📈 증권계좌담보 상품'],['개인신용','💳 개인신용 상품']];
     let html='', secIdx=0;
+    const mobP2p=!!(window.matchMedia&&window.matchMedia('(max-width:700px)').matches); let budgetP2p=3;
     SECS.forEach(([cat,title])=>{
       const items=d.items.filter(x=>x.category===cat); if(!items.length) return;
       const isTop=x=>x.grade==='A+'||sRank.has(x.id);
-      const top=items.filter(isTop).sort((a,b)=>(sRank.has(b.id)-sRank.has(a.id))||(sRank.has(a.id)&&sRank.has(b.id)?sRank.get(a.id)-sRank.get(b.id):byRate(a,b)));
-      const rest=items.filter(x=>!isTop(x)).sort(byRate); const id='p2p-more-'+(secIdx++);
+      let top=items.filter(isTop).sort((a,b)=>(sRank.has(b.id)-sRank.has(a.id))||(sRank.has(a.id)&&sRank.has(b.id)?sRank.get(a.id)-sRank.get(b.id):byRate(a,b)));
+      let rest=items.filter(x=>!isTop(x)).sort(byRate); const id='p2p-more-'+(secIdx++);
+      /* 모바일: 전체 합쳐 상품 최대 3개만 먼저 보이고(우선순위 순) 나머지는 "상세보기"로 펼침 */
+      if(mobP2p){ const all=top.concat(rest), n=Math.min(budgetP2p,all.length); top=all.slice(0,n); rest=all.slice(n); budgetP2p-=n; }
       html+='<h3 style="font-size:16px;margin:22px 0 4px;font-weight:900">'+title+' <span class="mut" style="font-weight:600;font-size:12.5px">('+items.length+'건 · S급·A+ 우선, 연 수익률 높은 순)</span></h3>'+
-        (top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>')+
+        (top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':(mobP2p?'':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>'))+
         (rest.length?'<div style="text-align:center;margin-top:12px"><button type="button" class="btn sm p2p-more-btn" data-t="'+id+'" data-n="'+rest.length+'" style="padding:6px 18px">상세보기 ▼ (나머지 '+rest.length+'건)</button></div><div id="'+id+'" style="display:none"><div style="'+gridS+'">'+rest.map(card).join('')+'</div></div>':'');
     });
     if(st) st.textContent='총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
@@ -3062,16 +3065,27 @@ function buildIpoDataFromApi(items){
   });
   return grouped;
 }
-async function loadIpoListLive(){
+async function loadIpoListLive(onCached){
   if(!PROXY_BASE) return null;
+  const LSK='mk_ipo_list_v1';
+  /* 직전에 성공한 응답을 브라우저에 저장해 두었다가 먼저 보여준다(서버가 느려도 즉시 표시, 이후 최신 데이터로 교체). */
   try{
-    const origin=PROXY_BASE.replace(/\?url=$/,'');
-    // Cron이 KV 캐시를 미리 데워두지만, 캐시가 막 만료된 직후라면 서버가 연간 신규상장
-    // 전체(약 50~60종목)를 즉석에서 다시 계산해야 할 수 있어 넉넉히 잡는다.
-    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(45000):undefined});
-    if(!r.ok) return null;
+    const c=JSON.parse(localStorage.getItem(LSK)||'null');
+    if(c&&c.items&&c.items.length&&typeof onCached==='function') onCached({updated:c.updated,grouped:buildIpoDataFromApi(c.items),cached:true});
+  }catch(e){}
+  const origin=PROXY_BASE.replace(/\?url=$/,'');
+  const once=async(ms)=>{
+    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
+    if(!r.ok) throw new Error('HTTP '+r.status);
     const j=await r.json();
-    if(!j || !j.items || !j.items.length) return null;
+    if(!j||!j.items||!j.items.length) throw new Error('empty');
+    return j;
+  };
+  try{
+    let j;
+    /* 서버 캐시가 비어 있을 때만 첫 요청이 1분 가까이 걸리므로 넉넉히(80초) 기다린다. */
+    j=await once(80000);
+    try{ localStorage.setItem(LSK,JSON.stringify({updated:j.updated,items:j.items})); }catch(e){}
     return { updated: j.updated, grouped: buildIpoDataFromApi(j.items) };
   }catch(e){ console.warn('공모주(38.co.kr) 연동 실패:', e); return null; }
 }
