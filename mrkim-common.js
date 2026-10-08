@@ -1027,6 +1027,7 @@ const PROXIES=[
   u=>'https://thingproxy.freeboard.io/fetch/'+u
 ].filter(Boolean);
 
+window.MK_NET=window.MK_NET||{log:[],lastOk:0,rec:function(ok){this.log.push(ok?1:0);if(this.log.length>24)this.log.shift();if(ok)this.lastOk=Date.now();}};
 async function getJSON(url){
   const errors=[];
   for(const p of PROXIES){
@@ -1036,11 +1037,12 @@ async function getJSON(url){
       const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
       if(!r.ok){ errors.push(target.split('?')[0]+' → HTTP '+r.status); continue; }
       const j=await r.json();
-      if(j) return j;
+      if(j){ MK_NET.rec(true); return j; }
       errors.push(target.split('?')[0]+' → 빈 응답');
     }catch(e){ errors.push(target.split('?')[0]+' → '+e.message); }
   }
   console.warn('getJSON 전체 실패('+url+'):', errors);
+  MK_NET.rec(false);
   return null;
 }
 /* Yahoo 일봉 종가 배열 */
@@ -2456,7 +2458,7 @@ function renderKimVerdictBig(growthPct, psr, techD, extra){
     '<div style="padding:14px">'+
       '<div style="display:flex;align-items:stretch">'+bar+'</div>'+
       '<div style="margin-top:8px">'+reasons+totalLine+'</div>'+
-      '<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(183,121,31,.12);border:1px solid rgba(183,121,31,.45);color:var(--tx);font-size:11.5px;line-height:1.5">⚠ '+(v.hasTech?'재무(매출액증가율·PSR) + 기술(RSI·200일선·5일선) 복합 판정':'매출액증가율·PSR 기준 간이 판정')+' · 참고용이며 투자 권유가 아닙니다.</div>'+
+      '<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(183,121,31,.12);border:1px solid rgba(183,121,31,.45);color:var(--tx);font-size:11.5px;line-height:1.5">⚠ '+(v.hasTech?'재무(매출액증가율·PSR) + 기술(RSI·200일선·5일선) 복합 판정':'매출액증가율·PSR 기준 간이 판정')+' · 참고용이며 투자 권유가 아닙니다.</div>'+usVerdictFormulaHtml()+
     '</div></div>';
 }
 function renderKimVerdictBadge(growthPct, psr, techD){
@@ -2491,6 +2493,30 @@ function renderKimVerdictBadge(growthPct, psr, techD){
 function usLamp(level){ // g/y/r → 뱃지
   const m={g:['양호','#1fa463'],y:['보통','#f0b429'],r:['주의','#e5332a'],n:['—','#8a8a8a']}[level]||['—','#8a8a8a'];
   return '<span style="display:inline-block;min-width:38px;text-align:center;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;color:#fff;background:'+m[1]+'">'+m[0]+'</span>';
+}
+
+/* 판정·등급 산식 공개(접이식) — 신뢰성 고지용 */
+function usVerdictFormulaHtml(){
+  const li=t=>'<li style="margin:2px 0">'+t+'</li>';
+  return '<details style="margin-top:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)"><summary style="cursor:pointer;padding:8px 10px;font-size:12px;font-weight:800;color:var(--tx)">📐 판정 산식 보기</summary>'+
+    '<div style="padding:2px 12px 10px;font-size:12px;line-height:1.55;color:var(--tx)"><ul style="margin:6px 0 0;padding-left:18px">'+
+    li('<b>재무</b> · 매출액증가율 15%↑ +1 / 0% 이하 −1 / 그 외 0')+
+    li('<b>재무</b> · PSR 2배 미만 +1 / 8배 초과 −1 / 그 외 0 (그 밖의 추가 근거가 있으면 해당 점수 합산)')+
+    li('<b>기술</b> · RSI(14) 과매도권 쪽 +, 과열권 쪽 − (최대 ±2) / 200일선 대비 이격 −10%↓ +2 ~ +25%↑ −2 / 5일선 대비 ±4% 이상이면 ±1')+
+    li('<b>종합</b> · 기술 지표가 있으면 합계 +2 이상 <b>저평가</b>, −2 이하 <b>고평가</b>, 그 사이 <b>관망</b> (재무만 있으면 ±1 기준)')+
+    '</ul><div style="margin-top:6px;color:var(--tx2)">한계: 업종 평균·성장 지속성·시장 상황은 반영하지 않는 단순 규칙이며, 데이터가 없는 항목은 계산에서 빠집니다. 저평가/고평가는 투자 의견이 아니라 규칙상 분류입니다.</div></div></details>';
+}
+function usGradeFormulaHtml(){
+  const li=t=>'<li style="margin:2px 0">'+t+'</li>';
+  return '<details style="margin-top:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)"><summary style="cursor:pointer;padding:8px 10px;font-size:12px;font-weight:800;color:var(--tx)">📐 등급 산식 보기</summary>'+
+    '<div style="padding:2px 12px 10px;font-size:12px;line-height:1.55;color:var(--tx)"><ul style="margin:6px 0 0;padding-left:18px">'+
+    li('<b>밸류</b> · PEG 1 미만 90 / 1.5 미만 70 / 2 미만 50 / 그 외 25 (PEG 없으면 PER 15·25·40 기준) + PSR 2·5·10 기준의 평균')+
+    li('<b>성장</b> · 매출증가율 30%↑ 95 / 15%↑ 80 / 5%↑ 60 / 0%↑ 45 / 그 외 20')+
+    li('<b>수익성</b> · 영업이익률 30%↑ 95 / 20%↑ 85 / 10%↑ 65 / 0%↑ 45 / 그 외 20')+
+    li('<b>모멘텀</b> · 최근 1년 수익률 50%↑ 90 / 20%↑ 75 / 0%↑ 55 / −20%↑ 40 / 그 외 20')+
+    li('<b>이익수정</b> · 올해 EPS 추정치 90일 변화 +5%↑ 90 ~ −5%↓ 20 (없으면 상향/하향 건수)')+
+    li('<b>등급</b> · 80점↑ A, 65↑ B, 50↑ C, 35↑ D, 미만 F · 종합은 가용 항목 평균')+
+    '</ul><div style="margin-top:6px;color:var(--tx2)">절대 기준을 자체 설정한 값으로 Seeking Alpha 등 외부 평가와 무관하며, 업종별 차이를 보정하지 않습니다. 데이터 출처(Yahoo Finance)의 지연·오류가 그대로 반영될 수 있습니다.</div></div></details>';
 }
 function usGradeOf(score){
   if(score==null) return {g:'—',c:'var(--tx2)'};
@@ -2561,7 +2587,7 @@ function kimGradeCard(it, techD, opt){
     line('👍','강점','<b>'+NM[best]+' '+usGradeOf(fs[best]).g+'</b> · '+D[best](),'#1fa463')+
     line('⚠','주의','<b>'+NM[worst]+' '+usGradeOf(fs[worst]).g+'</b> · '+D[worst](),'#e5332a')+
     line('📌','결론',G.g==='A'||G.g==='B'?'강점이 약점을 앞섭니다. 밸류·추세를 확인하며 분할 접근을 고려할 수 있습니다.':G.g==='C'?'강점과 약점이 엇갈립니다. 약점 지표가 개선되는지 지켜볼 구간입니다.':'약점이 두드러집니다. 비중을 줄이거나 관망이 낫습니다.','var(--accent)')+'</div>'+
-    '<div class="mut" style="font-size:10.5px;margin-top:8px">자체 계산 절대 기준 등급(Seeking Alpha 공식 등급 아님) · 참고용이며 투자 권유가 아닙니다.</div></div>';
+    '<div class="mut" style="font-size:10.5px;margin-top:8px">자체 계산 절대 기준 등급(Seeking Alpha 공식 등급 아님) · 참고용이며 투자 권유가 아닙니다.</div>'+usGradeFormulaHtml()+'</div>';
 }
 
 function renderUsFinancialRatios(it, techD, opt){

@@ -22,6 +22,21 @@
   }
   function fmt(v,d){ return v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 
+  /* ⑩ 신뢰성: 데이터 상태 띠 · 카드별 출처/갱신 · 로딩 정체 감시 */
+  var pad2z=function(n){ return n<10?'0'+n:''+n; };
+  var hhmm=function(d){ d=d||new Date(); return pad2z(d.getHours())+':'+pad2z(d.getMinutes()); };
+  var MKT=window.MKT={meta:{},retry:{},
+    line:function(id){ var c=document.getElementById(id); if(!c) return null; var l=c.querySelector(':scope > .src-line'); if(!l){ l=document.createElement('div'); l.className='src-line'; var h=c.querySelector(':scope > h3'); if(h) h.after(l); else c.prepend(l); } return l; },
+    set:function(id,st){ var l=MKT.line(id); if(!l) return; var m=MKT.meta[id]||'';
+      if(st==='ok'){ l.className='src-line'; l.innerHTML='<span>ⓘ 출처 · '+m+'</span><b>갱신 '+hhmm()+'</b>'; }
+      else if(st==='static'){ l.className='src-line'; l.innerHTML='<span>ⓘ '+m+'</span>'; }
+      else { l.className='src-line fail'; l.innerHTML='<span>⚠ 갱신 실패 — 마지막으로 불러온 값(또는 빈 화면)이 표시 중입니다 · '+m+'</span>'; var b=document.createElement('button'); b.type='button'; b.textContent='다시 시도'; b.onclick=function(){ b.disabled=true; b.textContent='불러오는 중…'; (MKT.retry[id]||function(){ location.reload(); })(); }; l.appendChild(b); } }
+  };
+  MKT.meta['pro-sector']='Yahoo Finance(섹터 ETF) · 최대 15분 지연 가능';
+  MKT.meta['pro-int']='Yahoo Finance · TradingView · 5분 주기';
+  MKT.meta['pro-cal']='TradingView 경제캘린더 · 5분 캐시 · 일정은 변경될 수 있음';
+  MKT.meta['pro-fwd']='CNN 공포탐욕지수 × SPY 종가 과거 통계(고정) · 과거 성과는 미래를 보장하지 않음';
+
   /* ① 티커 띠 */
   var TICK=[['^GSPC','S&P 500',2],['^IXIC','나스닥',2],['^DJI','다우',0],['^RUT','러셀2000',2],['^VIX','VIX',2],['DX-Y.NYB','달러인덱스',2],['^TNX','미10년',3,'%'],['CL=F','WTI',2],['GC=F','금',1],['BTC-USD','비트코인',0],['KRW=X','USD/KRW',1]];
   var hd=document.querySelector('header'), bar=null;
@@ -77,10 +92,10 @@
     var loadSec=async function(){
       var res=await Promise.all(SEC.map(function(s){ return quote(s[0]); }));
       res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; el.style.background=mix(q.pct); el.style.color=Math.abs(q.pct)>1?'#fff':'#111418'; el.querySelector('em').textContent=(q.pct>=0?'▲ +':'▼ ')+Math.abs(q.pct).toFixed(2)+'%'; });
-      var okq=res.filter(Boolean), u=okq.filter(function(q){return q.pct>0;}).length, d=okq.filter(function(q){return q.pct<0;}).length, sm=document.getElementById('shm-sum');
+      var okq=res.filter(Boolean); MKT.set('pro-sector',okq.length?'ok':'fail'); var u=okq.filter(function(q){return q.pct>0;}).length, d=okq.filter(function(q){return q.pct<0;}).length, sm=document.getElementById('shm-sum');
       if(sm&&okq.length) sm.innerHTML='<div class="ss-bar"><i style="width:'+(u/okq.length*100)+'%;background:'+UP+'"></i><i style="width:'+((okq.length-u-d)/okq.length*100)+'%;background:#C9CED4"></i><i style="width:'+(d/okq.length*100)+'%;background:'+DN+'"></i></div><div class="ss-lb"><b style="color:'+UP+'">▲ 상승 '+u+'개</b><span>'+(okq.length-u-d?'보합 '+(okq.length-u-d)+'개':'')+'</span><b style="color:'+DN+'">하락 '+d+'개 ▼</b></div>';
     };
-    loadSec(); setInterval(loadSec,120000);
+    MKT.retry['pro-sector']=loadSec; loadSec(); setInterval(loadSec,120000);
   }
   var FWD={"range": ["2019-05-31", "2026-09-09"], "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 533, 1.56, 2.14, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
 
@@ -204,10 +219,10 @@
     CAL.rows=buildFallback(); drawCal();
     document.getElementById('pc-note').textContent='제목을 누르면 발표 기관 페이지로 이동합니다 · 예상·이전·결과는 집계 서버 연결 시 표시됩니다.';
 
-    var wj=async function(path){ try{ var r=await fetch(WORKER+path,{signal:AbortSignal.timeout?AbortSignal.timeout(9000):undefined}); if(!r.ok) return {err:'HTTP '+r.status}; var j=await r.json(); return j&&!j.error?j:{err:(j&&j.error)||'빈 응답'}; }catch(e){ return {err:String(e.message||e)}; } };
+    var wj=async function(path){ try{ var r=await fetch(WORKER+path,{signal:AbortSignal.timeout?AbortSignal.timeout(9000):undefined}); if(!r.ok){ window.MK_NET&&MK_NET.rec(false); return {err:'HTTP '+r.status}; } var j=await r.json(); var okj=j&&!j.error; window.MK_NET&&MK_NET.rec(!!okj); return okj?j:{err:(j&&j.error)||'빈 응답'}; }catch(e){ window.MK_NET&&MK_NET.rec(false); return {err:String(e.message||e)}; } };
     var loadEcon=async function(){
       var j=await wj('/us-econ?days=14');
-      if(!j||j.err||!j.events||!j.events.length) return;
+      if(!j||j.err||!j.events||!j.events.length){ MKT.set('pro-cal','fail'); return; }
       var KEYRE=/FOMC|Fed Chair|Powell|Nonfarm|Unemployment Rate|Jobless Claims|GDP|PCE|ISM|Retail Sales MoM|Core Inflation|Inflation Rate/i;
       CAL.rows=j.events.map(function(e){
         var d=new Date(e.t); var k=new Date(d.getTime()+9*3600000);
@@ -215,10 +230,10 @@
       }).sort(function(a,b){return a.d-b.d;});
       /* 표시 시각은 한국시간이지만 날짜 구분도 한국 기준으로 */
       CAL.rows.forEach(function(r){ var k=new Date(r.d.getTime()+9*3600000); r.d=new Date(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate(),k.getUTCHours(),k.getUTCMinutes()); });
-      CAL.mode='live'; drawCal();
+      CAL.mode='live'; drawCal(); MKT.set('pro-cal','ok');
       document.getElementById('pc-note').innerHTML='출처: TradingView 경제캘린더(집계 서버 경유, 5분 캐시) · 미국 · 시각은 한국시간(KST). 예상치는 발표가 임박해야 채워지는 항목이 많습니다. 결과가 예상보다 크면 <b style="color:var(--up)">상회(빨강)</b>, 작으면 <b style="color:var(--down)">하회(파랑)</b>입니다.';
     };
-    loadEcon(); setInterval(loadEcon,300000);
+    MKT.retry['pro-cal']=loadEcon; loadEcon(); setInterval(loadEcon,300000);
 
     /* ── VIX 기간구조 곡선 ── */
     var vixSvg=function(pts,st,cw){
@@ -256,6 +271,7 @@
         stt.innerHTML='<div><span>3개월−30일 스프레드</span><b class="'+(sp>=0?'':'warn')+'">'+sg(sp)+'pt ('+sg(sp/v[1]*100,1)+'%)</b></div><div><span>9일 ÷ 30일</span><b class="'+(v[0]/v[1]>1?'warn':'')+'">'+(v[0]/v[1]).toFixed(2)+'</b></div><div><span>6개월−9일</span><b>'+sg(v[3]-v[0])+'pt</b></div>';
         nt.innerHTML='<div class="vts-def">※ <b>'+(st==='norm'?'콘탱고(정상)':st==='inv'?'백워데이션(역전)':'혼조')+'</b> : '+(st==='norm'?'만기가 길수록 VIX가 높은 평시 구조 — 시장이 당장은 안정적이라고 본다는 뜻입니다.':st==='inv'?'단기 VIX가 장기보다 높은 구조 — 당장의 불안이 크다는 경고 신호입니다.':'기간별 VIX 순서가 일정하지 않아 방향이 불분명한 상태입니다.')+'</div>'+(st==='inv'?'<b style="color:var(--up)">곡선이 우하향(역전)</b> — 단기 변동성이 중장기보다 높아 지금 당장의 불안이 크다는 신호입니다.':st==='norm'?'<b>곡선이 우상향(정상)</b> — 단기 &lt; 장기 순으로 올라가는 평시 구조입니다. 기울기가 가파를수록 시장은 안정적이지만 미래 변동성에 대한 보험료도 높게 매겨진 상태입니다.':'곡선이 일부 구간에서 꺾여 있어 방향이 뚜렷하지 않습니다.');
       } else { box.innerHTML='<div class="pi-note">VIX 기간구조 데이터를 불러오지 못했습니다.</div>'; bd.textContent='--'; }
+      MKT.set('pro-int',ok?'ok':'fail');
       var IX=['SPY','QQQ','IWM','RSP'];
       var hs=await Promise.all(IX.map(hist));
       document.getElementById('pi-tr').innerHTML=IX.map(function(sy,i){ var h=hs[i];
@@ -267,7 +283,7 @@
           '<div class="tr-bar"><i class="fill" style="width:'+pos(h.p)+'%"></i>'+(h.m200?'<u class="m m200" style="left:'+pos(h.m200)+'%"></u>':'')+'<u class="m m50" style="left:'+pos(h.m50)+'%"></u><u class="px" style="left:'+pos(h.p)+'%"></u></div>'+
           '<div class="tr-sc"><span>저점 '+fmt(h.lo,0)+'</span><span>고점 '+fmt(h.hi,0)+'</span></div></div>'; }).join('');
     };
-    loadInt(); setInterval(loadInt,300000);
+    MKT.retry['pro-int']=loadInt; loadInt(); setInterval(loadInt,300000);
   }
 
   /* ⑤ 지수 편입·편출 — 지수 선택(전체 / S&P500 / 나스닥100) */
@@ -378,5 +394,40 @@
     }
     var cnn=document.getElementById('us-sub'); if(cnn) mf(cnn.closest('.card'));
     mf(document.getElementById('pro-int')); mf(document.getElementById('pro-fwd'));
+  })();
+
+  /* ⑩-b 데이터 상태 띠 + 정적 카드 + 로딩 정체 감시 */
+  (function(){
+    MKT.set('pro-fwd','static'); var fm=document.getElementById('pro-fwd'); if(fm){ var l=fm.querySelector('.src-line'); if(l) l.innerHTML='<span>ⓘ '+MKT.meta['pro-fwd']+' · 기준일 '+FWD.range[1]+'</span>'; }
+    if(!hd) return;
+    var st=document.createElement('div'); st.id='pro-status';
+    st.innerHTML='<span class="ps-mk" id="ps-mk"></span><span class="ps-net" id="ps-net"></span><span class="ps-t" id="ps-t"></span><span class="ps-n">무료 공개 시세(Yahoo Finance·TradingView·CNN) 기반 · 지연·오류 가능 · 투자 판단 참고용</span><button type="button" id="ps-rf">↻ 새로고침</button>';
+    hd.after(st);
+    document.getElementById('ps-rf').onclick=function(){ location.reload(); };
+    var dtf=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false});
+    var mkt=function(){ var p={}; dtf.formatToParts(new Date()).forEach(function(x){p[x.type]=x.value;}); var m=(parseInt(p.hour,10)%24)*60+parseInt(p.minute,10), wd=p.weekday;
+      if(wd==='Sat'||wd==='Sun') return ['휴장(주말)','c'];
+      if(m>=570&&m<960) return ['정규장 진행 중','o']; if(m>=240&&m<570) return ['프리마켓','p']; if(m>=960&&m<1200) return ['애프터마켓','p']; return ['장 마감','c']; };
+    var upd=function(){
+      var a=mkt(), mk=document.getElementById('ps-mk'); mk.className='ps-mk '+a[1]; mk.textContent='미국장 '+a[0]; mk.title='뉴욕시간 기준 자동 계산 · 공휴일 휴장은 반영되지 않습니다(휴장일에는 직전 종가가 표시됩니다).';
+      var N=window.MK_NET||{log:[],lastOk:0}, lg=N.log.slice(-20), fails=lg.filter(function(x){return !x;}).length, ratio=lg.length?fails/lg.length:0, age=N.lastOk?(Date.now()-N.lastOk)/1000:null;
+      var cls,txt;
+      if(!lg.length){ cls='w'; txt='데이터 확인 중'; }
+      else if(age!=null&&age>600){ cls='r'; txt='갱신 지연 ('+Math.round(age/60)+'분 전 마지막 성공)'; }
+      else if(ratio<=.15){ cls='g'; txt='데이터 정상'; }
+      else if(ratio<=.5){ cls='w'; txt='일부 데이터 지연'; }
+      else { cls='r'; txt='데이터 연결 불안정'; }
+      var n=document.getElementById('ps-net'); n.className='ps-net '+cls; n.textContent='● '+txt;
+      document.getElementById('ps-t').textContent=N.lastOk?'마지막 갱신 '+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
+    };
+    upd(); setInterval(upd,5000);
+    /* "불러오는 중…"이 오래 남은 곳은 실패 안내 + 재시도 버튼으로 교체 */
+    var watch=function(){
+      document.querySelectorAll('.mut,.pi-note').forEach(function(e){
+        if((e.textContent||'').trim()!=='불러오는 중…'||e.dataset.wd) return; e.dataset.wd='1';
+        e.innerHTML='⚠ 데이터를 불러오지 못했습니다 (제공처 지연·차단 가능) <button type="button" class="net-retry">다시 시도</button>';
+        e.querySelector('button').onclick=function(){ location.reload(); }; e.classList.add('net-fail'); });
+    };
+    setTimeout(watch,30000); setTimeout(watch,75000);
   })();
 })();

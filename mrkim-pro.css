@@ -501,3 +501,32 @@ body.pro{
 @media(max-width:700px){.pro .tabrow{display:grid;grid-template-columns:1fr;gap:8px}.pro .tabrow .tabs,.pro .tabrow .seg{display:grid;grid-auto-columns:1fr;width:100%}}
 .pro #evmonth-tabs button{border-right:1px solid #E1E4E8!important;border-left:0!important}
 .pro #evmonth-tabs button:nth-child(6),.pro #evmonth-tabs button:nth-child(12){border-right:0!important}
+/* v10: 시장 한눈에 보기 탭 — 모바일 3열 격자(급락주 잘림 방지) */
+@media(max-width:700px){
+  .pro .pulse .hm-t{display:grid!important;grid-template-columns:repeat(3,1fr);width:100%;box-sizing:border-box;overflow:hidden}
+  .pro .pulse .hm-t button{padding:9px 2px!important;font-size:12.5px!important;white-space:nowrap;border-bottom:1px solid #E1E4E8!important}
+  .pro .pulse .hm-t button:nth-child(3n){border-right:0!important}
+  .pro .pulse .hm-t button:nth-child(n+4){border-bottom:0!important}
+}
+/* 편입·편출 기간 탭도 지수 탭과 같은 분할형으로 */
+.pro .tabrow .tabs button{border:0!important;border-right:1px solid #E1E4E8!important;border-radius:0!important;background:#fff;color:#4B5563}
+.pro .tabrow .tabs button:last-child{border-right:0!important}
+.pro .tabrow .tabs button.on{background:#0A6B48!important;color:#fff!important}
+
+/* v11: 신뢰성 표시 */
+#pro-status{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:6px 16px;background:#F4F7F5;border-bottom:1px solid #D5DCD8;font-size:12px;color:#344054}
+#pro-status span{white-space:nowrap}
+#pro-status .ps-n{color:#667085;white-space:normal;flex:1 1 220px}
+#pro-status .ps-mk,#pro-status .ps-net{font-weight:800;padding:2px 9px;border-radius:999px;color:#fff;background:#667085}
+#pro-status .ps-mk.o{background:#0A6B48}#pro-status .ps-mk.p{background:#B7791F}#pro-status .ps-mk.c{background:#667085}
+#pro-status .ps-net.g{background:#0A6B48}#pro-status .ps-net.w{background:#B7791F}#pro-status .ps-net.r{background:#D92D20}
+#pro-status button{font:inherit;font-size:12px;font-weight:700;padding:3px 10px;border:1px solid #0A6B48;border-radius:4px;background:#fff;color:#0A6B48;cursor:pointer}
+#pro-status button:hover{background:#0A6B48;color:#fff}
+.pro .src-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:-6px 0 10px;padding:6px 10px;border-radius:6px;background:#F4F7F5;font-size:11.5px;line-height:1.45;color:#475467}
+.pro .src-line b{margin-left:auto;color:#0A6B48;font-weight:800}
+.pro .src-line.fail{background:#FEF3F2;color:#B42318;border:1px solid #FDA29B}
+.pro .src-line button,.pro .net-retry{font:inherit;font-size:11.5px;font-weight:700;padding:2px 10px;border:1px solid #B42318;border-radius:4px;background:#fff;color:#B42318;cursor:pointer;margin-left:6px}
+.pro .net-fail{color:#B42318!important}
+.pro .m-fold:not(.m-open)>.src-line{display:none!important}
+@media(max-width:700px){#pro-status{padding:6px 12px}#pro-status .ps-n{flex-basis:100%}}
+.pro .data-notice{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12.5px;line-height:1.65;color:var(--tx)}
