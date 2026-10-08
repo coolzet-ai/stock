@@ -3,7 +3,7 @@
   const SUM={
     '주요 지수 ETF 상대수익률 비교':()=>'지수 5종 · 그래프 + 상관관계',
     '김군 관심종목':()=>document.querySelectorAll('#tick-tbl .wl-row').length+'종목',
-    '시가총액 TOP10':()=>'TOP10 (+11~20위)',
+    '시가총액 TOP10':()=>'TOP10 (+11~30위)',
     '레버리지 ETF':()=>document.querySelectorAll('#lev-tbl .wl-row').length+'종목',
     '유니콘 기업':()=>{ const n=[...document.querySelectorAll('#unicorn .card a[href^="https://www."]')].map(a=>a.textContent.trim()).filter(Boolean).slice(0,4); return document.querySelectorAll('#unicorn .card').length+'개사'+(n.length?' · '+n.join('·'):''); },
     '주요 이벤트 일정':()=>(new Date().getMonth()+1)+'월 일정 · 휴장일 · 월별 보기',

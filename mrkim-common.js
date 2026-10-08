@@ -1586,6 +1586,7 @@ const TICKGROUPS={
   tick:{table:'tick-tbl', list:['QLD','USD','ROM','SCHD','JEPQ','DRAM','RAM','GLDM','SLVP']},
   cap: {table:'cap-tbl',  list:['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA']},
   cap2:{table:'cap2-tbl', list:['MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ']},
+  cap3:{table:'cap3-tbl', list:['MA','ABBV','CSCO','BAC','AMAT','COST','CAT','CVX','UNH','LRCX']},
   krcap2:{table:'krcap2-tbl', list:['012450.KS','034020.KS','055550.KS','006400.KS','329180.KS','000270.KS','034730.KS','068270.KS','066570.KS','086790.KS'], cur:'₩', fmt:fmtWon},
   krkq2:{table:'krkq2-tbl', list:['028300.KQ','000250.KQ','403870.KQ','319660.KQ','095340.KQ','440110.KQ','031980.KQ','084370.KQ','067310.KQ','131290.KQ'], cur:'₩', fmt:fmtWon},
   idxchg:{table:'idxchg-tbl', list:['ILMN','BE','TTD','BLDR','TAP','FERG','RDDT','EA','AVB','CRWV','MRVL','NBIS','ALAB','RKLB','TER','FLEX','POOL','CPB']},
@@ -1664,13 +1665,15 @@ async function fillKrRowStats(tableId){
 /* ===== 시가총액 11~20위 "더 보기" — 클릭 시 행 생성 + 시세 로딩 ===== */
 const MORE_LOADED={};
 const US_MORE=[['MU','마이크론'],['BRK-B','버크셔해서웨이'],['AMD','AMD'],['LLY','일라이릴리'],['JPM','JP모건'],['WMT','월마트'],['V','비자'],['XOM','엑슨모빌'],['INTC','인텔'],['JNJ','존슨앤드존슨']];
+/* 21~30위: americancompanies.com 시가총액 순위(2026-10-08 기준) 중 11~20위 목록에 없는 종목을 순서대로 */
+const US_MORE3=[['MA','마스터카드'],['ABBV','애브비'],['CSCO','시스코'],['BAC','뱅크오브아메리카'],['AMAT','어플라이드머티리얼즈'],['COST','코스트코'],['CAT','캐터필러'],['CVX','셰브론'],['UNH','유나이티드헬스'],['LRCX','램리서치']];
 const KRCAP_MORE=[['012450','KS','한화에어로스페이스',53.3],['034020','KS','두산에너빌리티',52.1],['055550','KS','신한지주',48.7],['006400','KS','삼성SDI',46.2],['329180','KS','HD현대중공업',44.2],['000270','KS','기아',44.0],['034730','KS','SK',42.5],['068270','KS','셀트리온',42.4],['066570','KS','LG전자',37.9],['086790','KS','하나금융지주',35.0]];
 const KRKQ_MORE=[['028300','KQ','HLB',6.3],['000250','KQ','삼천당제약',5.8],['403870','KQ','HPSP',5.7],['319660','KQ','피에스케이',4.5],['095340','KQ','ISC',4.4],['440110','KQ','파두',4.3],['031980','KQ','피에스케이홀딩스',4.3],['084370','KQ','유진테크',4.1],['067310','KQ','하나마이크론',3.5],['131290','KQ','티에스이',3.4]];
 function moreRowsHtml(g){
   const act=(links)=>'<div class="wl-actions">'+links+'</div>';
-  if(g==='cap2') return US_MORE.map((r,i)=>{
+  if(g==='cap2'||g==='cap3') return (g==='cap3'?US_MORE3:US_MORE).map((r,i)=>{
     const t=r[0], q=encodeURIComponent('$'+t+' from:trendspider');
-    return '<div class="wl-row" data-t="'+t+'"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">'+(11+i)+'위 · '+r[1]+'</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener">'+t+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
+    return '<div class="wl-row" data-t="'+t+'"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">'+((g==='cap3'?21:11)+i)+'위 · '+r[1]+'</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener">'+t+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
       act('<a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener" title="Finviz에서 '+t+' 상세 지표 보기">+</a><a href="https://x.com/search?q='+q+'&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 '+t+' 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/'+t+'/news/" target="_blank" rel="noopener" class="news-link" title="'+t+' 관련 최신 뉴스 보기">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials(\''+t+'\')" title="재무비율·주가지표(Yahoo Finance)">재무</button>')+'</div>'+
       '<div id="fin-'+t+'" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>';
   }).join('');
@@ -1685,15 +1688,15 @@ function moreRowsHtml(g){
 async function toggleMoreRows(g){
   const wrap=document.getElementById(g+'-wrap'), btn=document.getElementById(g+'-btn'); if(!wrap) return;
   const open=wrap.style.display!=='none';
-  if(open){ wrap.style.display='none'; if(btn) btn.textContent='11~20위 더 보기 ▾'; return; }
-  wrap.style.display='block'; if(btn) btn.textContent='11~20위 접기 ▴';
+  if(open){ wrap.style.display='none'; if(btn) btn.textContent=(g==='cap3'?'21~30위':'11~20위')+' 더 보기 ▾'; return; }
+  wrap.style.display='block'; if(btn) btn.textContent=(g==='cap3'?'21~30위':'11~20위')+' 접기 ▴';
   if(!MORE_LOADED[g]){
     MORE_LOADED[g]=true;
     const tbl=document.getElementById(TICKGROUPS[g].table);
     tbl.innerHTML=moreRowsHtml(g);
-    curPer[g]=curPer[g.replace(/2$/,'')]||'d';
+    curPer[g]=curPer[g.replace(/[23]$/,'')]||'d';
     await loadTickGroup(g);
-    if(g==='cap2') fillUsRowStats('cap2-tbl',2); else fillKrRowStats(TICKGROUPS[g].table);
+    if(g==='cap2') fillUsRowStats('cap2-tbl',2); else if(g==='cap3'){} else fillKrRowStats(TICKGROUPS[g].table);
   }
 }
 const tickData={};
@@ -1887,7 +1890,7 @@ document.querySelectorAll('.tabs').forEach(box=>{
     b.classList.add('on');
     const g=box.dataset.group,p=b.dataset.p;
     curPer[g]=p;
-    if(TICKGROUPS[g]){ renderTick(g,p); if(TICKGROUPS[g+'2']&&MORE_LOADED[g+'2']){ curPer[g+'2']=p; renderTick(g+'2',p); } }
+    if(TICKGROUPS[g]){ renderTick(g,p); if(TICKGROUPS[g+'2']&&MORE_LOADED[g+'2']){ curPer[g+'2']=p; renderTick(g+'2',p); } if(TICKGROUPS[g+'3']&&MORE_LOADED[g+'3']){ curPer[g+'3']=p; renderTick(g+'3',p); } }
     else if(g==='us') renderUS(p);
     else if(g==='cf') renderCF(p);
     else if(g==='coin') renderCoin(p);
