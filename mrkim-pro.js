@@ -465,7 +465,7 @@
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); openAndGo(document.querySelector(a.getAttribute('href'))); });
     /* 목차 */
     var toc=document.createElement('nav'); toc.id='pro-toc'; toc.setAttribute('aria-label','페이지 목차');
-    var ITEMS=[['요약','#pro-brief'],['공탐','h:공포탐욕지수'],['섹터','#pro-sector'],['내부지표','#pro-int'],['일정','#pro-cal'],['지수비교','h:주요 지수 ETF'],['관심종목','h:김군 관심종목'],['시총 TOP10','h:시가총액'],['레버리지','h:레버리지'],['유니콘','h:유니콘'],['이벤트','h:주요 이벤트'],['편입·편출','h:지수 편입']];
+    var ITEMS=[['요약','#pro-brief'],['공탐','#us-card'],['섹터','#pro-sector'],['내부지표','#pro-int'],['일정','#pro-cal'],['지수비교','h:주요 지수 ETF'],['관심종목','h:김군 관심종목'],['시총 TOP10','h:시가총액'],['레버리지','h:레버리지'],['유니콘','h:유니콘'],['이벤트','h:주요 이벤트'],['편입·편출','h:지수 편입']];
     toc.innerHTML=ITEMS.map(function(it,i){ return '<a href="#" data-i="'+i+'">'+it[0]+'</a>'; }).join('');
     var hd2=document.querySelector('header'), st2=document.getElementById('pro-status'); (st2||hd2).after(toc);
     var place=function(){ toc.style.top=(hd2?hd2.offsetHeight:0)+'px'; }; place(); window.addEventListener('resize',place); setTimeout(place,1500);
