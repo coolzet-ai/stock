@@ -2676,7 +2676,14 @@ const LEV_META={
   FAS:{u:'XLF', L:3, nm:'금융 3배'},
   LABU:{u:'XBI', L:3, nm:'바이오텍 3배'},
   HIBL:{u:'SPHB',L:3, nm:'S&P500 고베타 3배'},
-  KORU:{u:'EWY', L:3, nm:'한국 3배'}
+  KORU:{u:'EWY', L:3, nm:'한국 3배'},
+  '122630.KS':{u:'^KS200',L:2,nm:'코스피200 2배',kr:1},
+  '243880.KS':{u:'139260.KS',L:2,nm:'코스피200 IT 2배(기초 대용 TIGER 200IT)',kr:1},
+  '494310.KS':{u:'091160.KS',L:2,nm:'반도체 2배(기초 대용 KODEX 반도체)',kr:1},
+  '0080Y0.KS':{u:'466920.KS',L:2,nm:'조선 TOP3 플러스 2배(기초 대용 SOL 조선TOP3플러스)',kr:1},
+  '233740.KS':{u:'229200.KS',L:2,nm:'코스닥150 2배(기초 대용 KODEX 코스닥150)',kr:1},
+  '0193T0.KS':{u:'000660.KS',L:2,nm:'SK하이닉스 단일종목 2배',kr:1},
+  '0193W0.KS':{u:'005930.KS',L:2,nm:'삼성전자 단일종목 2배',kr:1}
 };
 const LEV_UND_CACHE={};
 function levStats(etf, und, L){
@@ -2714,7 +2721,7 @@ function levInvestorHtml(ticker, info, etfD, undD){
   let h='<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:900;margin-bottom:8px">🧭 투자자 체크패널 — '+ticker+' <span class="mut" style="font-weight:600">('+m.nm+' · 기초 '+m.u+')</span></div>';
   // 1) 비용·규모
   const exp=info&&info.expenseRatio, aum=info&&info.totalAssets;
-  h+='<div style="font-size:11.5px;font-weight:800;color:var(--tx2);margin:6px 0">① 비용 · 규모 · 유동성</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">'+
+  if(!m.kr) h+='<div style="font-size:11.5px;font-weight:800;color:var(--tx2);margin:6px 0">① 비용 · 규모 · 유동성</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">'+
     cell('총보수(연)',exp!=null?(exp*100).toFixed(2)+'%':'—',exp!=null?'1억 보유 시 연 '+Math.round(exp*1e8/10000).toLocaleString('ko-KR')+'만원':'',exp!=null&&exp>=0.01?'var(--up)':null)+
     cell('순자산(AUM)',money(aum),aum!=null?(aum>=1e9?'규모 충분 · 청산 위험 낮음':aum>=2e8?'보통':'소형 · 상장폐지 위험 점검'):'',null)+
     cell('배당수익률',info&&info.yield!=null?(info.yield*100).toFixed(2)+'%':'—','레버리지는 배당이 작음',null)+
@@ -2725,7 +2732,7 @@ function levInvestorHtml(ticker, info, etfD, undD){
       cell('연환산 변동성',st.vol.toFixed(0)+'%','일간 수익률 표준편차×√252',st.vol>=80?'var(--up)':null)+
       cell('최대 낙폭(MDD)',st.mdd.toFixed(1)+'%','1년 내 고점→저점','var(--down)')+
       cell('현재 고점 대비',st.fromPeak.toFixed(1)+'%',st.fromPeak<=-30?'깊은 조정 구간 · 분할 접근':st.fromPeak>=-5?'고점 부근 · 추격 주의':'',colr(st.fromPeak))+
-      cell('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −33% 일간 하락 시 전손',st.worstDay<=-15?'var(--down)':null)+'</div>';
+      cell('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'var(--down)':null)+'</div>';
     // 3) 레버리지 구조 비용
     h+='<div style="font-size:11.5px;font-weight:800;color:var(--tx2);margin:12px 0 6px">③ 레버리지 구조 — 복리 감쇠 점검</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">';
     if(st.undRet!=null){
@@ -5734,6 +5741,24 @@ async function hydrateIpoQuotes(){
     const row=e.target.closest('.wl-row'); if(!row||!row.dataset.c) return;
     openRainbow(row);
   });
+  /* 종목명 옆: 레인보우 현재 구간 단계 이모티콘 (마우스를 올리면/길게 누르면 구간명 표시) */
+  const RB_EMO=['🥶','🧊','🌱','🙂','😐','😅','🔥','🚨','💥'];
+  const rbZoneNow={};
+  function applyRbBadges(){
+    document.querySelectorAll('#coin-tbl .wl-row[data-c]').forEach(row=>{
+      const z=rbZoneNow[row.dataset.c]; if(z==null) return;
+      const nm=row.querySelector('.wl-name'); if(!nm) return;
+      let b=nm.querySelector('.rb-badge');
+      if(!b){ b=document.createElement('span'); b.className='rb-badge'; b.style.cssText='margin-left:6px;font-size:15px;cursor:help;vertical-align:middle'; nm.appendChild(b); }
+      b.textContent=RB_EMO[z]; b.title='레인보우 현재 구간: '+RB[z][1];
+    });
+  }
+  (async function(){
+    for(const id of Object.keys(RB_NAME)){
+      try{ const D=await rbData(id); if(D){ rbZoneNow[id]=rbZone(D,D.px.length-1)[0]; applyRbBadges(); } }catch(e){}
+    }
+  })();
+  const _rc2=renderCoin; renderCoin=function(p){ _rc2(p); try{applyRbBadges();}catch(e){} };
 })();
 
 /* ================= 가상화폐: ETF 순유입 차트 (코인 행 오른쪽 + 버튼) =================

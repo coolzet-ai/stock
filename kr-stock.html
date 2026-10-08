@@ -322,7 +322,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
  #kr-events-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
  #kr-events-tbl tr.ev-hi td:first-child{border-left:0!important}#kr-events-tbl tr.ev-hi{border-left:3px solid #a01810}
 }
-</style><script src="mrkim-gate.js?v=20261007zv"></script>
+</style><script src="mrkim-gate.js?v=20261007zw"></script>
+<style>
+/* 시장 한눈에 보기: 티커명 영역 높이 고정(글자 크기가 달라도 가격 블록 시작 위치 동일) · 등락 화살표 */
+.pulse .hm div.tl>span{display:flex;align-items:center;height:36px;padding-top:0;padding-bottom:0;line-height:1.2}
+.pulse .hm div.tl.big>span{height:40px}
+.pulse .hm div.tl small b.hm-chg{font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+</style>
 </head>
 <body>
 
@@ -516,16 +522,23 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <div class="scroll">
       <div class="wl-list" id="krlev-tbl">
-          <div class="wl-row" data-t="122630.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">코스피200 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=122630" target="_blank" rel="noopener" title="KODEX 레버리지 네이버 증권">KODEX 레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=122630" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/122630.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="243880.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">코스피200 IT 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=243880" target="_blank" rel="noopener" title="TIGER 200IT레버리지 네이버 증권">TIGER 200IT레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=243880" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/243880.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="494310.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">반도체 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=494310" target="_blank" rel="noopener" title="KODEX 반도체레버리지 네이버 증권">KODEX 반도체레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=494310" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/494310.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="0080Y0.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">조선 TOP3 플러스 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0080Y0" target="_blank" rel="noopener" title="SOL 조선TOP3플러스레버리지 네이버 증권">SOL 조선TOP3플러스레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0080Y0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0080Y0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="233740.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">코스닥150 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=233740" target="_blank" rel="noopener" title="KODEX 코스닥150레버리지 네이버 증권">KODEX 코스닥150레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=233740" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/233740.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="0193T0.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">SK하이닉스 단일종목 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0193T0" target="_blank" rel="noopener" title="KODEX SK하이닉스단일종목레버리지 네이버 증권">KODEX SK하이닉스단일종목레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0193T0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0193T0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
-          <div class="wl-row" data-t="0193W0.KS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">삼성전자 단일종목 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0193W0" target="_blank" rel="noopener" title="KODEX 삼성전자단일종목레버리지 네이버 증권">KODEX 삼성전자단일종목레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0193W0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0193W0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div class="wl-row" data-t="122630.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('122630.KS',event)" style="cursor:pointer"><div class="wl-tag">코스피200 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=122630" target="_blank" rel="noopener" title="KODEX 레버리지 네이버 증권">KODEX 레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=122630" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/122630.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-122630.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="243880.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('243880.KS',event)" style="cursor:pointer"><div class="wl-tag">코스피200 IT 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=243880" target="_blank" rel="noopener" title="TIGER 200IT레버리지 네이버 증권">TIGER 200IT레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=243880" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/243880.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-243880.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="494310.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('494310.KS',event)" style="cursor:pointer"><div class="wl-tag">반도체 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=494310" target="_blank" rel="noopener" title="KODEX 반도체레버리지 네이버 증권">KODEX 반도체레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=494310" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/494310.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-494310.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="0080Y0.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('0080Y0.KS',event)" style="cursor:pointer"><div class="wl-tag">조선 TOP3 플러스 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0080Y0" target="_blank" rel="noopener" title="SOL 조선TOP3플러스레버리지 네이버 증권">SOL 조선TOP3플러스레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0080Y0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0080Y0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-0080Y0.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="233740.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('233740.KS',event)" style="cursor:pointer"><div class="wl-tag">코스닥150 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=233740" target="_blank" rel="noopener" title="KODEX 코스닥150레버리지 네이버 증권">KODEX 코스닥150레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=233740" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/233740.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-233740.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="0193T0.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('0193T0.KS',event)" style="cursor:pointer"><div class="wl-tag">SK하이닉스 단일종목 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0193T0" target="_blank" rel="noopener" title="KODEX SK하이닉스단일종목레버리지 네이버 증권">KODEX SK하이닉스단일종목레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0193T0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0193T0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-0193T0.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="0193W0.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleKrLev('0193W0.KS',event)" style="cursor:pointer"><div class="wl-tag">삼성전자 단일종목 2배 레버리지</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=0193W0" target="_blank" rel="noopener" title="KODEX 삼성전자단일종목레버리지 네이버 증권">KODEX 삼성전자단일종목레버리지</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=0193W0" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/0193W0.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>
+          <div id="lev-hold-0193W0.KS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
       </div>
     </div>
-    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 레버리지 ETF는 일간 수익률의 2배를 추종하므로 횡보·변동성 장세에서 장기 보유 시 기초지수보다 손실이 커질 수 있습니다(음의 복리 효과). 단일종목 레버리지는 변동성이 특히 큽니다.<br>· 종목명을 누르면 네이버 증권으로 이동합니다 · 시세: Yahoo Finance(지연 가능)</p>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 레버리지 ETF는 일간 수익률의 2배를 추종하므로 횡보·변동성 장세에서 장기 보유 시 기초지수보다 손실이 커질 수 있습니다(음의 복리 효과). 단일종목 레버리지는 변동성이 특히 큽니다.<br>· 종목명을 누르면 네이버 증권으로 이동, 빈 공간을 누르면 투자자 체크패널이 펼쳐집니다 · 시세: Yahoo Finance(지연 가능)</p>
 
     <h2 style="font-size:21px;margin-top:44px">주요 이벤트 일정</h2>
     <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 2026년</p>
@@ -609,7 +622,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zv"></script>
+<script src="mrkim-common.js?v=20261007zw"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
@@ -744,11 +757,25 @@ function draw(){
  '<div class="breadth"><i style="width:'+up/all.length*100+'%;background:var(--up)"></i><i style="width:'+fl/all.length*100+'%;background:#aaa"></i><i style="width:'+dn/all.length*100+'%;background:var(--down)"></i></div>'+
  '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
  '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">코스피 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">코스닥 TOP10</button></div>'+
- '<div class="hm '+(true?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7)||mode!=='cap')?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span style="--n:'+String(x.nm||x.t).length+'">'+(x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+(x.nm||x.t)+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b>'+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</b></small></div>').join('')+'</div>'+
+ '<div class="hm '+(true?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7)||mode!=='cap')?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span style="--n:'+String(x.nm||x.t).length+'">'+(x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+(x.nm||x.t)+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b></small></div>').join('')+'</div>'+
  '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
 }
 setTimeout(draw,5000);setInterval(draw,20000);
 })();
+</script>
+<script>
+const krLevLoaded={};
+async function toggleKrLev(t,ev){
+  if(ev&&ev.target&&ev.target.closest&&ev.target.closest('a')) return;
+  const el=document.getElementById('lev-hold-'+t); if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(!krLevLoaded[t]){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">시세를 불러와 계산 중…</p>';
+      try{ el.innerHTML=await renderLevPanel(t,null); krLevLoaded[t]=true; }catch(e){ el.innerHTML='<p class="mut">패널을 불러오지 못했습니다.</p>'; }
+    }
+  }else el.style.display='none';
+}
 </script>
 </body>
 </html>

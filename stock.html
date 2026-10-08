@@ -314,7 +314,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .hm-kw{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.hm-kw .hm-k{flex:1 1 320px;margin-bottom:0;min-width:0}
 #stock{padding-top:18px!important}#stock>.wrap>.sec-h{margin-bottom:0}#stock>.wrap>.sec-h .sub{margin-bottom:10px}
 @media(max-width:700px){#stock{padding-top:12px!important}}
-</style><script src="mrkim-gate.js?v=20261007zj"></script>
+</style><script src="mrkim-gate.js?v=20261007zw"></script>
+<style>
+/* 시장 한눈에 보기: 티커명 영역 높이 고정(글자 크기가 달라도 가격 블록 시작 위치 동일) · 등락 화살표 */
+.pulse .hm div.tl>span{display:flex;align-items:center;height:36px;padding-top:0;padding-bottom:0;line-height:1.2}
+.pulse .hm div.tl.big>span{height:40px}
+.pulse .hm div.tl small b.hm-chg{font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+</style>
 </head>
 <body>
 
@@ -665,7 +671,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=20261007zj"></script>
+<script src="mrkim-common.js?v=20261007zw"></script>
 <script>
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
@@ -809,7 +815,7 @@ function draw(){
  '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
  '<div class="hm-kw">'+kb('🔥 3배 핵심 3종',['TQQQ','SOXL','TECL'])+kb('🎯 김군 핵심 3종',['QLD','USD','SCHD'])+'</div>'+
  '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">시가총액 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">관심종목</button><button data-m="lev" class="'+(mode==='lev'?'on':'')+'">레버리지 ETF</button></div>'+
- '<div class="hm '+(mode==='cap'?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7))?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span style="--n:'+String(x.t).length+'">'+(mode==='cap'&&x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+x.t+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b>'+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</b></small></div>').join('')+'</div>'+
+ '<div class="hm '+(mode==='cap'?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7))?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'"><span style="--n:'+String(x.t).length+'">'+(mode==='cap'&&x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+x.t+'</span><small style="background:'+col(x.v)+'"><b>'+x.px+'</b><b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b></small></div>').join('')+'</div>'+
  '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
 }
 setTimeout(draw,5000);setInterval(draw,20000);
