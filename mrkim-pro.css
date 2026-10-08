@@ -530,3 +530,56 @@ body.pro{
 .pro .m-fold:not(.m-open)>.src-line{display:none!important}
 @media(max-width:700px){#pro-status{padding:6px 12px}#pro-status .ps-n{flex-basis:100%}}
 .pro .data-notice{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12.5px;line-height:1.65;color:var(--tx)}
+
+/* v12: 요약 · 목차 · 맨위로 · 용어 툴팁 */
+#pro-brief{margin:18px 0 6px;border:1px solid #D5DCD8;border-radius:6px;background:#fff;overflow:hidden}
+#pro-brief .pb-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:9px 14px;background:#0A6B48;color:#fff}
+#pro-brief .pb-hd b{font-size:14px}#pro-brief .pb-sub{font-size:11.5px;color:#CFE9DC}
+#pro-brief .pb-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+#pro-brief .pb-c{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-right:1px solid #E1E4E8;text-decoration:none;color:#111418;min-width:0}
+#pro-brief .pb-c:last-child{border-right:0}
+#pro-brief .pb-c:hover{background:#EAF4EF}
+#pro-brief .pb-c small{font-size:11.5px;font-weight:700;color:#667085}
+#pro-brief .pb-c b{font-size:16px;font-weight:900;line-height:1.35;word-break:keep-all}
+#pro-brief .pb-c span{font-size:12px;line-height:1.4;color:#475467;word-break:keep-all}
+@media(max-width:700px){#pro-brief .pb-grid{grid-template-columns:1fr 1fr}#pro-brief .pb-c{border-bottom:1px solid #E1E4E8}#pro-brief .pb-c:nth-child(2n){border-right:0}#pro-brief .pb-c:nth-child(n+3){border-bottom:0}#pro-brief .pb-c b{font-size:15px}}
+#pro-toc{position:sticky;top:0;z-index:40;display:flex;gap:4px;overflow-x:auto;white-space:nowrap;padding:6px 12px;background:#fff;border-bottom:1px solid #D5DCD8;scrollbar-width:none}
+#pro-toc::-webkit-scrollbar{display:none}
+#pro-toc a{flex:none;padding:5px 11px;border-radius:999px;border:1px solid #D5DCD8;background:#fff;color:#344054;font-size:12.5px;font-weight:700;text-decoration:none}
+#pro-toc a:hover{background:#0A6B48;border-color:#0A6B48;color:#fff}
+#pro-top{position:fixed;right:14px;bottom:18px;z-index:60;padding:9px 14px;border:0;border-radius:999px;background:#0A6B48;color:#fff;font:800 13px 'Noto Sans KR',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);transition:.2s}
+#pro-top.on{opacity:1;pointer-events:auto;transform:none}
+.pro abbr.gl{text-decoration:underline dotted #0A6B48;text-underline-offset:3px;cursor:help;position:relative}
+.pro abbr.gl::after{content:attr(data-tip);position:absolute;left:50%;bottom:140%;transform:translateX(-50%);width:max-content;max-width:230px;padding:7px 10px;border-radius:6px;background:#111418;color:#fff;font:500 12px/1.5 'Noto Sans KR',sans-serif;text-decoration:none;white-space:normal;text-align:left;z-index:80;display:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.pro abbr.gl:hover::after,.pro abbr.gl:focus::after{display:block}
+
+/* v13: 상태 띠 모바일 한 줄(설명 숨김·새로고침 아이콘) */
+#pro-status button#ps-rf{margin-left:auto;width:30px;height:28px;padding:0;font-size:16px;line-height:1}
+@media(max-width:700px){
+  #pro-status{flex-wrap:nowrap;gap:6px;padding:6px 10px;overflow:hidden}
+  #pro-status .ps-n,#pro-status .ps-t .lbl{display:none}
+  #pro-status .ps-mk,#pro-status .ps-net{font-size:11.5px;padding:2px 8px}
+  #pro-status .ps-t{font-size:11.5px}
+}
+/* 시장 한눈에 보기 탭 — 모바일 3열 격자(급락주 잘림 방지) */
+@media(max-width:700px){
+  .pro .pulse .hm-t{display:grid!important;grid-template-columns:repeat(3,1fr);width:100%;box-sizing:border-box;overflow:hidden}
+  .pro .pulse .hm-t button{padding:9px 2px!important;font-size:12.5px!important;white-space:nowrap;border-bottom:1px solid #E1E4E8!important}
+  .pro .pulse .hm-t button:nth-child(3n){border-right:0!important}
+  .pro .pulse .hm-t button:nth-child(n+4){border-bottom:0!important}
+}
+/* 편입·편출 기간 탭도 지수 탭과 같은 분할형으로 */
+.pro .tabrow .tabs button{border:0!important;border-right:1px solid #E1E4E8!important;border-radius:0!important;background:#fff;color:#4B5563}
+.pro .tabrow .tabs button:last-child{border-right:0!important}
+.pro .tabrow .tabs button.on{background:#0A6B48!important;color:#fff!important}
+
+/* v14: 내 관심종목 */
+.pro .my-add{display:flex;gap:8px;margin:2px 0 4px}
+.pro .my-add input{flex:1;min-width:0;height:38px;padding:0 12px;border:1px solid #C7CCD1;border-radius:4px;font:500 14px 'Noto Sans KR',sans-serif;color:#111418;background:#fff}
+.pro .my-add input:focus{outline:2px solid #0A6B48;outline-offset:0;border-color:#0A6B48}
+.pro .my-add button{flex:none;height:38px;padding:0 16px;border:0;border-radius:4px;background:#0A6B48;color:#fff;font:800 13.5px 'Noto Sans KR',sans-serif;cursor:pointer}
+.pro .my-add button:hover{background:#064E36}
+.pro .my-msg{min-height:18px;font-size:12.5px;color:#0A6B48;margin:2px 2px 0}
+.pro .my-msg.bad{color:#B42318}
+.pro .my-empty{padding:18px;text-align:center;color:var(--tx2);font-size:13px}
+.pro .my-del{color:#D92D20!important;font-weight:800}

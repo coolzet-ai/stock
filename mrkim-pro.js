@@ -389,10 +389,12 @@
       card.dataset.mf='1'; card.classList.add('m-fold');
       var b=document.createElement('button'); b.type='button'; b.className='m-fold-btn'; b.innerHTML='<em>펼치기</em> ➕';
       h.appendChild(b);
-      var tg=function(){ var o=card.classList.toggle('m-open'); b.innerHTML=o?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; };
+      var sk='mk_m_'+(card.id||key||'x'); var setO=function(o){ card.classList.toggle('m-open',o); b.innerHTML=o?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; try{ localStorage.setItem(sk,o?'1':'0'); }catch(e){} };
+      try{ if(localStorage.getItem(sk)==='1') setO(true); }catch(e){}
+      var tg=function(){ setO(!card.classList.contains('m-open')); };
       h.addEventListener('click',function(e){ if(e.target.closest('a')) return; tg(); });
     }
-    var cnn=document.getElementById('us-sub'); if(cnn) mf(cnn.closest('.card'));
+    var cnn=document.getElementById('us-sub'); if(cnn){ var cc=cnn.closest('.card'); if(cc&&!cc.id) cc.id='pro-cnn'; mf(cc); }
     mf(document.getElementById('pro-int')); mf(document.getElementById('pro-fwd'));
   })();
 
@@ -401,7 +403,7 @@
     MKT.set('pro-fwd','static'); var fm=document.getElementById('pro-fwd'); if(fm){ var l=fm.querySelector('.src-line'); if(l) l.innerHTML='<span>ⓘ '+MKT.meta['pro-fwd']+' · 기준일 '+FWD.range[1]+'</span>'; }
     if(!hd) return;
     var st=document.createElement('div'); st.id='pro-status';
-    st.innerHTML='<span class="ps-mk" id="ps-mk"></span><span class="ps-net" id="ps-net"></span><span class="ps-t" id="ps-t"></span><span class="ps-n">무료 공개 시세(Yahoo Finance·TradingView·CNN) 기반 · 지연·오류 가능 · 투자 판단 참고용</span><button type="button" id="ps-rf">↻ 새로고침</button>';
+    st.innerHTML='<span class="ps-mk" id="ps-mk"></span><span class="ps-net" id="ps-net"></span><span class="ps-t" id="ps-t"></span><span class="ps-n">무료 공개 시세(Yahoo Finance·TradingView·CNN) 기반 · 지연·오류 가능 · 투자 판단 참고용</span><button type="button" id="ps-rf" title="새로고침" aria-label="새로고침">↻</button>';
     hd.after(st);
     document.getElementById('ps-rf').onclick=function(){ location.reload(); };
     var dtf=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false});
@@ -418,7 +420,7 @@
       else if(ratio<=.5){ cls='w'; txt='일부 데이터 지연'; }
       else { cls='r'; txt='데이터 연결 불안정'; }
       var n=document.getElementById('ps-net'); n.className='ps-net '+cls; n.textContent='● '+txt;
-      document.getElementById('ps-t').textContent=N.lastOk?'마지막 갱신 '+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
+      document.getElementById('ps-t').innerHTML=N.lastOk?'<span class="lbl">마지막 갱신 </span>'+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
     };
     upd(); setInterval(upd,5000);
     /* "불러오는 중…"이 오래 남은 곳은 실패 안내 + 재시도 버튼으로 교체 */
@@ -429,5 +431,113 @@
         e.querySelector('button').onclick=function(){ location.reload(); }; e.classList.add('net-fail'); });
     };
     setTimeout(watch,30000); setTimeout(watch,75000);
+  })();
+
+  /* ⑪ 기획·UX: 한 줄 요약 · 목차 · 맨 위로 · 용어 툴팁 */
+  (function(){
+    var wrap=document.querySelector('#stock > .wrap'); if(!wrap) return;
+    var txt=function(id){ var e=document.getElementById(id); return e?(e.textContent||'').trim():''; };
+    /* 한 줄 요약 */
+    var br=document.createElement('div'); br.id='pro-brief'; br.setAttribute('aria-label','오늘의 시장 요약');
+    br.innerHTML='<div class="pb-hd"><b>오늘의 시장 요약</b><span class="pb-sub">핵심 4가지를 한눈에 · 각 칸을 누르면 상세로 이동</span></div><div class="pb-grid">'+
+      '<a class="pb-c" href="#pro-kc" data-go="kc"><small>공포탐욕</small><b id="pb-fg">--</b><span id="pb-fg2"></span></a>'+
+      '<a class="pb-c" href="#pro-int" data-go="int"><small>변동성(VIX)</small><b id="pb-vx">--</b><span id="pb-vx2"></span></a>'+
+      '<a class="pb-c" href="#pro-cal" data-go="cal"><small>다음 주요 일정</small><b id="pb-ev">--</b><span id="pb-ev2"></span></a>'+
+      '<a class="pb-c" href="#pro-sector" data-go="sec"><small>섹터 강세 · 약세</small><b id="pb-sc">--</b><span id="pb-sc2"></span></a></div>';
+    wrap.prepend(br);
+    var ZC=['#D92D20','#E8710A','#667085','#5BA33B','#15803D'];
+    var num=function(t){ var m=(t||'').match(/-?[\d.]+/); return m?parseFloat(m[0]):NaN; };
+    var fillBrief=function(){
+      var v=num(txt('us-val'));
+      if(isFinite(v)){ var z=v<25?0:v<45?1:v<=55?2:v<=75?3:4, ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], AC=['매수 시작 구간','매수 시작 구간','관망','매수 금지 구간','매수 금지 구간'];
+        var b=document.getElementById('pb-fg'); b.textContent=Math.round(v)+' · '+ZN[z]; b.style.color=ZC[z]; document.getElementById('pb-fg2').textContent='김군코멘트: '+AC[z]; }
+      var vt=document.getElementById('pt-4'), vb=vt?vt.querySelector('b').textContent:'--', bd=txt('vts-badge');
+      if(vb&&vb!=='--'){ document.getElementById('pb-vx').textContent=vb; document.getElementById('pb-vx2').textContent=bd&&bd!=='--'?'기간구조 '+bd:''; }
+      var al=document.querySelector('#cal-top .cal-alert');
+      if(al){ var t=al.querySelector('b'), w=al.querySelector('.ca-when'), c=al.querySelector('em'); document.getElementById('pb-ev').textContent=(t?t.firstChild.textContent:'').trim()||'--'; document.getElementById('pb-ev2').textContent=((c?c.textContent:'')+' · '+(w?w.textContent:'')).replace(/^ · /,''); }
+      else if(document.getElementById('cal-body')&&document.querySelector('#cal-body .cal-row, #cal-body tr')){ document.getElementById('pb-ev').textContent='예정된 최상 일정 없음'; document.getElementById('pb-ev2').textContent=''; }
+      var arr=[]; document.querySelectorAll('#shm a').forEach(function(a){ var em=a.querySelector('em'), sp=a.querySelector('span'); if(!em||!sp) return; var p=num(em.textContent.replace(/▼\s*/,'-').replace(/▲\s*/,'')); if(isFinite(p)) arr.push([sp.firstChild?sp.firstChild.textContent.trim():'',p]); });
+      if(arr.length>3){ arr.sort(function(x,y){return y[1]-x[1];}); var h=arr[0], l=arr[arr.length-1], f=function(x){ return (x[1]>=0?'+':'')+x[1].toFixed(2)+'%'; };
+        document.getElementById('pb-sc').innerHTML='<span style="color:#D92D20">▲ '+h[0]+' '+f(h)+'</span>'; document.getElementById('pb-sc2').innerHTML='<span style="color:#1D4ED8">▼ '+l[0]+' '+f(l)+'</span>'; }
+    };
+    fillBrief(); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
+    var openAndGo=function(el){ if(!el) return; var h=el.closest&&el.closest('.fold-body'); if(h&&h.style.display==='none'){ var hh=h.previousElementSibling; if(hh&&hh._set) hh._set(true); } var mc=el.closest&&el.closest('.m-fold'); if(mc&&!mc.classList.contains('m-open')){ var bt=mc.querySelector('.m-fold-btn'); if(bt&&getComputedStyle(bt).display!=='none') bt.click(); } setTimeout(function(){ var off=(document.querySelector('header')?document.querySelector('header').offsetHeight:0)+44; var y=el.getBoundingClientRect().top+window.scrollY-off; window.scrollTo({top:y,behavior:'smooth'}); },60); };
+    br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); openAndGo(document.querySelector(a.getAttribute('href'))); });
+    /* 목차 */
+    var toc=document.createElement('nav'); toc.id='pro-toc'; toc.setAttribute('aria-label','페이지 목차');
+    var ITEMS=[['요약','#pro-brief'],['공탐','h:공포탐욕지수'],['섹터','#pro-sector'],['내부지표','#pro-int'],['일정','#pro-cal'],['지수비교','h:주요 지수 ETF'],['관심종목','h:김군 관심종목'],['시총 TOP10','h:시가총액'],['레버리지','h:레버리지'],['유니콘','h:유니콘'],['이벤트','h:주요 이벤트'],['편입·편출','h:지수 편입']];
+    toc.innerHTML=ITEMS.map(function(it,i){ return '<a href="#" data-i="'+i+'">'+it[0]+'</a>'; }).join('');
+    var hd2=document.querySelector('header'), st2=document.getElementById('pro-status'); (st2||hd2).after(toc);
+    var place=function(){ toc.style.top=(hd2?hd2.offsetHeight:0)+'px'; }; place(); window.addEventListener('resize',place); setTimeout(place,1500);
+    toc.addEventListener('click',function(e){ var a=e.target.closest('a'); if(!a) return; e.preventDefault(); var t=ITEMS[+a.dataset.i][1], el;
+      if(t.indexOf('h:')===0){ var k=t.slice(2); el=[].slice.call(document.querySelectorAll('h2.fold-h,#stock > .wrap > h2')).find(function(h){ return (h.textContent||'').replace(/\s+/g,' ').trim().indexOf(k)===0; }); if(el&&el._set) el._set(true); }
+      else el=document.querySelector(t);
+      if(el) openAndGo(el); });
+    /* 맨 위로 */
+    var up=document.createElement('button'); up.id='pro-top'; up.type='button'; up.setAttribute('aria-label','맨 위로'); up.textContent='↑ 맨 위로';
+    up.onclick=function(){ window.scrollTo({top:0,behavior:'smooth'}); }; document.body.appendChild(up);
+    window.addEventListener('scroll',function(){ up.classList.toggle('on',window.scrollY>700); },{passive:true});
+    /* 용어 툴팁 */
+    var GL=[['콘탱고','선물 만기가 길수록 가격(VIX)이 높은 평시 구조입니다.'],['백워데이션','단기 가격이 장기보다 높은 역전 구조로, 단기 불안이 크다는 신호입니다.'],
+      ['PSR','주가매출비율 = 시가총액 ÷ 매출. 낮을수록 매출 대비 저렴하다고 봅니다.'],['PEG','PER ÷ 이익성장률. 1 미만이면 성장 대비 저평가로 보는 경향이 있습니다.'],
+      ['ROA','총자산이익률. 가진 자산으로 이익을 얼마나 효율적으로 내는지 봅니다.'],['ROE','자기자본이익률. 주주 자본 대비 이익이며, 부채가 많으면 부풀려질 수 있습니다.'],
+      ['RSI','상대강도지수(14일). 30 이하 과매도, 70 이상 과열로 해석합니다.'],['EPS','주당순이익. 순이익 ÷ 발행주식 수입니다.'],['PER','주가수익비율 = 주가 ÷ 주당순이익. 높을수록 이익 대비 비싸다고 봅니다.'],
+      ['VIX','S&P500 옵션으로 계산한 향후 30일 기대 변동성. 흔히 공포지수라 부릅니다.'],['풋/콜','풋옵션은 하락, 콜옵션은 상승에 거는 계약입니다. 풋이 많으면 공포 쪽입니다.'],['정크본드','신용등급이 낮아 금리가 높은 위험 채권입니다.']];
+    var ROOTS='#pro-int,#pro-fwd,#us-sub-note,#pro-sector,[id^="finx"],.lev-inv';
+    var SKIP={A:1,BUTTON:1,SUMMARY:1,H3:1,ABBR:1,SCRIPT:1,STYLE:1,INPUT:1,TEXTAREA:1,SVG:1,TEXT:1};
+    var gloss=function(){
+      document.querySelectorAll(ROOTS).forEach(function(root){
+        if(root.offsetParent===null&&root.style.display==='none') return;
+        GL.forEach(function(g){
+          if(root.querySelector('abbr.gl[data-k="'+g[0]+'"]')) return;
+          var re=new RegExp('(^|[^A-Za-z가-힣])('+g[0].replace('/','\\/')+')(?![A-Za-z가-힣])');
+          var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
+          while((n=w.nextNode())){ var p=n.parentNode; if(!p||SKIP[p.tagName.toUpperCase()]||p.closest('a,button,summary,h3,abbr,svg')) continue; var m=re.exec(n.nodeValue); if(!m) continue;
+            var i=m.index+m[1].length, r=n.splitText(i); r.splitText(g[0].length); var ab=document.createElement('abbr'); ab.className='gl'; ab.tabIndex=0; ab.dataset.k=g[0]; ab.dataset.tip=g[1]; ab.textContent=r.nodeValue; r.parentNode.replaceChild(ab,r); break; }
+        });
+      });
+    };
+    setTimeout(gloss,5000); setInterval(gloss,6000);
+  })();
+
+  /* ⑫ 내 관심종목 — 티커를 직접 추가·삭제(이 브라우저의 localStorage에만 저장) */
+  (function(){
+    var tbl=document.getElementById('tick-tbl'); if(!tbl||typeof TICKGROUPS==='undefined') return;
+    var anchor=tbl.closest('.scroll')||tbl, KEY='mk_my_tickers', MAX=20, RE=/^[A-Z0-9.^=\-]{1,15}$/;
+    var load=function(){ try{ var a=JSON.parse(localStorage.getItem(KEY)||'[]'); return Array.isArray(a)?a.filter(function(t){return RE.test(t);}).slice(0,MAX):[]; }catch(e){ return []; } };
+    var save=function(a){ try{ localStorage.setItem(KEY,JSON.stringify(a)); }catch(e){} };
+    var list=load(); TICKGROUPS.my={table:'my-tbl',list:list};
+    var box=document.createElement('div'); box.className='card'; box.id='my-wl'; box.style.marginTop='16px';
+    box.innerHTML='<h3><span>⭐ 내 관심종목</span><span class="mut" style="font-weight:400;font-size:11px">이 브라우저에만 저장 · 최대 '+MAX+'개</span></h3>'+
+      '<form class="my-add" autocomplete="off"><input type="text" maxlength="15" placeholder="티커 입력 (예: AAPL · NVDA · BRK-B · 005930.KS)" aria-label="추가할 종목 티커"><button type="submit">＋ 추가</button></form>'+
+      '<div class="my-msg" role="status"></div><div class="wl-list" id="my-tbl" style="margin-top:8px"></div>';
+    anchor.after(box);
+    var msg=box.querySelector('.my-msg'), inp=box.querySelector('input'), host=box.querySelector('#my-tbl');
+    var say=function(t,bad){ msg.textContent=t||''; msg.className='my-msg'+(bad?' bad':''); };
+    var rowHtml=function(t){
+      var q=encodeURIComponent('$'+t+' from:trendspider');
+      return '<div class="wl-row" data-t="'+t+'"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">내 관심종목</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener">'+t+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
+        '<div class="wl-actions"><a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener" title="Finviz에서 '+t+' 상세 지표 보기">+</a><a href="https://x.com/search?q='+q+'&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/'+t+'/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a>'+
+        '<a href="javascript:void(0)" onclick="toggleUsFinancials(\''+t+'\',\'finmy-\')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a><a href="javascript:void(0)" class="my-del" data-t="'+t+'" title="목록에서 삭제" aria-label="'+t+' 삭제">✕</a></div></div>'+
+        '<div id="finmy-'+t+'" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>';
+    };
+    var paint=function(){
+      TICKGROUPS.my.list=list;
+      host.innerHTML=list.length?list.map(rowHtml).join(''):'<div class="my-empty">아직 추가한 종목이 없습니다. 위 입력칸에 티커를 입력해 보세요.</div>';
+      if(list.length) renderTick('my',(typeof curPer!=='undefined'&&curPer.tick)||'d');
+    };
+    var fetchAll=async function(){ await Promise.all(list.map(async function(t){ var d=await yclose(t,'1y'); if(d) tickData[t]=d; })); paint(); };
+    box.querySelector('form').addEventListener('submit',async function(e){
+      e.preventDefault(); var t=(inp.value||'').trim().toUpperCase();
+      if(!t) return; if(!RE.test(t)){ say('티커 형식이 올바르지 않습니다. 영문·숫자 위주로 입력해 주세요.',1); return; }
+      if(list.indexOf(t)>=0){ say(t+' 는 이미 목록에 있습니다.',1); return; }
+      if(list.length>=MAX){ say('최대 '+MAX+'개까지 추가할 수 있습니다.',1); return; }
+      say(t+' 시세 확인 중…'); var d=await yclose(t,'1y');
+      if(!d){ say('"'+t+'" 시세를 찾지 못했습니다. 티커를 확인해 주세요(한국 종목은 005930.KS, 코스닥은 .KQ).',1); return; }
+      tickData[t]=d; list.push(t); save(list); inp.value=''; say(t+' 추가 완료'); paint();
+    });
+    host.addEventListener('click',function(e){ var a=e.target.closest('.my-del'); if(!a) return; var t=a.dataset.t; list.splice(list.indexOf(t),1); save(list); say(t+' 삭제'); paint(); });
+    document.addEventListener('click',function(e){ if(e.target.closest('.tabs[data-group="tick"] button')) setTimeout(function(){ if(list.length) renderTick('my',curPer.tick); },0); });
+    paint(); if(list.length) fetchAll(); setInterval(function(){ if(list.length) fetchAll(); },300000);
   })();
 })();

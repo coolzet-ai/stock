@@ -1,3 +1,16 @@
+/* ===== 성능 보강(공통) =====
+   1) 탭이 백그라운드(document.hidden)일 때는 주기 갱신(setInterval)을 건너뛴다 — 요청·배터리 절약.
+   2) getJSON: 같은 URL은 45초간 결과 재사용(여러 위젯이 같은 시세를 중복 요청하는 것을 줄임) + 동시 요청 6개로 제한. */
+(function(){
+  if(window.__mkPerf) return; window.__mkPerf=1;
+  var _si=window.setInterval.bind(window);
+  window.setInterval=function(fn,ms){ var a=Array.prototype.slice.call(arguments,2);
+    if(typeof fn!=='function'||!(ms>=2000)) return _si.apply(null,arguments);
+    return _si(function(){ if(document.hidden) return; fn.apply(null,a); },ms); };
+})();
+const __JC=new Map(), __JP=new Map(); let __jActive=0; const __jQ=[];
+function __jSlot(){ return new Promise(function(res){ if(__jActive<6){ __jActive++; res(); } else __jQ.push(res); }); }
+function __jFree(){ var n=__jQ.shift(); if(n) n(); else __jActive--; }
 /* 상단 여백 축소: 메뉴↔제목, 제목↔첫 박스 간격 */
 (function(){ try{ const st=document.createElement('style'); st.id='mk-toptight';
   st.textContent='main>section:first-of-type{padding-top:18px!important}main>section:first-of-type .sec-h{margin-bottom:0}main>section:first-of-type .sec-h .sub{margin-bottom:10px}@media(max-width:700px){main>section:first-of-type{padding-top:12px!important}}';
@@ -1029,6 +1042,12 @@ const PROXIES=[
 
 window.MK_NET=window.MK_NET||{log:[],lastOk:0,rec:function(ok){this.log.push(ok?1:0);if(this.log.length>24)this.log.shift();if(ok)this.lastOk=Date.now();}};
 async function getJSON(url){
+  const hit=__JC.get(url); if(hit&&Date.now()-hit.t<45000) return hit.j;
+  if(__JP.has(url)) return __JP.get(url);
+  const pr=(async function(){ await __jSlot(); try{ const j=await __getJSON(url); if(j){ __JC.set(url,{t:Date.now(),j:j}); if(__JC.size>400) __JC.delete(__JC.keys().next().value); } return j; } finally{ __jFree(); __JP.delete(url); } })();
+  __JP.set(url,pr); return pr;
+}
+async function __getJSON(url){
   const errors=[];
   for(const p of PROXIES){
     const target=p(url); if(!target) continue;
@@ -1046,13 +1065,42 @@ async function getJSON(url){
   return null;
 }
 /* Yahoo 일봉 종가 배열 */
-async function yclose(sym,range){
+/* Yahoo 일봉 종가: 같은 시점(40ms)에 요청된 3개 이상의 종목은 Worker의 /yq 로 한 번에 묶어 받는다.
+   묶음 요청이 실패하거나 일부 종목이 비면 기존 개별 요청으로 자동 대체한다. */
+const __YQ={q:[],t:null,bad:0};
+async function __ycloseOne(sym,range){
   const j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+
       encodeURIComponent(sym)+'?range='+(range||'1y')+'&interval=1d');
   try{
     const q=j.chart.result[0].indicators.quote[0].close.filter(x=>x!=null);
     return q.length>30?q:null;
   }catch(e){ return null; }
+}
+async function __yqFlush(){
+  const batch=__YQ.q.splice(0); __YQ.t=null; if(!batch.length) return;
+  const byR={}; batch.forEach(b=>{ (byR[b.range]=byR[b.range]||[]).push(b); });
+  for(const range in byR){
+    const items=byR[range], syms=[...new Set(items.map(b=>b.sym))];
+    let data=null;
+    if(syms.length>=3 && __YQ.bad<3 && /^(1d|5d|1mo|3mo|6mo|1y|2y|5y|10y|ytd|max)$/.test(range) && typeof PROXY_BASE!=='undefined' && PROXY_BASE){
+      try{
+        const origin=PROXY_BASE.replace(/\?url=$/,'').replace(/\/+$/,'');
+        const r=await fetch(origin+'/yq?range='+range+'&symbols='+encodeURIComponent(syms.slice(0,30).join(',')),{signal:AbortSignal.timeout?AbortSignal.timeout(12000):undefined});
+        if(r.ok){ data=await r.json(); window.MK_NET&&MK_NET.rec(true); __YQ.bad=0; } else { __YQ.bad++; window.MK_NET&&MK_NET.rec(false); }
+      }catch(e){ __YQ.bad++; window.MK_NET&&MK_NET.rec(false); }
+    }
+    await Promise.all(items.map(async b=>{
+      let v=data&&data[b.sym.toUpperCase()];
+      if(v&&v.length>30) return b.res(v);
+      b.res(await __ycloseOne(b.sym,range));
+    }));
+  }
+}
+function yclose(sym,range){
+  return new Promise(res=>{
+    __YQ.q.push({sym:sym,range:range||'1y',res:res});
+    if(!__YQ.t) __YQ.t=setTimeout(__yqFlush,40);
+  });
 }
 /* yclose()는 종가만 반환해(null 필터링까지 해서) 인덱스와 실제 날짜가 어긋난다 — 공모주
    동종업체 상대수익률 차트에서 "상장일 기준점"을 정확한 위치에 표시하려면 날짜가 함께

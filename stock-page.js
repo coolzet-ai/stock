@@ -1,0 +1,29 @@
+const evMonthTabs=document.getElementById('evmonth-tabs');
+if(evMonthTabs){
+  evMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    evMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderEvents(+b.dataset.m);
+  });
+  const nowMonth=new Date().getMonth()+1;
+  const defMonth=MONTH_EVENTS[nowMonth]?nowMonth:9;
+  const defBtn=evMonthTabs.querySelector('button[data-m="'+defMonth+'"]');
+  if(defBtn) defBtn.classList.add('on');
+  renderEvents(defMonth);
+}
+renderNextEventBanner('us-next-event', MONTH_EVENTS, {excludeHoliday:true});
+
+
+const now=new Date();
+{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
+
+renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','d');
+renderCapShareChart('us-cap-chart', US_CAP_DATA);
+applyRankHistory();
+loadUS();
+loadTickGroup('tick'); fillUsRowStats('cap-tbl',1); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); loadTickGroup('lev');
+/* 접힌 섹션(지수 비교·상관관계 / 지수 편입·편출 / 유니콘)은 처음 펼칠 때 불러온다 — 아래 fold 스크립트의 지연 로딩 */
+initKrwToggle('#krw-toggle');
+
