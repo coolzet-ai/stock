@@ -1,3 +1,5 @@
+/* 기간 라벨을 "1일·1주·1개월·1년"으로 통일(다른 페이지 표기는 그대로) */
+if(typeof PERKO!=='undefined') Object.assign(PERKO,{d:'1일',w:'1주',m:'1개월',y:'1년'});
 const evMonthTabs=document.getElementById('evmonth-tabs');
 if(evMonthTabs){
   evMonthTabs.addEventListener('click',e=>{
