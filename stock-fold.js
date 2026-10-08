@@ -5,8 +5,8 @@
     '김군 관심종목':()=>document.querySelectorAll('#tick-tbl .wl-row').length+'종목',
     '시가총액 TOP10':()=>'TOP10 (+11~20위)',
     '레버리지 ETF':()=>document.querySelectorAll('#lev-tbl .wl-row').length+'종목',
-    '유니콘 기업':()=>document.querySelectorAll('#unicorn .card').length+'개사',
-    '주요 이벤트 일정':()=>'월별 일정 · 휴장일',
+    '유니콘 기업':()=>{ const n=[...document.querySelectorAll('#unicorn .card a[href^="https://www."]')].map(a=>a.textContent.trim()).filter(Boolean).slice(0,4); return document.querySelectorAll('#unicorn .card').length+'개사'+(n.length?' · '+n.join('·'):''); },
+    '주요 이벤트 일정':()=>(new Date().getMonth()+1)+'월 일정 · 휴장일 · 월별 보기',
     '지수 편입 · 편출 종목':()=>document.querySelectorAll('#idxchg-tbl .wl-row').length+'종목 · S&P500·나스닥100'
   };
   function fold(h2){
@@ -23,7 +23,7 @@
     h2.cursor='pointer';
     const sum=h2.querySelector('.fold-sum'), btn=h2.querySelector('.fold-btn'); btn.setAttribute('aria-expanded','false'); box.id=box.id||('fold-body-'+Math.random().toString(36).slice(2,8)); btn.setAttribute('aria-controls',box.id); btn.setAttribute('aria-label',(key||title)+' 펼치기/접기');
     const LST={'김군 관심종목':'tick-tbl','시가총액 TOP10':'cap-tbl','레버리지 ETF':'lev-tbl'};
-    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; return '<span class="mv"><span class="mv-l">'+a.length+'종목</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
+    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; const up=a.filter(x=>x[1]>0).length, dn=a.filter(x=>x[1]<0).length; return '<span class="mv"><span class="mv-l">상승 '+up+' · 하락 '+dn+'</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
     const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
     refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
     const SK='mk_f_'+(key||title); const set=open=>{ try{ localStorage.setItem(SK,open?'1':'0'); }catch(e){} box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; btn.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
