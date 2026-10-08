@@ -116,6 +116,7 @@
   var DETAIL_SEL='.wl-info,.wl-spark,[onclick*="toggle"],[onclick*="Detail"],[onclick*="detail"]';
   function isDetail(el){
     if(el.closest(DETAIL_SEL)) return true;
+    if(el.closest('.fold-h:not(.open)')||el.closest('.fold-all button[data-o="1"]')) return true; /* 제목 우측 펼치기·모두 펼치기 */
     var b=el.closest('button,a,summary,[role="button"]');
     return !!(b && /상세/.test(b.textContent||'') && !b.closest('#mk-gate'));
   }
