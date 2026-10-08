@@ -53,6 +53,15 @@
     pull=Math.min(d,110); ptr.classList.add('on'); ptr.style.transform='translateY('+(pull*0.6-40)+'px)'; ptr.textContent=pull>=80?'↑ 놓으면 새로고침':'↓ 당겨서 새로고침'; },{passive:true});
   document.addEventListener('touchend',function(){ if(!act) return; act=false; var go=pull>=80; ptr.classList.remove('on'); ptr.style.transform='';
     if(go){ ptr.textContent='새로고침 중…'; location.reload(); } pull=0; },{passive:true});
+
+  /* ===== 하단 긴 글: 용어 가이드·데이터 안내를 모바일에서 접어 둔다 ===== */
+  var acc=function(head,body,cls){ if(!mq.matches) return; head.classList.add('acc-h'); head.setAttribute('role','button'); head.setAttribute('tabindex','0'); head.setAttribute('aria-expanded','false');
+    var tg=function(){ var o=head.classList.toggle('acc-open'); head.setAttribute('aria-expanded',o?'true':'false'); body.classList.toggle('acc-show',o); };
+    body.classList.add('acc-b'); head.addEventListener('click',tg); head.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(); } }); };
+  document.querySelectorAll('.gl-list dt').forEach(function(dt){ var dd=dt.nextElementSibling; if(dd&&dd.tagName==='DD') acc(dt,dd); });
+  var dn=document.querySelector('.data-notice');
+  if(dn){ var hb=dn.querySelector('b'), wrap=document.createElement('div'); [].slice.call(dn.querySelectorAll('.dl')).forEach(function(x){ wrap.appendChild(x); }); dn.appendChild(wrap); if(hb){ var br=hb.nextElementSibling; if(br&&br.tagName==='BR') br.remove(); acc(hb,wrap); } }
+  var pcn=document.getElementById('pc-note'); if(pcn) pcn.addEventListener('click',function(){ pcn.classList.toggle('open'); });
   /* ===== 홈 화면 추가(PWA) 서비스워커 ===== */
   if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
     window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }

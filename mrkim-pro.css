@@ -702,3 +702,36 @@ body.pro{
   .pro .scroll:has(table.m-cards){overflow:visible}
 }
 @media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+/* v21 모바일 정보 밀도 정리 */
+.acc-h{cursor:default}
+@media(max-width:700px){
+  .pro .m-hide{display:none}
+  /* 공탐 카드 안의 '주요 일정' 미니 카드는 요약 카드·경제지표 카드와 중복 → 모바일에서 숨김 */
+  .pro #us-next-event{display:none!important}
+  /* 출처 줄은 한 줄로 */
+  .pro .src-line:not(.fail){flex-wrap:nowrap;gap:8px}
+  .pro .src-line:not(.fail)>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pro .src-line:not(.fail)>b{flex:none}
+  /* 경제일정 카드 */
+  .pro #pro-cal h3>.mut{display:none}
+  .pro #pro-cal .cs{display:none}
+  .pro #pc-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+  .pro #pc-note.open{display:block}
+  /* 용어 가이드: 제목만 보이고 누르면 설명 */
+  .pro .gl-list dt.acc-h{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:10px 14px;cursor:pointer}
+  .pro .gl-list dt.acc-h::after{content:"＋";font-size:16px;color:#566074;flex:none;margin-left:8px}
+  .pro .gl-list dt.acc-open::after{content:"－"}
+  .pro .gl-list dd.acc-b{display:none;padding-top:0}
+  .pro .gl-list dd.acc-show{display:block}
+  .pro .gl-list dt.acc-h:focus-visible{outline:2px solid #0A6B48;outline-offset:-2px}
+  /* 하단 안내문 */
+  .pro .disc{font-size:12.5px;line-height:1.6}
+  .pro .disc .dl{display:block;font-weight:400;margin-top:6px}
+  .pro .data-notice b.acc-h{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer}
+  .pro .data-notice b.acc-h::after{content:"펼치기 ▾";font-size:12px;font-weight:700;color:#0A6B48}
+  .pro .data-notice b.acc-open::after{content:"접기 ▴"}
+  .pro .data-notice .acc-b{display:none}
+  .pro .data-notice .acc-show{display:block}
+}
+@media(min-width:701px){.acc-b{display:block!important}}
