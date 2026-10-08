@@ -69,14 +69,16 @@
   var firstGrid=document.querySelector('#stock .grid');
   if(firstGrid){
     var card=document.createElement('div'); card.className='card'; card.id='pro-sector'; card.style.marginTop='12px';
-    card.innerHTML='<h3><span>섹터 히트맵 · 11개 GICS 섹터</span><span class="mut" style="font-weight:400;font-size:11px">섹터 ETF(SPDR) 당일 등락</span></h3><div class="shm" id="shm"></div><div class="shm-note">색 = 당일 등락 (빨강 상승 · 파랑 하락) · 타일을 누르면 Finviz 차트로 이동합니다.</div>';
+    card.innerHTML='<h3><span>섹터 히트맵 · 11개 GICS 섹터</span><span class="mut" style="font-weight:400;font-size:11px">섹터 ETF(SPDR) 당일 등락</span></h3><div id="shm-sum" class="shm-sum"></div><div class="shm" id="shm"></div><div class="shm-note">색 = 당일 등락 (빨강 상승 · 파랑 하락) · 타일을 누르면 Finviz 차트로 이동합니다.</div>';
     firstGrid.after(card);
     var shm=card.querySelector('#shm');
     shm.innerHTML=SEC.map(function(s){ return '<a href="https://finviz.com/quote.ashx?t='+s[0]+'" target="_blank" rel="noopener" id="sh-'+s[0]+'" style="background:#F1F2F4"><span>'+s[1]+' <small>('+s[0]+')</small></span><em>--</em></a>'; }).join('');
     var mix=function(p){ var a=Math.min(1,Math.abs(p)/2.5), to=p>=0?[217,45,32]:[29,78,216], f=.25+.75*a; return 'rgb('+Math.round(245+(to[0]-245)*f)+','+Math.round(246+(to[1]-246)*f)+','+Math.round(247+(to[2]-247)*f)+')'; };
     var loadSec=async function(){
       var res=await Promise.all(SEC.map(function(s){ return quote(s[0]); }));
-      res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; el.style.background=mix(q.pct); el.style.color=Math.abs(q.pct)>1?'#fff':'#111418'; el.querySelector('em').textContent=(q.pct>=0?'+':'')+q.pct.toFixed(2)+'%'; });
+      res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; el.style.background=mix(q.pct); el.style.color=Math.abs(q.pct)>1?'#fff':'#111418'; el.querySelector('em').textContent=(q.pct>=0?'▲ +':'▼ ')+Math.abs(q.pct).toFixed(2)+'%'; });
+      var okq=res.filter(Boolean), u=okq.filter(function(q){return q.pct>0;}).length, d=okq.filter(function(q){return q.pct<0;}).length, sm=document.getElementById('shm-sum');
+      if(sm&&okq.length) sm.innerHTML='<div class="ss-bar"><i style="width:'+(u/okq.length*100)+'%;background:'+UP+'"></i><i style="width:'+((okq.length-u-d)/okq.length*100)+'%;background:#C9CED4"></i><i style="width:'+(d/okq.length*100)+'%;background:'+DN+'"></i></div><div class="ss-lb"><b style="color:'+UP+'">▲ 상승 '+u+'개</b><span>'+(okq.length-u-d?'보합 '+(okq.length-u-d)+'개':'')+'</span><b style="color:'+DN+'">하락 '+d+'개 ▼</b></div>';
     };
     loadSec(); setInterval(loadSec,120000);
   }
@@ -344,5 +346,23 @@
       document.querySelectorAll('.lev-inv:not([data-pro])').forEach(procLev);
     };
     new MutationObserver(function(){ if(!pending){ pending=true; requestAnimationFrame(scan); } }).observe(document.body,{childList:true,subtree:true});
+  })();
+
+  /* ⑧ CNN 7개 세부지표 — 수치를 막대 바로 아래(마커 위치)에 표시 */
+  (function(){
+    var tb=document.getElementById('us-sub'); if(!tb) return;
+    var busy=false, run=function(){
+      if(busy) return; busy=true;
+      tb.querySelectorAll('tr').forEach(function(tr){
+        var bc=tr.querySelector('.sub-bar'), nb=tr.querySelector('td.num b'); if(!bc||!nb) return;
+        var mk=bc.querySelector('i'), x=parseFloat((mk&&mk.style.left)||'50');
+        var lab=bc.parentNode.querySelector('.sb-val'); if(!lab){ lab=document.createElement('span'); lab.className='sb-val'; bc.parentNode.appendChild(lab); }
+        lab.textContent=nb.textContent; lab.style.left=Math.max(9,Math.min(91,isFinite(x)?x:50))+'%';
+        tr.classList.add('sb-done');
+      });
+      busy=false;
+    };
+    new MutationObserver(function(){ if(!busy) run(); }).observe(tb,{childList:true});
+    run();
   })();
 })();

@@ -432,3 +432,29 @@ body.pro{
 .pro .lev-inv>div:nth-child(2) .lv-sec{margin-bottom:12px}
 @media(max-width:760px){.pro .lev-inv>div:first-child{grid-template-columns:1fr}}
 .pro .lv-sec.wide{grid-column:1/-1}
+
+/* ═════ v7 : CNN 수치 = 막대 아래 마커 위치 ═════ */
+.pro #us-sub td:nth-child(2){position:relative;padding:12px 6px 28px!important;vertical-align:middle}
+.pro #us-sub td{vertical-align:middle}
+.pro #us-sub .sb-val{position:absolute;bottom:5px;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;color:var(--tx);white-space:nowrap}
+.pro #us-sub .sb-val::before{content:"";position:absolute;left:50%;top:-4px;width:1px;height:4px;background:#111418}
+.pro #us-sub tr.sb-done td.num b{display:none}
+.pro #us-sub tr.sb-done td.num br{display:none}
+
+/* ═════ v7 : 섹터 히트맵 상승/하락 요약 ═════ */
+.shm-sum{margin:0 0 8px}
+.shm-sum .ss-bar{display:flex;height:6px;border-radius:1px;overflow:hidden}.shm-sum .ss-bar i{display:block}
+.shm-sum .ss-lb{display:flex;justify-content:space-between;font-family:'JetBrains Mono','Noto Sans KR',monospace;font-size:12px;margin-top:5px}
+.shm-sum .ss-lb span{color:var(--tx2)}
+#pro-sector .shm a em{font-weight:700}
+
+/* ═════ v7 : 기간 탭 — 초록 제목 줄 위에서는 흰색 반전, 그 외에는 초록 ═════ */
+.pro .card>.fg-hd:first-child .tabs,.pro .card>h3:first-child .tabs{background:transparent;border:1px solid rgba(255,255,255,.55);border-radius:3px}
+.pro .card>.fg-hd:first-child .tabs button,.pro .card>h3:first-child .tabs button{background:transparent!important;color:#fff!important;border-right:1px solid rgba(255,255,255,.35)!important;font-weight:500}
+.pro .card>.fg-hd:first-child .tabs button:last-child,.pro .card>h3:first-child .tabs button:last-child{border-right:0!important}
+.pro .card>.fg-hd:first-child .tabs button:hover,.pro .card>h3:first-child .tabs button:hover{background:rgba(255,255,255,.18)!important}
+.pro .card>.fg-hd:first-child .tabs button.on,.pro .card>h3:first-child .tabs button.on{background:#fff!important;color:#0A6B48!important;font-weight:700}
+.pro .tabs button.on,.pro .pulse .hm-t button.on{background:#0A6B48;color:#fff}
+.pro .tabs:not([data-group="tick"]):not([data-group="cap"]):not([data-group="lev"]) button.on{background:#0A6B48;color:#fff}
+.pro #stock .grid>.card:last-child #us-sub{flex:1 1 auto}
+@media(min-width:901px){.pro #us-sub tr{height:57px}}
