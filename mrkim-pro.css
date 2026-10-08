@@ -743,3 +743,6 @@ body.pro{
 .pro .wl-row.st4{background:#F3E4FF;box-shadow:inset 0 0 0 1px #B46BE8}
 .pro .wl-row.st3.m-x{background:#FFE9D6}.pro .wl-row.st4.m-x{background:#F3E4FF}
 .pro .tb-streak{font-size:11.5px!important;letter-spacing:.2px}
+
+/* v23 한국주식 페이지(body.pro.kr) */
+@media(max-width:700px){ .pro.kr #kr-next-event{display:none!important} }

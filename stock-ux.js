@@ -24,7 +24,7 @@
   wire(); [800,2500].forEach(function(t){ setTimeout(wire,t); });
   /* ===== 표 → 카드(모바일): 각 칸에 머리글을 data-label 로 달아 CSS가 카드로 보여준다 ===== */
   var cards=function(){
-    ['holidays-tbl'].forEach(function(id){ var tb=document.getElementById(id); if(!tb) return; var tbl=tb.closest('table'); if(!tbl) return;
+    ['holidays-tbl','kr-holidays-tbl'].forEach(function(id){ var tb=document.getElementById(id); if(!tb) return; var tbl=tb.closest('table'); if(!tbl) return;
       var hs=[].map.call(tbl.querySelectorAll('thead th'),function(th){ var n=th.firstChild; return (n&&n.nodeType===3?n.textContent:th.textContent).trim(); });
       tbl.classList.add('m-cards');
       tb.querySelectorAll('tr').forEach(function(tr){ [].forEach.call(tr.children,function(td,i){ if(td.colSpan>1) return; if(!td.getAttribute('data-label')&&hs[i]) td.setAttribute('data-label',hs[i]); }); }); }); };
@@ -35,7 +35,7 @@
     lb.onclick=function(){ var o=lead.classList.toggle('m-lead-open'); lb.setAttribute('aria-expanded',o?'true':'false'); lb.textContent=o?'접기 ▴':'소개 더보기 ▾'; };
     lead.after(lb); }
   /* ===== 탭 좌우 스와이프(기간 변경) ===== */
-  var MAP={'tick-tbl':'tick','cap-tbl':'cap','lev-tbl':'lev','idxchg-tbl':'idxchg'};
+  var MAP={'tick-tbl':'tick','cap-tbl':'cap','lev-tbl':'lev','idxchg-tbl':'idxchg','krcap-tbl':'krcap','krkq-tbl':'krkq','krlev-tbl':'krlev','kridx-tbl':'kridx'};
   Object.keys(MAP).forEach(function(id){ var list=document.getElementById(id); if(!list) return;
     var area=list.closest('.scroll')||list, g=MAP[id], x0=0,y0=0,t0=0,on=false;
     var tabs=function(){ return document.querySelector('.tabs[data-group="'+g+'"]'); };
@@ -55,9 +55,9 @@
     if(go){ ptr.textContent='새로고침 중…'; location.reload(); } pull=0; },{passive:true});
 
   /* ===== 하단 긴 글: 용어 가이드·데이터 안내를 모바일에서 접어 둔다 ===== */
-  var acc=function(head,body,cls){ if(!mq.matches) return; head.classList.add('acc-h'); head.setAttribute('role','button'); head.setAttribute('tabindex','0'); head.setAttribute('aria-expanded','false');
-    var tg=function(){ var o=head.classList.toggle('acc-open'); head.setAttribute('aria-expanded',o?'true':'false'); body.classList.toggle('acc-show',o); };
-    body.classList.add('acc-b'); head.addEventListener('click',tg); head.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(); } }); };
+  var acc=function(head,body){ if(!mq.matches) return; var btn=document.createElement('button'); btn.type='button'; btn.className='acc-btn'; btn.setAttribute('aria-expanded','false');
+    while(head.firstChild) btn.appendChild(head.firstChild); head.appendChild(btn); head.classList.add('acc-h'); body.classList.add('acc-b');
+    btn.addEventListener('click',function(){ var o=head.classList.toggle('acc-open'); btn.setAttribute('aria-expanded',o?'true':'false'); body.classList.toggle('acc-show',o); }); };
   document.querySelectorAll('.gl-list dt').forEach(function(dt){ var dd=dt.nextElementSibling; if(dd&&dd.tagName==='DD') acc(dt,dd); });
   var dn=document.querySelector('.data-notice');
   if(dn){ var hb=dn.querySelector('b'), wrap=document.createElement('div'); [].slice.call(dn.querySelectorAll('.dl')).forEach(function(x){ wrap.appendChild(x); }); dn.appendChild(wrap); if(hb){ var br=hb.nextElementSibling; if(br&&br.tagName==='BR') br.remove(); acc(hb,wrap); } }
