@@ -1,0 +1,168 @@
+/* Mr.Kim Signal — 전문 도구형 스킨 (body.pro 에서만 적용 · 기존 DOM/JS 그대로) */
+body.pro{
+  --bg:#EEF0F2; --panel:#ffffff; --panel2:#F6F7F8; --line:#D5D9DD;
+  --tx:#111418; --tx2:#667085; --accent:#0A6B48; --accent2:#085a3d;
+  --up:#D92D20; --down:#1D4ED8; --gold:#B7791F;
+  font-family:'Noto Sans KR','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;
+  font-size:13px; letter-spacing:0; font-variant-numeric:tabular-nums;
+}
+.pro .m,.pro .big,.pro .chg,.pro .wl-price,.pro .wl-pct,.pro #us-val,.pro .dial b,.pro .fold-sum b{font-family:'JetBrains Mono','Noto Sans KR',monospace}
+
+/* ── 상단 바 (어두운 48px) ── */
+.pro header{background:#111418;backdrop-filter:none;box-shadow:none;border-bottom:1px solid #1E242B}
+.pro .nav{height:48px}
+.pro header .logo{color:#fff;font-size:15px;letter-spacing:0}
+.pro header .logo span{color:#4ADE9C}
+.pro .nav ul{gap:2px;font-size:13px;color:#A3ACB7}
+.pro .nav ul a{display:flex;align-items:center;height:48px;padding:0 11px;color:#A3ACB7;font-weight:500;white-space:nowrap}
+.pro .nav ul a:hover{color:#fff}
+.pro .nav ul a.nav-hi{color:#A3ACB7;font-weight:500}
+.pro .nav ul a.on-page{color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 #4ADE9C}
+.pro .updated-top{color:#8A94A0;font-family:'JetBrains Mono',monospace;font-size:11px}
+.pro header label{color:#A3ACB7!important}
+.pro .nav-toggle{background:transparent;border-color:#2B323A;color:#fff;border-radius:4px}
+@media(max-width:760px){
+  .pro .nav ul{top:48px;background:#111418;border:0;border-top:1px solid #1E242B;padding:4px 16px}
+  .pro .nav ul a{height:44px;border-bottom:1px solid #1E242B}
+}
+.pro .btn.sm.naver-gift{border-radius:4px;padding:3px 8px}
+
+/* ── 티커 띠 ── */
+#pro-tick{display:flex;align-items:center;height:32px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;white-space:nowrap}
+#pro-tick::-webkit-scrollbar{display:none}
+#pro-tick .pt{display:flex;align-items:baseline;gap:7px;padding:0 14px;border-left:1px solid #E6E8EB;flex:none}
+#pro-tick .pt:first-child{border-left:0}
+#pro-tick .pt span{font-size:11.5px;color:var(--tx2)}
+#pro-tick .pt b{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;color:var(--tx)}
+#pro-tick .pt i{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11.5px}
+#pro-tick .pt i.up{color:var(--up)}#pro-tick .pt i.down{color:var(--down)}
+#pro-tick .pt-live{display:flex;align-items:center;gap:5px;padding:0 12px;font-size:11px;font-weight:700;color:var(--accent);flex:none}
+#pro-tick .pt-live u{width:7px;height:7px;border-radius:50%;background:#16A34A;display:block}
+
+/* ── 레이아웃 폭/여백 ── */
+.pro .wrap{max-width:1240px;padding:0 16px}
+.pro #stock>.wrap,.pro #unicorn>.wrap,.pro #events>.wrap{padding-top:12px}
+.pro section{padding-top:0}
+
+/* ── 제목 ── */
+.pro #stock .sec-h h2,.pro #stock h2,.pro #unicorn h2,.pro #events h2{font-size:17px!important;font-weight:700;letter-spacing:0;margin-top:0}
+.pro .sec-h{margin-bottom:6px}
+.pro .sub{font-size:12px;margin-bottom:10px;color:var(--tx2)}
+.pro .fold-body>.sub{font-size:12px;margin:8px 0 10px}
+
+/* ── 패널(카드) : 4px 모서리 · 1px 선 · 제목 바 ── */
+.pro .card{border-radius:4px;box-shadow:none;border:1px solid var(--line);padding:0 14px 14px;margin-top:0}
+.pro .card>h3:first-child,.pro .card>.fg-hd:first-child{margin:0 -14px 12px;padding:0 14px;min-height:30px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--panel2);border-bottom:1px solid var(--line);border-radius:4px 4px 0 0;font-size:12px;font-weight:700;color:var(--tx)}
+.pro .card>.fg-hd:first-child h3{margin:0;font-size:12px;color:var(--tx)}
+.pro .grid{gap:12px;margin-top:12px}
+.pro #stock .grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+@media(max-width:900px){.pro #stock .grid{grid-template-columns:1fr}}
+
+/* ── 탭(세그먼트) ── */
+.pro .tabs{border-radius:4px;padding:0;gap:0;border:1px solid #C7CCD1;background:#fff;overflow:hidden}
+.pro .tabs button{border-radius:0;padding:5px 12px;font-size:12px;font-weight:500;color:#4B5563;border-right:1px solid #E1E4E8}
+.pro .tabs button:last-child{border-right:0}
+.pro .tabs button.on{background:#111418;color:#fff;font-weight:700}
+
+/* ── 공탐 숫자·상태 ── */
+.pro .dial{width:92px;height:92px}
+.pro .dial b{width:72px;height:72px;font-size:30px;letter-spacing:-.03em}
+.pro .state{font-size:16px}
+.pro .kimcomment{border-radius:3px;padding:7px 12px;font-size:14px}
+.pro .fg-cmt-lab{font-size:11px}
+.pro #us-next-event{border-radius:4px!important;padding:8px 12px!important}
+
+/* ── 선형 구간 스케일 (pro.js가 삽입) ── */
+#pro-scale{margin:12px 0 4px}
+#pro-scale .bar{position:relative;display:flex;height:8px;border-radius:2px;overflow:hidden}
+#pro-scale .bar i{display:block;height:100%}
+#pro-scale .mk{position:absolute;top:-6px;width:2px;height:20px;background:#111418;transform:translateX(-1px)}
+#pro-scale .tk{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);margin-top:6px}
+#pro-scale .lb{display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx2);margin-top:2px}
+
+/* ── 7개 세부지표 표 ── */
+.pro table{font-size:12.5px}
+.pro #us-sub td,.pro #us-sub th{padding-top:6px;padding-bottom:6px}
+.pro .sub-bar{height:6px;border-radius:1px}
+.pro .sub-bar i{top:-5px;height:16px;width:3px;border-radius:1px;box-shadow:0 0 0 1.5px #fff}
+.pro .sub-note{border-radius:3px;font-size:11px}
+
+/* ── 섹션 접기 바 ── */
+.pro .fold-h{margin:12px 0 0!important;padding:8px 12px;font-size:15px!important;border-radius:4px;border:1px solid var(--line);box-shadow:none;background:#fff}
+.pro .fold-h:hover{background:var(--panel2)}
+.pro .fold-h.open{background:var(--panel2);box-shadow:inset 0 -2px 0 var(--accent)}
+.pro .fold-sum{font-size:11.5px;font-weight:500}
+.pro .fold-btn{border-radius:3px;padding:3px 9px;font-size:12px;border-width:1px}
+.pro .fold-all{margin-top:10px}
+.pro .fold-all button{border-radius:3px;padding:4px 10px;font-size:12px}
+.pro .fold-body{padding-top:4px}
+
+/* ── 종목 목록 (wl-list) : 조밀한 표 느낌 ── */
+.pro .wl-list{border-radius:4px;margin-top:8px}
+.pro .wl-row{padding:5px 12px;gap:8px}
+.pro .wl-tag{font-size:10.5px}
+.pro .wl-name{font-size:13.5px;font-weight:700;margin-top:0}
+.pro .wl-price{font-size:13.5px;font-weight:700}
+.pro .wl-pct{font-size:12px;margin-top:1px}
+.pro .wl-quote{min-width:78px}
+.pro .wl-bar{width:2px;border-radius:0}
+.pro .wl-actions a{font-size:11px;font-weight:700}
+
+/* ── 섹터 히트맵 (pro.js) ── */
+#pro-sector .shm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin-top:2px}
+#pro-sector .shm a{height:58px;border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#111418}
+#pro-sector .shm a span{font-size:11.5px;font-weight:700}
+#pro-sector .shm a em{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px}
+#pro-sector .shm-note{font-size:11px;color:var(--tx2);margin-top:8px}
+@media(max-width:700px){#pro-sector .shm{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ── 표(이벤트 등) 헤더 정렬감 ── */
+.pro thead th{font-size:11px;color:var(--tx2);font-weight:500}
+.pro tbody tr{border-color:var(--line)}
+
+/* ── 모바일 ── */
+@media(max-width:640px){
+  .pro .wrap{padding:0 12px}
+  .pro #stock .sec-h h2{font-size:16px!important}
+  #pro-tick .pt{padding:0 10px}
+}
+
+/* ── 보정 ── */
+.pro #naver-gift-link{zoom:.84;line-height:1.15}
+.pro #us-sub td,.pro #us-sub th{padding:5px 6px!important}
+.pro #us-sub tr{height:auto}
+.pro .bars{margin-top:8px}
+
+/* ── 시장 한눈에 보기(.pulse) ── */
+.pro .pulse{max-width:none;width:auto;margin:12px 0 0;padding:0 14px 14px;border-radius:4px;box-shadow:none}
+.pro .pulse>h3:first-child{margin:0 -14px 12px;padding:0 14px;min-height:30px;background:var(--panel2);border-bottom:1px solid var(--line);border-radius:4px 4px 0 0;font-size:12px;font-weight:700}
+.pro .pulse .hm div.tl{border-radius:2px!important}
+.pro .pulse .hm-t>*{border-radius:3px!important}
+
+/* ── 시장 내부지표 · 구간 성과 · 일정 ── */
+.pro .pro-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
+@media(max-width:900px){.pro .pro-row{grid-template-columns:1fr}}
+.pro .pi-sub{font-size:11px;font-weight:700;color:var(--tx2);margin:12px 0 6px}
+.pro .pi-note{font-size:11px;color:var(--tx2);margin-top:8px;line-height:1.5}
+.pro .vts{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.pro .vts .vt{background:var(--panel2);border:1px solid var(--line);padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.pro .vts .vt span{font-size:10.5px;color:var(--tx2)}
+.pro .vts .vt b{font-family:'JetBrains Mono',monospace;font-size:15px}
+.pro .pi-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.pro .pi-tbl th{text-align:right;font-size:11px;color:var(--tx2);font-weight:500;padding:5px 6px;border-bottom:1px solid var(--line)}
+.pro .pi-tbl td{text-align:right;padding:5px 6px;border-bottom:1px solid #E9ECEF;font-family:'JetBrains Mono','Noto Sans KR',monospace}
+.pro .pi-tbl th:first-child,.pro .pi-tbl td:first-child{text-align:left;font-family:'Noto Sans KR',sans-serif}
+.pro .pi-tbl .up{color:var(--up)}.pro .pi-tbl .down{color:var(--down)}
+.pro .pi-tbl.cal th,.pro .pi-tbl.cal td{text-align:left;font-family:'Noto Sans KR',sans-serif}
+.pro .pi-tbl.cal td.mono{font-family:'JetBrains Mono',monospace}
+.pro .pi-tbl.cal a{color:var(--tx);text-decoration:none;font-weight:500}.pro .pi-tbl.cal a:hover{text-decoration:underline}
+.pro .imp{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:2px;font-family:'Noto Sans KR',sans-serif}
+.pro .imp-h{background:var(--up);color:#fff}.pro .imp-m{background:#F3E3B8;color:#6B4A0B}.pro .imp-l{background:#E6E8EB;color:var(--tx2)}
+.pro .brd{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+.pro .brd span{width:64px;color:var(--tx2)}.pro .brd b{width:60px;white-space:nowrap;text-align:right;font-family:'JetBrains Mono',monospace}
+.pro .brd i{flex:1;height:8px;background:#E6E8EB;border-radius:1px;overflow:hidden;display:block}
+.pro .brd i u{display:block;height:100%;background:var(--accent)}
+.pro .pi-tbl.cal td.up{color:var(--up)}.pro .pi-tbl.cal td.down{color:var(--down)}
+.pro #pi-mb .brd span{width:76px}
+.pro .pi-tbl.cal td:nth-child(n+4),.pro .pi-tbl.cal th:nth-child(n+4){text-align:right}
