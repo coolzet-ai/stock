@@ -16,6 +16,7 @@ const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
 function label(v){
+  v=Math.round(v); /* 화면에 보이는 정수 점수 기준으로 구간 판정(45 이상=중립) */
   if(v<25)return['극단적 공포','#ff4d4f'];
   if(v<45)return['공포','#ff8a00'];
   if(v<=55)return['중립','#9fb0c9'];
@@ -1729,6 +1730,19 @@ function injectTechBadgeCss(){
     '.tb-cold{background:rgba(26,111,168,.2);color:var(--down)}';
   document.head.appendChild(st);
 }
+/* 레버리지 ETF: 3일 이상 연속 하락 → "N연하", 연속 하락 구간 누적 하락률(종가 기준) 30% 초과 → "급락" */
+function levDropBadges(d){
+  if(!d||d.length<4) return '';
+  let n=0,i=d.length-1;
+  while(i>0&&d[i]<d[i-1]){ n++; i--; }
+  if(n<1) return '';
+  const cum=(1-d[d.length-1]/d[i])*100;
+  let h='';
+  const st='color:#fff;';
+  if(n>=3) h+='<span class="tb" style="'+st+'background:#475569" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
+  if(cum>30) h+='<span class="tb" style="'+st+'background:#dc2626" title="연속 하락 구간 종가 기준 누적 −'+cum.toFixed(1)+'% (30% 초과)">급락 −'+cum.toFixed(0)+'%</span>';
+  return h;
+}
 function renderTickBadges(row,d){
   const nm=row.querySelector('.wl-name'); if(!nm) return;
   injectTechBadgeCss();
@@ -1736,7 +1750,7 @@ function renderTickBadges(row,d){
   const html=techBadgesHtml(d);
   if(!html){ if(box) box.remove(); return; }
   if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
-  box.innerHTML=html;
+  box.innerHTML=html+(row.closest('#lev-tbl,#krlev-tbl')?levDropBadges(d):'');
   // 티커명 앞 신호등
   let sg=nm.querySelector('.wl-sig');
   const sig=valuationSignal(d);
@@ -5157,6 +5171,7 @@ function renderBacktest(res){
 /* 공포탐욕 점수를 사람이 읽을 수 있는 상태로 표시(매수 조건의 실제 임계값과 동일한 구간) */
 function fgScoreState(score){
   if(score==null) return '';
+  score=Math.round(score);
   if(score<25) return '극단적 공포';
   if(score<45) return '공포';
   if(score<=55) return '중립';
@@ -5742,15 +5757,18 @@ async function hydrateIpoQuotes(){
     openRainbow(row);
   });
   /* 종목명 옆: 레인보우 현재 구간 단계 이모티콘 (마우스를 올리면/길게 누르면 구간명 표시) */
-  const RB_EMO=['🥶','🧊','🌱','🙂','😐','😅','🔥','🚨','💥'];
   const rbZoneNow={};
   function applyRbBadges(){
     document.querySelectorAll('#coin-tbl .wl-row[data-c]').forEach(row=>{
       const z=rbZoneNow[row.dataset.c]; if(z==null) return;
-      const nm=row.querySelector('.wl-name'); if(!nm) return;
-      let b=nm.querySelector('.rb-badge');
-      if(!b){ b=document.createElement('span'); b.className='rb-badge'; b.style.cssText='margin-left:6px;font-size:15px;cursor:help;vertical-align:middle'; nm.appendChild(b); }
-      b.textContent=RB_EMO[z]; b.title='레인보우 현재 구간: '+RB[z][1];
+      const tg=row.querySelector('.wl-tag'); if(!tg) return;
+      /* 한글 코인명 볼드 */
+      tg.style.fontWeight='800'; tg.style.color='var(--tx)'; tg.style.fontSize='13px';
+      let b=tg.querySelector('.rb-badge');
+      if(!b){ b=document.createElement('span'); b.className='rb-badge'; tg.appendChild(b); }
+      const c=RB[z][0];
+      b.style.cssText='margin-left:6px;display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle;color:#fff;background:'+c+(z===4?';color:#422006':'');
+      b.textContent=RB[z][1]; b.title='레인보우 현재 구간: '+RB[z][1];
     });
   }
   (async function(){
