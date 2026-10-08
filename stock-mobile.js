@@ -4,7 +4,7 @@
   var mq=window.matchMedia('(max-width:700px)');
   /* ① 아래로 스크롤하면 헤더를 숨기고(목차만 고정), 위로 올리면 다시 보인다 */
   var hd=document.querySelector('header'), last=window.scrollY, hidden=false, tick=false;
-  var setH=function(h){ if(h===hidden||!hd) return; hidden=h; hd.classList.toggle('m-hide',h);
+  var setH=function(h){ if(h===hidden||!hd) return; hidden=h; hd.classList.toggle('hdr-off',h);
     var t=document.getElementById('pro-toc'); if(t) t.style.top=h?'0px':hd.offsetHeight+'px'; };
   window.addEventListener('scroll',function(){ if(tick) return; tick=true; requestAnimationFrame(function(){ tick=false;
     if(!mq.matches){ setH(false); return; }

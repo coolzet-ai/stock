@@ -100,7 +100,7 @@
     var ITEMS=[['요약','#pro-brief'],['공탐','#kr-card'],['투자자 동향','h:투자자별'],['지수비교','h:코스피·코스닥'],['코스피 TOP10','h:시가총액 TOP10 (코스피)'],['코스닥 TOP10','h:시가총액 TOP10 (코스닥)'],['레버리지','h:레버리지'],['이벤트','h:주요 이벤트'],['편입·편출','h:KOSPI200']];
     toc.innerHTML=ITEMS.map(function(it,i){ return '<a href="#" data-i="'+i+'">'+it[0]+'</a>'; }).join('');
     var st2=document.getElementById('pro-status'); (st2||hd).after(toc);
-    var place=function(){ if(!document.querySelector('header.m-hide')) toc.style.top=(hd?hd.offsetHeight:0)+'px'; }; place(); window.addEventListener('resize',place); setTimeout(place,1500);
+    var place=function(){ if(!document.querySelector('header.hdr-off')) toc.style.top=(hd?hd.offsetHeight:0)+'px'; }; place(); window.addEventListener('resize',place); setTimeout(place,1500);
     toc.addEventListener('click',function(e){ var a=e.target.closest('a'); if(!a) return; e.preventDefault(); var t=ITEMS[+a.dataset.i][1], el;
       if(t.indexOf('h:')===0){ var k=t.slice(2); el=[].slice.call(document.querySelectorAll('h2.fold-h')).find(function(h){ return (h.textContent||'').replace(/\s+/g,' ').trim().indexOf(k)===0; }); if(el&&el._set) el._set(true); } else el=document.querySelector(t);
       if(el) openAndGo(el); });

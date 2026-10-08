@@ -300,23 +300,27 @@
     var sel=document.createElement('div'); sel.className='seg ixf';
     sel.innerHTML='<button class="on" data-x="">전체</button><button data-x="sp">S&amp;P500</button><button data-x="nq">나스닥100</button>';
     wrap.appendChild(sel);
-    var cur='', busy=false;
+    var sel2=document.createElement('div'); sel2.className='seg ixf ixio'; sel2.setAttribute('role','group'); sel2.setAttribute('aria-label','편입·편출 구분');
+    sel2.innerHTML='<button class="on" data-y="">편입+편출</button><button data-y="in">편입</button><button data-y="out">편출</button>';
+    wrap.appendChild(sel2);
+    var cur='', curT='', busy=false;
     var apply=function(){
       busy=true;
       host.querySelectorAll('.wl-row').forEach(function(r){ var tag=r.querySelector('.ix'); var is=!cur||(tag&&tag.classList.contains('ix-'+cur)); r.style.display=is?'':'none'; var nx=r.nextElementSibling; if(nx&&/^finx/.test(nx.id||'')&&!is) nx.style.display='none'; });
       Array.prototype.forEach.call(host.children,function(g){
         var lists=g.querySelectorAll('.wl-list'); if(!lists.length) return;
-        var cnt=[];
-        lists.forEach(function(l){ var n=l.querySelectorAll('.wl-row:not([style*="display: none"])').length; cnt.push(n); l.style.display=n?'':'none'; var lab=l.previousElementSibling; if(lab&&lab.className!=='wl-list') lab.style.display=n?'':'none'; });
+        var cnt=[], typs=[];
+        lists.forEach(function(l){ var lb0=l.previousElementSibling, typ=(lb0&&/편출/.test(lb0.textContent||''))?'out':'in'; var n=(curT&&curT!==typ)?0:l.querySelectorAll('.wl-row:not([style*="display: none"])').length; cnt.push(n); typs.push(typ); l.style.display=n?'':'none'; var lab=l.previousElementSibling; if(lab&&lab.className!=='wl-list') lab.style.display=n?'':'none'; });
         var tot=cnt.reduce(function(a,b){return a+b;},0); g.style.display=tot?'':'none';
-        var sm=g.querySelector('.mut'); if(sm&&cnt.length>=1&&cur) sm.textContent='· 편입 '+(cnt[0]||0)+(cnt.length>1?' · 편출 '+cnt[1]:'');
+        var sm=g.querySelector('.mut'); if(sm&&cnt.length>=1&&(cur||curT)) { var ci=0,co=0; typs.forEach(function(t,i){ if(t==='out') co+=cnt[i]; else ci+=cnt[i]; }); sm.textContent='· 편입 '+ci+' · 편출 '+co; }
       });
       var emp=document.getElementById('ixf-empty'); if(emp) emp.remove();
-      if(cur&&!Array.prototype.some.call(host.children,function(g){return g.style.display!=='none'&&g.querySelector&&g.querySelector('.wl-list');})){ var d=document.createElement('div'); d.id='ixf-empty'; d.className='pi-note'; d.textContent='선택한 기간에 해당 지수의 편입·편출 종목이 없습니다.'; host.after(d); }
+      if((cur||curT)&&!Array.prototype.some.call(host.children,function(g){return g.style.display!=='none'&&g.querySelector&&g.querySelector('.wl-list');})){ var d=document.createElement('div'); d.id='ixf-empty'; d.className='pi-note'; d.textContent='선택한 기간에 해당 지수의 편입·편출 종목이 없습니다.'; host.after(d); }
       busy=false;
     };
     sel.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; sel.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);}); cur=b.dataset.x; apply(); });
-    new MutationObserver(function(){ if(!busy&&cur) apply(); }).observe(host,{childList:true});
+    sel2.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; sel2.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);}); curT=b.dataset.y; apply(); });
+    new MutationObserver(function(){ if(!busy&&(cur||curT)) apply(); }).observe(host,{childList:true});
   })();
 
   /* ⑥ 김군코멘트 시각화 */
