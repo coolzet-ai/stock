@@ -4,8 +4,12 @@
 (function(){
   if(window.__mkPerf) return; window.__mkPerf=1;
   var _si=window.setInterval.bind(window);
+  /* 데이터 절약 모드: 사용자가 켰거나(mk_save=1), 브라우저가 데이터 절약·저속망(2G/3G)을 알리면 자동 갱신 주기를 3배로 */
+  var __save=false; try{ var __sv=localStorage.getItem('mk_save'); __save=__sv==='1'; if(__sv===null){ var __cn=navigator.connection; if(__cn&&(__cn.saveData||/^(slow-2g|2g|3g)$/.test(__cn.effectiveType||''))) __save=true; } }catch(e){}
+  window.MK_SAVE=__save; if(__save) document.documentElement.classList.add('mk-save');
   window.setInterval=function(fn,ms){ var a=Array.prototype.slice.call(arguments,2);
     if(typeof fn!=='function'||!(ms>=2000)) return _si.apply(null,arguments);
+    if(__save&&ms<600000) ms=ms*3;
     return _si(function(){ if(document.hidden) return; fn.apply(null,a); },ms); };
 })();
 const __JC=new Map(), __JP=new Map(); let __jActive=0; const __jQ=[];

@@ -1,0 +1,59 @@
+/* 모바일 UX 보강 — 스켈레톤 로딩, 데이터 절약 스위치, 표→카드, 탭 스와이프, 당겨서 새로고침, 소개문 접기, 서비스워커 등록 */
+(function(){
+  if(!document.body.classList.contains('pro')) return;
+  var mq=window.matchMedia('(max-width:700px)');
+  /* ===== 스켈레톤: "--" / "불러오는 중…" 자리표시를 반짝이는 틀로 ===== */
+  var SK_SEL='.wl-price,.wl-pct,#us-val,#us-state,#us-kimcomment,.mut,td.mut,.px,.ch';
+  var skel=function(){
+    document.querySelectorAll(SK_SEL).forEach(function(e){
+      var t=(e.textContent||'').trim(), ph=(t==='--'||t==='불러오는 중'||t==='불러오는 중…'||t==='불러오는 중...');
+      if(ph&&e.children.length===0){ if(!e.classList.contains('skel')) e.classList.add('skel'); }
+      else if(e.classList.contains('skel')) e.classList.remove('skel'); }); };
+  var main=document.getElementById('main'), st=null;
+  var sched=function(){ clearTimeout(st); st=setTimeout(function(){ skel(); cards(); },350); };
+  if(main) new MutationObserver(sched).observe(main,{childList:true,subtree:true,characterData:true});
+  skel();
+  /* ===== 데이터 절약 스위치 ===== */
+  var saveOn=!!window.MK_SAVE;
+  var wire=function(){
+    var rf=document.getElementById('ps-rf'); if(!rf||document.getElementById('ps-save')) return;
+    var b=document.createElement('button'); b.type='button'; b.id='ps-save'; b.setAttribute('aria-pressed',saveOn?'true':'false');
+    b.title='켜면 자동 갱신 주기가 3배 길어지고 로고 이미지를 불러오지 않습니다'; b.textContent=saveOn?'📶 절약 ON':'📶 절약';
+    b.onclick=function(){ try{ localStorage.setItem('mk_save',saveOn?'0':'1'); }catch(e){} location.reload(); };
+    rf.before(b); };
+  wire(); [800,2500].forEach(function(t){ setTimeout(wire,t); });
+  /* ===== 표 → 카드(모바일): 각 칸에 머리글을 data-label 로 달아 CSS가 카드로 보여준다 ===== */
+  var cards=function(){
+    ['holidays-tbl'].forEach(function(id){ var tb=document.getElementById(id); if(!tb) return; var tbl=tb.closest('table'); if(!tbl) return;
+      var hs=[].map.call(tbl.querySelectorAll('thead th'),function(th){ var n=th.firstChild; return (n&&n.nodeType===3?n.textContent:th.textContent).trim(); });
+      tbl.classList.add('m-cards');
+      tb.querySelectorAll('tr').forEach(function(tr){ [].forEach.call(tr.children,function(td,i){ if(td.colSpan>1) return; if(!td.getAttribute('data-label')&&hs[i]) td.setAttribute('data-label',hs[i]); }); }); }); };
+  cards();
+  /* ===== 소개문 접기(모바일) ===== */
+  var lead=document.querySelector('.pg-lead');
+  if(lead){ var lb=document.createElement('button'); lb.type='button'; lb.className='lead-more'; lb.setAttribute('aria-expanded','false'); lb.textContent='소개 더보기 ▾';
+    lb.onclick=function(){ var o=lead.classList.toggle('m-lead-open'); lb.setAttribute('aria-expanded',o?'true':'false'); lb.textContent=o?'접기 ▴':'소개 더보기 ▾'; };
+    lead.after(lb); }
+  /* ===== 탭 좌우 스와이프(기간 변경) ===== */
+  var MAP={'tick-tbl':'tick','cap-tbl':'cap','lev-tbl':'lev','idxchg-tbl':'idxchg'};
+  Object.keys(MAP).forEach(function(id){ var list=document.getElementById(id); if(!list) return;
+    var area=list.closest('.scroll')||list, g=MAP[id], x0=0,y0=0,t0=0,on=false;
+    var tabs=function(){ return document.querySelector('.tabs[data-group="'+g+'"]'); };
+    var tb=tabs(); if(tb&&!tb.nextElementSibling.classList.contains('swipe-hint')){ var h=document.createElement('div'); h.className='swipe-hint'; h.textContent='↔ 목록을 좌우로 밀면 기간이 바뀝니다'; tb.after(h); }
+    area.addEventListener('touchstart',function(e){ if(!mq.matches||e.touches.length!==1) return; on=true; x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
+    area.addEventListener('touchend',function(e){ if(!on) return; on=false; var c=e.changedTouches[0], dx=c.clientX-x0, dy=c.clientY-y0;
+      if(Math.abs(dx)<70||Math.abs(dy)>45||Date.now()-t0>650) return;
+      var t=tabs(); if(!t) return; var bs=[].slice.call(t.querySelectorAll('button')); var i=bs.findIndex(function(b){ return b.classList.contains('on'); }); if(i<0) return;
+      var n=i+(dx<0?1:-1); if(n<0||n>=bs.length) return; bs[n].click(); },{passive:true}); });
+  /* ===== 당겨서 새로고침(맨 위에서만) ===== */
+  var ptr=document.createElement('div'); ptr.id='ptr'; ptr.setAttribute('aria-hidden','true'); ptr.textContent='↓ 당겨서 새로고침'; document.body.appendChild(ptr);
+  var py=0, pull=0, act=false;
+  document.addEventListener('touchstart',function(e){ act=mq.matches&&window.scrollY<=0&&e.touches.length===1; py=e.touches[0].clientY; pull=0; },{passive:true});
+  document.addEventListener('touchmove',function(e){ if(!act) return; var d=e.touches[0].clientY-py; if(d<=0||window.scrollY>0){ pull=0; ptr.style.transform=''; ptr.classList.remove('on'); return; }
+    pull=Math.min(d,110); ptr.classList.add('on'); ptr.style.transform='translateY('+(pull*0.6-40)+'px)'; ptr.textContent=pull>=80?'↑ 놓으면 새로고침':'↓ 당겨서 새로고침'; },{passive:true});
+  document.addEventListener('touchend',function(){ if(!act) return; act=false; var go=pull>=80; ptr.classList.remove('on'); ptr.style.transform='';
+    if(go){ ptr.textContent='새로고침 중…'; location.reload(); } pull=0; },{passive:true});
+  /* ===== 홈 화면 추가(PWA) 서비스워커 ===== */
+  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+})();

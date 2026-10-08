@@ -7,7 +7,7 @@ let T=null; try{ T=require('terser'); }catch(e){ console.log('terser 미설치 �
 (async()=>{
   for(const f of ['mrkim-common.js','mrkim-pro.js']){
     const out=f.replace(/\.js$/,'.min.js'), src=fs.readFileSync(f,'utf8');
-    if(!T){ fs.writeFileSync(out,src); continue; }
+    if(!T){ if(!fs.existsSync(out)||fs.statSync(out).mtimeMs<fs.statSync(f).mtimeMs) fs.writeFileSync(out,src); continue; }
     const r=await T.minify(src,{compress:{passes:1},mangle:true,format:{comments:false,ascii_only:false}});
     if(r.error||!r.code){ console.log(f,'압축 실패 → 원본 복사'); fs.writeFileSync(out,src); continue; }
     fs.writeFileSync(out,r.code); console.log(f,fs.statSync(f).size,'→',fs.statSync(out).size,'bytes');
