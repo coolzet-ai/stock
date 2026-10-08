@@ -23,7 +23,8 @@
   if(!USER_HASH) return;
   try{ if(localStorage.getItem('mk_gate_off')==='1'){ adminBarLater(); return; } }catch(e){}
   var page=(location.pathname.split('/').pop()||'index.html');
-  try{ if(sessionStorage.getItem('mk_ok')===page) return; }catch(e){}
+  var FREE={'stock.html':1,'kr-stock.html':1}, isFree=!!FREE[page];
+  try{ if(!isFree && sessionStorage.getItem('mk_ok')===page) return; }catch(e){}
 
   /* SHA-256 (crypto.subtle 사용 불가 환경용 순수 JS 대체 포함) */
   function sha256js(msg){
@@ -55,46 +56,101 @@
   }
 
   /* 잠금 화면 */
-  var hide=document.createElement('style');
-  hide.id='mk-gate-hide';
-  hide.textContent='html{overflow:hidden!important}body{visibility:hidden!important}';
-  document.documentElement.appendChild(hide);
+  if(!isFree){
+    var hide=document.createElement('style');
+    hide.id='mk-gate-hide';
+    hide.textContent='html{overflow:hidden!important}body{visibility:hidden!important}';
+    document.documentElement.appendChild(hide);
+  }
   function unlock(){
     var o=document.getElementById('mk-gate'); if(o) o.remove();
     var h=document.getElementById('mk-gate-hide'); if(h) h.remove();
   }
-  function build(){
-    var o=document.createElement('div'); o.id='mk-gate';
+  function build(opt){
+    opt=opt||{}; if(document.getElementById('mk-gate')) return;
+    var o=document.createElement('div'); o.id='mk-gate'; if(opt.modal) o.className='modal';
     o.innerHTML='<style>#mk-gate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:#f4f6f5;color:#1b1f1d;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}'+
       '#mk-gate .bx{width:100%;max-width:340px;background:#fff;border:1px solid #dfe5e1;border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.12)}'+
       '#mk-gate h1{font-size:18px;margin:0 0 4px;font-weight:900}#mk-gate p{font-size:12.5px;opacity:.7;margin:0 0 16px}'+
       '#mk-gate input{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cfd8d3;border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px}'+
       '#mk-gate button{width:100%;padding:12px;border:0;border-radius:10px;background:#00754a;color:#fff;font-size:15px;font-weight:800;cursor:pointer}'+
       '#mk-gate .gd{margin:-4px 0 14px;padding:12px;border-radius:10px;background:rgba(0,117,74,.10);border:1px solid rgba(0,117,74,.3);font-size:12.5px;line-height:1.6}'+
-      '#mk-gate .gd .id{margin-top:10px;padding:8px 10px;border-radius:10px;background:#00754a;color:#fff;font-size:12px;line-height:1.3;box-shadow:0 0 0 3px rgba(0,117,74,.22)}#mk-gate .gd .id b{display:block;margin-top:3px;font-size:22px;font-weight:900;letter-spacing:1.5px}'+
+      '#mk-gate .gd .id{display:block;text-decoration:none;cursor:pointer;margin-top:10px;padding:8px 10px;border-radius:10px;background:#00754a;color:#fff;font-size:12px;line-height:1.3;box-shadow:0 0 0 3px rgba(0,117,74,.22)}#mk-gate .gd .id i{font-style:normal;display:block}#mk-gate .gd .id em{display:block;font-style:normal;font-size:11.5px;font-weight:700;margin-top:4px;opacity:.9}#mk-gate .gd .id b{display:block;margin-top:3px;font-size:22px;font-weight:900;letter-spacing:1.5px}'+
       '#mk-gate .er{color:#d93025;font-size:12.5px;min-height:18px;margin-top:8px}'+
       '@media(prefers-color-scheme:dark){#mk-gate{background:#0f1311!important;color:#eef2ef!important}#mk-gate .bx{background:#171d1a!important;border-color:#2a332e!important;color:#eef2ef!important;box-shadow:0 10px 30px rgba(0,0,0,.5)!important}#mk-gate h1,#mk-gate p,#mk-gate .gd{color:#eef2ef!important}#mk-gate .gd{background:rgba(0,200,120,.12)!important;border-color:rgba(0,200,120,.35)!important}#mk-gate input{background:#0f1311!important;color:#eef2ef!important;border-color:#2f3a34!important}#mk-gate input::placeholder{color:#8a948e}#mk-gate .er{color:#ff7b72}}'+
       ':root[data-theme="dark"] #mk-gate{background:#0f1311!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate .bx{background:#171d1a!important;border-color:#2a332e!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate h1,:root[data-theme="dark"] #mk-gate p,:root[data-theme="dark"] #mk-gate .gd{color:#eef2ef!important}:root[data-theme="dark"] #mk-gate input{background:#0f1311!important;color:#eef2ef!important;border-color:#2f3a34!important}'+
+      '#mk-gate.modal{background:rgba(0,0,0,.55)!important;backdrop-filter:blur(2px)}:root[data-theme] #mk-gate.modal{background:rgba(0,0,0,.55)!important}#mk-gate .cl{display:none;margin-top:10px;background:transparent!important;color:inherit!important;border:1px solid rgba(128,128,128,.4)!important;font-weight:700!important;font-size:13px!important;padding:9px!important}#mk-gate.modal .cl{display:block}#mk-gate .ms{display:none;font-size:12px;margin:-6px 0 12px;font-weight:700;color:#00754a}#mk-gate.modal .ms{display:block}'+
       '</style>'+
-      '<form class="bx" autocomplete="off"><h1>🔒 Mr.Kim Signal</h1><p>이 페이지에 들어가려면 암호를 입력해 주세요</p>'+
-      '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고<br><b>쪽지</b>를 보내면 암호를 알려드립니다.<div class="id">네이버포인트 선물 ID<b>coolzet</b></div></div>'+
+      '<form class="bx" autocomplete="off"><h1>🔒 Mr.Kim Signal</h1><p>'+(opt.modal?(opt.msg||'계속하려면 암호를 입력해 주세요'):'이 페이지에 들어가려면 암호를 입력해 주세요')+'</p>'+
+      '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고<br><b>쪽지</b>를 보내면 암호를 알려드립니다.<a class="id" id="mk-gate-gift" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener"><i>네이버포인트 선물 ID</i><b>coolzet</b><em>눌러서 바로 선물하기 ›</em></a></div>'+
       '<input type="password" id="mk-gate-pw" placeholder="암호" autocomplete="current-password" autofocus>'+
-      '<button type="submit">확인</button><div class="er" id="mk-gate-er"></div></form>';
+      '<button type="submit">확인</button><button type="button" class="cl" id="mk-gate-cl">닫기</button><div class="er" id="mk-gate-er"></div></form>';
     document.documentElement.appendChild(o);
     var fails=0,busy=false, f=o.querySelector('form'), inp=o.querySelector('#mk-gate-pw'), er=o.querySelector('#mk-gate-er');
     setTimeout(function(){try{inp.focus();}catch(e){}},50);
+    var cl=o.querySelector('#mk-gate-cl'); if(cl) cl.addEventListener('click',function(){ o.remove(); });
+    if(opt.modal){ o.addEventListener('mousedown',function(e){ if(e.target===o) o.remove(); }); document.addEventListener('keydown',function esc(e){ if(e.key==='Escape'){ o.remove(); document.removeEventListener('keydown',esc); } }); }
+    var gl=o.querySelector('#mk-gate-gift');
+    if(gl) gl.addEventListener('click',function(){
+      try{ navigator.clipboard.writeText('coolzet'); }catch(e){}
+      var em=gl.querySelector('em'); if(em){ em.textContent='아이디 coolzet 복사됨 · 선물 페이지로 이동합니다'; setTimeout(function(){ em.textContent='눌러서 바로 선물하기 ›'; },2500); }
+    });
     f.addEventListener('submit',function(ev){
       ev.preventDefault(); if(busy) return;
       var v=inp.value; if(!v) return;
       busy=true;
       sha256(SALT+v).then(function(h){
-        if(ADMIN_HASH&&h===ADMIN_HASH){ try{localStorage.setItem('mk_gate_off','1');}catch(e){} unlock(); adminBarLater(); return; }
-        if(h===USER_HASH){ try{sessionStorage.setItem('mk_ok',page);}catch(e){} unlock(); return; }
+        if(ADMIN_HASH&&h===ADMIN_HASH){ try{localStorage.setItem('mk_gate_off','1');}catch(e){} unlock(); adminBarLater(); if(opt.onOk) opt.onOk(true); return; }
+        if(h===USER_HASH){ if(!opt.modal){ try{sessionStorage.setItem('mk_ok',page);}catch(e){} } unlock(); if(opt.onOk) opt.onOk(false); return; }
         fails++; inp.value=''; er.textContent='암호가 맞지 않습니다'+(fails>=5?' · 잠시 후 다시 시도해 주세요':'');
         setTimeout(function(){busy=false;},fails>=5?5000:300); return;
       }).then(function(){ if(document.getElementById('mk-gate')) return; busy=false; });
     });
   }
-  if(document.body) build(); else document.addEventListener('DOMContentLoaded',build);
-  if(!document.body) document.addEventListener('DOMContentLoaded',function(){});
+  if(!isFree){
+    if(document.body) build(); else document.addEventListener('DOMContentLoaded',function(){ build(); });
+    return;
+  }
+  /* ===== 미국주식·한국주식(기본 화면): 암호 없이 보여주되 '상세보기'나 다른 메뉴 이동 시에만 팝업 ===== */
+  var detailOk=false; try{ detailOk=sessionStorage.getItem('mk_detail')===page; }catch(e){}
+  var DETAIL_SEL='.wl-info,.wl-spark,[onclick*="toggle"],[onclick*="Detail"],[onclick*="detail"]';
+  function isDetail(el){
+    if(el.closest(DETAIL_SEL)) return true;
+    var b=el.closest('button,a,summary,[role="button"]');
+    return !!(b && /상세/.test(b.textContent||'') && !b.closest('#mk-gate'));
+  }
+  document.addEventListener('click',function(e){
+    if(!e.isTrusted && e.__mkReplay) return;
+    var t=e.target; if(!t||!t.closest) return;
+    if(t.closest('#mk-gate')||t.closest('#mk-admin-bar')) return;
+    try{ if(localStorage.getItem('mk_gate_off')==='1') return; }catch(x){}
+    /* 1) 다른 메뉴(페이지)로 이동 */
+    var a=t.closest('a[href]');
+    if(a){
+      var href=a.getAttribute('href')||'';
+      if(!/^(#|javascript:|mailto:|tel:)/i.test(href)){
+        var u; try{ u=new URL(a.href,location.href); }catch(x){ u=null; }
+        if(u && u.origin===location.origin){
+          var file=(u.pathname.split('/').pop()||'index.html');
+          if(/\.html?$/i.test(file) && !FREE[file] && file!==page && (a.target||'_self')!=='_blank'){
+            e.preventDefault(); e.stopPropagation();
+            build({modal:true,msg:'다른 메뉴로 이동하려면 암호를 입력해 주세요',onOk:function(admin){
+              if(!admin){ try{sessionStorage.setItem('mk_ok',file);}catch(x){} }
+              location.href=a.href;
+            }});
+            return;
+          }
+        }
+      }
+    }
+    /* 2) 상세보기(행 상세·펀드 상세 등) */
+    if(!detailOk && isDetail(t)){
+      var link=t.closest('a[href]'); if(link && /^https?:/i.test(link.href) && new URL(link.href).origin!==location.origin) return; /* 외부 링크는 그대로 */
+      e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      build({modal:true,msg:'상세보기는 암호가 필요합니다',onOk:function(){
+        detailOk=true; try{sessionStorage.setItem('mk_detail',page);}catch(x){}
+        setTimeout(function(){ try{ t.click(); }catch(x){} },30);
+      }});
+    }
+  },true);
 })();
