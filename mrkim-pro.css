@@ -357,3 +357,78 @@ body.pro{
 .pro #pro-int .trd{flex:1;justify-content:space-between;gap:10px}
 .pro #pro-int .trd-lg{margin-top:12px}
 @media(max-width:900px){.pro #pro-int .trd{flex:none;gap:12px}}
+
+/* ═════ v6 : 공포탐욕 박스 ═════ */
+.pro #us-bars,.pro #us-bars-labels{display:none!important}
+.pro #stock .fg-row>div:last-child{display:none}
+.pro #stock .fg-row{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.pro #pro-kc .kc{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;background:linear-gradient(90deg,color-mix(in srgb,var(--zc) 13%,#fff),#fff 78%);border:1px solid color-mix(in srgb,var(--zc) 35%,#fff);border-left:5px solid var(--zc);border-radius:0 4px 4px 0}
+.pro #pro-kc .kc-k{display:block;font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:3px}
+.pro #pro-kc .kc-t{display:flex;align-items:baseline;gap:8px;font-size:20px;font-weight:800;color:var(--zc);line-height:1.2}
+.pro #pro-kc .kc-t i{font-style:normal;font-size:16px;opacity:.7}
+.pro #pro-kc .kc-t b{color:#111418}
+.pro #pro-kc .kc-r{display:inline-flex;border:1px solid #C7CCD1;border-radius:3px;overflow:hidden;background:#fff}
+.pro #pro-kc .act{padding:6px 12px;font-size:12px;font-weight:500;color:#98A2B3;border-right:1px solid #E1E4E8}
+.pro #pro-kc .act:last-child{border-right:0}
+.pro #pro-kc .act.on{background:var(--zc);color:#fff;font-weight:700}
+.pro #stock .grid>.card:first-child{display:flex;flex-direction:column}
+.pro #stock .grid>.card:first-child #us-next-event{margin-top:auto!important}
+.pro #stock .grid>.card:first-child #pro-kc{margin-bottom:12px}
+.pro #stock .grid>.card:first-child .fg-row{margin-bottom:0}
+
+/* CNN 7개 세부지표 본문 */
+.pro #us-sub td.sub-lab{font-size:13px!important;font-weight:600;color:var(--tx)}
+.pro #us-sub .sub-nm a{font-size:13px!important;font-weight:600;color:var(--tx);text-decoration:none}
+.pro #us-sub .sub-nm a:hover{color:var(--accent);text-decoration:underline}
+.pro .sub-no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff!important;font-size:12px!important;font-weight:700;font-family:'JetBrains Mono',monospace;margin-right:8px!important;flex:none;box-shadow:0 0 0 3px #E3F1EA}
+.pro #us-sub td.num b{font-family:'JetBrains Mono',monospace;font-size:14px}
+.pro .subdesc-tbl td.sd-no{text-align:center;width:34px}.pro .subdesc-tbl td.sd-no .sub-no{margin:0!important}
+.pro #stock .grid>.card:last-child{display:flex;flex-direction:column}
+.pro #us-sub-note{margin-top:auto}
+.pro #us-sub{width:100%}
+
+/* ═════ v6 : 주요 일정 배너 = 경제지표 패턴 ═════ */
+.pro #us-next-event{padding:0!important;border-radius:4px!important;overflow:hidden;background:#fff!important;border:1px solid var(--line)!important;margin-top:12px}
+.pro #us-next-event .nev-hd{margin:0!important;padding:8px 14px;background:var(--accent);color:#fff!important;font-size:12.5px!important;font-weight:700!important}
+.pro #us-next-event .nev-row{margin:0!important;padding:9px 14px!important;border-top:0!important;border-bottom:1px solid #EEF0F2;background:#fff}
+.pro #us-next-event .nev-row.nev-h{background:#FFF6F5;box-shadow:inset 4px 0 0 var(--up)}
+.pro #us-next-event .nev-row.nev-m{box-shadow:inset 4px 0 0 #D69E2E}
+.pro #us-next-event .nev-row .tag{border-radius:2px!important;font-family:'JetBrains Mono',monospace;font-size:11.5px}
+.pro #us-next-event .nev-row div[style*="font-weight:800"]{font-size:13.5px!important;font-weight:700!important}
+.pro #us-next-event .ev-more{border-top:0}
+.pro #us-next-event .ev-more-btn{width:calc(100% - 28px)!important;margin:10px 14px 12px!important;border-radius:3px!important}
+.pro .cal-more-btn,.pro .ev-more-btn{transition:background .15s,color .15s,transform .15s,box-shadow .15s}
+.pro .cal-more-btn:hover,.pro .ev-more-btn:hover{background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 10px rgba(10,107,72,.35);transform:translateY(-1px)}
+
+/* ═════ v6 : 펼침 소제목 hover 강조 ═════ */
+.pro .fold-h{transition:background .18s,color .18s,transform .18s,box-shadow .18s,border-color .18s;cursor:pointer}
+.pro .fold-h:hover,.pro .fold-h.open:hover{background:linear-gradient(90deg,#0A6B48 0%,#16A06F 100%)!important;color:#fff!important;border-color:#0A6B48;transform:translateY(-1px);box-shadow:0 6px 16px rgba(10,107,72,.35),inset 0 -3px 0 rgba(255,255,255,.35)}
+.pro .fold-h:hover *{color:#fff!important}
+.pro .fold-h:hover .fold-btn{background:#fff!important;color:#0A6B48!important;border-color:#fff!important;font-weight:700}
+.pro .fold-h:active{transform:translateY(0)}
+.pro details>summary{transition:color .15s}
+.pro details>summary:hover{color:#fff!important;background:var(--accent);border-radius:3px;padding:3px 8px;margin-left:-8px}
+
+/* ═════ v6 : 종목 재무 패널 — 김군 판정 패턴 ═════ */
+.pro [id^="finx"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"],.pro [id^="fin-"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"]{background:#0A6B48!important;color:#fff!important;border-bottom:0;font-size:12.5px!important;padding:8px 14px}
+.pro .fin-cols{align-items:stretch!important}
+.pro .fin-col{display:flex!important;flex-direction:column}
+.pro .fin-col>div:last-child{flex:1}
+.pro .fin-disc{display:block;margin:14px 0 4px;padding:12px 14px;background:#FFF8E6;border:1px solid #F0D58A;border-left:5px solid #D69E2E;border-radius:0 4px 4px 0;font-size:12px;line-height:1.6;color:#5C4306}
+.pro .fin-disc b{display:block;font-size:13px;color:#8A5A00;margin-bottom:3px}
+.pro .fin-disc u{text-decoration:none;font-weight:700;background:#FDEBB0;padding:0 3px}
+
+/* ═════ v6 : 레버리지 ETF 투자자 체크패널 ═════ */
+.pro .lev-inv{margin-bottom:6px}
+.pro .lev-inv>div:first-child{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px!important}
+.pro .lev-inv .lv-title{grid-column:1/-1;background:#064B33;color:#fff;padding:9px 14px;font-size:13.5px;font-weight:700;border-radius:4px 4px 0 0;margin:0}
+.pro .lev-inv .lv-title .mut{color:#CFE9DC}
+.pro .lev-inv>div:first-child>div:not(.lv-title):not(.lv-sec){grid-column:1/-1}
+.pro .lv-sec{border:1px solid var(--line);border-radius:4px;background:#fff;overflow:hidden;margin:0;display:flex;flex-direction:column}
+.pro .lv-hd{background:#0A6B48;padding:8px 14px;font-size:12.5px;font-weight:700;color:#fff!important;margin:0!important}
+.pro .lv-sec .lv-body{padding:10px 12px 12px;margin:0!important;flex:1;align-content:start}
+.pro .lv-sec .lv-body>div{border-radius:3px!important;background:#fff!important}
+.pro .lev-inv .fin-disc{margin:12px 0 4px}
+.pro .lev-inv>div:nth-child(2) .lv-sec{margin-bottom:12px}
+@media(max-width:760px){.pro .lev-inv>div:first-child{grid-template-columns:1fr}}
+.pro .lv-sec.wide{grid-column:1/-1}

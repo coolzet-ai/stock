@@ -132,7 +132,7 @@
 
     /* ── 경제지표 카드 ── */
     var cal=document.createElement('div'); cal.className='card'; cal.id='pro-cal'; cal.style.marginTop='12px';
-    cal.innerHTML='<h3><span>경제지표 · 핵심 일정</span><span class="mut" style="font-weight:400;font-size:11px">중요도 높은 일정만 표시 · 나머지는 상세보기</span></h3>'+
+    cal.innerHTML='<h3><span>경제지표 · 핵심 일정</span><span class="mut" style="font-weight:400;font-size:11px">최상 일정 3건만 표시 · 나머지는 상세보기</span></h3>'+
       '<div id="cal-top"></div><div id="cal-body"><div class="pi-note">불러오는 중…</div></div><div id="cal-more"></div><div class="pi-note" id="pc-note"></div>';
     row.after(cal);
     var CAL={mode:'fallback',rows:[],open:false};
@@ -175,10 +175,10 @@
       if(topEl){ if(nx){ var diff=nx.d.getTime()-nm, td=new Date(); td=new Date(td.getFullYear(),td.getMonth(),td.getDate()); var dd=Math.round((new Date(nx.d.getFullYear(),nx.d.getMonth(),nx.d.getDate())-td)/86400000);
           var cd=(CAL.mode==='live'&&diff>0&&diff<36e5*24)?(Math.floor(diff/36e5)+'시간 '+Math.floor(diff%36e5/6e4)+'분 후'):(dd===0?'오늘':'D-'+dd);
           topEl.innerHTML='<div class="cal-alert"><span class="ca-tag">최상 · 다음 일정</span><b>'+nx.title+(nx.period?' <small>'+nx.period+'</small>':'')+'</b><span class="ca-when">'+pad(nx.d.getMonth()+1)+'.'+pad(nx.d.getDate())+' ('+DOW[nx.d.getDay()]+')'+(nx.time?' '+nx.time:'')+'</span><em>'+cd+'</em></div>'; } else topEl.innerHTML=''; }
-      var hiRows=CAL.rows.filter(function(r){ return r.imp>=2; }), rest=CAL.rows.length-hiRows.length, rows=CAL.open?CAL.rows:hiRows;
+      var hiRows=CAL.rows.filter(function(r){ return r.imp>=2; }).slice(0,3), rest=CAL.rows.length-hiRows.length, rows=CAL.open?CAL.rows:hiRows;
       var mo=document.getElementById('cal-more');
-      if(mo){ mo.innerHTML=rest>0?'<button type="button" class="cal-more-btn">'+(CAL.open?'접기 ▴':'상세보기 ▾ · 나머지 '+rest+'건 (중요도 중간·낮음)')+'</button>':''; var bt=mo.querySelector('button'); if(bt) bt.onclick=function(){ CAL.open=!CAL.open; drawCal(); }; }
-      if(!rows.length){ body.innerHTML='<div class="pi-note" style="padding:8px 0">기간 내 중요도 높은 일정이 없습니다.'+(rest>0?' 아래 상세보기에서 나머지 일정을 확인하세요.':'')+'</div>'; return; }
+      if(mo){ mo.innerHTML=rest>0?'<button type="button" class="cal-more-btn">'+(CAL.open?'접기 ▴':'상세보기 ▾ · 나머지 '+rest+'건')+'</button>':''; var bt=mo.querySelector('button'); if(bt) bt.onclick=function(){ CAL.open=!CAL.open; drawCal(); }; }
+      if(!rows.length){ body.innerHTML='<div class="pi-note" style="padding:8px 0">기간 내 최상 일정이 없습니다.'+(rest>0?' 아래 상세보기에서 나머지 일정을 확인하세요.':'')+'</div>'; return; }
       var today=new Date(); today=new Date(today.getFullYear(),today.getMonth(),today.getDate());
       var nextIdx=-1, nowMs=Date.now();
       rows.forEach(function(r,i){ if(nextIdx<0&&r.d.getTime()>=nowMs-1800000) nextIdx=i; });
@@ -293,5 +293,56 @@
     };
     sel.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; sel.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);}); cur=b.dataset.x; apply(); });
     new MutationObserver(function(){ if(!busy&&cur) apply(); }).observe(host,{childList:true});
+  })();
+
+  /* ⑥ 김군코멘트 시각화 */
+  (function(){
+    var kc=document.getElementById('us-kimcomment'), row=document.querySelector('#stock .fg-row'); if(!kc||!row) return;
+    var box=document.createElement('div'); box.id='pro-kc'; row.after(box);
+    var ZC=['#D92D20','#E8710A','#667085','#5BA33B','#15803D'], ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], ACT=['매수 시작','매수 시작','관망','매수 금지','매수 금지'];
+    var draw=function(){
+      var v=document.getElementById('us-val'), n=v?parseFloat((v.textContent||'').replace(/[^\d.]/g,'')):NaN; if(!isFinite(n)) return;
+      var z=n<25?0:n<45?1:n<=55?2:n<=75?3:4, a=ACT[z], pill=function(t,cls){ return '<span class="act '+cls+(a===t?' on':'')+'">'+t+'</span>'; };
+      box.innerHTML='<div class="kc" style="--zc:'+ZC[z]+'"><div class="kc-l"><span class="kc-k">김군코멘트</span><div class="kc-t"><em>'+ZN[z]+'</em><i>→</i><b>'+a+'</b></div></div>'+
+        '<div class="kc-r">'+pill('매수 시작','buy')+pill('관망','wait')+pill('매수 금지','stop')+'</div></div>';
+    };
+    var vv=document.getElementById('us-val'); if(vv) new MutationObserver(draw).observe(vv,{childList:true,characterData:true,subtree:true});
+    draw(); setInterval(draw,3000);
+  })();
+
+  /* ⑦ 종목 재무 패널 · 레버리지 체크패널 후처리 (김군 판정 패턴: 색 제목 줄 · 좌우 균형 · 유의사항) */
+  (function(){
+    var DISC='<div class="fin-disc"><b>⚠ 투자 유의사항</b><span>이 화면의 등급·판정·지표 해석은 Yahoo Finance 데이터를 바탕으로 한 자체 계산 기준의 <u>참고 자료</u>이며, 특정 종목의 매수·매도를 권유하지 않습니다. 시세·재무 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있고, 투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다.</span></div>';
+    var balance=function(host){
+      var wr=null; host.querySelectorAll('div').forEach(function(c){ if(!wr&&c.children.length===2&&/flex-wrap:wrap/.test(c.getAttribute('style')||'')&&/flex:1 1 360px/.test(c.children[0].getAttribute('style')||'')) wr=c; });
+      if(!wr) return;
+      var c0=wr.children[0], c1=wr.children[1], cards=Array.prototype.slice.call(c0.children).concat(Array.prototype.slice.call(c1.children));
+      if(cards.length<3) return;
+      var hs=cards.map(function(c){ return c.offsetHeight+12; }), tot=hs.reduce(function(a,b){return a+b;},0), best=1, bd=1e9, acc=0;
+      for(var i=0;i<cards.length-1;i++){ acc+=hs[i]; var d=Math.abs(tot/2-acc); if(d<bd){bd=d;best=i+1;} }
+      cards.forEach(function(c,i){ (i<best?c0:c1).appendChild(c); });
+      wr.classList.add('fin-cols'); c0.classList.add('fin-col'); c1.classList.add('fin-col');
+    };
+    var procFin=function(host){
+      if(host.dataset.pro||!host.children.length||host.querySelector(':scope > p.mut')) return;
+      if(!host.querySelector('div[style*="border-radius:12px"]')) return;
+      host.dataset.pro='1'; balance(host);
+      var d=document.createElement('div'); d.innerHTML=DISC; host.appendChild(d.firstChild);
+    };
+    var procLev=function(el){
+      if(el.dataset.pro) return; el.dataset.pro='1';
+      el.querySelectorAll('div[style*="font-size:11.5px;font-weight:800"]').forEach(function(h){
+        var g=h.nextElementSibling; if(!g||!/grid/.test(g.getAttribute('style')||'')) return;
+        var sec=document.createElement('div'); sec.className='lv-sec'; h.before(sec); h.className='lv-hd'; h.removeAttribute('style'); g.classList.add('lv-body'); sec.appendChild(h); sec.appendChild(g); if(g.children.length>4) sec.classList.add('wide');
+      });
+      var t=el.querySelector('div[style*="font-size:13px;font-weight:900"]'); if(t){ t.classList.add('lv-title'); t.removeAttribute('style'); }
+      var tail=el.lastElementChild; if(tail&&/참고용이며 투자 권유가 아닙니다/.test(tail.textContent||'')){ tail.className='fin-disc'; tail.removeAttribute('style'); tail.innerHTML='<b>⚠ 투자 유의사항</b><span>레버리지 ETF는 일일 수익률을 추종해 장기 보유 시 복리 감쇠로 손실이 커질 수 있으며, 원금 전액 손실도 가능합니다. 이 패널은 Yahoo Finance 데이터와 자체 계산에 기반한 참고 자료로 투자 권유가 아니며, 투자 판단과 책임은 투자자 본인에게 있습니다.</span>'; }
+    };
+    var pending=false, scan=function(){
+      pending=false;
+      document.querySelectorAll('[id^="finx"],[id^="fin-"]').forEach(function(h){ if(h.style.display!=='none') procFin(h); });
+      document.querySelectorAll('.lev-inv:not([data-pro])').forEach(procLev);
+    };
+    new MutationObserver(function(){ if(!pending){ pending=true; requestAnimationFrame(scan); } }).observe(document.body,{childList:true,subtree:true});
   })();
 })();

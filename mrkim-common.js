@@ -596,7 +596,7 @@ function renderNextEventBanner(elId, monthEvents, opts){
   const row=(x,first)=>{
     const dday=Math.round((x.dt-today)/86400000), dtext=dday===0?'오늘':'D-'+dday;
     const gc={h:'var(--up)',m:'var(--accent)',l:'var(--tx2)'}[x.ev.g]||'var(--tx2)';
-    return '<div style="display:flex;align-items:center;gap:12px;'+(first?'':'padding-top:10px;margin-top:10px;border-top:1px dashed var(--line);')+'">'+
+    return '<div class="nev-row nev-'+(x.ev.g||'l')+'" style="display:flex;align-items:center;gap:12px;'+(first?'':'padding-top:10px;margin-top:10px;border-top:1px dashed var(--line);')+'">'+
       '<span class="tag" style="background:'+gc+';color:#fff;flex:none;min-width:44px;text-align:center">'+dtext+'</span>'+
       '<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px;line-height:1.4">'+x.ev.t+'</div>'+
       '<div class="mut" style="font-size:12px;margin-top:2px;line-height:1.4">'+x.m+'월 '+x.ev.d+'일 · '+x.ev.c+'</div></div>'+
@@ -604,9 +604,9 @@ function renderNextEventBanner(elId, monthEvents, opts){
   };
   const rest=shown.slice(1);
   el.style.display='block';
-  el.innerHTML='<div style="font-size:12.5px;font-weight:900;color:var(--accent);margin-bottom:8px">📅 주요 일정</div>'+row(shown[0],true)+
+  el.innerHTML='<div class="nev-hd" style="font-size:12.5px;font-weight:900;color:var(--accent);margin-bottom:8px">📅 주요 일정</div>'+row(shown[0],true)+
     (rest.length?'<div class="ev-more" style="display:none">'+rest.map(x=>row(x,false)).join('')+'</div>'+
-      '<button type="button" class="ev-more-btn" style="margin-top:10px;width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--accent);font-weight:800;font-size:12.5px;cursor:pointer">자세히 보기 ▾ (+'+rest.length+'건)</button>':'');
+      '<button type="button" class="ev-more-btn cal-more-btn" style="margin-top:10px;width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--accent);font-weight:800;font-size:12.5px;cursor:pointer">자세히 보기 ▾ (+'+rest.length+'건)</button>':'');
   const b=el.querySelector('.ev-more-btn');
   if(b) b.onclick=function(){ const m=el.querySelector('.ev-more'); const o=m.style.display==='none'; m.style.display=o?'block':'none'; b.textContent=o?'접기 ▴':'자세히 보기 ▾ (+'+rest.length+'건)'; };
 }
@@ -1437,20 +1437,29 @@ const US_SUBDESC={
   '정크본드 수요':'투기등급(정크) 채권과 국채 간 수익률 격차입니다. 격차가 좁을수록 위험자산 선호가 강해 탐욕입니다.',
   '안전자산 선호':'최근 20거래일 주식 수익률과 국채 수익률의 차이입니다. 국채가 주식보다 강할수록 안전자산 쏠림(공포)입니다.'
 };
+const US_SUBTBL={
+  '시장 모멘텀':['S&P500 지수와 125일 이동평균의 격차','이평선 위로 멀리 올라 있을수록 탐욕 · 아래로 내려갈수록 공포'],
+  '주가 강도':['NYSE 52주 신고가 종목 수 ÷ 신저가 종목 수','신고가 종목이 많을수록 탐욕'],
+  '주가 폭':['상승 종목 거래량과 하락 종목 거래량의 차이(맥클레런 거래량 지수)','상승 종목에 거래량이 몰릴수록 탐욕'],
+  '풋/콜 옵션':['최근 5일 평균 풋옵션 ÷ 콜옵션 거래량 비율','풋(하락 베팅)이 많으면 공포 · 콜(상승 베팅)이 많으면 탐욕'],
+  '시장 변동성':['VIX와 50일 이동평균의 격차','VIX가 높을수록(불안이 클수록) 공포'],
+  '정크본드 수요':['투기등급(정크) 채권과 국채의 수익률 격차','격차가 좁을수록 위험자산 선호가 강해 탐욕'],
+  '안전자산 선호':['최근 20거래일 주식 수익률과 국채 수익률의 차이','국채가 주식보다 강할수록 안전자산 쏠림(공포)']
+};
 const SUB_NUM=['①','②','③','④','⑤','⑥','⑦'];
 function subBarCell(v){ const x=Math.max(0,Math.min(100,v)); return '<div class="sub-bar"><i style="left:'+x.toFixed(1)+'%"></i></div>'; }
 function subTable(rows,src){
   const el=$('#us-sub'); if(!el)return;
   el.innerHTML=rows.map(([n,v],i)=>{
     const link=SUBSRC[n];
-    const label_='<span class="sub-no">'+SUB_NUM[i]+'</span><span class="sub-nm">'+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n)+'</span>';
+    const label_='<span class="sub-no">'+(i+1)+'</span><span class="sub-nm">'+(link?'<a href="'+link+'" target="_blank" rel="noopener">'+n+'</a>':n)+'</span>';
     const [tl,tc]=label(v);
     return '<tr><td class="sub-lab" style="white-space:nowrap">'+label_+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'</td>'+
     '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br><span class="tag" style="background:'+tc+'33;color:'+(v<=55&&v>=45?'var(--tx2)':tc)+'">'+tl+'</span></td></tr>';
   }).join('');
   $('#us-src').textContent=src;
   const nEl=document.getElementById('us-sub-note');
-  if(nEl) nEl.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+rows.map(([n],i)=>SUB_NUM[i]+' <b>'+n+'</b> — '+(US_SUBDESC[n]||'')).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
+  if(nEl) nEl.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px"><div class="scroll"><table class="subdesc-tbl"><thead><tr><th>#</th><th>지표명</th><th>측정 내용</th><th>읽는 법</th></tr></thead><tbody>'+rows.map(([n],i)=>{const d=US_SUBTBL[n]||[US_SUBDESC[n]||'',''];return '<tr><td class="sd-no"><span class="sub-no">'+(i+1)+'</span></td><td class="sd-nm"><b>'+n+'</b></td><td>'+d[0]+'</td><td>'+d[1]+'</td></tr>';}).join('')+'</tbody></table></div><span style="opacity:.8;font-size:11.5px;display:block;margin-top:6px">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
 }
 function renderUS(p){
   $('#us-per').textContent='· '+PERKO[p];
