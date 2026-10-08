@@ -18,18 +18,19 @@
     const key=Object.keys(SUM).find(k=>title.indexOf(k)===0);
     h2.className='fold-h'; h2.removeAttribute('style'); h2.id=h2.id||''; 
     const flag=(title.indexOf('🇺🇸')>=0||key)?' 🇺🇸':'';
-    h2.innerHTML='<span class="fold-t">'+(key||title)+flag+'</span><span class="fold-sum"></span><span class="fold-btn"><em>펼치기</em> ➕</span>';
-    h2.setAttribute('role','button'); h2.setAttribute('aria-expanded','false'); h2.tabIndex=0;
-    const sum=h2.querySelector('.fold-sum'), btn=h2.querySelector('.fold-btn');
+    h2.innerHTML='<span class="fold-t">'+(key||title)+flag+'</span><span class="fold-sum"></span><button type="button" class="fold-btn"><em>펼치기</em> ➕</button>';
+    /* 제목(h2)의 의미는 유지하고, 펼침 조작은 안의 실제 버튼이 맡는다(키보드·스크린리더 접근) */
+    h2.cursor='pointer';
+    const sum=h2.querySelector('.fold-sum'), btn=h2.querySelector('.fold-btn'); btn.setAttribute('aria-expanded','false'); box.id=box.id||('fold-body-'+Math.random().toString(36).slice(2,8)); btn.setAttribute('aria-controls',box.id); btn.setAttribute('aria-label',(key||title)+' 펼치기/접기');
     const LST={'김군 관심종목':'tick-tbl','시가총액 TOP10':'cap-tbl','레버리지 ETF':'lev-tbl'};
     const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; return '<span class="mv"><span class="mv-l">'+a.length+'종목</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
     const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
     refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
-    const SK='mk_f_'+(key||title); const set=open=>{ try{ localStorage.setItem(SK,open?'1':'0'); }catch(e){} box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; h2.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
+    const SK='mk_f_'+(key||title); const set=open=>{ try{ localStorage.setItem(SK,open?'1':'0'); }catch(e){} box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; btn.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
     let init=false; try{ init=localStorage.getItem(SK)==='1'; }catch(e){}
     set(init);
     const tg=e=>{ if(e.target.closest('a')) return; set(box.style.display==='none'); };
-    h2.addEventListener('click',tg); h2.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(e);} });
+    h2.addEventListener('click',tg);
     h2._set=set;
   }
   document.querySelectorAll('#stock > .wrap > h2, #unicorn > .wrap > h2, #events > .wrap > h2').forEach(fold);

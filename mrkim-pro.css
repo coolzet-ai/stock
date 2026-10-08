@@ -1,7 +1,7 @@
 /* Mr.Kim Signal — 전문 도구형 스킨 (body.pro 에서만 적용 · 기존 DOM/JS 그대로) */
 body.pro{
   --bg:#EEF0F2; --panel:#ffffff; --panel2:#F6F7F8; --line:#D5D9DD;
-  --tx:#111418; --tx2:#667085; --accent:#0A6B48; --accent2:#085a3d;
+  --tx:#111418; --tx2:#566074; --up:#C42318; --accent:#0A6B48; --accent2:#085a3d;
   --up:#D92D20; --down:#1D4ED8; --gold:#B7791F;
   font-family:'Noto Sans KR','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;
   font-size:13px; letter-spacing:0; font-variant-numeric:tabular-nums;
@@ -583,3 +583,48 @@ body.pro{
 .pro .my-msg.bad{color:#B42318}
 .pro .my-empty{padding:18px;text-align:center;color:var(--tx2);font-size:13px}
 .pro .my-del{color:#D92D20!important;font-weight:800}
+
+/* v15: 접근성 · SEO 보정 */
+.skip-link{position:absolute;left:8px;top:-60px;z-index:1000;padding:10px 16px;border-radius:0 0 6px 6px;background:#0A6B48;color:#fff;font-weight:800;text-decoration:none}
+.skip-link:focus{top:0}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#main:focus{outline:none}
+.pro :focus-visible{outline:3px solid #0A6B48;outline-offset:2px;border-radius:3px}
+.pro header :focus-visible,.pro #pro-tick :focus-visible{outline-color:#7DD3A8}
+.pro .fold-h:focus-visible{outline:3px solid #7DD3A8;outline-offset:-3px}
+/* 어두운 헤더/티커 위 글씨 대비 */
+.pro header .updated-top,.pro header label{color:#C9D1DB}
+.pro .wl-tag,.pro .mut{font-size:max(12px,1em)}
+/* 상단 H1 · 소개 */
+.pro .pg-h1{margin:22px 0 4px;font-size:24px;font-weight:900;letter-spacing:-.4px;line-height:1.35;color:#111418}
+.pro .pg-h1 small{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--tx2);letter-spacing:0}
+.pro .pg-lead{margin:0 0 4px;max-width:860px;font-size:13px;line-height:1.65;color:var(--tx2)}
+@media(max-width:700px){.pro .pg-h1{font-size:20px;margin-top:16px}.pro .pg-lead{font-size:12.5px}}
+/* 용어 가이드(정적 텍스트) */
+.pro #guide{padding:34px 0 20px;border-top:1px solid var(--line)}
+.pro #guide h2{font-size:20px;font-weight:800;margin-bottom:6px}
+.pro .gl-list{margin-top:12px;border:1px solid #D5DCD8;border-radius:6px;background:#fff;overflow:hidden}
+.pro .gl-list dt{padding:10px 14px 2px;font-size:14px;font-weight:800;color:#0A6B48;border-top:1px solid #E1E4E8}
+.pro .gl-list dt:first-child{border-top:0}
+.pro .gl-list dd{padding:0 14px 12px;font-size:13px;line-height:1.7;color:#344054}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* 접기 버튼이 실제 <button>이 되면서 필요한 초기화 */
+.fold-btn{font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;line-height:1.4}
+.pro .fold-h:hover .fold-btn,.pro .fold-h:hover .fold-btn *{color:#0A6B48!important}
+.pro .fold-btn:focus-visible{outline:3px solid #7DD3A8;outline-offset:2px}
+
+/* v16: 색 대비(WCAG AA 4.5:1) 보정 */
+.pro .tb-up{color:#B42318!important}.pro .tb-dn{color:#1A4FA8!important}
+.pro .wl-actions a[onclick*="toggleUsFinancials"]{color:#8A5A00!important;font-weight:800}
+.pro .ix-sp{color:#0F4C81}.pro .ix-nq{color:#5B21B6}
+.pro #pro-kc .act{color:#667085}
+.pro .cv .wait,.pro .cn small.cs,.pro .cn small.cs *{color:#667085!important}
+.pro .pulse .hm-k h4 small{color:#3F6B58}
+.pro .chip-top10{color:#064E36}
+.pro .chip.up,.pro .fwd-cur .up,.pro .cur td .up,.pro .tr-hd .chips .up{color:#B42318!important}
+#pro-sector .shm a span small{opacity:1!important}
+.pro{--up:#B42318}
+.pro .cal-alert em,.pro .fwd-cur .up,.pro .cur td,.pro .cur.fb .up,.pro .cur td .up,.pro .fwd-cur td{--up:#B42318}
+.pro .cal-alert em{color:#B42318}
+.pro .cur td:nth-child(3),.pro .cur.fb>.up{color:#B42318!important}

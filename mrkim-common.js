@@ -975,7 +975,7 @@ function renderCorrGrid(elId, pairs){
       '<td style="padding:12px 6px;text-align:right;white-space:nowrap"><b style="display:block;font-size:17px;font-family:\'JetBrains Mono\',monospace;color:'+col+'">'+(r==null?'--':(r>=0?'+':'−')+Math.abs(r).toFixed(2))+'</b>'+
         '<span style="display:inline-block;margin-top:3px;padding:1px 8px;border-radius:999px;background:'+ip[1]+';color:#fff;font-size:11px;font-weight:700">'+ip[0]+'</span></td></tr>';
   }).join('');
-  el.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--panel2)"><th style="text-align:left;padding:8px 6px;font-size:12px;color:var(--tx2)">자산 쌍</th><th style="padding:8px 10px;font-size:12px;color:var(--tx2)"><span style="display:flex;justify-content:space-between"><span>−1 반대</span><span>0</span><span>+1 동행</span></span></th><th style="text-align:right;padding:8px 6px;font-size:12px;color:var(--tx2)">상관계수</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+  el.innerHTML='<div style="overflow-x:auto" tabindex="0" role="region" aria-label="자산간 상관관계 표"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--panel2)"><th style="text-align:left;padding:8px 6px;font-size:12px;color:var(--tx2)">자산 쌍</th><th style="padding:8px 10px;font-size:12px;color:var(--tx2)"><span style="display:flex;justify-content:space-between"><span>−1 반대</span><span>0</span><span>+1 동행</span></span></th><th style="text-align:right;padding:8px 6px;font-size:12px;color:var(--tx2)">상관계수</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
     '<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--panel2);border-left:4px solid #0A6B48;font-size:12px;line-height:1.55;color:var(--tx)">최근 90거래일 일간 수익률 기준 피어슨 상관계수입니다. +1에 가까울수록 같은 방향, −1에 가까울수록 반대 방향으로 움직이는 경향이며, 참고용 통계치로 인과관계를 의미하지 않습니다.</div>';
 }
 
@@ -2482,7 +2482,7 @@ function renderKimVerdictBig(growthPct, psr, techD, extra){
   const segs=[['저평가','#0A6B48'],['관망','#B7791F'],['고평가','#D92D20']];
   const main=segs[v.idx][1];
   const bar='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;width:100%;box-sizing:border-box;border-radius:12px;background:var(--panel);border:1px solid var(--line)">'+
-    '<div style="display:flex;justify-content:center;gap:14px">'+
+    '<div role="img" aria-label="신호등: 현재 판정 '+segs[v.idx][0]+'" style="display:flex;justify-content:center;gap:14px">'+
     segs.map(([nm,c],i)=>{const on=(i===v.idx);
       return '<div style="width:64px;text-align:center"><div style="height:58px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#1A1D21;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)"><i style="display:block;width:'+(on?42:30)+'px;height:'+(on?42:30)+'px;border-radius:50%;background:'+(on?'radial-gradient(circle at 35% 30%,#fff9 0,'+c+' 38%,'+c+' 100%)':'#3A3F45')+';'+(on?'box-shadow:0 0 0 3px '+c+'55,0 0 18px 4px '+c+'99':'box-shadow:inset 0 2px 4px rgba(0,0,0,.6)')+'"></i></div>'+
       '<div style="margin-top:6px;font-size:13px;line-height:1.2;font-weight:'+(on?900:600)+';color:'+(on?c:'var(--tx2)')+'">'+nm+'</div></div>';}).join('')+'</div>'+
@@ -5436,7 +5436,7 @@ if(naverGiftLink){
 const navToggle=document.getElementById('nav-toggle');
 const navMenu=document.getElementById('nav-menu');
 if(navToggle && navMenu){
-  navToggle.addEventListener('click',()=>{ navMenu.classList.toggle('open'); });
+  navToggle.addEventListener('click',()=>{ const o=navMenu.classList.toggle('open'); navToggle.setAttribute('aria-expanded',o?'true':'false'); navToggle.setAttribute('aria-label',o?'메뉴 닫기':'메뉴 열기'); });
 }
 
 /* ---- 에잇퍼센트 추천인코드 복사 ---- */

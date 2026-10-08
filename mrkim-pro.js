@@ -74,7 +74,7 @@
       '<div class="tk"><span>0</span><span>25</span><span>45</span><span>55</span><span>75</span><span>100</span></div>'+
       '<div class="lb"><span>극단적 공포</span><span>공포</span><span>중립</span><span>탐욕</span><span>극단적 탐욕</span></div>';
     fgtop.after(sc);
-    var upd=function(){ var v=document.getElementById('us-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
+    var upd=function(){ var v=document.getElementById('us-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var us=document.getElementById('us-state'); if(us){ us.style.color=['#C42318','#C2410C','#475467','#3F7D20','#0B6B3A'][n<25?0:n<45?1:n<=55?2:n<=75?3:4]; } var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
     var vv=document.getElementById('us-val'); if(vv){ new MutationObserver(upd).observe(vv,{childList:true,characterData:true,subtree:true}); }
     upd(); setInterval(upd,3000);
   }
@@ -91,7 +91,7 @@
     var mix=function(p){ var a=Math.min(1,Math.abs(p)/2.5), to=p>=0?[217,45,32]:[29,78,216], f=.25+.75*a; return 'rgb('+Math.round(245+(to[0]-245)*f)+','+Math.round(246+(to[1]-246)*f)+','+Math.round(247+(to[2]-247)*f)+')'; };
     var loadSec=async function(){
       var res=await Promise.all(SEC.map(function(s){ return quote(s[0]); }));
-      res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; el.style.background=mix(q.pct); el.style.color=Math.abs(q.pct)>1?'#fff':'#111418'; el.querySelector('em').textContent=(q.pct>=0?'▲ +':'▼ ')+Math.abs(q.pct).toFixed(2)+'%'; });
+      res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; var bgc=mix(q.pct); el.style.background=bgc; var rgbm=bgc.match(/\d+/g).map(Number), lum=(0.2126*Math.pow(rgbm[0]/255,2.2)+0.7152*Math.pow(rgbm[1]/255,2.2)+0.0722*Math.pow(rgbm[2]/255,2.2)); var darkTx=lum>0.2; el.style.color=darkTx?'#111418':'#fff'; el.dataset.dk=darkTx?'1':''; el.querySelector('em').textContent=(q.pct>=0?'▲ +':'▼ ')+Math.abs(q.pct).toFixed(2)+'%'; });
       var okq=res.filter(Boolean); MKT.set('pro-sector',okq.length?'ok':'fail'); var u=okq.filter(function(q){return q.pct>0;}).length, d=okq.filter(function(q){return q.pct<0;}).length, sm=document.getElementById('shm-sum');
       if(sm&&okq.length) sm.innerHTML='<div class="ss-bar"><i style="width:'+(u/okq.length*100)+'%;background:'+UP+'"></i><i style="width:'+((okq.length-u-d)/okq.length*100)+'%;background:#C9CED4"></i><i style="width:'+(d/okq.length*100)+'%;background:'+DN+'"></i></div><div class="ss-lb"><b style="color:'+UP+'">▲ 상승 '+u+'개</b><span>'+(okq.length-u-d?'보합 '+(okq.length-u-d)+'개':'')+'</span><b style="color:'+DN+'">하락 '+d+'개 ▼</b></div>';
     };
@@ -317,7 +317,7 @@
   (function(){
     var kc=document.getElementById('us-kimcomment'), row=document.querySelector('#stock .fg-row'); if(!kc||!row) return;
     var box=document.createElement('div'); box.id='pro-kc'; row.after(box);
-    var ZC=['#D92D20','#E8710A','#667085','#5BA33B','#15803D'], ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], ACT=['매수 시작','매수 시작','관망','매수 금지','매수 금지'];
+    var ZC=['#C42318','#C2410C','#566074','#3F7D20','#0B6B3A'], ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], ACT=['매수 시작','매수 시작','관망','매수 금지','매수 금지'];
     var draw=function(){
       var v=document.getElementById('us-val'), n=v?parseFloat((v.textContent||'').replace(/[^\d.]/g,'')):NaN; if(!isFinite(n)) return;
       var z=n<25?0:n<45?1:n<=55?2:n<=75?3:4, a=ACT[z], pill=function(t,cls){ return '<span class="act '+cls+(a===t?' on':'')+'">'+t+'</span>'; };
@@ -419,7 +419,7 @@
       else if(ratio<=.15){ cls='g'; txt='데이터 정상'; }
       else if(ratio<=.5){ cls='w'; txt='일부 데이터 지연'; }
       else { cls='r'; txt='데이터 연결 불안정'; }
-      var n=document.getElementById('ps-net'); n.className='ps-net '+cls; n.textContent='● '+txt;
+      var n=document.getElementById('ps-net'); n.className='ps-net '+cls; if(n.textContent!=='● '+txt) n.textContent='● '+txt;
       document.getElementById('ps-t').innerHTML=N.lastOk?'<span class="lbl">마지막 갱신 </span>'+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
     };
     upd(); setInterval(upd,5000);
@@ -444,8 +444,8 @@
       '<a class="pb-c" href="#pro-int" data-go="int"><small>변동성(VIX)</small><b id="pb-vx">--</b><span id="pb-vx2"></span></a>'+
       '<a class="pb-c" href="#pro-cal" data-go="cal"><small>다음 주요 일정</small><b id="pb-ev">--</b><span id="pb-ev2"></span></a>'+
       '<a class="pb-c" href="#pro-sector" data-go="sec"><small>섹터 강세 · 약세</small><b id="pb-sc">--</b><span id="pb-sc2"></span></a></div>';
-    wrap.prepend(br);
-    var ZC=['#D92D20','#E8710A','#667085','#5BA33B','#15803D'];
+    var lead=wrap.querySelector('.pg-lead'); if(lead) lead.after(br); else wrap.prepend(br);
+    var ZC=['#C42318','#B54708','#475467','#3F7D20','#0B6B3A'];
     var num=function(t){ var m=(t||'').match(/-?[\d.]+/); return m?parseFloat(m[0]):NaN; };
     var fillBrief=function(){
       var v=num(txt('us-val'));
@@ -539,5 +539,28 @@
     host.addEventListener('click',function(e){ var a=e.target.closest('.my-del'); if(!a) return; var t=a.dataset.t; list.splice(list.indexOf(t),1); save(list); say(t+' 삭제'); paint(); });
     document.addEventListener('click',function(e){ if(e.target.closest('.tabs[data-group="tick"] button')) setTimeout(function(){ if(list.length) renderTick('my',curPer.tick); },0); });
     paint(); if(list.length) fetchAll(); setInterval(function(){ if(list.length) fetchAll(); },300000);
+  })();
+
+  /* ⑬ 접근성 보정: 키보드·스크린리더용 속성을 동적 생성 요소에도 자동 부여 */
+  (function(){
+    var KEY={Enter:1,' ':1};
+    var fix=function(){
+      document.querySelectorAll('a[href^="javascript:"]:not([data-a11y])').forEach(function(a){ a.dataset.a11y='1'; a.setAttribute('role','button'); if(!a.hasAttribute('tabindex')) a.tabIndex=0; if(!a.getAttribute('aria-label')) a.setAttribute('aria-label',(a.getAttribute('title')||a.textContent||'').trim()||'버튼');
+        a.addEventListener('keydown',function(e){ if(KEY[e.key]){ e.preventDefault(); a.click(); } }); });
+      document.querySelectorAll('.wl-actions a:not([data-a11y])').forEach(function(a){ a.dataset.a11y='1'; if(!a.getAttribute('aria-label')){ var t=a.getAttribute('title'); if(t) a.setAttribute('aria-label',t); } });
+      document.querySelectorAll('table:not([data-a11y])').forEach(function(t){ t.dataset.a11y='1';
+        t.querySelectorAll('thead th:not([scope])').forEach(function(th){ th.setAttribute('scope','col'); });
+        if(!t.querySelector('caption')&&!t.getAttribute('aria-label')){ var sec=t.closest('.card,section,.fold-body'); var hd=sec&&(sec.querySelector('h3')||(sec.previousElementSibling&&sec.previousElementSibling.matches('h2')?sec.previousElementSibling:null)||sec.querySelector('h2')); if(hd){ var tx=(hd.querySelector&&hd.querySelector('.fold-t')?hd.querySelector('.fold-t').textContent:hd.textContent).replace(/\s+/g,' ').trim(); if(tx) t.setAttribute('aria-label',tx+' 표'); } } });
+      document.querySelectorAll('.wl-spark svg:not([aria-hidden])').forEach(function(sv){ sv.setAttribute('aria-hidden','true'); sv.setAttribute('focusable','false'); });
+      document.querySelectorAll('img:not([alt])').forEach(function(im){ im.setAttribute('alt',''); });
+      document.querySelectorAll('.tabs button,.seg button,.hm-t button').forEach(function(b){ b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false'); });
+    };
+    var timer=null, sched=function(){ if(timer) return; timer=setTimeout(function(){ timer=null; fix(); },350); };
+    fix(); new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});
+    document.addEventListener('click',function(e){ if(e.target.closest('.tabs,.seg,.hm-t')) setTimeout(fix,60); });
+    /* 상태 띠는 상태가 바뀔 때만 스크린리더에 알린다 */
+    var pn=document.getElementById('ps-net'); if(pn){ pn.setAttribute('role','status'); pn.setAttribute('aria-live','polite'); }
+    var ps=document.getElementById('pro-status'); if(ps){ ps.setAttribute('role','region'); ps.setAttribute('aria-label','데이터 상태'); }
+    var tk=document.getElementById('pro-tick'); if(tk){ tk.setAttribute('role','region'); tk.setAttribute('aria-label','주요 시세 띠'); tk.tabIndex=0; }
   })();
 })();
