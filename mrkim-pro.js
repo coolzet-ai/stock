@@ -97,9 +97,7 @@
       '<div id="vts" class="vts-wrap"></div><div class="vts-stats" id="vts-stats"></div><div class="pi-note" id="vts-note"></div>'+
       '<div class="pi-sub">지수 추세 (이동평균 대비 · 52주 고점 대비)</div>'+
       '<div id="pi-tr" class="trd"></div><div class="trd-lg"><span><i class="m m200"></i>200일선</span><span><i class="m m50"></i>50일선</span><span><i class="px"></i>현재가</span><span class="mut">막대 = 52주 저점 ~ 고점</span></div>'+
-      '<div class="pi-sub">시장 폭 · NYSE+NASDAQ 보통주 (시총 3억$↑)</div><div id="pi-mb"><div class="pi-note">집계 불러오는 중…</div></div>'+
-      '<div class="pi-sub">섹터 폭 (11개 섹터 ETF)</div><div class="pi-brd" id="pi-brd">--</div>'+
-      '<div class="pi-note">Put/Call 비율은 무료 소스가 없어 제외했습니다.</div></div>'+
+      '</div>'+
       '<div class="card" id="pro-fwd"><h3><span>공탐 구간별 이후 20거래일 성과</span><span class="mut" style="font-weight:400;font-size:11px">S&amp;P500(SPY) · '+FWD.range[0]+' ~ '+FWD.range[1]+'</span></h3><div id="fwd-body"></div></div>';
     anchor.after(row);
 
@@ -244,20 +242,6 @@
     }
     var pc=function(a,b){ return (a/b-1)*100; };
     var cell=function(v){ return v==null?'<td class="mut">--</td>':'<td class="'+(v>=0?'up':'down')+'">'+sg(v,1)+'%</td>'; };
-    var loadMB=async function(){
-      var el=document.getElementById('pi-mb'), j=await wj('/us-breadth');
-      if(!el) return;
-      if(!j||j.err||!j.all){ el.innerHTML='<div class="pi-note">집계 서버 응답 없음 ('+(j&&j.err?j.err:'알 수 없음')+') — Worker에 /us-breadth 가 배포돼 있는지 확인해주세요.</div>'; return; }
-      var bar=function(lab,v,t,col){ return '<div class="brd"><span>'+lab+'</span><i><u style="width:'+(v/t*100).toFixed(1)+'%;background:'+col+'"></u></i><b>'+v.toLocaleString()+'</b></div>'; };
-      var flat=Math.max(0,j.all-j.up-j.down), ad=j.down?(j.up/j.down):null;
-      el.innerHTML=bar('상승',j.up,j.all,'#D92D20')+bar('하락',j.down,j.all,'#1D4ED8')+
-        '<div class="brd"><span>A/D 비율</span><i></i><b>'+(ad==null?'--':ad.toFixed(2))+'</b></div>'+
-        bar('50일선 위',j.a50,j.all,'#0A6B48')+bar('200일선 위',j.a200,j.all,'#0A6B48')+
-        '<div class="brd"><span>52주 신고가</span><i></i><b style="color:#D92D20">'+j.nh+'</b></div>'+
-        '<div class="brd"><span>52주 신저가</span><i></i><b style="color:#1D4ED8">'+j.nl+'</b></div>'+
-        '<div class="pi-note">모집단 '+j.all.toLocaleString()+'개 · 보합 '+flat+'개 · 출처 TradingView 스캐너(5분 캐시)</div>';
-    };
-    loadMB(); setInterval(loadMB,300000);
     var loadInt=async function(){
       var VS=[['^VIX9D','9일'],['^VIX','30일'],['^VIX3M','3개월'],['^VIX6M','6개월']];
       var vq=await Promise.all(VS.map(function(s){return quote(s[0]);}));
@@ -280,9 +264,6 @@
         return '<div class="tr-row"><div class="tr-hd"><b>'+sy+'</b><span class="st '+st[1]+'">'+st[0]+'</span><span class="chips">'+chip('50일',pc(h.p,h.m50))+chip('200일',h.m200?pc(h.p,h.m200):null)+chip('고점',pc(h.p,h.hi))+'</span></div>'+
           '<div class="tr-bar"><i class="fill" style="width:'+pos(h.p)+'%"></i>'+(h.m200?'<u class="m m200" style="left:'+pos(h.m200)+'%"></u>':'')+'<u class="m m50" style="left:'+pos(h.m50)+'%"></u><u class="px" style="left:'+pos(h.p)+'%"></u></div>'+
           '<div class="tr-sc"><span>저점 '+fmt(h.lo,0)+'</span><span>고점 '+fmt(h.hi,0)+'</span></div></div>'; }).join('');
-      var sh=await Promise.all(SEC.map(function(s){return hist(s[0]);}));
-      var ok2=sh.filter(Boolean), a50=ok2.filter(function(h){return h.p>h.m50;}).length, a200=ok2.filter(function(h){return h.m200&&h.p>h.m200;}).length;
-      document.getElementById('pi-brd').innerHTML=ok2.length?'<div class="brd"><span>50일선 위</span><i><u style="width:'+(a50/ok2.length*100)+'%"></u></i><b>'+a50+' / '+ok2.length+'</b></div><div class="brd"><span>200일선 위</span><i><u style="width:'+(a200/ok2.length*100)+'%"></u></i><b>'+a200+' / '+ok2.length+'</b></div>':'--';
     };
     loadInt(); setInterval(loadInt,300000);
   }
