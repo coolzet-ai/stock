@@ -254,7 +254,7 @@
         bd.className='vbadge '+st; bd.textContent=st==='inv'?'역전 (백워데이션)':st==='norm'?'정상 (콘탱고)':'혼조';
         var sp=v[2]-v[1];
         stt.innerHTML='<div><span>3개월−30일 스프레드</span><b class="'+(sp>=0?'':'warn')+'">'+sg(sp)+'pt ('+sg(sp/v[1]*100,1)+'%)</b></div><div><span>9일 ÷ 30일</span><b class="'+(v[0]/v[1]>1?'warn':'')+'">'+(v[0]/v[1]).toFixed(2)+'</b></div><div><span>6개월−9일</span><b>'+sg(v[3]-v[0])+'pt</b></div>';
-        nt.innerHTML=st==='inv'?'<b style="color:var(--up)">곡선이 우하향(역전)</b> — 단기 변동성이 중장기보다 높아 지금 당장의 불안이 크다는 신호입니다.':st==='norm'?'<b>곡선이 우상향(정상)</b> — 단기 &lt; 장기 순으로 올라가는 평시 구조입니다. 기울기가 가파를수록 시장은 안정적이지만 미래 변동성에 대한 보험료도 높게 매겨진 상태입니다.':'곡선이 일부 구간에서 꺾여 있어 방향이 뚜렷하지 않습니다.';
+        nt.innerHTML='<div class="vts-def">※ <b>'+(st==='norm'?'콘탱고(정상)':st==='inv'?'백워데이션(역전)':'혼조')+'</b> : '+(st==='norm'?'만기가 길수록 VIX가 높은 평시 구조 — 시장이 당장은 안정적이라고 본다는 뜻입니다.':st==='inv'?'단기 VIX가 장기보다 높은 구조 — 당장의 불안이 크다는 경고 신호입니다.':'기간별 VIX 순서가 일정하지 않아 방향이 불분명한 상태입니다.')+'</div>'+(st==='inv'?'<b style="color:var(--up)">곡선이 우하향(역전)</b> — 단기 변동성이 중장기보다 높아 지금 당장의 불안이 크다는 신호입니다.':st==='norm'?'<b>곡선이 우상향(정상)</b> — 단기 &lt; 장기 순으로 올라가는 평시 구조입니다. 기울기가 가파를수록 시장은 안정적이지만 미래 변동성에 대한 보험료도 높게 매겨진 상태입니다.':'곡선이 일부 구간에서 꺾여 있어 방향이 뚜렷하지 않습니다.');
       } else { box.innerHTML='<div class="pi-note">VIX 기간구조 데이터를 불러오지 못했습니다.</div>'; bd.textContent='--'; }
       var IX=['SPY','QQQ','IWM','RSP'];
       var hs=await Promise.all(IX.map(hist));

@@ -942,23 +942,28 @@ function renderCorrGrid(elId, pairs){
     el.innerHTML='<p class="mut" style="font-size:12.5px">⚠ 데이터 연동 실패 — 프록시 응답이 없습니다. 새로고침해도 안 뜨면 콘솔(F12) 경고를 확인해주세요.</p>';
     return;
   }
-  const body=rows.map(({p,r})=>{
+  const interp=r=>{ if(r==null) return ['—','#64748B'];
+    const a=Math.abs(r), dir=r>=0?'양':'음';
+    if(a>=.7) return ['강한 '+dir+'의 상관',r>=0?'#0A6B48':'#D92D20'];
+    if(a>=.4) return ['뚜렷한 '+dir+'의 상관',r>=0?'#2E8B6A':'#C2570C'];
+    if(a>=.2) return ['약한 '+dir+'의 상관','#B7791F'];
+    return ['거의 무관','#64748B']; };
+  const body=rows.map(({p,r},i)=>{
     const pct=r==null?50:((r+1)/2*100);
-    const col=corrColor(r);
+    const col=corrColor(r), ip=interp(r);
     const barStyle=(r!=null&&r>=0)
       ? 'left:50%;width:'+Math.max(0,pct-50).toFixed(1)+'%'
       : 'right:50%;width:'+Math.max(0,50-pct).toFixed(1)+'%';
-    return '<div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">'+
-        '<span>'+p.a.label+' ↔ '+p.b.label+'</span>'+
-        '<span style="font-weight:800;color:'+col+'">'+(r==null?'--':(r>=0?'+':'')+r.toFixed(2))+'</span></div>'+
-      '<div style="height:8px;border-radius:4px;background:var(--panel2);position:relative">'+
-        '<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)"></div>'+
-        '<div style="position:absolute;top:0;bottom:0;'+barStyle+';background:'+col+';border-radius:4px"></div>'+
-      '</div></div>';
+    return '<tr style="border-top:1px solid var(--line)">'+
+      '<td style="padding:12px 6px;font-size:14px;font-weight:800;color:var(--tx);white-space:nowrap"><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:#0A6B48;color:#fff;font-size:11px;margin-right:6px">'+(i+1)+'</span>'+p.a.label+' <span style="color:var(--tx2);font-weight:600">↔</span> '+p.b.label+'</td>'+
+      '<td class="corr-bar" style="padding:12px 10px;width:34%;min-width:110px"><div style="height:12px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);position:relative">'+
+        '<div style="position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#111418;opacity:.55"></div>'+
+        '<div style="position:absolute;top:0;bottom:0;'+barStyle+';background:'+col+';border-radius:6px"></div></div></td>'+
+      '<td style="padding:12px 6px;text-align:right;white-space:nowrap"><b style="display:block;font-size:17px;font-family:\'JetBrains Mono\',monospace;color:'+col+'">'+(r==null?'--':(r>=0?'+':'−')+Math.abs(r).toFixed(2))+'</b>'+
+        '<span style="display:inline-block;margin-top:3px;padding:1px 8px;border-radius:999px;background:'+ip[1]+';color:#fff;font-size:11px;font-weight:700">'+ip[0]+'</span></td></tr>';
   }).join('');
-  el.innerHTML='<div style="display:flex;flex-direction:column;gap:10px">'+body+'</div>'+
-    '<p class="mut" style="font-size:11px;margin-top:10px">최근 90거래일 일간 수익률 기준 피어슨 상관계수 · +1에 가까울수록 같은 방향, -1에 가까울수록 반대 방향으로 움직이는 경향(참고용 통계치이며 인과관계를 의미하지 않습니다)</p>';
+  el.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--panel2)"><th style="text-align:left;padding:8px 6px;font-size:12px;color:var(--tx2)">자산 쌍</th><th style="padding:8px 10px;font-size:12px;color:var(--tx2)"><span style="display:flex;justify-content:space-between"><span>−1 반대</span><span>0</span><span>+1 동행</span></span></th><th style="text-align:right;padding:8px 6px;font-size:12px;color:var(--tx2)">상관계수</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+    '<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--panel2);border-left:4px solid #0A6B48;font-size:12px;line-height:1.55;color:var(--tx)">최근 90거래일 일간 수익률 기준 피어슨 상관계수입니다. +1에 가까울수록 같은 방향, −1에 가까울수록 반대 방향으로 움직이는 경향이며, 참고용 통계치로 인과관계를 의미하지 않습니다.</div>';
 }
 
 /* 미국지수 페이지: S&P500 vs VIX·금·달러인덱스·비트코인 상관관계 */
@@ -2426,10 +2431,13 @@ function renderKimVerdictBig(growthPct, psr, techD, extra){
   if(!v) return '';
   const segs=[['저평가','#0A6B48'],['관망','#B7791F'],['고평가','#D92D20']];
   const main=segs[v.idx][1];
-  const bar=segs.map(([nm,c],i)=>{
-    const on=(i===v.idx);
-    return '<div style="flex:'+(on?1.5:1)+';text-align:center;padding:'+(on?'14px 0':'12px 0')+';font-size:'+(on?24:14)+'px;font-weight:'+(on?900:700)+';white-space:nowrap;background:'+(on?c:'var(--panel)')+';color:'+(on?'#fff':c)+';border:2px solid '+c+';'+(i>0?'margin-left:-2px;':'')+(i===0?'border-radius:12px 0 0 12px;':'')+(i===2?'border-radius:0 12px 12px 0;':'')+(on?'box-shadow:0 4px 14px '+c+'66;position:relative;z-index:1;':'opacity:.85;')+'">'+(on?'✔ ':'')+nm+'</div>';
-  }).join('');
+  const bar='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;width:100%;box-sizing:border-box;border-radius:12px;background:var(--panel);border:1px solid var(--line)">'+
+    '<div style="display:flex;justify-content:center;gap:14px">'+
+    segs.map(([nm,c],i)=>{const on=(i===v.idx);
+      return '<div style="width:64px;text-align:center"><div style="height:58px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:#1A1D21;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)"><i style="display:block;width:'+(on?42:30)+'px;height:'+(on?42:30)+'px;border-radius:50%;background:'+(on?'radial-gradient(circle at 35% 30%,#fff9 0,'+c+' 38%,'+c+' 100%)':'#3A3F45')+';'+(on?'box-shadow:0 0 0 3px '+c+'55,0 0 18px 4px '+c+'99':'box-shadow:inset 0 2px 4px rgba(0,0,0,.6)')+'"></i></div>'+
+      '<div style="margin-top:6px;font-size:13px;line-height:1.2;font-weight:'+(on?900:600)+';color:'+(on?c:'var(--tx2)')+'">'+nm+'</div></div>';}).join('')+'</div>'+
+    '<div style="width:100%;text-align:center;padding-top:8px;border-top:1px dashed var(--line)"><div style="font-size:11.5px;font-weight:700;color:var(--tx2)">현재 판정</div>'+
+    '<div style="font-size:34px;line-height:1.2;font-weight:900;color:'+main+';letter-spacing:-1px">'+segs[v.idx][0]+'</div></div></div>';
   let lastGrp='';
   const fmtP=n=>(n>0?'+':n<0?'−':'')+Math.abs(n)+'점';
   const chipP=pt=>{const c=pt>0?'#0A6B48':pt<0?'#D92D20':'#64748B';return '<b style="flex:none;min-width:42px;text-align:center;padding:2px 8px;border-radius:999px;background:'+c+';color:#fff;font-size:12px">'+(pt>0?'+1':pt<0?'−1':'0')+'점</b>';};
@@ -2540,7 +2548,7 @@ function kimGradeCard(it, techD, opt){
     momentum:()=>'최근 1년 '+(r1==null?'—':(r1>=0?'+':'')+r1.toFixed(1)+'%')+(r1!=null?(r1>=20?' — 강한 추세':r1>=0?' — 완만한 상승':' — 하락 추세'):''),
     revision:()=>'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합')
   };
-  const chip=k=>{const g=usGradeOf(fs[k]);const sc=fs[k]==null?'—':Math.round(fs[k]);return '<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 6px;border-radius:10px;background:var(--panel);border:1.5px solid '+g.c+'"><b style="display:inline-block;min-width:30px;text-align:center;padding:3px 0;border-radius:8px;background:'+g.c+';color:#fff;font-size:18px;font-weight:900">'+g.g+'</b><span style="font-size:12px;font-weight:800;color:var(--tx)">'+NM[k]+' <span style="color:var(--tx2);font-weight:600">'+sc+'점</span></span></div>';};
+  const chip=k=>{const g=usGradeOf(fs[k]);const sc=fs[k]==null?'—':Math.round(fs[k]);return '<div style="text-align:center;padding:8px 2px 7px;border-radius:10px;background:var(--panel);border:1.5px solid '+g.c+'"><b style="display:block;width:34px;margin:0 auto;padding:3px 0;border-radius:8px;background:'+g.c+';color:#fff;font-size:20px;line-height:1.1;font-weight:900">'+g.g+'</b><span style="display:block;margin-top:5px;font-size:13px;font-weight:800;color:var(--tx);white-space:nowrap">'+NM[k]+'</span><span style="display:block;font-size:12px;font-weight:700;color:'+g.c+'">'+sc+'점</span></div>';};
   const line=(ic,lb,tx,col)=>'<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin-top:7px"><span style="flex:none;font-weight:900;color:'+col+';min-width:52px;white-space:nowrap">'+ic+' '+lb+'</span><span>'+tx+'</span></div>';
   const pos=Math.max(2,Math.min(98,avg));
   return '<div style="margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);border-left:5px solid '+G.c+'">'+
@@ -2548,7 +2556,7 @@ function kimGradeCard(it, techD, opt){
     '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:800;color:var(--tx2)">김군 등급 · 종합 '+Math.round(avg)+'점</div><div style="font-size:16px;font-weight:900;margin-top:2px">'+G.m+'</div>'+
     '<div style="position:relative;height:8px;border-radius:4px;margin-top:8px;background:linear-gradient(90deg,#e5832a 0 45%,#f0b429 45% 60%,#4fa383 60% 75%,#1fa463 75% 100%)"><span style="position:absolute;left:'+pos+'%;top:-4px;width:4px;height:16px;border-radius:2px;background:#111;transform:translateX(-50%)"></span></div>'+
     '<div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--tx2);margin-top:2px"><span>D</span><span>C</span><span>B</span><span>A</span></div></div></div>'+
-    '<div style="display:flex;gap:6px;margin-top:12px">'+keys.map(chip).join('')+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px;margin-top:12px">'+keys.map(chip).join('')+'</div>'+
     '<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)">'+
     line('👍','강점','<b>'+NM[best]+' '+usGradeOf(fs[best]).g+'</b> · '+D[best](),'#1fa463')+
     line('⚠','주의','<b>'+NM[worst]+' '+usGradeOf(fs[worst]).g+'</b> · '+D[worst](),'#e5332a')+

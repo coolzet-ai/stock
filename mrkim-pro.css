@@ -477,3 +477,27 @@ body.pro{
   .pro .m-fold:not(.m-open)>*:not(h3){display:none!important}
   .pro .m-fold:not(.m-open){padding-bottom:0}
 }
+
+/* v9 */
+.pro .vts-def{margin-bottom:6px;padding:8px 10px;border-radius:6px;background:#EAF4EF;border-left:4px solid #0A6B48;color:#111418;font-size:12px;line-height:1.55}
+/* 접힘 소제목 hover: 요약 칩(종목·등락률) 가독성 */
+.pro .fold-h:hover .fold-sum .mv span{background:#fff!important}
+.pro .fold-h:hover .fold-sum .mv .mv-l{color:#4B5563!important}
+.pro .fold-h:hover .fold-sum .mv .mv-u{color:#D92D20!important}
+.pro .fold-h:hover .fold-sum .mv .mv-d{color:#1D4ED8!important}
+.pro .fold-h:hover .fold-sum .mv span{font-weight:800}
+/* 월 탭: 6x2 동일 격자 */
+.pro #evmonth-tabs{display:grid!important;grid-template-columns:repeat(6,1fr);width:100%;max-width:520px;box-sizing:border-box}
+.pro #evmonth-tabs .row-break{display:none}
+.pro #evmonth-tabs button{width:auto!important;min-width:0;padding:10px 0;font-size:13px;border-bottom:1px solid #E1E4E8}
+.pro #evmonth-tabs button:nth-child(n+8):nth-child(-n+13){border-bottom:0}
+.pro #evmonth-tabs button:nth-child(6),.pro #evmonth-tabs button:nth-child(12){border-right:0}
+/* 편입·편출 탭 2종 동일 구조 */
+.pro .tabrow .tabs,.pro .tabrow .seg{display:inline-grid;grid-auto-flow:column;grid-auto-columns:minmax(64px,1fr);border:1px solid #C7CCD1;border-radius:4px;overflow:hidden;background:#fff;padding:0;gap:0}
+.pro .tabrow .tabs button,.pro .tabrow .seg button{height:34px;padding:0 10px;font-size:13px;font-weight:600;border:0;border-right:1px solid #E1E4E8;border-radius:0;white-space:nowrap;text-align:center}
+.pro .tabrow .tabs button:last-child,.pro .tabrow .seg button:last-child{border-right:0}
+.pro .tabrow .tabs button.on,.pro .tabrow .seg button.on{background:#0A6B48;color:#fff;font-weight:800}
+.pro .tabrow .seg{grid-auto-columns:minmax(76px,1fr)}
+@media(max-width:700px){.pro .tabrow{display:grid;grid-template-columns:1fr;gap:8px}.pro .tabrow .tabs,.pro .tabrow .seg{display:grid;grid-auto-columns:1fr;width:100%}}
+.pro #evmonth-tabs button{border-right:1px solid #E1E4E8!important;border-left:0!important}
+.pro #evmonth-tabs button:nth-child(6),.pro #evmonth-tabs button:nth-child(12){border-right:0!important}
