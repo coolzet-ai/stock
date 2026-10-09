@@ -1037,9 +1037,7 @@ function renderMcapChart(){
 const PROXY_BASE='https://ai.coolzet.workers.dev/?url=';
 const PROXIES=[
   u=>PROXY_BASE?PROXY_BASE+encodeURIComponent(u):null,
-  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
-  u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),
-  u=>'https://thingproxy.freeboard.io/fetch/'+u
+  /* [보안] 공개 프록시(allorigins·codetabs·thingproxy) 폴백 제거 — 응답이 변조되면 화면(innerHTML)에 그대로 들어갈 수 있어 자체 Worker 만 사용한다 */
 ].filter(Boolean);
 
 window.MK_NET=window.MK_NET||{log:[],lastOk:0,rec:function(ok){this.log.push(ok?1:0);if(this.log.length>24)this.log.shift();if(ok)this.lastOk=Date.now();}};

@@ -1789,3 +1789,9 @@ html[data-theme="dark"] .ipo-asof #ipo-live-status em{color:#f2c14e}
   #krlev-tbl .wl-name>*,#lev-tbl .wl-name>*{flex:none!important}
   #krlev-tbl .wl-name a,#lev-tbl .wl-name a{white-space:nowrap}
 }
+
+/* v58 터치 영역 확대(보이는 크기는 그대로, 눌리는 범위만 +6px) */
+@media(max-width:700px){
+  .pro .wl-actions a{position:relative}
+  .pro .wl-actions a::after{content:'';position:absolute;inset:-6px -4px}
+}

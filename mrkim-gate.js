@@ -174,3 +174,48 @@
     if(e.key==='F12') e.preventDefault();
   },true);
 })();
+
+/* 저작권 고지(모든 페이지 푸터) + 관리자 모드 사용량 모니터(Worker /health · /ev-stats) */
+(function(){
+  var W='https://ai.coolzet.workers.dev/';
+  function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function notice(){
+    if(document.getElementById('mk-copy')) return;
+    var f=document.querySelector('footer .wrap')||document.querySelector('footer'); if(!f) return;
+    var d=document.createElement('p'); d.id='mk-copy'; d.className='mut';
+    d.style.cssText='margin:10px 0 0;font-size:11.5px;line-height:1.55';
+    d.textContent='© '+new Date().getFullYear()+' Mr.Kim Signal · 본 사이트의 구성·분석 지표·문구를 무단으로 복제·배포·상업적으로 이용할 수 없습니다. 시세·공시 데이터의 저작권은 각 제공처에 있으며 투자 권유가 아닙니다.';
+    f.appendChild(d);
+  }
+  function monitor(){
+    var bar=document.getElementById('mk-admin-bar'); if(!bar||bar.querySelector('.mk-mon')) return;
+    var btn=document.createElement('button'); btn.type='button'; btn.className='mk-mon'; btn.textContent='📊 사용량 보기';
+    btn.style.cssText='border:1.5px solid #7c3aed;background:transparent;color:inherit;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer';
+    var box=document.createElement('div'); box.style.cssText='flex:1 1 100%;display:none;font-weight:500;font-size:12.5px;line-height:1.6;color:var(--tx,#111)';
+    bar.appendChild(btn); bar.appendChild(box);
+    btn.onclick=async function(){
+      if(box.style.display==='block'){ box.style.display='none'; return; }
+      var key=''; try{ key=localStorage.getItem('mk_stats_key')||''; }catch(e){}
+      box.style.display='block';
+      if(!key){
+        box.innerHTML='<label>통계 키(Worker 변수 STATS_KEY) <input type="password" autocomplete="off" style="padding:4px 8px;border:1px solid #7c3aed;border-radius:6px;margin:0 6px"></label><button type="button" style="padding:4px 10px;border-radius:6px;border:1px solid #7c3aed;background:#fff;cursor:pointer">확인</button>';
+        box.querySelector('button').onclick=function(){ var v=box.querySelector('input').value.trim(); if(!v) return; try{localStorage.setItem('mk_stats_key',v);}catch(e){} box.style.display='none'; btn.onclick(); };
+        return;
+      }
+      box.textContent='불러오는 중…';
+      try{
+        var hr=await fetch(W+'health',{cache:'no-store'}).then(function(r){return r.json();});
+        var er=await fetch(W+'ev-stats?days=7&key='+encodeURIComponent(key),{cache:'no-store'});
+        if(er.status===403){ try{localStorage.removeItem('mk_stats_key');}catch(e){} box.textContent='통계 키가 맞지 않습니다. 다시 눌러 입력해 주세요.'; return; }
+        var ev=await er.json(), days=Object.keys(ev).sort().reverse();
+        var h='<b>Worker 상태(마지막 재시작 이후)</b> · 요청 '+esc(hr.total)+' · 출처차단 '+esc(hr.blockedOrigin)+' · 속도제한 '+esc(hr.limited)+' · 5xx '+esc(hr.err5xx)+' · 가동 '+esc(hr.uptimeMin)+'분<br>';
+        h+='<b>최근 7일 방문(개인정보 없는 집계)</b><br>'+(days.length?days.map(function(d){ var o=ev[d]||{},pp=Object.keys(o.p||{}).sort(function(a,b){return o.p[b]-o.p[a];}).slice(0,3).map(function(k){return esc(k)+' '+o.p[k];}).join(', '); return esc(d)+' · '+esc(o.v||0)+'회 · '+pp; }).join('<br>'):'아직 기록이 없습니다.');
+        h+='<br><span style="color:#667085">※ Cloudflare 무료 한도: Workers 하루 10만 요청 · KV 쓰기 하루 1천 건. 정확한 사용량은 Cloudflare 대시보드(Workers & Pages → 해당 Worker → Metrics)에서 확인하세요.</span>';
+        box.innerHTML=h;
+      }catch(e){ box.textContent='불러오지 못했습니다(Worker 연결·재배포 상태를 확인해 주세요).'; }
+    };
+  }
+  function run(){ notice(); monitor(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  setTimeout(run,1500); setTimeout(run,4000);
+})();

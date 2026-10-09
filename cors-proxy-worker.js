@@ -1620,7 +1620,7 @@ const handler = {
         ctx.waitUntil(caches.default.put(ck, new Response(body, { headers: { 'Cache-Control': 'max-age=300' } })));
         return new Response(body, { headers: hdr });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 502, headers: hdr });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 502, headers: hdr });
       }
     }
 
@@ -1647,7 +1647,7 @@ const handler = {
         ctx.waitUntil(caches.default.put(ck, new Response(body, { headers: { 'Cache-Control': 'max-age=300' } })));
         return new Response(body, { headers: hdr });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 502, headers: hdr });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 502, headers: hdr });
       }
     }
 
@@ -1685,7 +1685,7 @@ const handler = {
         const result = await runBreadthJob(env);
         return new Response(JSON.stringify(result, null, 2), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1695,7 +1695,7 @@ const handler = {
         const result = await runIpoListJob(env);
         return new Response(JSON.stringify(result, null, 2), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1733,7 +1733,7 @@ const handler = {
         if (rows.length < 1) return new Response(JSON.stringify({ error: 'no-data', code: code }), { status: 404, headers: hdr });
         return new Response(JSON.stringify({ code: code, rows: rows }), { headers: { ...hdr, 'Cache-Control': 'max-age=300' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: hdr });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: hdr });
       }
     }
 
@@ -1763,7 +1763,7 @@ const handler = {
         if (env.KR_KV) { try { await env.KR_KV.put(key, body, { expirationTtl: 21600 }); } catch (e) {} }
         return new Response(body, { headers: hdr });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: hdr });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: hdr });
       }
     }
 
@@ -1792,7 +1792,7 @@ const handler = {
         }
         return new Response(JSON.stringify(result), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1818,7 +1818,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1833,7 +1833,7 @@ const handler = {
           const buf = await r.arrayBuffer();
           const t = new TextDecoder('euc-kr').decode(buf);
           out.push({ base, status: r.status, bytes: buf.byteLength, hasMarket: t.indexOf('시장구분') >= 0 });
-        } catch (e) { out.push({ base, error: String(e) }); }
+        } catch (e) { out.push({ base, error: errMsg(e) }); }
       }
       return new Response(JSON.stringify(out), { headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
@@ -1859,7 +1859,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1884,7 +1884,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1909,7 +1909,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1928,7 +1928,7 @@ const handler = {
         if (!data) data = await runUsFundamentalsJob(env, fset);
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1939,7 +1939,7 @@ const handler = {
         const data = await runUsFundamentalsJob(env);
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -1958,7 +1958,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data || { ticker: tk }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2017,7 +2017,7 @@ const handler = {
         }
         return new Response(JSON.stringify(debug ? { data, dbg } : data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2051,7 +2051,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2075,7 +2075,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2103,7 +2103,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data || {}), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2132,7 +2132,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data || []), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2155,7 +2155,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data || {}), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2178,7 +2178,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data || []), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2196,7 +2196,7 @@ const handler = {
         }
         return new Response(JSON.stringify({ name: nm, schedule: v || null }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2209,7 +2209,7 @@ const handler = {
         if (!data) data = await runP2pEightJob(env);
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2233,7 +2233,7 @@ const handler = {
         }
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2250,7 +2250,7 @@ const handler = {
         if (!data) data = await runUnicornNewsJob(env);
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: errMsg(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -2440,10 +2440,13 @@ const ALLOWED_ORIGINS = [
   'null' // file:// 로 연 로컬 테스트 페이지
 ];
 const RATE_LIMIT_PER_MIN = 240;
+const RATE_LIMIT_NO_ORIGIN = 60; // Origin 헤더가 없는 직접 접속은 더 낮게
+function errMsg(e) { return globalThis.__MK_DBG ? String(e && e.message ? e.message : e) : 'server error'; }
 const _rate = new Map();
 const _stat = { since: Date.now(), total: 0, blockedOrigin: 0, limited: 0, err5xx: 0, lastErrors: [] };
-function originOk(o) {
-  if (!o) return true;
+function originOk(o, env) {
+  if (!o) return true; // 주소창 직접 접속·curl(진단용). 아래에서 더 엄격한 속도 제한을 건다.
+  if (o === 'null') return !!(env && env.ALLOW_NULL_ORIGIN === '1'); // file:// 로컬 테스트는 Worker 변수 ALLOW_NULL_ORIGIN=1 일 때만
   return ALLOWED_ORIGINS.some(a => o === a || o.startsWith(a + ':'));
 }
 function withCors(resp, origin) {
@@ -2479,8 +2482,10 @@ async function recordEv(request, env) {
 async function guardedFetch(request, env, ctx) {
   const origin = request.headers.get('Origin') || '';
   const u = new URL(request.url);
+  /* 오류 상세 문구는 관리자(STATS_KEY 일치) 또는 Worker 변수 DEBUG=1 일 때만 응답에 포함한다 — 평소에는 내부 정보를 숨긴다 */
+  globalThis.__MK_DBG = (env.DEBUG === '1') || !!(env.STATS_KEY && u.searchParams.get('key') === env.STATS_KEY);
   _stat.total++;
-  if (!originOk(origin)) {
+  if (!originOk(origin, env)) {
     _stat.blockedOrigin++;
     return new Response('origin not allowed', { status: 403 });
   }
@@ -2491,7 +2496,7 @@ async function guardedFetch(request, env, ctx) {
   const minute = Math.floor(Date.now() / 60000);
   const rec = _rate.get(ip);
   if (!rec || rec.m !== minute) _rate.set(ip, { m: minute, n: 1 });
-  else if (++rec.n > RATE_LIMIT_PER_MIN) {
+  else if (++rec.n > (origin ? RATE_LIMIT_PER_MIN : RATE_LIMIT_NO_ORIGIN)) {
     _stat.limited++;
     return withCors(new Response('rate limited', { status: 429, headers: { 'Retry-After': '30' } }), origin);
   }
