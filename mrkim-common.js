@@ -6236,16 +6236,12 @@ function applyEarnBadges(){
       }
     }
     const dv=DIV_DATA&&DIV_DATA[t];
-    if(dv&&(dv.y||dv.ex)){
-      const yp=dv.y?(dv.y*100).toFixed(dv.y*100<1?2:1)+'%':'';
-      let label,cls='';
-      if(dv.ex){
-        const d=earnDays(dv.ex);
-        if(d>=0){ label='💰 배당락 '+(d===0?'오늘':'D-'+d)+(yp?' · '+yp:''); cls=d<=7?'soon':''; }
-        else label='💰 배당락 '+new Date(dv.ex*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'numeric',day:'numeric'})+' 완료'+(yp?' · '+yp:''), cls='past';
-      } else label='💰 배당률 '+yp;
-      const tip='배당락일 '+(dv.ex?fd(dv.ex)+' (미국 현지 기준)':'정보 없음')+(dv.pay?' · 지급일 '+fd(dv.pay):'')+(dv.rate!=null?' · 연 배당금 $'+dv.rate.toFixed(2):'')+(yp?' · 배당률(연, 전일 종가 기준) '+yp:'')+' · 누르면 Yahoo 배당 이력으로 이동';
-      tc+='<a class="dv-b '+cls+'" href="https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/history/?filter=div" target="_blank" rel="noopener" title="'+esc(tip)+'">'+label+'</a>';
+    if(dv&&dv.ex){
+      const d=earnDays(dv.ex);
+      if(d>=0){
+        const tip='배당락일 '+fd(dv.ex)+' (미국 현지 기준)'+(dv.pay?' · 지급일 '+fd(dv.pay):'')+' · 누르면 Yahoo 배당 이력으로 이동';
+        tc+='<a class="dv-b'+(d<=7?' soon':'')+'" href="https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/history/?filter=div" target="_blank" rel="noopener" title="'+esc(tip)+'">💰 배당락 '+(d===0?'오늘':'D-'+d)+'</a>';
+      }
     }
     const tag=info.querySelector('.wl-tag');
     let tbox=info.querySelector('.wl-tc');
