@@ -19,7 +19,7 @@ renderNextEventBanner('us-next-event', MONTH_EVENTS, {excludeHoliday:true});
 
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
+{ const _st=document.querySelector('#stamp-top'); if(_st) mkStamp(_st,now); }
 
 renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','d');
 renderCapShareChart('us-cap-chart', US_CAP_DATA);

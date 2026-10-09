@@ -146,6 +146,8 @@
       var zp=(-lo/(hi-lo||1))*100;
       var h='<div class="fwd-cur">'+(cz>=0?'현재 공탐 <b>'+Math.round(cn)+'</b> · <b>'+ZN[cz]+'</b> 구간 — 과거 이 구간의 이후 '+H+'거래일 평균 <b class="'+(R[cz][2]>=0?'up':'down')+'">'+sg(R[cz][2])+'%</b>, 상승확률 <b>'+R[cz][4].toFixed(1)+'%</b>':'현재 공탐 값을 불러오는 중…')+'</div>';
       var HS=['20','40','60','80','100','200']; h+='<div class="pi-sub">구간 × 보유기간 평균 수익률 (한눈에 비교)</div><table class="pi-tbl fwd-mx"><thead><tr><th>구간</th>'+HS.map(function(k){ return '<th'+(k===H?' class="on"':'')+'>'+k+'일</th>'; }).join('')+'</tr></thead><tbody>'+R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td>'+HS.map(function(k){ var v=FWD.hz[k].rows[i][2]; return '<td class="'+(v>=0?'up':'down')+(k===H?' on':'')+'">'+sg(v,1)+'%</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
+      var wasOpen=!!document.querySelector('#fwd-body details.fwd-more[open]');
+      h+='<details class="fwd-more"'+(wasOpen?' open':'')+'><summary>상세 보기 · 통계표 · 막대 · 수익률 범위</summary>';
       h+='<table class="pi-tbl"><thead><tr><th>구간</th><th>표본</th><th>평균</th><th>중앙값</th><th>상승확률</th><th>최악</th></tr></thead><tbody>'+
         R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="'+(r[2]>=0?'up':'down')+'">'+sg(r[2])+'%</td><td>'+sg(r[3])+'%</td><td>'+r[4].toFixed(1)+'%</td><td class="down">'+r[5].toFixed(1)+'%</td></tr>'; }).join('')+'</tbody></table>';
       h+='<div class="pi-sub">평균 수익률 · 상승확률</div><div class="fwd-bars">'+
@@ -157,6 +159,7 @@
       var RL=Math.floor(Math.min.apply(null,R.map(function(r){return r[5];}))/5)*5, RH=Math.ceil(Math.max.apply(null,R.map(function(r){return r[6];}))/5)*5, rp=function(v){ return ((v-RL)/(RH-RL)*100); };
       h+='<div class="pi-sub">'+H+'거래일 수익률 범위 · 최악 ~ 최고 (● 평균)</div><div class="fwd-rng">'+
         R.map(function(r,i){ return '<div class="fr'+(i===cz?' cur':'')+'"><span>'+r[0]+'</span><i><u class="zero" style="left:'+rp(0)+'%"></u><u class="rng" style="left:'+rp(r[5])+'%;width:'+(rp(r[6])-rp(r[5]))+'%"></u><u class="dot" style="left:'+rp(r[2])+'%"></u></i><em>'+r[5].toFixed(0)+'% ~ +'+r[6].toFixed(0)+'%</em></div>'; }).join('')+'</div>';
+      h+='</details>';
       /* 데이터에서 계산한 요약 */
       var bestA=R.reduce(function(a,r){return r[2]>a[2]?r:a;}), bestW=R.reduce(function(a,r){return r[4]>a[4]?r:a;}), worstD=R.reduce(function(a,r){return r[5]<a[5]?r:a;});
       var fn=R[0][1]+R[1][1], fa=(R[0][2]*R[0][1]+R[1][2]*R[1][1])/fn, fw=(R[0][4]*R[0][1]+R[1][4]*R[1][1])/fn;

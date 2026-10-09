@@ -18,7 +18,7 @@
   var wire=function(){
     var rf=document.getElementById('ps-rf'); if(!rf||document.getElementById('ps-save')) return;
     var b=document.createElement('button'); b.type='button'; b.id='ps-save'; b.setAttribute('aria-pressed',saveOn?'true':'false');
-    b.title='켜면 자동 갱신 주기가 3배 길어지고 로고 이미지를 불러오지 않습니다'; b.textContent=saveOn?'📶 절약 ON':'📶 절약';
+    b.title='켜면 자동 갱신 주기가 3배 길어지고 로고 이미지를 불러오지 않습니다'; b.innerHTML=saveOn?'📶<span class="lb"> 절약 ON</span>':'📶<span class="lb"> 절약</span>';
     b.onclick=function(){ try{ localStorage.setItem('mk_save',saveOn?'0':'1'); }catch(e){} location.reload(); };
     rf.before(b); };
   wire(); [800,2500].forEach(function(t){ setTimeout(wire,t); });
@@ -26,7 +26,7 @@
   var wireKrw=function(){
     var rf=document.getElementById('ps-rf'), cb=document.getElementById('krw-toggle'); if(!rf||!cb||document.getElementById('ps-krw')) return;
     var b=document.createElement('button'); b.type='button'; b.id='ps-krw';
-    var sync=function(){ var on=cb.checked; b.setAttribute('aria-pressed',on?'true':'false'); b.textContent=on?'$+₩ 병기':'$ 달러'; b.title=on?'달러 가격 옆에 원화를 괄호로 함께 표시 중 (누르면 달러만 표시)':'달러로만 표시 중 (누르면 원화를 괄호로 병기)'; };
+    var sync=function(){ var on=cb.checked; b.setAttribute('aria-pressed',on?'true':'false'); b.innerHTML=on?'$+₩<span class="lb"> 병기</span>':'$<span class="lb"> 달러</span>'; b.title=on?'달러 가격 옆에 원화를 괄호로 함께 표시 중 (누르면 달러만 표시)':'달러로만 표시 중 (누르면 원화를 괄호로 병기)'; };
     b.onclick=function(){ cb.checked=!cb.checked; cb.dispatchEvent(new Event('change')); sync(); };
     cb.addEventListener('change',sync); sync();
     rf.before(b); var lb=cb.closest('label'); if(lb) lb.style.display='none'; };

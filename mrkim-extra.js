@@ -65,6 +65,22 @@
   }
   applyTheme(); applyCv();
 
+  /* ───────── 상단 도구 버튼(절약·원/달러·색·테마·새로고침)을 헤더 '포인트 선물하기' 왼쪽(PC는 업데이트 일자 왼쪽)으로 ───────── */
+  (function () {
+    var IDS = ['ps-save', 'ps-krw', 'ps-cv', 'ps-theme', 'ps-rf'];
+    function mv() {
+      var anchor = $('#stamp-top') || $('#naver-gift-link'); if (!anchor || !anchor.parentNode) return;
+      var host = $('#hd-tools');
+      if (!host) { host = document.createElement('div'); host.id = 'hd-tools'; host.setAttribute('role', 'group'); host.setAttribute('aria-label', '화면 설정'); anchor.parentNode.insertBefore(host, anchor); }
+      var have = IDS.map(function (i) { return document.getElementById(i); }).filter(Boolean);
+      var cur = [].map.call(host.children, function (c) { return c.id; }).join(',');
+      if (cur === have.map(function (b) { return b.id; }).join(',')) return;
+      have.forEach(function (b) { host.appendChild(b); });
+    }
+    mv(); [300, 900, 2500, 5000].forEach(function (t) { setTimeout(mv, t); });
+    var ps = $('#pro-status'); if (ps && window.MutationObserver) new MutationObserver(mv).observe(ps, { childList: true });
+  })();
+
   /* ───────── ③ 검색 ───────── */
   (function () {
     var toc = $('#pro-toc'); if (!toc) return;

@@ -2778,6 +2778,7 @@ function injectFinCss(){
   if(document.getElementById('fv2-css')) return;
   const st=document.createElement('style'); st.id='fv2-css';
   st.textContent='.fv2{max-width:none;width:100%;margin:6px 0 4px;min-width:0}'+
+  '.fv2{width:auto!important;box-sizing:border-box}.fv2>:not(.fv2-t){margin-left:14px!important;margin-right:14px!important}.fv2>.fv2-t{margin-bottom:10px}@media(max-width:700px){.fv2>:not(.fv2-t){margin-left:10px!important;margin-right:10px!important}}'+
   '.fv2 .fv2-t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--tx2);margin:0 0 6px}'+
   '.fv2 .fv2-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px 12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}.fv2 .fv2-top .fv2-f{grid-column:1/-1;margin-top:2px;padding-top:8px;border-top:1px dashed var(--line)}'+
   '.fv2 .fv2-g{width:54px;height:54px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900}'+
@@ -2867,6 +2868,11 @@ function renderUsFinancialRatios(it, techD, opt){
    Worker(/etf-holdings?ticker=)가 Yahoo Finance quoteSummary(topHoldings)를 종목별로 온디맨드
    조회해 24시간 KV 캐시해둔 결과를 그대로 받는다. 클릭한 종목만 불러오면 되므로(7개 전부를
    미리 받아둘 필요 없음) 종목별로 개별 캐시한다. */
+function mkStamp(el,d){
+  const p=n=>String(n).padStart(2,'0');
+  el.classList.add('upd-pill'); el.title='이 페이지 데이터를 마지막으로 불러온 시각';
+  el.innerHTML='<i class="upd-dot" aria-hidden="true"></i><span><span class="upd-d"><span class="upd-y">'+d.getFullYear()+'.</span>'+p(d.getMonth()+1)+'.'+p(d.getDate())+'</span> <span class="upd-t">'+p(d.getHours())+':'+p(d.getMinutes())+'</span><span class="upd-word"> 업데이트</span></span>';
+}
 const ETF_HOLD_CACHE={};
 async function loadEtfHoldings(ticker){
   if(ETF_HOLD_CACHE[ticker]) return ETF_HOLD_CACHE[ticker];
@@ -2878,6 +2884,17 @@ async function loadEtfHoldings(ticker){
     if(data){ ETF_HOLD_CACHE[ticker]=data; return data; }
   }catch(e){ console.warn('ETF 보유종목 로딩 실패:', e); }
   return null;
+}
+/* 스왑 기반 레버리지 ETF(SOXL 등)는 Yahoo가 보유종목을 비워 보내므로, 기초 ETF의 구성으로 대신 보여준다 */
+async function loadEtfHoldingsFull(ticker){
+  const d=await loadEtfHoldings(ticker);
+  const m=(typeof LEV_META!=='undefined')?LEV_META[ticker]:null;
+  if(!m||m.kr||(d&&d.holdings&&d.holdings.length)) return d;
+  const u=await loadEtfHoldings(m.u);
+  if(!u||!u.holdings||!u.holdings.length) return d;
+  const base=d||{ticker:ticker,holdings:[],sectors:[],info:null};
+  const info=Object.assign({},base.info||{},{pe:u.info&&u.info.pe,pb:u.info&&u.info.pb});
+  return Object.assign({},base,{holdings:u.holdings,sectors:(base.sectors&&base.sectors.length>1)?base.sectors:u.sectors,info:info,viaUnderlying:m.u});
 }
 const ETF_SECTOR_NAME={
   realestate:'부동산', consumer_cyclical:'경기소비재', basic_materials:'소재',
@@ -3029,6 +3046,7 @@ function levPanelHtml(ticker, data, etfD, undD){
   let g='';
   const exp=info&&info.expenseRatio, aum=info&&info.totalAssets;
   if(!m.kr){
+    if(exp==null&&aum==null&&(!info||(info.yield==null&&info.beta3y==null))) g+='<section class="lv2-g"><h4>① 비용 · 규모</h4><p class="lv2-tip" style="margin:4px 0 0">총보수·순자산 정보를 Yahoo에서 받지 못했습니다. 잠시 후 다시 열어보거나 운용사 페이지를 확인해 주세요.</p></section>'; else
     g+='<section class="lv2-g"><h4>① 비용 · 규모</h4><div class="lv2-k">'+
       k('총보수(연)',exp!=null?(exp*100).toFixed(2)+'%':'—',exp!=null?'1억 보유 시 연 '+Math.round(exp*1e4).toLocaleString('ko-KR')+'만원':'',exp!=null&&exp>=0.01?'color:var(--up)':'')+
       k('순자산',money(aum),aum!=null?(aum>=1e9?'규모 충분 · 청산 위험 낮음':aum>=2e8?'보통':'소형 · 상장폐지 위험 점검'):'')+
@@ -3084,7 +3102,7 @@ function renderEtfHoldings(data){
   let html='<div class="eh2" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px">';
   if(data.holdings.length){
     const hs=data.holdings.slice(0,10), mx=Math.max.apply(null,hs.map(x=>x.pct||0))||1, sum=hs.reduce((a,x)=>a+(x.pct||0),0), top3=hs.slice(0,3).reduce((a,x)=>a+(x.pct||0),0);
-    html+='<div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px"><b style="font-size:13px">주요 보유종목 TOP'+hs.length+'</b><span class="mut" style="font-size:12px">상위10 합계 <b style="color:var(--tx)">'+pct(sum)+'</b> · 상위3 <b style="color:var(--tx)">'+pct(top3)+'</b></span></div>'+
+    html+='<div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px"><b style="font-size:13px">주요 보유종목 TOP'+hs.length+(data.viaUnderlying?' <span class="mut" style="font-weight:600;font-size:11.5px">(기초 '+data.viaUnderlying+' 구성 기준)</span>':'')+'</b><span class="mut" style="font-size:12px">상위10 합계 <b style="color:var(--tx)">'+pct(sum)+'</b> · 상위3 <b style="color:var(--tx)">'+pct(top3)+'</b></span></div>'+
       /* 누적 비중 띠: 종목별 실제 비중 비율대로 */
       '<div role="img" aria-label="상위 10종목 누적 비중 '+pct(sum)+'" style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line);margin-bottom:8px">'+
         hs.map((h,i)=>'<i title="'+(h.symbol||'')+' '+pct(h.pct||0)+'" style="display:block;width:'+((h.pct||0)*100).toFixed(2)+'%;background:'+COLS[Math.min(4,Math.floor(i/2))]+';border-right:1px solid var(--panel2)"></i>').join('')+'</div>';
@@ -3099,7 +3117,7 @@ function renderEtfHoldings(data){
     html+='<div class="mut" style="font-size:11px;margin-top:4px">막대 길이 = 비중 크기 비교(1위 기준) · 위 띠는 실제 비중 비율</div></div>';
   }else html+='<div></div>';
   if(data.sectors.length){
-    const ss=data.sectors.slice(0,10), maxPct=Math.max.apply(null,ss.map(s=>s.pct||0));
+    const ss=data.sectors.filter(s=>(s.pct||0)>=0.0005).slice(0,10), maxPct=Math.max.apply(null,ss.map(s=>s.pct||0));
     html+='<div><div style="margin-bottom:6px"><b style="font-size:13px">섹터 가중치</b></div>';
     ss.forEach(s=>{
       const w=maxPct>0?Math.max(2,(s.pct/maxPct)*100):2;

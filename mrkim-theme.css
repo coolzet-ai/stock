@@ -191,6 +191,10 @@ html[data-theme="dark"][data-cv="us"] .pro .wl-row:where(:has(>.wl-bar.down)){ba
 html[data-theme="dark"] .pro .wl-row .wl-price.up,html[data-theme="dark"] .pro .wl-row .wl-pct.up{color:#e2a19c}
 html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-price.up,html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-pct.up{color:#b3efd6}
 html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-price.down,html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-pct.down{color:#e2a19c}
+html[data-theme="dark"] #hd-tools #ps-cv .cv-u2,html[data-theme="dark"] #hd-tools #ps-cv .cv-u{color:#dd938e}
+html[data-theme="dark"] #hd-tools #ps-cv .cv-d2,html[data-theme="dark"] #hd-tools #ps-cv .cv-d{color:#8ea3de}
+html[data-theme="dark"] #hd-tools #ps-cv.us .cv-u{color:#b3efd6}
+html[data-theme="dark"] #hd-tools #ps-cv.us .cv-d{color:#e09c96}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}

@@ -10,7 +10,7 @@ async function toggleEtfHoldings(ticker, ev){
     el.style.display='block';
     if(!etfHoldLoaded[ticker]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
-      const data=await loadEtfHoldings(ticker);
+      const data=await loadEtfHoldingsFull(ticker);
       let lev='';
       try{ if(typeof LEV_META!=='undefined'&&LEV_META[ticker]) lev=await renderLevPanel(ticker,data); }catch(e){ console.warn('레버리지 패널 실패',e); }
       el.innerHTML=lev+renderEtfHoldings(data);
