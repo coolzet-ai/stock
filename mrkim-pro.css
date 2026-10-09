@@ -864,7 +864,7 @@ body.pro{
 #pb-fut .pf-c>b,#pb-fut .pf-c>small{text-align:center}
 @media(max-width:560px){#pb-fut .pf-grid{grid-template-columns:1fr;gap:6px}#pb-fut .pf-c{padding:6px 10px;gap:16px}#pb-fut .pf-c b{font-size:15px}#pb-fut .pf-sp{width:96px;height:30px}}
 /* 열린 종목 행은 전체 폭(2단 그리드에서 빈칸 방지) */
-@media(min-width:1100px){.pro .wl-list>.wl-row:has(+ div[id^="etf-hold"]:not([style*="display: none"])),.pro .wl-list>.wl-row:has(+ div[id^="fin"]:not([style*="display: none"])){grid-column:1/-1}}
+@media(min-width:1100px){.pro .wl-list>.wl-row:has(+ div[id^="etf-hold"]:not([style*="display: none"]):not([style*="display:none"])),.pro .wl-list>.wl-row:has(+ div[id^="fin"]:not([style*="display: none"]):not([style*="display:none"])){grid-column:1/-1}}
 /* v31: 녹색 배경 제목·소제목 글자 키움(시인성) */
 .pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{font-size:15.5px;font-weight:800;min-height:42px}
 .pro .card>h3:first-child .mut,.pro .card>.fg-hd:first-child .mut,.pro .pulse>h3:first-child small,.pro .card>h3:first-child small{font-size:12.5px;font-weight:500;color:#E3F4EA}

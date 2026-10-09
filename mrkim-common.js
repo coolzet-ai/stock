@@ -2655,7 +2655,7 @@ function kimGradeCard(it, techD, opt){
     '<div class="mut" style="font-size:10.5px;margin-top:8px">자체 계산 절대 기준 등급(Seeking Alpha 공식 등급 아님) · 참고용이며 투자 권유가 아닙니다.</div>'+usGradeFormulaHtml()+'</div>';
 }
 
-function renderUsFinancialRatios(it, techD, opt){
+function renderUsFinancialRatiosClassic(it, techD, opt){
   opt=opt||{};
   const won=opt.cur==='won';
   const mny=v=>v==null?'—':(won?Math.round(v).toLocaleString('ko-KR')+'원':'$'+v.toFixed(2));
@@ -2769,6 +2769,97 @@ function renderUsFinancialRatios(it, techD, opt){
     renderKimVerdictBig(rg==null?null:rg*100, it.psr, techD, extra)+
     '</div></div>'+
     '<div class="mut" style="font-size:10.5px;margin-top:8px">'+(opt.foot||'※ 영업이익증가율은 Yahoo가 분기 이익 성장률로만 제공해 근사치입니다. 참고용이며 투자 권유가 아닙니다.')+'</div></div>';
+}
+
+
+/* ===== 재무 박스 v2: 한 화면에 핵심만(등급·판정·지표 타일·4축·밸류) + 상세 근거는 접기 ===== */
+function injectFinCss(){
+  if(document.getElementById('fv2-css')) return;
+  const st=document.createElement('style'); st.id='fv2-css';
+  st.textContent='.fv2{max-width:980px;margin:6px auto 4px;min-width:0}'+
+  '.fv2 .fv2-t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--tx2);margin:0 0 6px}'+
+  '.fv2 .fv2-top{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}'+
+  '.fv2 .fv2-g{width:54px;height:54px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900}'+
+  '.fv2 .fv2-gi b{display:block;font-size:15px;font-weight:900}.fv2 .fv2-gi small{display:block;font-size:12px;color:var(--tx2);margin-top:1px}'+
+  '.fv2 .fv2-gi .l{display:block;font-size:12.5px;margin-top:3px;line-height:1.45}'+
+  '.fv2 .fv2-v{text-align:center;padding:6px 14px;border-radius:8px;background:var(--panel2,#F6F8F7);min-width:96px}'+
+  '.fv2 .fv2-v small{display:block;font-size:11.5px;color:var(--tx2);font-weight:700}.fv2 .fv2-v b{display:block;font-size:24px;line-height:1.2;font-weight:900;letter-spacing:-1px}.fv2 .fv2-v i{display:block;font-style:normal;font-size:11.5px;color:var(--tx2)}'+
+  '.fv2 .fv2-row{display:grid;gap:6px;margin-top:8px}'+
+  '.fv2 .fv2-f{grid-template-columns:repeat(5,minmax(0,1fr))}.fv2 .fv2-m{grid-template-columns:repeat(6,minmax(0,1fr))}.fv2 .fv2-a{grid-template-columns:repeat(4,minmax(0,1fr))}.fv2 .fv2-3{grid-template-columns:repeat(3,minmax(0,1fr))}'+
+  '.fv2 .fv2-c{min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel2,#F6F8F7)}'+
+  '.fv2 .fv2-c small{display:block;font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.fv2 .fv2-c b{display:block;font-size:16px;font-weight:900;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}'+
+  '.fv2 .fv2-c em{display:block;font-style:normal;font-size:11.5px;color:var(--tx2);margin-top:1px;line-height:1.35}'+
+  '.fv2 .fv2-fc{display:flex;align-items:center;gap:7px;padding:5px 8px}.fv2 .fv2-fc .gl{flex:none;width:28px;height:28px;border-radius:6px;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center}.fv2 .fv2-fc div{min-width:0}.fv2 .fv2-fc small{font-size:12px;font-weight:800;color:var(--tx)}.fv2 .fv2-fc span{display:block;font-size:11.5px;color:var(--tx2)}'+
+  '.fv2 .fv2-ac{display:flex;align-items:center;gap:6px;padding:5px 8px}.fv2 .fv2-ac i{flex:none;width:10px;height:10px;border-radius:50%}.fv2 .fv2-ac b{font-size:13px;white-space:nowrap}.fv2 .fv2-ac span{font-size:11.5px;color:var(--tx2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+  '.fv2 .fv2-bar{height:7px;border-radius:4px;background:var(--line);margin-top:4px;overflow:hidden;position:relative}.fv2 .fv2-bar i{display:block;height:100%}'+
+  '.fv2 details{margin-top:8px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}.fv2 summary{cursor:pointer;padding:8px 12px;font-size:12.5px;font-weight:800}'+
+  '.fv2 .fv2-rs{padding:2px 12px 10px;display:grid;grid-template-columns:1fr 1fr;gap:2px 20px}.fv2 .fv2-rs div{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)}.fv2 .fv2-rs b{flex:none}'+
+  '.fv2 .fv2-ft{margin:8px 0 0;font-size:11px;color:var(--tx2);line-height:1.5}'+
+  '@media(max-width:700px){.fv2 .fv2-top{grid-template-columns:auto 1fr;padding:8px 10px}.fv2 .fv2-v{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:8px;padding:5px 10px}.fv2 .fv2-v b{font-size:20px}'+
+  '.fv2 .fv2-f{grid-template-columns:repeat(3,minmax(0,1fr))}.fv2 .fv2-m{grid-template-columns:repeat(3,minmax(0,1fr))}.fv2 .fv2-a{grid-template-columns:repeat(2,minmax(0,1fr))}.fv2 .fv2-3{grid-template-columns:minmax(0,1fr)}.fv2 .fv2-rs{grid-template-columns:1fr}.fv2 .fv2-c b{font-size:15px}.fv2 .fv2-ac{flex-wrap:wrap;gap:2px 6px}.fv2 .fv2-ac span{flex:1 0 100%}.fv2 .fv2-g{width:46px;height:46px;font-size:27px}}';
+  document.head.appendChild(st);
+}
+function usFinCompact(it, techD, opt){
+  opt=opt||{}; injectFinCss();
+  const won=opt.cur==='won';
+  const mny=v=>v==null?'—':(won?Math.round(v).toLocaleString('ko-KR')+'원':'$'+v.toFixed(2));
+  const pc=v=>v==null?'—':(v*100).toFixed(1)+'%';
+  const spc=v=>v==null?'—':(v>=0?'+':'')+(v*100).toFixed(1)+'%';
+  const n2=(v,d)=>v==null?'—':v.toFixed(d==null?2:d);
+  const rg=it.revenueGrowth, eg=it.earningsGrowth, om=it.operatingMargins, roa=it.roa, roe=it.roe, de=it.debtToEquity, cr=it.currentRatio;
+  const col=v=>v==null?'var(--tx2)':(v>=0?'var(--up)':'var(--down)');
+  const LC={g:'#1fa463',y:'#f0b429',r:'#e5332a',n:'#98A2B3'}, LN={g:'양호',y:'보통',r:'주의',n:'—'};
+  // 등급
+  const fs=usFactorScores(it,techD), NM={value:'밸류',growth:'성장',profit:'수익성',momentum:'모멘텀',revision:'이익수정'};
+  const keys=Object.keys(NM).filter(k=>fs[k]!=null);
+  let top='', gradeKeys=keys;
+  if(keys.length>=3){
+    const avg=keys.reduce((a,k)=>a+fs[k],0)/keys.length;
+    const G=avg>=75?{g:'A',c:'#1fa463',m:'전반적으로 강한 종목'}:avg>=60?{g:'B',c:'#4fa383',m:'양호 — 일부 보완점 확인'}:avg>=45?{g:'C',c:'#d99a00',m:'평범 — 선별적 접근'}:{g:'D',c:'#e5832a',m:'약세 — 보수적 접근'};
+    const sorted=keys.slice().sort((a,b)=>fs[b]-fs[a]), best=sorted[0], worst=sorted[sorted.length-1];
+    const gl=k=>NM[k]+' '+usGradeOf(fs[k]).g;
+    const pg0=usPeg(it).v;
+    const v=kimValuationVerdict(rg==null?null:rg*100, it.psr, techD, (function(){ const e=[]; if(pg0!=null) e.push({grp:'재무', txt:'PEG '+pg0.toFixed(2)+(pg0<0.9?' — 성장 대비 저평가':pg0<=1.1?' — 적정':' — 성장 대비 고평가'), pt:pg0<0.9?1:pg0<=1.1?0:-1}); if(fs.revision!=null) e.push({grp:'재무', txt:'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합'), pt:fs.revision>=75?1:fs.revision<=40?-1:0}); return e; })());
+    const vc=v?({0:'#0A6B48',1:'#B7791F',2:'#D92D20'})[v.idx]:'var(--tx2)';
+    top='<div class="fv2-top"><div class="fv2-g" style="background:'+G.c+'">'+G.g+'</div><div class="fv2-gi"><b>김군 등급 · 종합 '+Math.round(avg)+'점</b><small>'+G.m+'</small><span class="l">👍 <b style="display:inline;font-size:12.5px;color:#0A6B48">'+gl(best)+'</b> · ⚠ <b style="display:inline;font-size:12.5px;color:#B42318">'+gl(worst)+'</b></span></div>'+
+      (v?'<div class="fv2-v" title="재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.tech>=0?'+':'')+v.tech+'"><small>김군 판정</small><b style="color:'+vc+'">'+v.label+'</b><i>재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.hasTech?(v.tech>=0?'+':'')+v.tech:'—')+'</i></div>':'')+'</div>';
+    window.__fv2v=v;
+  }
+  const fac=keys.length?'<div class="fv2-row fv2-f">'+keys.map(k=>{const g=usGradeOf(fs[k]);return '<div class="fv2-c fv2-fc"><span class="gl" style="background:'+g.c+'">'+g.g+'</span><div><small>'+NM[k]+'</small><span>'+Math.round(fs[k])+'점</span></div></div>';}).join('')+'</div>':'';
+  const tile=(l,v,c,sub)=>'<div class="fv2-c"><small>'+l+'</small><b'+(c?' style="color:'+c+'"':'')+'>'+v+'</b>'+(sub?'<em>'+sub+'</em>':'')+'</div>';
+  const met='<div class="fv2-row fv2-m">'+tile('매출증가율',spc(rg),col(rg))+tile(opt.ogLabel||'영업이익증가율※',spc(eg),col(eg))+tile('PER',usFundNum(it.trailingPE,1))+tile('EPS(TTM)',won?mny(it.trailingEps):usFundNum(it.trailingEps))+tile(opt.fwdLabel||'EPS(Fwd)',opt.fwdShow?opt.fwdShow:usFundNum(it.forwardEps))+tile('PSR',usFundNum(it.psr))+'</div>';
+  // 4축
+  const gLv=rg==null?'n':rg>=0.15?'g':rg>0?'y':'r', pLv=om==null?'n':om>=0.2?'g':om>=0.08?'y':'r', eLv=roa==null?'n':roa>=0.10?'g':roa>=0.04?'y':'r';
+  const dLv=de==null?'n':de<=80?'g':de<=150?'y':'r', cLv=cr==null?'n':cr>=1.5?'g':cr>=1?'y':'r';
+  const sLv=(dLv==='n'&&cLv==='n')?'n':['r','y','g'].find(x=>dLv===x||cLv===x)||'y';
+  const ax=[['성장성',gLv,'매출 '+spc(rg)],['수익성',pLv,'영업이익률 '+pc(om)],['효율성',eLv,'ROA '+pc(roa)],['안정성',sLv,'부채 '+(de==null?'—':de.toFixed(0)+'%')]];
+  const axH='<div class="fv2-row fv2-a">'+ax.map(a=>'<div class="fv2-c fv2-ac" title="'+a[0]+' '+LN[a[1]]+' · '+a[2]+'"><i style="background:'+LC[a[1]]+'"></i><b>'+a[0]+' '+LN[a[1]]+'</b><span>'+a[2]+'</span></div>').join('')+'</div>';
+  // 밸류 3종
+  const eps=it.trailingEps, pe=it.trailingPE, px=it.price, pg=usPeg(it);
+  let c1='', c2='', c3='';
+  if(eps!=null||pe!=null) c1='<div class="fv2-c"><small>주가 = EPS × PER</small><b>'+mny(eps)+' × '+n2(pe,1)+'배</b><em>'+(px!=null?'= '+mny(px)+' · ':'')+(it.forwardEps!=null&&eps!=null?(it.forwardEps>eps?'선행 EPS가 더 높음(성장 기대)':'선행 EPS 정체'):'')+'</em></div>';
+  if(pg.v!=null){ const v=pg.v, lv=v<0.9?'g':v<=1.1?'y':'r', pos=Math.max(2,Math.min(98,v/2*100));
+    c2='<div class="fv2-c"><small>PEG'+(pg.fwd?'(근사)':'')+'</small><b style="color:'+({g:'#0A6B48',y:'#8A5A00',r:'#B42318'})[lv]+'">'+v.toFixed(2)+' <span style="font-size:12px">'+(v<0.9?'저평가':v<=1.1?'적정':'고평가')+'</span></b><div class="fv2-bar" style="background:linear-gradient(90deg,#1fa463 0 45%,#f0b429 45% 55%,#e5332a 55% 100%)"><i style="position:absolute;left:'+pos+'%;width:3px;background:#111;transform:translateX(-50%)"></i></div></div>'; }
+  if(roa!=null||roe!=null){ const mx=Math.max(Math.abs(roa||0),Math.abs(roe||0),0.01), br=(n,v,cl)=>v==null?'':'<div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:3px"><span style="width:30px">'+n+'</span><div class="fv2-bar" style="flex:1;margin:0"><i style="width:'+Math.max(2,Math.abs(v)/mx*100).toFixed(0)+'%;background:'+cl+'"></i></div><b style="font-size:12.5px;width:48px;text-align:right">'+pc(v)+'</b></div>';
+    c3='<div class="fv2-c"><small>ROA vs ROE'+((roa>0&&roe!=null&&roe/roa>=3)?' · ⚠ 부채 영향':'')+'</small>'+br('ROA',roa,'var(--accent)')+br('ROE',roe,'var(--gold)')+'</div>'; }
+  const val=(c1||c2||c3)?'<div class="fv2-row fv2-3">'+c1+c2+c3+'</div>':'';
+  // 배당 한 줄
+  const dv=it.div, dh=it.divHist||{};
+  let dvH='';
+  if(dv&&(dv.rate||dv.yield||dv.payout!=null)) dvH='<div class="fv2-row"><div class="fv2-c"><small>배당</small><b style="font-size:14px">수익률 '+(dv.yield!=null?(dv.yield*100).toFixed(2)+'%':'—')+' · 연 '+mny(dv.rate!=null?dv.rate:dh.lastAnnual)+(dv.payout!=null?' · 성향 '+(dv.payout*100).toFixed(0)+'%':'')+(dh.growth5!=null?' · 성장 '+(dh.growth5>=0?'+':'')+(dh.growth5*100).toFixed(0)+'%':'')+'</b></div></div>';
+  // 상세
+  const v=window.__fv2v; window.__fv2v=null;
+  const rs=(v&&v.reasons||[]).map(r=>'<div><span>'+r.txt+'</span><b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+'">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>').join('');
+  const more=rs?'<details><summary>📋 판정 근거 · 산식 보기</summary><div class="fv2-rs">'+rs+'</div><div style="padding:0 12px 10px">'+usVerdictFormulaHtml()+usGradeFormulaHtml()+'</div></details>':'';
+  return '<div class="fv2"><div class="fv2-t">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+top+fac+(opt.hideSix?'':met)+axH+val+dvH+more+
+    '<p class="fv2-ft">'+(opt.foot||'※ 영업이익증가율은 Yahoo가 분기 이익 성장률로만 제공해 근사치입니다. 자체 계산 기준의 참고 자료이며 투자 권유가 아닙니다.')+'</p></div>';
+}
+function renderUsFinancialRatios(it, techD, opt){
+  opt=opt||{};
+  if(!it || (it.revenueGrowth==null && it.earningsGrowth==null && it.trailingEps==null && it.forwardEps==null && it.psr==null && it.trailingPE==null))
+    return renderUsFinancialRatiosClassic(it,techD,opt);
+  try{ return usFinCompact(it,techD,opt); }catch(e){ console.warn('재무 박스 v2 실패, 기존 형식 사용',e); return renderUsFinancialRatiosClassic(it,techD,opt); }
 }
 
 /* ===================== 관심종목(ETF) — 주요 보유종목·섹터 가중치 =====================
