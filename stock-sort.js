@@ -8,8 +8,11 @@
     bar.innerHTML='<button data-s="o" class="on">기본순</button><button data-s="d">등락률 ↓</button><button data-s="a">등락률 ↑</button>';
     list.before(bar);
     const val=r=>{const c=r.querySelector('.ch'); if(!c) return 0; const m=c.textContent.match(/([\d.]+)\s*%/); return m?parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1):0;};
-    bar.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; bar.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    const SK='mk_sort_'+id;
+    bar.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; try{localStorage.setItem(SK,b.dataset.s);}catch(_){} bar.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
       const k=b.dataset.s; const arr=[...list.querySelectorAll(':scope > .wl-row')];
       arr.sort((x,y)=>k==='o'?x.dataset.o-y.dataset.o:k==='d'?val(y)-val(x):val(x)-val(y)); arr.forEach(r=>list.appendChild(r)); });
+    let sv=null; try{sv=localStorage.getItem(SK);}catch(_){}
+    if(sv&&sv!=='o'){const bb=bar.querySelector('[data-s="'+sv+'"]'); if(bb){[0,4000,9000].forEach(t=>setTimeout(()=>bb.click(),t));}}
   });
 })();

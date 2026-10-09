@@ -344,6 +344,32 @@
       B.classList.toggle('mk-down', d > 0 && y > 240);
       D.classList.toggle('mk-up', d < 0 && y > 600);
     }, { passive: true });
+    /* 내 설정 내보내기 / 가져오기 (mk_* 저장값) */
+    var pop = $('#hd-pop');
+    if (pop && !$('#mk-bk')) {
+      var br = document.createElement('div'); br.className = 'hp-r'; br.id = 'mk-bk';
+      br.innerHTML = '<span class="hp-l">내 설정 백업</span><span class="mk-bk"><button type="button" id="bk-ex">내보내기</button><button type="button" id="bk-im">가져오기</button><input type="file" id="bk-f" accept="application/json,.json" hidden><span class="mk-bk-s" id="bk-s" role="status"></span></span>';
+      pop.insertBefore(br, $('.hp-gift', pop));
+      var say = function (t) { $('#bk-s').textContent = t; };
+      br.addEventListener('click', function (e) { e.stopPropagation(); });
+      $('#bk-ex').addEventListener('click', function () {
+        var o = {}; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^mk_/.test(k) && !/^mk_(chk_|gate)/.test(k)) o[k] = localStorage.getItem(k); } } catch (e) {}
+        var n = Object.keys(o).length; if (!n) { say('저장된 설정이 없습니다.'); return; }
+        var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'mrkim', v: 1, data: o }, null, 1)], { type: 'application/json' }));
+        a.download = 'mrkim-settings.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); say(n + '개 항목을 내보냈습니다.');
+      });
+      $('#bk-im').addEventListener('click', function () { $('#bk-f').click(); });
+      $('#bk-f').addEventListener('change', function () {
+        var f = this.files && this.files[0]; this.value = ''; if (!f) return; if (f.size > 200000) { say('파일이 너무 큽니다.'); return; }
+        var rd = new FileReader(); rd.onload = function () {
+          try { var j = JSON.parse(rd.result), d = j && j.app === 'mrkim' && j.data, c = 0;
+            if (!d || typeof d !== 'object') throw 0;
+            Object.keys(d).forEach(function (k) { if (/^mk_[A-Za-z0-9_]{1,40}$/.test(k) && typeof d[k] === 'string' && d[k].length < 50000) { localStorage.setItem(k, d[k]); c++; } });
+            say(c + '개 항목을 가져왔습니다. 새로고침하면 적용됩니다.');
+          } catch (e) { say('올바른 백업 파일이 아닙니다.'); }
+        }; rd.readAsText(f);
+      });
+    }
     /* 하나만 열기(설정 메뉴 토글) */
     var pop = $('#hd-pop');
     if (pop && !$('#hp-one')) {

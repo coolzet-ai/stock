@@ -1215,3 +1215,45 @@ html:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#0b6e3f!important}
 .pro footer .logo{color:var(--tx);font-size:18px;font-weight:800}
 .pro footer p,.pro footer li{font-size:13px}
 #mk-ver{margin:8px 0 0;font-size:11.5px;color:var(--tx2)}
+
+/* ===== v40 투자자 도구: 체크리스트 · 내 계좌 · 종목 비교 ===== */
+#mk-eve{margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+#mk-eve .ev-hd{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;margin-bottom:8px;color:var(--tx)}
+#mk-eve .ev-hd b{font-size:14px;font-weight:900}
+#mk-eve .ev-clk{font-size:12.5px;color:var(--tx2);font-variant-numeric:tabular-nums}
+#mk-eve .ev-clk b{color:var(--tx)}
+#mk-eve .ev-o{color:var(--up);font-weight:800}
+#mk-eve ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+#mk-eve li label{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:8px 4px;font-size:13.5px;line-height:1.5;color:var(--tx);cursor:pointer}
+#mk-eve li input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--up)}
+#mk-eve li.done label{text-decoration:line-through;color:var(--tx2)}
+#mk-eve .ev-nt{font-size:12px;color:var(--tx2);margin:6px 0 0;line-height:1.6}
+#mk-acct,#mk-cmp{color:var(--tx)}
+#mk-acct .ac-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 12px}
+#mk-acct .ac-sum>div{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+#mk-acct .ac-sum small{display:block;font-size:11.5px;color:var(--tx2)}
+#mk-acct .ac-sum b{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}
+#mk-acct .ac-sum span{font-size:11.5px;color:var(--tx2)}
+#mk-acct .ac-al{grid-column:1/-1;margin:0;font-size:12.5px;font-weight:800;color:var(--down)}
+#mk-acct .ac-t,#mk-cmp .cm-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+#mk-acct .ac-t th,#mk-acct .ac-t td,#mk-cmp .cm-t th,#mk-cmp .cm-t td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;color:var(--tx)}
+#mk-acct .ac-t th,#mk-cmp .cm-t thead th{font-size:11.5px;color:var(--tx2);font-weight:700}
+#mk-acct .n,#mk-cmp .n{text-align:right!important}
+#mk-acct .ac-l{display:inline-block;padding:0 6px;border-radius:6px;font-size:10.5px;font-weight:900;background:var(--bg2,#EDE7D6);color:var(--tx);border:1px solid var(--line)}
+#mk-acct .ac-x,#mk-acct button,#mk-cmp button{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+#mk-acct form,#mk-cmp .cm-f{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#mk-acct input,#mk-cmp input{min-height:40px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg,#fff);color:var(--tx);font:inherit;font-size:14px;min-width:0;flex:1 1 110px}
+#mk-acct .ac-cap{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;color:var(--tx)}
+#mk-acct .ac-cap input{flex:0 0 70px;width:70px}
+#mk-cmp .cm-t th[scope=row]{color:var(--tx2);font-weight:700}
+#mk-acct .na,#mk-cmp .na{color:var(--tx2)}
+#pb-acct{text-decoration:none;color:inherit}
+@media(min-width:900px){#pro-brief .pb-grid.has-acct{grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr}}
+@media(max-width:899px){#pb-acct{order:-1}
+ #mk-acct .ac-sum{grid-template-columns:1fr}
+ #mk-acct .ac-x,#mk-acct button,#mk-cmp button{min-height:44px}
+ #mk-acct input,#mk-cmp input{min-height:44px}}
+.mk-bk{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mk-bk button{min-height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.mk-bk-s{font-size:11.5px;color:var(--tx2);flex-basis:100%}
+@media(max-width:899px){#mk-acct>h3 .mut,#mk-cmp>h3 .mut{display:none}}

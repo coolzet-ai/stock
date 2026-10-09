@@ -204,6 +204,8 @@ html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="163,html[data-the
 html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="31,html[data-theme="dark"] 164,html[data-theme="dark"] 99"]{color:#b7ecd3 !important}
 html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#a3e635"]{color:#d6e9bd !important}
 html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#b7ecd3 !important}
+html[data-theme="dark"] #mk-acct .ac-l{background:var(--bg2,#312a16)}
+html[data-theme="dark"] #mk-acct input,html[data-theme="dark"] #mk-cmp input{background:var(--bg,#101316)}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}

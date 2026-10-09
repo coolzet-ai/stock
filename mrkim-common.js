@@ -2978,7 +2978,10 @@ function levInvestorHtml(ticker, info, etfD, undD){
       cell('연환산 변동성',st.vol.toFixed(0)+'%','일간 수익률 표준편차×√252',st.vol>=80?'var(--up)':null)+
       cell('최대 낙폭(MDD)',st.mdd.toFixed(1)+'%','1년 내 고점→저점','var(--down)')+
       cell('현재 고점 대비',st.fromPeak.toFixed(1)+'%',st.fromPeak<=-30?'깊은 조정 구간 · 분할 접근':st.fromPeak>=-5?'고점 부근 · 추격 주의':'',colr(st.fromPeak))+
-      cell('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'var(--down)':null)+'</div>';
+      cell('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'var(--down)':null)+
+      cell('MDD 본전에 필요한 상승',st.mdd<0&&st.mdd>-100?'+'+((1/(1+st.mdd/100)-1)*100).toFixed(0)+'%':'—','저점에서 고점 회복까지 필요한 상승률','var(--up)')+
+      cell('지금 고점까지 필요한 상승',st.fromPeak<0&&st.fromPeak>-100?'+'+((1/(1+st.fromPeak/100)-1)*100).toFixed(0)+'%':'고점 부근','현재가 → 1년 고점 회복',st.fromPeak<=-30?'var(--up)':null)+'</div>'+
+      (m.L>=3?'<div class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.55;font-weight:700">⚠ '+m.L+'배 상품은 하락폭이 클수록 회복에 훨씬 큰 상승이 필요하고, 횡보만 해도 복리 감쇠로 손실이 쌓입니다. 장기 보유보다 단기·비중 제한 상품입니다.'+(/^(SMHU|FNGU|GDXU)$/.test(ticker)?' 이 종목은 ETN으로 발행사 신용위험이 추가됩니다.':'')+'</div>':'');
     // 3) 레버리지 구조 비용
     h+='<div style="font-size:11.5px;font-weight:800;color:var(--tx2);margin:12px 0 6px">③ 레버리지 구조 — 복리 감쇠 점검</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">';
     if(st.undRet!=null){
@@ -3064,7 +3067,9 @@ function levPanelHtml(ticker, data, etfD, undD){
       k('변동성(연)',st.vol.toFixed(0)+'%','일간 수익률 표준편차×√252',st.vol>=80?'color:var(--up)':'')+
       k('최대낙폭',st.mdd.toFixed(1)+'%','1년 내 고점→저점','color:var(--down)')+
       k('고점 대비',st.fromPeak.toFixed(1)+'%',st.fromPeak<=-30?'깊은 조정 구간':st.fromPeak>=-5?'고점 부근':'',colr(st.fromPeak))+
-      k('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'color:var(--down)':'')+'</div></section>';
+      k('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'color:var(--down)':'')+
+      k('MDD 본전 필요 상승',st.mdd<0&&st.mdd>-100?'+'+((1/(1+st.mdd/100)-1)*100).toFixed(0)+'%':'—','저점에서 직전 고점까지 회복에 필요한 상승률','color:var(--up)')+
+      k('고점 회복 필요 상승',st.fromPeak<0&&st.fromPeak>-100?'+'+((1/(1+st.fromPeak/100)-1)*100).toFixed(0)+'%':'고점 부근','현재가에서 1년 고점까지 필요한 상승률',st.fromPeak<=-30?'color:var(--up)':'')+'</div></section>';
     if(st.vol>=80) flag('변동성 '+st.vol.toFixed(0)+'% 매우 높음','b');
     if(st.fromPeak<=-30) flag('고점 대비 '+st.fromPeak.toFixed(0)+'% 깊은 조정','w'); else if(st.fromPeak>=-5) flag('고점 부근 · 추격 주의','w');
     g+='<section class="lv2-g"><h4>③ 레버리지 구조 · 복리 감쇠</h4><div class="lv2-k">'+
@@ -3082,6 +3087,8 @@ function levPanelHtml(ticker, data, etfD, undD){
     g+='<section class="lv2-g"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></section>';
     if(top10>=60) flag('상위 10종목 '+top10.toFixed(0)+'% 집중','w');
   }
+  if(m.L>=3) flag(m.L+'배 상품 · 비중 제한 필요','w');
+  if(/^(SMHU|FNGU|GDXU)$/.test(ticker)) flag('ETN · 발행사 신용위험','b');
   if(!fl.length) flag('특이 경고 없음','g');
   let tip='';
   if(st&&st.undRet!=null){ const gap=st.actual-st.simple;
