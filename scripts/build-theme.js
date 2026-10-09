@@ -123,7 +123,7 @@ function process(css, label) {
 }
 
 process(read('mrkim-pro.css'), 'mrkim-pro.css');
-for (const f of ['stock.html', 'kr-stock.html', 'bond.html', 'crypto.html', 'fx.html', 'ipo.html', 'p2p.html', 'finprod.html', 'trade.html']) {
+for (const f of ['stock.html', 'kr-stock.html', 'bond.html', 'crypto.html', 'fx.html', 'ipo.html', 'p2p.html', 'finprod.html', 'trade.html', 'index.html', 'mrkim-signal.html']) {
   const html = read(f);
   let m, re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
   while ((m = re.exec(html))) process(m[1], f);

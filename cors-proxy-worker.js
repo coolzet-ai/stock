@@ -205,9 +205,10 @@ const FSS_SAVINGS_KEY = 'a80b3f5cd2bdf13971df53a72f67604f';
    틀린 코드였다. finlife 포털에 공식 코드표가 없어 실제 호출로 직접 검증한 값이다. */
 const FSS_GROUPS = [{ code: '020000', label: '은행' }, { code: '030300', label: '저축은행' }];
 
+let FIN_DIAG = [];
 async function fetchFinlifePages(path, grp) {
   const mk = page => 'https://finlife.fss.or.kr/finlifeapi/' + path + '.json?auth=' + FSS_SAVINGS_KEY + '&topFinGrpNo=' + grp + '&pageNo=' + page;
-  const get = async page => { try { const r = await fetch(mk(page)); if (!r.ok) return null; const j = await r.json(); return j.result || {}; } catch (e) { return null; } };
+  const get = async page => { try { const r = await fetch(mk(page), { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': 'application/json' } }); if (!r.ok) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' HTTP ' + r.status); return null; } const j = await r.json(); const res = j.result || {}; if (res.err_cd && res.err_cd !== '000') FIN_DIAG.push(path + ' ' + grp + ' ' + res.err_cd + ' ' + (res.err_msg || '')); return res; } catch (e) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' ' + String(e).slice(0, 80)); return null; } };
   // 1페이지로 전체 페이지 수를 알아낸 뒤 나머지는 동시에 요청한다(예전엔 순차 → 저축은행 4페이지를 하나씩 기다렸다).
   const first = await get(1);
   if (!first) return { base: [], opt: [] };
@@ -267,6 +268,8 @@ async function runFinSavingsJob(env) {
     buildFinlifeList('savingProductsSearch')
   ]);
   const result = { updated: new Date().toISOString(), deposit, saving };
+  if (!deposit.length && !saving.length) { result.diag = FIN_DIAG.slice(0, 6); return result; } // 빈 결과는 캐시하지 않는다(다음 요청에서 다시 시도)
+  FIN_DIAG = [];
   if (env.KR_KV) {
     try { await env.KR_KV.put('fin-savings-latest', JSON.stringify(result), { expirationTtl: 172800 }); } catch (e) {}
   }
@@ -1792,6 +1795,7 @@ const handler = {
             if (cached) data = JSON.parse(cached);
           } catch (e) {}
         }
+        if (data && !(data.deposit && data.deposit.length) && !(data.saving && data.saving.length)) data = null; // 예전에 저장된 빈 캐시는 무시하고 다시 집계
         // stale-while-revalidate: 캐시가 있으면 즉시 응답하고, 1시간 넘었으면 응답 뒤에 백그라운드로 갱신한다.
         if (data) {
           if (Date.now() - new Date(data.updated || 0).getTime() > 3600000 && ctx && ctx.waitUntil) ctx.waitUntil(runFinSavingsJob(env).catch(e => console.error('fin-savings bg refresh failed', e)));
@@ -1829,6 +1833,7 @@ const handler = {
             if (cached) data = JSON.parse(cached);
           } catch (e) {}
         }
+        if (data && !(data.deposit && data.deposit.length) && !(data.saving && data.saving.length)) data = null; // 예전에 저장된 빈 캐시는 무시하고 다시 집계
         // stale-while-revalidate: 캐시가 있으면 (오래됐어도) 즉시 응답하고, 신선하지 않으면(30분, 상세 누락 시 10분)
         // 응답 뒤에 백그라운드로 다시 계산한다. 캐시가 아예 없을 때만 직접 계산(약 1분)한다.
         if (data) {
@@ -2534,6 +2539,11 @@ async function guardedFetch(request, env, ctx) {
           if (post && t >= post.start && t <= post.end) st = 'post';
           else if (pre && t >= pre.start && t < pre.end) st = 'pre';
           if (st && Math.abs(px / mt.regularMarketPrice - 1) < 0.5) res = { st, px: Math.round(px * 10000) / 10000, base: mt.regularMarketPrice, pct: Math.round((px / mt.regularMarketPrice - 1) * 10000) / 100, t };
+        }
+        if (!res) { /* 지금이 장전/장후 세션인데 체결 봉이 아직 없는 종목(거래 적은 ETF 등) — 빈칸 대신 '체결 없음'으로 표시 */
+          const ns = Math.floor(Date.now() / 1000);
+          if (pre && ns >= pre.start && ns < pre.end) res = { st: 'pre', none: true, px: null, base: mt.regularMarketPrice || null, pct: null, t: ns };
+          else if (post && ns >= post.start && ns <= post.end) res = { st: 'post', none: true, px: null, base: mt.regularMarketPrice || null, pct: null, t: ns };
         }
         out[sym] = res;
         ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(res), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=60' } })));

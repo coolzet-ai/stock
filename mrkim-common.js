@@ -2336,17 +2336,20 @@ async function loadFinSavings(){
   };
   /* 직전에 받은 데이터를 먼저 보여주고(즉시 표시), 서버 응답이 오면 최신으로 교체 */
   let shown=false;
-  try{ const c=JSON.parse(localStorage.getItem(LSK)||'null'); if(c&&(c.deposit||c.saving)){ apply(c,true); shown=true; try{ renderFinSavings(); }catch(e){} } }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem(LSK)||'null'); if(c&&((c.deposit&&c.deposit.length)||(c.saving&&c.saving.length))){ apply(c,true); shown=true; try{ renderFinSavings(); }catch(e){} } }catch(e){}
   if(!shown&&statusEl) statusEl.textContent='예금·적금 금리를 불러오는 중… (서버 캐시가 비어 있으면 처음 한 번은 최대 1분 걸릴 수 있습니다)';
   try{
     const origin=PROXY_BASE.replace(/\?url=$/,'');
     const r=await fetch(origin+'fin-savings',{signal:AbortSignal.timeout?AbortSignal.timeout(80000):undefined});
     const data=r.ok?await r.json():null;
-    if(data && (data.deposit || data.saving)){
+    if(data && ((data.deposit&&data.deposit.length) || (data.saving&&data.saving.length))){
       apply(data,false);
       try{ localStorage.setItem(LSK,JSON.stringify(data)); }catch(e){}
-    }else if(!shown){
-      if(statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다 — Worker(/fin-savings)가 배포되어 있고 인증키가 설정됐는지 확인해주세요.';
+    }else{
+      finSavingsData.deposit=finSavingsData.deposit&&finSavingsData.deposit.length?finSavingsData.deposit:[];
+      finSavingsData.saving=finSavingsData.saving&&finSavingsData.saving.length?finSavingsData.saving:[];
+      finSavingsFail=(data&&data.diag&&data.diag.length)?data.diag.join(' / '):'서버가 빈 목록을 돌려줬습니다';
+      if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다. 잠시 후 새로고침해 주세요. (Worker를 최신 cors-proxy-worker.js로 재배포하면 원인이 이 줄에 표시됩니다)';
     }
   }catch(e){
     console.warn('예금·적금 금리 로딩 실패:', e);
@@ -3203,13 +3206,13 @@ function renderUnicornNews(newsByKey){
    정기예금/적금 탭으로 하나만 골라서 보고, 은행/저축은행 필터를 그 위에 추가로 적용한다. */
 // 목록(이미 Worker에서 금리 내림차순 정렬됨)이 길어 기본은 금리 Top3만 보여주고,
 // "더보기" 클릭 시에만 나머지(최대 30개)를 펼친다. 탭/필터를 바꾸면 다시 Top3부터 시작한다.
-let finSavingsExpanded=false;
+let finSavingsExpanded=false, finSavingsFail='';
 function renderFinSavingsTable(listId, list){
   const el=document.getElementById(listId);
   if(!el) return;
   if(!list){ el.innerHTML='<div class="fs-row"><span class="mut">불러오는 중…</span></div>'; return; }
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
-  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">표시할 상품이 없습니다</span></div>'; return; }
+  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">'+(list.length?'이 분류에 표시할 상품이 없습니다':'금리 데이터를 받지 못했습니다'+(finSavingsFail?' — 원인: '+finSavingsFail.replace(/</g,'&lt;'):''))+'</span></div>'; return; }
   const capped=filtered.slice(0,30);
   const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,3);
   const rowsHtml=capped.slice(0,showCount).map(it=>{
@@ -5993,7 +5996,7 @@ async function hydrateIpoQuotes(){
   /* ---- 3) 레인보우 차트 (코인 행 여백 클릭) ----
      로그 회귀: ln(가격) = a + b·ln(경과일). 잔차 표준편차(σ) 기준 9개 색 밴드.
      BTC는 제네시스(2009-01-03) 기준, 나머지는 상장 데이터 시작 180일 전 기준(근사). 투자 권유 아님. */
-  const RB=[['#2563eb','대폭 할인'],['#06b6d4','매수'],['#22c55e','축적'],['#84cc16','아직 저렴'],['#facc15','보유'],['#fb923c','과열 주의'],['#f97316','FOMO'],['#ef4444','매도 구간'],['#b91c1c','극단적 거품']];
+  const RB=[['#2563eb','대폭 할인'],['#06b6d4','매수'],['#22c55e','축적'],['#84cc16','아직 저렴'],['#facc15','보유'],['#fb923c','과열 주의'],['#f97316','FOMO'],['#dc2626','매도 구간'],['#b91c1c','극단적 거품']];
   const RB_EDGE=[-1.75,-1.25,-.75,-.25,.25,.75,1.25,1.75];
   const RB_NAME={bitcoin:'비트코인',ethereum:'이더리움',solana:'솔라나',ripple:'리플(XRP)'};
   const rbCache={};
@@ -6091,7 +6094,7 @@ async function hydrateIpoQuotes(){
       let b=tg.querySelector('.rb-badge');
       if(!b){ b=document.createElement('span'); b.className='rb-badge'; tg.appendChild(b); }
       const c=RB[z][0];
-      b.style.cssText='margin-left:6px;display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle;color:#fff;background:'+c+(z===4?';color:#422006':'');
+      b.style.cssText='margin-left:6px;display:inline-block;font-size:10.5px;font-weight:800;line-height:1;padding:3px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle;color:#fff;background:'+c+((z>=1&&z<=6)?';color:#1a1200!important':'');
       b.textContent=RB[z][1]; b.title='레인보우 현재 구간: '+RB[z][1];
     });
   }
@@ -6370,6 +6373,11 @@ function usRegularNow(){
   const p={}; new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
   const m=(parseInt(p.hour,10)%24)*60+parseInt(p.minute,10); return p.weekday!=='Sat'&&p.weekday!=='Sun'&&m>=570&&m<960;
 }
+function extSession(){
+  const p={}; new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
+  if(p.weekday==='Sat'||p.weekday==='Sun') return null; const m=(parseInt(p.hour,10)%24)*60+parseInt(p.minute,10);
+  return m>=240&&m<570?'pre':(m>=960&&m<1200?'post':null);
+}
 function extSymbols(){
   const s=new Set(); document.querySelectorAll(EXT_TABLES.split(',').map(x=>x+' .wl-row[data-t]').join(',')).forEach(r=>{ const t=r.dataset.t; if(t&&!/\.(KS|KQ)$/.test(t)) s.add(t); }); return [...s];
 }
@@ -6379,6 +6387,16 @@ function applyExtChips(){
   document.querySelectorAll(EXT_TABLES.split(',').map(x=>x+' .wl-row[data-t]').join(',')).forEach(row=>{
     const q=row.querySelector('.wl-quote'); if(!q) return;
     let box=q.querySelector('.wl-ext'); const e=EXT_DATA[row.dataset.t];
+    if(!reg&&e===null&&(row.dataset.t in EXT_DATA)&&extSession()){ /* 구버전 Worker 대비: 조회는 됐는데 값이 없으면 '체결 없음' 표기 */
+      const st0=extSession(); if(!box){ box=document.createElement('div'); q.appendChild(box); }
+      box.className='wl-ext flat'; box.title='아직 체결된 시간외 시세가 없습니다';
+      const h1='<span class="e-l">'+(st0==='pre'?'☀ 장전':'🌙 장후')+' 체결 없음</span>'; if(box.innerHTML!==h1) box.innerHTML=h1; return;
+    }
+    if(!reg&&e&&e.none&&(Date.now()/1000-e.t)<=3*3600){
+      if(!box){ box=document.createElement('div'); q.appendChild(box); }
+      box.className='wl-ext flat'; box.title='아직 '+(e.st==='pre'?'장전':'장후')+' 체결이 없습니다(거래가 적은 종목)';
+      const h0='<span class="e-l">'+(e.st==='pre'?'☀ 장전':'🌙 장후')+' 체결 없음</span>'; if(box.innerHTML!==h0) box.innerHTML=h0; return;
+    }
     if(reg||!e||e.pct==null||(Date.now()/1000-e.t)>60*3600){ if(box) box.remove(); return; }
     const cls=e.pct>0?'up':e.pct<0?'down':'flat', f=(typeof fmt==='function'?fmt:(v=>v.toFixed(2)));
     const html='<span class="e-l">'+(e.st==='pre'?'☀ 장전':'🌙 장후')+' $'+f(e.px)+'</span> <b>'+(e.pct>0?'▲ +':e.pct<0?'▼ −':'')+Math.abs(e.pct).toFixed(2)+'%</b>';
@@ -6422,6 +6440,7 @@ function injectSocCss(){
   '#soc-body .hot{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FEF0C7;color:#7A4B00;font-size:10.5px;font-weight:800}#soc-body .tr{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#EEF4FF;color:#1D3FA6;font-size:10.5px;font-weight:800}'+
   'html[data-theme="dark"] #soc-body .bt .u{color:#6CE9A6}html[data-theme="dark"] #soc-body .bt .d{color:#FDA29B}html[data-theme="dark"] #soc-body .hot{background:#3b2f0a;color:#FEDF89}html[data-theme="dark"] #soc-body .tr{background:#1a2748;color:#B2CCFF}'+
   '@media(max-width:900px){#soc-body .sr{grid-template-columns:28px 1fr auto;grid-template-areas:"rk nm rt" "bb bb bb" "rd rd rd" "tp tp tp";gap:6px 8px;padding:10px 6px}#soc-body .sr.h{display:none}#soc-body .sr .rk{grid-area:rk}#soc-body .sr .nm{grid-area:nm}#soc-body .sr .c-rt{grid-area:rt;text-align:right}#soc-body .sr .c-wl,#soc-body .sr .c-rd{display:none}#soc-body .sr .c-bb{grid-area:bb}#soc-body .sr .tp{grid-area:tp}#soc-body .sr .m-rd{grid-area:rd;display:block;font-size:11.5px;color:var(--tx2,#475467)}}'+
+  '#soc-body .soc-more{display:block;width:100%;margin-top:10px;min-height:44px;border:1px solid var(--line,#D5DCD8);border-radius:8px;background:var(--panel,#fff);color:var(--tx,#111418);font:inherit;font-size:13px;font-weight:700;cursor:pointer}'+
   '@media(min-width:901px){#soc-body .sr .m-rd{display:none}}';
   document.head.appendChild(st);
 }
@@ -6453,7 +6472,9 @@ function socRender(){
   const note=document.getElementById('soc-note'); if(note) note.textContent='· StockTwits 최근 글 30개 기준 · '+got+'/'+rows.length+'종목 수신'+(SOC.rdStatus==='blocked'?' · Reddit 연결 불가':'');
   const sb=(k,l)=>'<button type="button" data-sort="'+k+'" class="'+(SOC.sort===k?'on':'')+'">'+l+(SOC.sort===k?' ▾':'')+'</button>';
   let h='<div class="sr h"><span>#</span><span>종목</span><span>'+sb('bull','강세')+' / '+sb('bear','약세')+'</span><span>'+sb('rate','글 속도')+'</span><span>'+sb('watch','관심등록')+'</span><span>'+sb('rd','Reddit')+'</span><span>대표 글 (원문 링크)</span></div>';
+  const SOC_N=10, socOpen=!!(SOC.exp&&SOC.exp[SOC.cur]), socHide=rows.length>SOC_N&&!socOpen;
   rows.forEach((r,i)=>{
+    if(socHide&&i>=SOC_N) return;
     const s=r.s, tr=SOC.trend&&SOC.trend.indexOf(r.t.replace('-','.'))>=0?SOC.trend.indexOf(r.t.replace('-','.'))+1:null;
     const hot=s&&s.rate>=15?'<span class="hot" title="최근 글이 시간당 15개 이상 올라오는 중">🔥 급증</span>':'';
     const bb=r.pctBull==null?'<span class="na">태그 글 부족'+(s?' ('+r.tg+'/30)':'')+'</span>':'<div class="bb" role="img" aria-label="강세 '+r.pctBull.toFixed(0)+'% 약세 '+(100-r.pctBull).toFixed(0)+'%"><i class="bu" style="width:'+r.pctBull+'%"></i><i class="be" style="width:'+(100-r.pctBull)+'%"></i></div><div class="bt"><span class="u">강세 '+r.pctBull.toFixed(0)+'%</span><span class="d">약세 '+(100-r.pctBull).toFixed(0)+'%</span></div>';
@@ -6464,6 +6485,7 @@ function socRender(){
       '<span class="c-bb">'+bb+'</span><span class="c-rt">'+(s?s.rate.toFixed(1)+'<small class="na"> 글/시</small>':'<span class="na">—</span>')+'</span><span class="c-wl">'+(s&&s.watch?(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch.toLocaleString('ko-KR')):'<span class="na">—</span>')+'</span><span class="c-rd">'+rdTxt+'</span>'+
       '<span class="tp">'+(tops.length?(window.matchMedia&&matchMedia('(max-width:900px)').matches?'<details class="tpd"><summary>대표 글 보기</summary>'+tops.join('')+'</details>':tops.join('')):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
   });
+  if(rows.length>SOC_N) h+='<button type="button" class="soc-more" data-more="1" aria-expanded="'+socOpen+'">'+(socOpen?'Top '+SOC_N+'만 보기 ▴':'나머지 '+(rows.length-SOC_N)+'종목 상세보기 ▾')+'</button>';
   if(SOC.rdStatus==='blocked') h+='<p class="mut" style="margin:8px 4px 0;font-size:12px">Reddit이 서버 접속을 막아 이번에는 Reddit 언급을 불러오지 못했습니다(임의 값은 넣지 않습니다).</p>';
   body.innerHTML=h;
   try{ const hr=rows.filter(r=>r.s).sort((a,b)=>b.rate-a.rate)[0], hb=rows.filter(r=>r.pctBull!=null).sort((a,b)=>b.pctBull-a.pctBull)[0]; if(hr) window.MK_SOC_SUM='글 속도 1위 '+hr.t+' ('+hr.rate.toFixed(0)+'글/시)'+(hb?' · 강세 최고 '+hb.t+' '+hb.pctBull.toFixed(0)+'%':''); }catch(e){}
@@ -6476,7 +6498,7 @@ async function socShow(set){
 if(document.getElementById('us-social')){
   const box=document.querySelector('.tabs[data-group="soc"]');
   if(box) box.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.p) socShow(b.dataset.p); });
-  document.getElementById('soc-body').addEventListener('click',e=>{ const b=e.target.closest('button[data-sort]'); if(b){ SOC.sort=b.dataset.sort; socRender(); } });
+  document.getElementById('soc-body').addEventListener('click',e=>{ const m=e.target.closest('button[data-more]'); if(m){ SOC.exp=SOC.exp||{}; SOC.exp[SOC.cur]=!SOC.exp[SOC.cur]; socRender(); return; } const b=e.target.closest('button[data-sort]'); if(b){ SOC.sort=b.dataset.sort; socRender(); } });
   let started=false; const go=()=>{ if(started) return; started=true; socShow('cap'); };
   if('IntersectionObserver' in window){ new IntersectionObserver((es,ob)=>{ if(es.some(x=>x.isIntersecting)){ ob.disconnect(); go(); } },{rootMargin:'400px'}).observe(document.getElementById('us-social')); } else setTimeout(go,3000);
 }

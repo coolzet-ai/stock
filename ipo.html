@@ -166,7 +166,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=a9a7bac8"><link rel="stylesheet" href="mrkim-theme.css?v=6cd9e541">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=03c1c0c7"><link rel="stylesheet" href="mrkim-theme.css?v=6cd9e541">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -302,6 +302,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .ipo-factor-fill{height:100%;border-radius:3px}
 .ipo-factor-val{margin-top:5px;font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:560px){.ipo-factor-row{grid-template-columns:1fr}}
+
+/* v41 공모주 상세 — 핵심 6칸 먼저, 나머지는 접기 */
+.ipo-key{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:4px}
+.ipo-key .kt{padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;background:var(--panel)}
+.ipo-key .kt .k{font-size:11.5px;color:var(--tx2)}
+.ipo-key .kt .v{font-size:15px;font-weight:800;margin-top:3px;line-height:1.35;word-break:keep-all}
+.ipo-key .kt.na{border-left-color:var(--line)}.ipo-key .kt.na .v{color:var(--tx2);font-weight:600}
+.ipo-more{margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.ipo-more>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:800;color:var(--tx)}
+.ipo-more[open]>summary{border-bottom:1px solid var(--line)}
+.ipo-more>*:not(summary){margin-left:14px;margin-right:14px}
+.ipo-more .ipo-detail-grid{padding-bottom:14px}
+.ipo-detail .ipo-judge{margin-top:12px}
+@media(max-width:560px){.ipo-key{grid-template-columns:repeat(2,minmax(0,1fr))}.ipo-key .kt .v{font-size:14px}}
 </style>
 </section>
 
@@ -325,7 +339,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=1fb6d1a5"></script>
+<script src="mrkim-common.js?v=94fc285d"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -553,6 +567,7 @@ function ipoRatioVisual(txt, kind){
     '<div class="ipo-rbar" title="로그 스케일 (1:1 ~ 3,000:1)"><i style="width:'+pct.toFixed(1)+'%;background:'+col+'"></i></div>';
 }
 
+const IPO_KEYS=['공모가','기관경쟁률','의무보유확약비율','청약일','상장일','청약경쟁률'];
 function renderIpoList(m){
   const el=document.getElementById('ipo-list'); if(!el) return;
   /* 청약 시작일 순(빠른 순) 정렬 — 날짜 미정은 맨 뒤, 같은 날이면 종료일 → 종목명 순 */
@@ -618,9 +633,8 @@ function renderIpoList(m){
       '</div>'+
       (item.stage==='신규상장'?'<div class="ipo-quote" data-ipoq="'+(item.stockCode||'')+'" data-nm="'+item.name.replace(/"/g,'')+'" data-mk="'+(item.market||'')+'" data-ld="'+(item.listDate||'')+'" data-offer="'+(item.offerPriceFinal||'')+'" data-lr="'+(item.lockupRatio||'')+'" data-lock="'+(item.lockupSchedule?JSON.stringify(item.lockupSchedule).replace(/"/g,'&quot;'):'')+'" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><span class="mut" style="font-size:11.5px">📈 상장 후 주가 불러오는 중…</span></div>':'')+
       '<div class="ipo-detail" id="ipo-detail-'+i+'-'+m+'">'+
-        '<p class="mut" style="margin-bottom:12px">'+item.desc+'</p>'+
-        '<div class="ipo-detail-grid">'+
-          detailRows.map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+
+        '<div class="ipo-key">'+
+          detailRows.filter(r=>IPO_KEYS.indexOf(r[0])>=0).sort((a,b)=>IPO_KEYS.indexOf(a[0])-IPO_KEYS.indexOf(b[0])).map(([k,val])=>{ const na=/^(미정|미발표|미확인|--|-)$/.test(String(val).replace(/<[^>]*>/g,'').trim()); return '<div class="kt'+(na?' na':'')+'"><div class="k">'+k+'</div><div class="v">'+val+'</div></div>'; }).join('')+
         '</div>'+
         (pend
           ? '<div class="ipo-judge pend">'+
@@ -639,6 +653,10 @@ function renderIpoList(m){
               '<p class="mut" style="margin-top:8px;font-size:12.5px">'+v.reason+'</p>'+
             '</div>')+
         (item.stage!=='신규상장'&&typeof ipoScheduleHtml==='function'?ipoScheduleHtml(item):'')+
+        '<details class="ipo-more"><summary>회사 소개 · 배정·일정 상세</summary>'+
+          (item.desc?'<p class="mut" style="margin:10px 0 12px;line-height:1.6">'+item.desc+'</p>':'')+
+          '<div class="ipo-detail-grid">'+detailRows.filter(r=>IPO_KEYS.indexOf(r[0])<0).map(([k,val])=>'<div><div class="k">'+k+'</div><div class="v">'+val+'</div></div>').join('')+'</div>'+
+        '</details>'+
         '<div style="margin-top:14px">'+
           '<a href="javascript:void(0)" onclick="event.stopPropagation();toggleIpoFinancials(\''+i+'-'+m+'\',\''+item.name.replace(/'/g,"\\'")+'\',\''+(item.no||'')+'\')" style="color:var(--accent);font-weight:700;font-size:12.5px;text-decoration:none">📊 재무비율·주가지표 보기(DART 전자공시)</a>'+
           '<div id="ipo-fin-'+i+'-'+m+'" style="display:none;margin-top:8px"></div>'+
@@ -778,6 +796,6 @@ if(ipoMonthTabs){
 })();
 </script>
 <script src="mrkim-shell.js?v=5be290b4"></script>
-<script src="mrkim-extra.js?v=1f0520f5"></script>
+<script src="mrkim-extra.js?v=c1d22204"></script>
 </body>
 </html>

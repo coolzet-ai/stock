@@ -236,7 +236,7 @@
         var cur = el.style.color;
         if (dark) {
           if (el.dataset.lc && cur === el.dataset.lc) return;
-          if (!cur || lightBg(el)) return;
+          if (!cur || lightBg(el) || el.classList.contains('rb-badge') || el.hasAttribute('data-nolight')) return;
           var n = lighter(cur); if (!n) return;
           el.dataset.oc = cur; el.style.color = n; el.dataset.lc = el.style.color;
         } else if (el.dataset.oc) { el.style.color = el.dataset.oc; delete el.dataset.oc; delete el.dataset.lc; }

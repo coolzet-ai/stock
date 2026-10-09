@@ -1257,3 +1257,48 @@ html:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#0b6e3f!important}
 .mk-bk button{min-height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .mk-bk-s{font-size:11.5px;color:var(--tx2);flex-basis:100%}
 @media(max-width:899px){#mk-acct>h3 .mut,#mk-cmp>h3 .mut{display:none}}
+
+/* ===== v41 정렬·여백 통일 ===== */
+/* 좌우 카드 상단 맞춤: 같은 줄 카드는 윗여백 0, 헤더 높이 통일 */
+@media(min-width:901px){
+  .pro .grid>*,.pro .grid>.card+.card{margin-top:0!important}
+  .pro .grid{row-gap:16px;align-items:start}
+  .pro .card>h3:first-child,.pro .card>.fg-hd:first-child{min-height:46px!important;box-sizing:border-box}
+}
+/* 공탐 알림 ↔ 주요 일정: 같은 머리띠 높이·같은 간격 */
+.pro #fg-alert{margin:14px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.pro #fg-alert summary{min-height:38px;padding:0 14px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:700;list-style:none}
+.pro #fg-alert summary::-webkit-details-marker{display:none}
+.pro #fg-alert summary small{color:#E3F4EA;font-weight:600}
+.pro #fg-alert summary::after{content:'▾';margin-left:auto;font-size:12px}
+.pro #fg-alert[open] summary::after{content:'▴'}
+.pro #fg-alert .fa-body{padding:14px;gap:12px;line-height:1.6}
+.pro #fg-alert .fa-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.pro #fg-alert .fa-row label{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.pro #fg-alert .fa-note{margin:2px 0 0;font-size:12px;line-height:1.65;color:var(--tx2)}
+.pro #fg-alert #fa-ps{font-size:12.5px;line-height:1.6;flex-basis:100%}
+.pro #us-next-event{margin-top:14px!important;padding:0!important;border:1px solid var(--line)!important;border-radius:10px!important;overflow:hidden;background:var(--panel)}
+.pro #us-next-event .nev-hd{min-height:38px;display:flex;align-items:center;padding:0 14px!important;font-size:13.5px!important}
+.pro #us-next-event .nev-row{padding:12px 14px!important}
+/* 오늘의 시장 요약: 상태줄·칸 사이 여백 */
+#pro-brief #pb-state{padding:10px 14px}
+#pro-brief .pb-grid{margin-top:12px}
+#pro-brief .pb-c{padding-top:14px}
+/* 소제목 위아래 간격: 접이식 바·일반 h2 모두 같은 리듬 */
+.pro h2.fold-h{margin:28px 0 0!important}
+.pro h2:not(.pg-title):not(.fold-h){margin:28px 0 10px!important}
+.pro main>section:first-child h2.fold-h:first-of-type{margin-top:20px!important}
+.pro main .wrap>h3{margin:28px 0 10px}
+@media(max-width:900px){.pro h2.fold-h{margin:24px 0 0!important}.pro h2:not(.pg-title):not(.fold-h){margin:24px 0 10px!important}.pro main .wrap>h3{margin:24px 0 8px}}
+/* 금융상품 탭 두 줄: 한 줄로 나란히 */
+#fin-savings-type,#fin-savings-group{display:inline-flex!important;margin:10px 10px 0 0!important;vertical-align:top;width:auto!important;max-width:100%}
+#fin-savings-type button,#fin-savings-group button{min-height:40px}
+/* 매매김군 첫 화면: 다른 페이지와 같은 제목 크기·여백 */
+.pro .hero2{padding:20px 0 4px!important}
+.pro .hero2 h1{font-size:24px!important;line-height:1.3;letter-spacing:-.5px;margin:0 0 6px!important}
+.pro .hero2 p{font-size:13.5px!important;margin:0 0 16px!important}
+@media(max-width:900px){.pro .hero2 h1{font-size:22px!important}.pro .hero2{padding:12px 0 2px!important}}
+html[data-theme="dark"] .pro #fg-alert summary,html[data-theme="dark"] .pro #us-next-event .nev-hd{background:#0E4B33;color:#fff}
+.pro #stock .grid>.card:first-child #us-next-event{margin-top:14px!important}
+.pro.lite .hero{padding:48px 0 44px!important}
+.pro.lite .hero~section h2.pg-title,.pro.lite .hero~* h2.pg-title{margin-top:32px!important}
