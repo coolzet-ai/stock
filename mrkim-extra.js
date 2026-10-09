@@ -254,7 +254,9 @@
     var toc = $('#pro-toc'); if (!toc) return;
     var goTo = function (name) { var a = $$('a', toc).filter(function (x) { return x.textContent.trim().indexOf(name) === 0; })[0]; if (a) a.click(); return !!a; };
     /* 탭바 */
-    var TABS = KR ? [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⋯', '더보기', '']] : [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⚡', '레버리지', '레버리지'], ['⋯', '더보기', '']];
+    var generic = !$$('a', toc).some(function (a) { return /^요약/.test(a.textContent.trim()); });
+    var GT = $$('a', toc).slice(0, 3).map(function (a, i) { var full = a.textContent.trim().replace('…', ''); return [['①', '②', '③'][i], Array.from(full).slice(0, 6).join(''), full]; });
+    var TABS = generic ? GT.concat([['⋯', '더보기', '']]) : KR ? [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⋯', '더보기', '']] : [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⚡', '레버리지', '레버리지'], ['⋯', '더보기', '']];
     var bar = document.createElement('nav'); bar.id = 'mk-tabbar'; bar.setAttribute('aria-label', '빠른 이동');
     bar.innerHTML = TABS.map(function (t, i) { return '<button type="button" data-i="' + i + '"' + (t[2] ? '' : ' aria-haspopup="dialog" aria-expanded="false"') + '><span class="ti" aria-hidden="true">' + t[0] + '</span><span class="tl">' + t[1] + '</span></button>'; }).join('');
     document.body.appendChild(bar);

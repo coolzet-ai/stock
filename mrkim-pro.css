@@ -518,7 +518,7 @@ body.pro{
 #pro-status span{white-space:nowrap}
 #pro-status .ps-n{color:#667085;white-space:normal;flex:1 1 220px}
 #pro-status .ps-mk,#pro-status .ps-net{font-weight:800;padding:2px 9px;border-radius:999px;color:#fff;background:#667085}
-#pro-status .ps-mk.o{background:#00754A}#pro-status .ps-mk.p{background:#B7791F}#pro-status .ps-mk.c{background:#667085}
+#pro-status .ps-mk.o{background:#00754A}#pro-status .ps-mk.p{background:#8A5A00}#pro-status .ps-mk.c{background:#667085}
 #pro-status .ps-net.g{background:#00754A}#pro-status .ps-net.w{background:#8A5A00}#pro-status .ps-net.r{background:#D92D20}
 #pro-status button{font:inherit;font-size:12px;font-weight:700;padding:3px 10px;border:1px solid #00754A;border-radius:4px;background:#fff;color:#00754A;cursor:pointer}
 #pro-status button:hover{background:#00754A;color:#fff}
@@ -1171,3 +1171,10 @@ body.pro .card>h3:first-child small,body.pro .card>.fg-hd:first-child small,body
 }
 .pro .act-legend[hidden]{display:none!important}
 .pro .card>.fg-hd:first-child .tabs button,.pro .card>h3:first-child .tabs button{border:0!important;box-shadow:none}
+#hd-pop .hp-r:not(:has(button)){display:none}
+.pro header .updated-top b,.pro .updated-top b{color:var(--tx)!important}
+/* 인라인 색(JS가 칠하는 값) 중 흰 배경에서 대비가 낮은 연두·초록은 라이트 모드에서만 진하게 */
+html:not([data-theme="dark"]) .pro [style*="163, 230, 53"]{color:#3f6212!important}
+html:not([data-theme="dark"]) .pro [style*="31, 164, 99"]{color:#0b6e3f!important}
+html:not([data-theme="dark"]) .pro [style*="#a3e635"]{color:#3f6212!important}
+html:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#0b6e3f!important}

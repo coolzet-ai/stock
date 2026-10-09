@@ -200,6 +200,10 @@ html[data-theme="dark"] #ps-miss{border:1px solid #7a6942;background:#211d10;col
 html[data-theme="dark"] #pb-act a{color:#b3f3db}
 html[data-theme="dark"] .pro header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] #mk-tabbar{background:rgba(16,19,22,0.95)}
+html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="163,html[data-theme="dark"] 230,html[data-theme="dark"] 53"]{color:#d6e9bd !important}
+html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="31,html[data-theme="dark"] 164,html[data-theme="dark"] 99"]{color:#b7ecd3 !important}
+html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#a3e635"]{color:#d6e9bd !important}
+html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#b7ecd3 !important}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
@@ -217,6 +221,13 @@ html[data-theme="dark"] .hm-k .hm div{border:2px solid rgba(26,31,35,0.55)}
 html[data-theme="dark"] .pulse .hm-k .hm div.tl{border:2px solid rgba(26,31,35,0.55)}
 html[data-theme="dark"] .ix-sp{color:#a1c8e2}
 html[data-theme="dark"] .ix-nq{background:rgba(71,50,106,0.14)}
+html[data-theme="dark"] .fxm-bar i.fxm-h{background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(65,73,86,0.38) 5px 8px)}
+html[data-theme="dark"] .ipo-lamp i.r.on{color:#dd8884}
+html[data-theme="dark"] .ipo-lamp i.y.on{background:#705e35}
+html[data-theme="dark"] .ipo-lamp i.g.on{color:#a3e0c2}
+html[data-theme="dark"] .sdetail{background:#1e1a0f}
+html[data-theme="dark"] .st-w{background:rgba(108,88,51,0.25);color:#e8d8b3}
+html[data-theme="dark"] .st-n{color:#e7a7a4}
 @media (max-width:700px){html[data-theme="dark"] .pro .m-fold-btn{border:1px solid #1a1f23;background:#101316;color:#b3f3db}
 html[data-theme="dark"] .pro .m-fold-btn em{color:#b3f3db}
 html[data-theme="dark"] .pro .pulse .hm-t button{border-bottom:1px solid #2b3038 !important}
@@ -272,3 +283,5 @@ html[data-theme="dark"] .ix-kp,html[data-theme="dark"] body.pro summary{color:#5
 
 html[data-theme="dark"] .pro .nav ul a.on-page,html[data-theme="dark"] .pro header .logo span{color:#4ADE9C}
 html[data-theme="dark"] .pro .nav ul a.on-page{box-shadow:inset 0 -2px 0 #4ADE9C}
+html[data-theme="dark"] .scard-h .no{color:#4ADE9C}
+html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!important}
