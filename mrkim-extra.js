@@ -432,7 +432,7 @@
     /* 11px 미만 글자는 11.5px로(포인트 선물하기 링크 제외) */
     function tiny() {
       $$('body *').forEach(function (e) {
-        if (e.closest('.naver-gift,svg,script,style')) return;
+        if (e.closest('.naver-gift,svg,script,style,#lev-tbl .wl-quote,#krlev-tbl .wl-quote')) return; /* 레버리지 가격·등락률은 CSS(v59)로 통일 */
         var own = false; for (var i = 0; i < e.childNodes.length; i++) { var n = e.childNodes[i]; if (n.nodeType === 3 && n.textContent.trim()) { own = true; break; } }
         if (!own) return; var f = parseFloat(getComputedStyle(e).fontSize); if (f < 11) e.style.setProperty('font-size', '11.5px', 'important');
       });

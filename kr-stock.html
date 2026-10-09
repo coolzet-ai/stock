@@ -381,7 +381,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:block}.fold-btn{padding:4px 9px;font-size:12px}}
 @media(max-width:700px){.risk-note{margin:30px 0 -6px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=428c3d53"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=09442417"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -710,7 +710,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.min.js?v=5598ef26"></script>
+<script src="mrkim-common.min.js?v=dd26bc55"></script>
 <script src="kr-pro.js?v=83e050c3"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
@@ -750,7 +750,7 @@ async function toggleFinancials(stockCode, ev){
         ? renderFinancialsPanel(finAll,{growth,eps,psr,techD,dividend},'손익계산서 최근 '+fin3y.length+'개년'+(finAll!==fin3y?' + 올해 예상(E)':'')+'(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)'+(finAll!==fin3y?' · 예상치: 네이버 증권(FnGuide 컨센서스)':''),null)
         : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.<span id="finwhy-'+stockCode+'"></span> <button type="button" class="btn sm" onclick="finRetry(\''+stockCode+'\')" style="cursor:pointer;margin-left:6px">↻ 다시 불러오기</button></p>';
       if(fin3y&&fin3y.length){ finLoaded[stockCode]=true; }
-      else { try{ const cc=await resolveDartCorpCodes([stockCode]); const w=document.getElementById('finwhy-'+stockCode); if(w) w.textContent=cc&&cc[0]?' (DART 응답 없음·일시 지연일 수 있습니다)':' (DART 고유번호를 찾지 못했습니다)'; }catch(e){} }
+      else { try{ const cc=await resolveDartCorpCodes([stockCode]); const w=document.getElementById('finwhy-'+stockCode); if(w) w.textContent=window.__dartDown?' (DART 서버가 점검 중입니다. 점검이 끝나면 자동으로 다시 불러올 수 있습니다)':cc&&cc[0]?' (DART 응답 없음·일시 지연일 수 있습니다)':' (DART 고유번호를 찾지 못했습니다)'; }catch(e){} }
     }
   }else{
     el.style.display='none';
@@ -853,9 +853,9 @@ async function toggleKrLev(t,ev){
 }
 </script>
 <script src="stock-fold.js?v=f46fb660"></script>
-<script src="stock-mobile.js?v=c01b15ef"></script>
+<script src="stock-mobile.js?v=181f1920"></script>
 <script src="stock-ux.js?v=ee54fa7a"></script>
 <script src="stock-asof.js?v=e2fd5216"></script>
-<script src="mrkim-extra.js?v=7441ed8f"></script>
+<script src="mrkim-extra.js?v=ce63c7de"></script>
 </body>
 </html>

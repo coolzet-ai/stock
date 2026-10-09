@@ -1049,16 +1049,26 @@ async function getJSON(url){
 }
 async function __getJSON(url){
   const errors=[];
+  /* 자체 Worker 하나만 쓰므로(공개 프록시 폴백 제거) 느린 응답·일시 제한(429/5xx)에는 1회 더 시도한다.
+     DART·ECOS·KRX 는 첫 호출이 오래 걸릴 수 있어 대기 시간을 늘린다. */
+  const slow=/opendart\.fss|ecos\.bok|krx\.co\.kr|stock\.naver/.test(url), TMO=slow?15000:8000;
   for(const p of PROXIES){
     const target=p(url); if(!target) continue;
-    try{
-      const c=new AbortController(), t=setTimeout(()=>c.abort(),5000);
-      const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
-      if(!r.ok){ errors.push(target.split('?')[0]+' → HTTP '+r.status); continue; }
-      const j=await r.json();
-      if(j){ MK_NET.rec(true); return j; }
-      errors.push(target.split('?')[0]+' → 빈 응답');
-    }catch(e){ errors.push(target.split('?')[0]+' → '+e.message); }
+    for(let att=0;att<2;att++){
+      let retry=false;
+      try{
+        const c=new AbortController(), t=setTimeout(()=>c.abort(),TMO);
+        const r=await fetch(target,{signal:c.signal}); clearTimeout(t);
+        if(!r.ok){ errors.push(target.split('?')[0]+' → HTTP '+r.status); retry=(r.status===429||r.status>=500); }
+        else{
+          const j=await r.json();
+          if(j){ MK_NET.rec(true); return j; }
+          errors.push(target.split('?')[0]+' → 빈 응답');
+        }
+      }catch(e){ errors.push(target.split('?')[0]+' → '+e.message); retry=true; }
+      if(!retry) break;
+      await new Promise(rs=>setTimeout(rs,att===0?1200:0));
+    }
   }
   console.warn('getJSON 전체 실패('+url+'):', errors);
   MK_NET.rec(false);
@@ -3534,7 +3544,20 @@ async function dartVerifyCorp(code,corp){
     return !!(j&&j.status==='000'&&Array.isArray(j.list)&&j.list.length&&j.list[0].stock_code===code);
   }catch(e){ return false; }
 }
+const dartCorpInflight=new Map();
 async function resolveDartCorpCodes(stockCodes){
+  /* 같은 종목코드를 동시에 여러 곳에서 요청해도 Worker 호출은 한 번만 하도록 진행 중인 요청을 공유한다 */
+  const pend=[...new Set(stockCodes.map(c=>dartCorpInflight.get(c)).filter(Boolean))];
+  if(pend.length) await Promise.all(pend);
+  const need=stockCodes.filter(c=>!(c in dartCorpCodeCache));
+  if(need.length){
+    const pr=resolveDartCorpCodesRaw(need);
+    need.forEach(c=>dartCorpInflight.set(c,pr));
+    try{ await pr; }finally{ need.forEach(c=>dartCorpInflight.delete(c)); }
+  }
+  return stockCodes.map(c=>dartCorpCodeCache[c]||null);
+}
+async function resolveDartCorpCodesRaw(stockCodes){
   const need=stockCodes.filter(c=>!(c in dartCorpCodeCache));
   if(need.length && PROXY_BASE){
     const origin=PROXY_BASE.replace(/\?url=$/,'');
@@ -3577,13 +3600,20 @@ async function resolveDartCorpCodesByName(names){
 
 /* bsns_year의 사업보고서(reprt_code=11011, 사업보고서) 단일회사 전체 재무제표 중
    손익계산서 핵심 항목(매출액·영업이익·당기순이익)만 추출 */
-async function dartFinancialYear(corpCode, year, _retry){
+async function dartFinancialYear(corpCode, year){
+  /* 연간 사업보고서 수치는 거의 안 바뀌므로 브라우저에 24시간 저장해 두고 재사용한다(Worker 호출 수 절감) */
+  const CK='mk_dfy_'+corpCode+'_'+year;
+  try{ const c=JSON.parse(localStorage.getItem(CK)||'null'); if(c&&c.t&&Date.now()-c.t<864e5&&c.v) return c.v; }catch(e){}
+  const v=await dartFinancialYearRaw(corpCode,year);
+  if(v){ try{ localStorage.setItem(CK,JSON.stringify({t:Date.now(),v:v})); }catch(e){} }
+  return v;
+}
+async function dartFinancialYearRaw(corpCode, year){
   const url='https://opendart.fss.or.kr/api/fnlttSinglAcnt.json?corp_code='+corpCode+'&bsns_year='+year+'&reprt_code=11011';
   try{
     const j=await getJSON(url);
     if(!j || j.status!=='000' || !Array.isArray(j.list)){
       console.warn('DART 재무제표 실패('+corpCode+','+year+'):', j&&j.message);
-      if(!_retry&&(!j||(j.status!=='013'&&j.status!=='100'))){ await new Promise(r=>setTimeout(r,600)); return dartFinancialYear(corpCode,year,1); } // 일시 지연·제한 시 1회 재시도(013=조회 데이터 없음은 재시도하지 않음)
       return null;
     }
     // [버그 수정] 적자 기업은 계정명이 "당기순이익(손실)"·"영업손실" 등으로 오거나 금액이 "-1,234"/"△1,234"
@@ -3613,6 +3643,16 @@ async function dartFinancialYear(corpCode, year, _retry){
 
 /* 최근 3개 사업연도 손익계산서를 한 번에(전년도까지 확정 발표된 연도 기준) */
 async function dartFinancials3Y(stockCode){
+  /* 1순위: Worker /dart-fin 한 번 호출(서버에서 5개 연도를 모아 캐시). 실패하면 아래 기존 방식(브라우저가 연도별로 호출)으로 대체 */
+  try{
+    if(PROXY_BASE){
+      const origin=PROXY_BASE.replace(/\?url=$/,'');
+      const r=await fetch(origin+'dart-fin?code='+encodeURIComponent(stockCode),{signal:AbortSignal.timeout?AbortSignal.timeout(30000):undefined});
+      const j=await r.json().catch(function(){return null;});
+      if(j&&Array.isArray(j.fin)&&j.fin.length){ window.__dartDown=false; return j.fin; }
+      if(j&&/^DART_DOWN:/.test(j.error||'')){ window.__dartDown=true; return null; }
+    }
+  }catch(e){ console.warn('dart-fin 실패, 기존 방식으로 대체:',e); }
   const [corpCode]=await resolveDartCorpCodes([stockCode]);
   if(!corpCode) return null;
   const thisYear=new Date().getFullYear();

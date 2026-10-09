@@ -18,7 +18,7 @@
     var root=document.getElementById('main')||document.body, els=root.querySelectorAll('*');
     for(var i=0;i<els.length;i++){ var e=els[i];
       if(e.dataset&&e.dataset.fs) continue;
-      if(e.closest&&e.closest('#krlev-tbl .wl-name,#lev-tbl .wl-name')){ e.dataset.fs='1'; continue; } /* 레버리지 종목명은 한 줄에 맞게 mrkim-common.js 가 조절 */
+      if(e.closest&&e.closest('#krlev-tbl .wl-name,#lev-tbl .wl-name,#krlev-tbl .wl-quote,#lev-tbl .wl-quote')){ e.dataset.fs='1'; continue; } /* 레버리지 종목명은 한 줄에 맞게 mrkim-common.js 가 조절 */
       if(e.matches&&e.matches('.pulse .hm div.tl>span')){ e.dataset.fs='1'; continue; } /* 시장 한눈에 보기 종목명은 mrkim-common.js 가 한 줄에 맞게 조절 */
       var has=false, c=e.childNodes; for(var k=0;k<c.length;k++){ if(c[k].nodeType===3&&c[k].textContent.trim().length>1){ has=true; break; } }
       if(!has||e.closest('svg')) continue;
