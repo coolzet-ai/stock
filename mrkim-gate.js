@@ -155,3 +155,22 @@
     }
   },true);
 })();
+
+/* Mr.Kim Signal — 드래그·복사 방지(가벼운 억제 장치)
+   · 본문 텍스트 선택·복사·잘라내기·끌어가기·우클릭 메뉴·이미지 끌기를 막는다. 입력칸(input/textarea)과 data-copy-ok 표시 요소는 예외.
+   · 관리자 모드(이 기기에서 잠금이 꺼진 상태)에서는 작업 편의를 위해 해제된다.
+   ※ 브라우저에 표시되는 내용은 화면 캡처·소스 보기로 얻을 수 있어 완전한 차단은 불가능하며, 우연한 복사·퍼가기를 줄이는 용도입니다. */
+(function(){
+  try{ if(localStorage.getItem('mk_gate_off')==='1'&&!/[?&]guard=on\b/.test(location.search)) return; }catch(e){}
+  var st=document.createElement('style'); st.id='mk-noselect';
+  st.textContent='html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,select,[contenteditable="true"],[data-copy-ok],[data-copy-ok] *{-webkit-user-select:text;user-select:text}img,svg{-webkit-user-drag:none;user-drag:none}';
+  (document.head||document.documentElement).appendChild(st);
+  var ok=function(t){ return !!(t&&t.closest&&t.closest('input,textarea,select,[contenteditable="true"],[data-copy-ok]')); };
+  ['copy','cut','dragstart','selectstart','contextmenu'].forEach(function(ev){
+    document.addEventListener(ev,function(e){ if(!ok(e.target)) e.preventDefault(); },true);
+  });
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&!ok(e.target)){ var k=(e.key||'').toLowerCase(); if(k==='c'||k==='x'||k==='s'||k==='u'||k==='p'||(e.shiftKey&&(k==='i'||k==='c'||k==='j'))) e.preventDefault(); }
+    if(e.key==='F12') e.preventDefault();
+  },true);
+})();
