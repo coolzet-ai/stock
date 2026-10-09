@@ -2259,7 +2259,9 @@ async function loadCardTop(){
       '<span class="cg-img">'+(x.img?'<img src="'+esc(imgUrl(x.img))+'" alt="'+esc(x.name)+' 카드 이미지" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">':'')+'<i aria-hidden="true">'+esc(String(x.corp||x.name||'').slice(0,2))+'</i></span>'+
       '<span class="cg-tx"><span class="cg-nm">'+esc(x.name)+'</span>'+
       '<span class="cg-sub">'+esc(x.corp)+(x.annualFee?' · 연회비 '+esc(x.annualFee):'')+'</span></span>'+
-      '<span class="cg-go" aria-hidden="true">›</span></a>').join('')+'</div>';
+      '<span class="cg-go" aria-hidden="true">›</span></a>').join('')+'</div>'+(d.items.length>3?'<button type="button" class="cg-more" aria-expanded="false">상세보기 ▾ · 나머지 '+(d.items.length-3)+'개</button>':'');
+    const cgl=box.querySelector('.cg-list'), cgb=box.querySelector('.cg-more');
+    if(cgb){ cgl.classList.add('cg-fold'); cgb.addEventListener('click',()=>{ const o=cgl.classList.toggle('cg-fold')===false; cgb.setAttribute('aria-expanded',o); cgb.textContent=o?'접기 ▴':'상세보기 ▾ · 나머지 '+(d.items.length-3)+'개'; }); }
   }catch(e){ console.warn('카드 Top10 실패',e); fail('⚠ 카드고릴라 Top10을 가져오지 못했습니다.'); }
 }
 
@@ -3074,7 +3076,7 @@ function levPanelHtml(ticker, data, etfD, undD){
       k('총보수(연)',exp!=null?(exp*100).toFixed(2)+'%':'—',exp!=null?'1억 보유 시 연 '+Math.round(exp*1e4).toLocaleString('ko-KR')+'만원':'',exp!=null&&exp>=0.01?'color:var(--up)':'')+
       k('순자산',money(aum),aum!=null?(aum>=1e9?'규모 충분 · 청산 위험 낮음':aum>=2e8?'보통':'소형 · 상장폐지 위험 점검'):'')+
       k('배당률',info&&info.yield!=null?(info.yield*100).toFixed(2)+'%':'—','레버리지는 배당이 작음')+
-      k('베타(3년)',info&&info.beta3y!=null?info.beta3y.toFixed(2):'—','시장 대비 민감도')+'</div></section>';
+      k('베타(3년)',info&&info.beta3y!=null?info.beta3y.toFixed(2):'—','시장 대비 민감도')+'</div></div>';
     if(exp!=null&&exp>=0.01) flag('보수 '+(exp*100).toFixed(2)+'% 높음','w');
     if(aum!=null&&aum<2e8) flag('소형 ETF · 청산 위험 점검','b');
   }
@@ -3085,14 +3087,14 @@ function levPanelHtml(ticker, data, etfD, undD){
       k('고점 대비',st.fromPeak.toFixed(1)+'%',st.fromPeak<=-30?'깊은 조정 구간':st.fromPeak>=-5?'고점 부근':'',colr(st.fromPeak))+
       k('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'color:var(--down)':'')+
       k('MDD 회복 필요',st.mdd<0&&st.mdd>-100?'+'+((1/(1+st.mdd/100)-1)*100).toFixed(0)+'%':'—','저점에서 직전 고점까지 회복에 필요한 상승률','color:var(--up)')+
-      k('고점 회복 필요',st.fromPeak<0&&st.fromPeak>-100?'+'+((1/(1+st.fromPeak/100)-1)*100).toFixed(0)+'%':'고점 부근','현재가에서 1년 고점까지 필요한 상승률',st.fromPeak<=-30?'color:var(--up)':'')+'</div></section>';
+      k('고점 회복 필요',st.fromPeak<0&&st.fromPeak>-100?'+'+((1/(1+st.fromPeak/100)-1)*100).toFixed(0)+'%':'고점 부근','현재가에서 1년 고점까지 필요한 상승률',st.fromPeak<=-30?'color:var(--up)':'')+'</div></div>';
     if(st.vol>=80) flag('변동성 '+st.vol.toFixed(0)+'% 매우 높음','b');
     if(st.fromPeak<=-30) flag('고점 대비 '+st.fromPeak.toFixed(0)+'% 깊은 조정','w'); else if(st.fromPeak>=-5) flag('고점 부근 · 추격 주의','w');
     g+='<section class="lv2-g"><h4>③ 레버리지 구조 · 복리 감쇠</h4><div class="lv2-k">'+
       (st.undRet!=null?
         k('기초 '+m.u,f1(st.undRet),'기초 자산 1년 수익률',colr(st.undRet))+k(m.L+'배 단순',f1(st.simple),'기초×'+m.L,colr(st.simple))+k('일일 '+m.L+'배',f1(st.ideal),'매일 리셋 복리 계산',colr(st.ideal))+k('실제 '+ticker,f1(st.actual),'운용보수·추적오차 포함',colr(st.actual))
         :k('실제 '+ticker,f1(st.ret1y),'',colr(st.ret1y)))+
-      k('횡보 감쇠(연)','−'+st.decay.toFixed(1)+'%','변동성이 클수록 커짐 L(L−1)/2·σ²','color:var(--down)')+'</div></section>';
+      k('횡보 감쇠(연)','−'+st.decay.toFixed(1)+'%','변동성이 클수록 커짐 L(L−1)/2·σ²','color:var(--down)')+'</div></div>';
     if(st.undRet!=null){ const gap=st.actual-st.simple; if(gap<-5) flag('단순 '+m.L+'배보다 '+f1(gap)+'p 낮음(복리 감쇠)','w'); }
   }
   const hs=(data&&data.holdings&&data.holdings.length)?data.holdings.map(x=>x.pct||0).sort((a,b)=>b-a):null;
@@ -3100,7 +3102,7 @@ function levPanelHtml(ticker, data, etfD, undD){
     const top3=hs.slice(0,3).reduce((x,y)=>x+y,0)*100, top10=hs.slice(0,10).reduce((x,y)=>x+y,0)*100, inf=(data&&data.info)||{};
     const lvl=top10>=60?'집중도 높음':top10>=40?'보통':'분산';
     const pe=inf.pe!=null&&inf.pe>0?(inf.pe<1?1/inf.pe:inf.pe).toFixed(1):'—', pb=inf.pb!=null&&inf.pb>0?(inf.pb<1?1/inf.pb:inf.pb).toFixed(1):'—';
-    g+='<section class="lv2-g"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></section>';
+    g+='<section class="lv2-g"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></div>';
     if(top10>=60) flag('상위 10종목 '+top10.toFixed(0)+'% 집중','w');
   }
   if(m.L>=3) flag(m.L+'배 상품 · 비중 제한 필요','w');
@@ -5883,54 +5885,73 @@ function ipoQuoteMidHtml(d){
 function injectIpoQuoteCss(){
   if(document.getElementById('ipoq-css')) return;
   const st=document.createElement('style'); st.id='ipoq-css';
-  st.textContent='.ipo-q4{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.ipo-q4{grid-template-columns:1fr}}'+
-    '.ipo-qb{box-sizing:border-box;min-width:0;width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--panel)}';
+  st.textContent='.ipq{display:grid;gap:10px;min-width:0}'+
+  '.ipq-kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}'+
+  '.ipq-kpi>div{min-width:0;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;background:var(--panel)}'+
+  '.ipq-kpi>div.up{border-left-color:var(--up)}.ipq-kpi>div.dn{border-left-color:var(--down)}'+
+  '.ipq-kpi small{display:block;font-size:11.5px;color:var(--tx2);white-space:nowrap}'+
+  '.ipq-kpi b{display:block;font-size:19px;font-weight:900;line-height:1.3;white-space:nowrap}'+
+  '.ipq-kpi em{display:block;font-style:normal;font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.ipq-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:10px;align-items:start}'+
+  '.ipq-rt{display:grid;gap:10px;min-width:0}'+
+  '.ipq-p{min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}'+
+  '.ipq-p>h5{margin:0;padding:7px 12px;font-size:12.5px;font-weight:800;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}'+
+  '.ipq-p>h5 span{font-weight:500;color:var(--tx2);font-size:11.5px}'+
+  '.ipq-p>.b{padding:10px 12px}'+
+  '.ipq-br{display:grid;grid-template-columns:78px minmax(0,1fr) 92px;gap:8px;align-items:center;padding:5px 0}'+
+  '.ipq-br+.ipq-br{border-top:1px dashed var(--line)}'+
+  '.ipq-br .k{font-size:12px;color:var(--tx2);font-weight:700;white-space:nowrap}'+
+  '.ipq-br .tr{position:relative;height:14px;background:var(--panel2);border-radius:3px}'+
+  '.ipq-br .tr b{position:absolute;top:2px;bottom:2px;border-radius:2px;min-width:2px}'+
+  '.ipq-br .tr i{position:absolute;top:-2px;bottom:-2px;width:0;border-left:2px solid var(--tx2)}'+
+  '.ipq-br .v{text-align:right;font-size:14px;font-weight:900;white-space:nowrap}'+
+  '.ipq-br .v small{display:block;font-size:10.5px;font-weight:500;color:var(--tx2)}'+
+  '.ipq-pos{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--down),var(--gold),var(--up))}'+
+  '.ipq-pos i{position:absolute;top:-4px;width:5px;height:20px;border-radius:2px;background:var(--tx);transform:translateX(-50%)}'+
+  '.ipq-lbl{display:flex;justify-content:space-between;gap:6px;font-size:12px;margin-top:8px;color:var(--tx2);white-space:nowrap}'+
+  '.ipq-note{font-size:11.5px;color:var(--tx2);margin-top:6px;line-height:1.5}'+
+  '.ipq-strip{display:flex;gap:2px;flex-wrap:wrap}.ipq-strip i{width:10px;height:18px;border-radius:2px;display:block}'+
+  '@media(max-width:700px){.ipq-kpi{grid-template-columns:1fr 1fr}.ipq-kpi>div:last-child{grid-column:1/-1}.ipq-cols{grid-template-columns:minmax(0,1fr)}.ipq-br{grid-template-columns:70px minmax(0,1fr) 84px}}';
   document.head.appendChild(st);
 }
 function ipoQuoteHtml(d, offer, listDate){
   injectIpoQuoteCss();
   const st=ipoQuoteStats(d.rows, offer, listDate);
-  const rows=st.rows, closes=rows.map(r=>r.c), last=closes[closes.length-1], prev=closes.length>1?closes[closes.length-2]:last;
-  const chg=(last/prev-1)*100;
+  const rows=st.rows, closes=rows.map(r=>r.c), last=closes[closes.length-1];
   const hi=Math.max.apply(null,rows.map(r=>r.h)), lo=Math.min.apply(null,rows.map(r=>r.l));
   const pos=hi>lo?Math.max(0,Math.min(100,(last-lo)/(hi-lo)*100)):50;
   const spanDays=(rows[rows.length-1].t-rows[0].t)/86400;
   const lbl=spanDays<340?'상장 후':'52주';
-  const up=chg>=0, col=up?'var(--up)':'var(--down)';
   const fromHi=(last/hi-1)*100;
   const pc=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
-  /* 상한가 일수 스트립: 상장 후 거래일마다 한 칸(최근 45일까지), 상한가=진한 빨강 */
+  const cc=v=>v>=0?'var(--up)':'var(--down)';
   const shown=st.flags.slice(-45);
   const upDays=st.flags.filter(f=>f.chg>0.05).length, dnDays=st.flags.filter(f=>f.chg<-0.05).length;
-  const strip='<div style="display:flex;gap:2px;flex-wrap:wrap">'+shown.map(f=>{
-    const bg=f.lim?'#e5332a':f.chg>0.05?'rgba(229,51,42,.28)':f.chg<-0.05?'rgba(26,111,168,.35)':'rgba(127,127,127,.25)';
-    return '<i title="'+f.chg.toFixed(1)+'%" style="width:10px;height:16px;border-radius:2px;background:'+bg+';display:block;'+(f.lim?'box-shadow:0 0 5px #e5332a99':'')+'"></i>';
+  const strip='<div class="ipq-strip">'+shown.map(f=>{
+    const bg=f.lim?'#c4251c':f.chg>0.05?'rgba(229,51,42,.32)':f.chg<-0.05?'rgba(26,111,168,.4)':'rgba(127,127,127,.28)';
+    return '<i title="'+f.chg.toFixed(1)+'%" style="background:'+bg+(f.lim?';box-shadow:0 0 5px #e5332a99':'')+'"></i>';
   }).join('')+'</div>';
-  const limBox='<div class="ipo-qb">'+
-    '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:12px;font-weight:800;color:var(--tx2)">🔺 상한가 일수 · 일별 변화</span>'+
-    '<b style="font-size:20px;color:'+(st.limitUp?'#e5332a':'var(--tx2)')+'">'+(st.limitUp?st.limitUp+'일':'0일')+'</b></div>'+strip+
-    '<div style="font-size:11.5px;color:var(--tx2);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">상장 후 '+st.flags.length+'거래일 · <span style="color:var(--up)">상승 '+upDays+'일</span> · <span style="color:var(--down)">하락 '+dnDays+'일</span> · 진한 빨강=상한가</div></div>';
-  /* 두 개의 박스: ① 공모가·현재 수익 ② 시초가 마감·종가 마감·최고가 */
-  let boxes='';
+  let kpi='', bars='';
   if(offer&&st.firstDay){
     const o=st.firstDay.open, c=st.firstDay.close;
-    const cc=v=>v>=0?'var(--up)':'var(--down)';
     const now=(last/offer-1)*100, p=(c/offer-1)*100, po=(o/offer-1)*100, peak=(st.maxHigh/offer-1)*100;
     let hiIdx=0; rows.forEach((r,ix)=>{ if(r.h>=st.maxHigh) hiIdx=ix; });
     const dN=Math.round((rows[hiIdx].t-rows[0].t)/86400);
-    const stat=(k,v,sub,span)=>'<div style="min-width:0;'+(span?'grid-column:1/-1':'')+'"><div style="font-size:11.5px;color:var(--tx2);white-space:nowrap">'+k+'</div><div style="font-size:19px;font-weight:900;line-height:1.25;white-space:nowrap">'+v+'</div>'+(sub?'<div style="font-size:11.5px;color:var(--tx2);white-space:nowrap">'+sub+'</div>':'')+'</div>';
-    const box=(bc,inner)=>'<div class="ipo-qb" style="border-color:'+bc+';display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-content:start">'+inner+'</div>';
-    boxes=box(cc(now),stat('공모가',fmtWon(offer))+stat('현재 수익','<span style="color:'+cc(now)+'">'+pc(now)+'</span>'))+
-      box('var(--line)',stat('시초가 마감','<span style="color:'+cc(po)+'">'+pc(po)+'</span>')+stat('종가 마감','<span style="color:'+cc(p)+'">'+pc(p)+'</span>')+
-        stat('최고가 (상장일 D+'+dN+')','<span style="font-size:17px">'+fmtWon(st.maxHigh)+'</span> <span style="color:'+cc(peak)+'">'+pc(peak)+'</span>',null,true));
+    kpi='<div class="ipq-kpi"><div><small>공모가</small><b>'+fmtWon(offer)+'</b><em>상장 기준가</em></div>'+
+      '<div class="'+(now>=0?'up':'dn')+'"><small>현재 수익률</small><b style="color:'+cc(now)+'">'+pc(now)+'</b><em>현재가 '+fmtWon(last)+'</em></div>'+
+      '<div class="'+(peak>=0?'up':'dn')+'"><small>최고가 (상장 D+'+dN+')</small><b>'+fmtWon(st.maxHigh)+'</b><em style="color:'+cc(peak)+'">공모가 대비 '+pc(peak)+'</em></div></div>';
+    const items=[['시초가 마감',po,o],['종가 마감',p,c],['현재',now,last],['상장 후 최고',peak,st.maxHigh]];
+    const vals=items.map(x=>x[1]), mn=Math.min.apply(null,vals.concat(0)), mx=Math.max.apply(null,vals.concat(0)), sp=(mx-mn)||1, z=(0-mn)/sp*100;
+    bars='<div class="ipq-p"><h5>공모가 대비 수익률 <span>0선 = 공모가</span></h5><div class="b">'+items.map(it=>{
+      const v=it[1], l=Math.min(z,(v-mn)/sp*100), w=Math.abs(v)/sp*100;
+      return '<div class="ipq-br"><span class="k">'+it[0]+'</span><div class="tr"><i style="left:'+z.toFixed(1)+'%"></i><b style="left:'+l.toFixed(1)+'%;width:'+w.toFixed(1)+'%;background:'+cc(v)+'"></b></div><span class="v" style="color:'+cc(v)+'">'+pc(v)+'<small>'+fmtWon(it[2])+'</small></span></div>';
+    }).join('')+'</div></div>';
   }
-  const barBox='<div class="ipo-qb">'+
-    '<div style="font-size:12px;font-weight:800;color:var(--tx2);margin-bottom:10px">📊 '+lbl+' 최저 ~ 최고 위치</div>'+
-    '<div style="position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--down),var(--gold),var(--up));opacity:.8">'+
-      '<i style="position:absolute;left:'+pos.toFixed(1)+'%;top:-4px;width:5px;height:18px;border-radius:2px;background:var(--tx);transform:translateX(-50%)"></i></div>'+
-    '<div style="display:flex;justify-content:space-between;gap:6px;font-size:12px;margin-top:6px;color:var(--tx2);white-space:nowrap"><span>최저 '+fmtWon(lo)+'</span><span>최고 '+fmtWon(hi)+'</span></div>'+
-    '<div style="font-size:11.5px;color:var(--tx2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">고점 대비 '+fromHi.toFixed(1)+'% · 범위 내 '+pos.toFixed(0)+'% 위치</div></div>';
-  return '<div class="ipo-q4">'+boxes+barBox+limBox+'</div>';
+  const posBox='<div class="ipq-p"><h5>📊 '+lbl+' 최저 ~ 최고 위치 <span>범위 내 '+pos.toFixed(0)+'%</span></h5><div class="b"><div class="ipq-pos"><i style="left:'+pos.toFixed(1)+'%"></i></div>'+
+    '<div class="ipq-lbl"><span>최저 '+fmtWon(lo)+'</span><span>최고 '+fmtWon(hi)+'</span></div><div class="ipq-note">고점 대비 '+fromHi.toFixed(1)+'%</div></div></div>';
+  const limBox='<div class="ipq-p"><h5>🔺 상한가 일수 · 일별 변화 <span style="font-size:15px;font-weight:900;color:'+(st.limitUp?'var(--up)':'var(--tx2)')+'">'+st.limitUp+'일</span></h5><div class="b">'+strip+
+    '<div class="ipq-note">상장 후 '+st.flags.length+'거래일 · <span style="color:var(--up)">상승 '+upDays+'일</span> · <span style="color:var(--down)">하락 '+dnDays+'일</span> · 진한 빨강=상한가</div></div></div>';
+  return '<div class="ipq">'+kpi+'<div class="ipq-cols">'+(bars||'')+'<div class="ipq-rt">'+posBox+limBox+'</div></div></div>';
 }
 const IPOQ_CACHE={};
 async function hydrateIpoQuotes(){

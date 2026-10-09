@@ -185,7 +185,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=9072ef94"><link rel="stylesheet" href="mrkim-theme.css?v=df9a931d">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=b7aa1dd6"><link rel="stylesheet" href="mrkim-theme.css?v=994aa7c4">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -219,7 +219,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="sub">예금·적금 금리 비교, 인기 카드, 은행별 진행 중인 이벤트 바로가기</p>
     <p class="mut" style="margin-bottom:20px;font-size:12.5px">⚠ 이벤트는 기사 기반 수집이라 실제 조건과 다를 수 있으니 각 사 공식 안내를 확인하세요.</p>
 
-    <h3 style="font-size:19px;margin-top:12px">1. 예금·적금 금리비교 <span class="mut" style="font-size:12px;font-weight:400">(은행·저축은행, 12개월 최고우대금리순)</span></h3>
+    <div class="card fin-sec">
+    <h3>1. 예금·적금 금리비교 <span class="mut">(은행·저축은행, 12개월 최고우대금리순)</span></h3>
     <div class="tabs" id="fin-savings-type" style="margin-top:10px">
       <button class="on" data-t="deposit" onclick="setFinSavingsType('deposit')">정기예금</button>
       <button data-t="saving" onclick="setFinSavingsType('saving')">적금</button>
@@ -234,9 +235,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <div class="fs-list" id="fin-savings-list"><div class="fs-row"><span class="mut">불러오는 중…</span></div></div>
     <p class="mut" style="margin-top:14px;font-size:12px">⚠ 금융감독원 금융상품한눈에 오픈API 기준이며, 실제 가입 가능 여부·우대조건 충족 여부는 각 금융회사에서 반드시 다시 확인하세요. 표시된 "최고우대금리"는 모든 우대조건을 충족했을 때의 금리입니다.</p>
 
-    <div class="grid" style="margin-top:32px">
-      <div class="card">
-        <h3>2. 카드고릴라</h3>
+    </div>
+
+    <div class="fin-gap">
+      <div class="card fin-sec">
+        <h3>2. 카드고릴라 <span class="mut">인기 Top3 · 나머지는 상세보기</span></h3>
         <p class="mut">국내 최대 카드 비교 플랫폼의 실시간 인기카드 차트입니다. 카드사별 Top1, 혜택별 순위도 함께 확인할 수 있습니다.</p>
         <p class="mut" id="fin-card-status" style="margin-top:8px;font-size:12px">인기카드 Top10을 불러오는 중…</p>
         <div id="fin-card-top"></div>
@@ -246,7 +249,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <p class="mut" id="fin-events-status" style="margin-top:28px;font-size:12.5px">증권·은행·카드 이벤트를 불러오는 중…</p>
 
-    <h3 style="font-size:19px;margin-top:12px">3. 증권사 이벤트</h3>
+    <div class="card fin-sec">
+    <h3>3. 증권사 이벤트</h3>
     <div class="scroll">
       <table>
         <thead><tr><th>증권사</th><th style="width:100%">이벤트</th><th style="text-align:center">강도</th></tr></thead>
@@ -254,7 +258,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
 
-    <h3 style="font-size:19px;margin-top:32px">4. 은행 이벤트 <span class="mut" style="font-size:12px;font-weight:400">(토스뱅크·카카오뱅크·케이뱅크 포함)</span></h3>
+    </div>
+
+    <div class="card fin-sec">
+    <h3>4. 은행 이벤트 <span class="mut">(토스뱅크·카카오뱅크·케이뱅크 포함)</span></h3>
     <div class="scroll">
       <table>
         <thead><tr><th>은행</th><th style="width:100%">이벤트</th><th style="text-align:center">강도</th></tr></thead>
@@ -262,12 +269,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       </table>
     </div>
 
-    <h3 style="font-size:19px;margin-top:32px">5. 카드 이벤트</h3>
+    </div>
+
+    <div class="card fin-sec">
+    <h3>5. 카드 이벤트</h3>
     <div class="scroll">
       <table>
         <thead><tr><th>카드사</th><th style="width:100%">이벤트</th><th style="text-align:center">강도</th></tr></thead>
         <tbody id="fin-ev-card"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
       </table>
+    </div>
     </div>
     <p class="mut" style="margin-top:14px;font-size:12px">⚠ 증권·은행·카드 이벤트는 서버가 최근 14일 이내 금융권 이벤트 기사(Google 뉴스)를 모아 회사명·마감일을 추정한 결과이며(제목에 회사명이 없거나 이미 마감된 건 제외), 마감일이 빠른 순으로 정렬됩니다. "강도"는 실제 참여자 수·예산 규모가 아니라 이벤트 제목의 표현(최대·전원·한정 등 키워드, 금액·% 표기 유무)을 바탕으로 한 자체 추정치(최대 3점)입니다. 기사 제목 기반이라 실제 이벤트 페이지와 조건·기간이 다를 수 있으니 링크 후 각 사 공식 안내를 꼭 확인하세요.</p>
   </div>
@@ -292,7 +303,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=03b76eef"></script>
+<script src="mrkim-common.js?v=d4b0684b"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }

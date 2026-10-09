@@ -1625,3 +1625,15 @@ html[data-theme="dark"] #mk-cmp .cm-rg button.on{background:#e6efe9;color:#11141
 @media(max-width:900px){#mk-cmp .cm-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){#mk-acct .ac-t th:nth-child(1){width:30%}#mk-acct .ac-t th:nth-child(4){width:17%}#mk-acct .ac-t th:nth-child(5){width:19%}#mk-acct .ac-t th:nth-child(6){width:17%}#mk-acct .ac-t th:nth-child(9){width:17%}#mk-acct .ac-act .ac-x{display:inline-block;margin:0 2px 2px 0;min-width:30px}}
 #mk-cmp .cm-grid{margin-top:12px}
+/* v51 금융상품: 1~5 동일 카드 구조 + 카드고릴라 Top3 */
+.pro .fin-sec{margin-top:24px}
+.pro .fin-gap{margin-top:24px}.pro .fin-gap>.fin-sec{margin-top:0}
+.pro .fin-sec>h3:first-child .mut{font-size:11.5px;font-weight:400;color:#CFE9DC;margin-left:6px}
+.pro .fin-sec>.tabs:first-of-type{margin-top:0}
+.pro .fin-sec .scroll{margin:0}
+.pro #fin-card-top .cg-list.cg-fold>.cg-item:nth-child(n+4){display:none}
+.pro .cg-more{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:10px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--tx);font-weight:700;font-size:13px;cursor:pointer}
+.pro .cg-more:hover{background:#fff}
+#fin-events-status{margin-top:24px!important}
+#fin-ev-sec th:first-child,#fin-ev-bank th:first-child,#fin-ev-card th:first-child{white-space:nowrap}
+.pro .fin-sec table thead th:first-child{white-space:nowrap;min-width:64px}
