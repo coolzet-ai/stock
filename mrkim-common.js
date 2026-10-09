@@ -770,16 +770,14 @@ function krInvestorLamps(h){
   if(!h||h.length<5) return '';
   const rows5=h.slice(-5), today=h[h.length-1];
   const defs=[['개인','personal'],['외국인','foreign'],['기관','institutional']];
-  const boxes=defs.map(([nm,k])=>{
+  const cells=[], head=[];
+  defs.forEach(([nm,k])=>{
     const s5=rows5.reduce((a,r)=>a+(r[k]||0),0), t=today[k]||0;
     const lv=(s5>0&&t>0)?{i:'🟢',t:'순매수 우위',c:'var(--up)'}:(s5<0&&t<0)?{i:'🔴',t:'순매도 우위',c:'var(--down)'}:{i:'🟡',t:'혼조',c:'var(--tx2)'};
-    return '<div title="최근 5영업일 누적 '+fmtEok(s5)+' / 당일 '+fmtEok(t)+'\n둘 다 순매수 🟢 · 둘 다 순매도 🔴 · 엇갈림 🟡" style="padding:8px 10px;border-radius:10px;border:2px solid '+lv.c+';background:var(--panel);cursor:help;text-align:center">'+
-      '<div style="font-size:12px;font-weight:700;color:var(--tx2)">'+nm+'</div>'+
-      '<div style="font-size:24px;line-height:1.2">'+lv.i+'</div>'+
-      '<div style="font-size:14px;font-weight:900;color:'+lv.c+'">'+lv.t+'</div>'+
-      '<div style="font-size:11px;color:var(--tx2);margin-top:2px">5일 '+fmtEok(s5)+'</div></div>';
-  }).join('');
-  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'+boxes+'</div>';
+    head.push(nm+' <em style="color:'+lv.c+'">'+lv.t+'</em>');
+    cells.push('<div class="kr-sc" style="--c:'+lv.c+'" title="최근 5영업일 누적 '+fmtEok(s5)+' / 당일 '+fmtEok(t)+'\n둘 다 순매수 🟢 · 둘 다 순매도 🔴 · 엇갈림 🟡"><small>'+nm+'</small><b>'+lv.i+' '+lv.t+'</b><span>5일 '+fmtEok(s5,true)+' · 당일 '+fmtEok(t,true)+'</span></div>');
+  });
+  return '<div class="kr-sum"><p class="kr-sline"><b>핵심 요약</b> 최근 5영업일 · '+head.join(' · ')+'</p><div class="kr-sg kr-sg3">'+cells.join('')+'</div></div>';
 }
 async function refreshKrInvestor(){
   const el=document.getElementById('kr-investor-trend'); if(!el) return;
@@ -895,12 +893,10 @@ function renderKrMarketDeposit(rows){
   const grid='display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px';
   function lampBox(name,key){
     const L=lampFor(key); if(!L) return '';
-    return '<div title="'+L.rule+'" style="padding:8px 8px;border-radius:10px;border:2px solid '+L.lv.c+';display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 8px;cursor:help;background:var(--panel)">'+
-      '<span style="font-size:26px;line-height:1">'+L.lv.i+'</span>'+
-      '<span style="font-size:12px;font-weight:700;color:var(--tx2)">'+name+'</span>'+
-      '<span style="font-size:17px;font-weight:900;color:'+L.lv.c+'">'+L.lv.t+'</span></div>';
+    return '<div class="kr-sc" style="--c:'+L.lv.c+'" title="'+L.rule+'"><small>'+name+'</small><b>'+L.lv.i+' '+L.lv.t+'</b><span>3개월 '+(L.ch>=0?'+':'')+L.ch.toFixed(1)+'%</span></div>';
   }
-  const lampTop='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+lampBox('고객예탁금','customerDeposit')+lampBox('신용잔고','creditLoan')+'</div>';
+  const _l1=lampFor('customerDeposit'), _l2=lampFor('creditLoan');
+  const lampTop='<div class="kr-sum"><p class="kr-sline"><b>핵심 요약</b> 최근 3개월 · '+(_l1?'고객예탁금 <em style="color:'+_l1.lv.c+'">'+_l1.lv.t+'</em>':'')+(_l1&&_l2?' · ':'')+(_l2?'신용잔고 <em style="color:'+_l2.lv.c+'">'+_l2.lv.t+'</em>':'')+'</p><div class="kr-sg kr-sg2">'+lampBox('고객예탁금','customerDeposit')+lampBox('신용잔고','creditLoan')+'</div></div>';
   el.innerHTML=lampTop+'<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜 · 신호등은 최근 3개월 변화 기준</div>'+
     '<div style="'+grid+'">'+card('고객예탁금','customerDeposit','customerDepositDiff',true)+card('신용잔고','creditLoan','creditLoanDiff',true)+'</div>'+
     '<div style="margin-top:14px"><button type="button" onclick="toggleKrFundDetail()" style="cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700">'+
@@ -2135,7 +2131,7 @@ async function loadP2pOpenSoon(){
     const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
     const eok=v=>v>=1e8?(v/1e8).toFixed(1).replace(/\.0$/,'')+'억원':Math.round(v/1e4).toLocaleString('ko-KR')+'만원';
     const fmtDt=iso=>{ if(!iso) return '—'; const m=String(iso).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/); return m?(+m[2])+'/'+(+m[3])+' '+m[4]+':'+m[5]:'—'; };
-    const GC={'A+':'#1fa463','A':'#1fa463','A-':'#4fa383','B+':'#c99a00','B':'#c99a00','B-':'#d98a00'};
+    const GC={'A+':'#1fa463','A':'#1fa463','A-':'#4fa383','B+':'#8a6500','B':'#8a6500','B-':'#d98a00'};
     /* ===== 김군 자체 종합평가(100점) — 에잇 등급 · LTV · 채권순위 · 담보여유금 · 차주(신용·소득·연체) 통합 산출 =====
        등급 25 + LTV 20 + 채권순위 10 + 담보여유금 15 + 차주 신용 15 + 소득 대비 이자부담 10 + 연체 5.
        증권계좌담보는 LTV 항목(20점)을 제외하고 80점 만점을 100점으로 환산. 연체·체납 이력이 있으면 최고 B등급.
@@ -2167,16 +2163,16 @@ async function loadP2pOpenSoon(){
     const byRate=(a,b)=>(b.rate||0)-(a.rate||0);
     const sList=d.items.filter(x=>x.ev&&x.ev.g==='S').sort((a,b)=>b.ev.score-a.ev.score||byRate(a,b)); const sRank=new Map(sList.map((x,i)=>[x.id,i+1]));
     const chip=(t,bg,fg)=>'<span style="display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:99px;background:'+bg+';color:'+fg+';white-space:nowrap">'+t+'</span>';
-    const GE={S:'#7c3aed',A:'#1fa463',B:'#c99a00',C:'#d98a00',D:'#e5332a'};
-    const cell=(k,v,sub,bar,bc)=>'<div style="min-width:0"><div class="mut" style="font-size:10.5px">'+k+'</div><div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+v+'</div>'+
-      '<div style="height:4px;border-radius:2px;background:var(--panel);margin-top:2px;overflow:hidden">'+(bar!=null?'<i style="display:block;height:4px;width:'+Math.max(0,Math.min(100,bar))+'%;background:'+bc+'"></i>':'')+'</div><div class="mut" style="font-size:10px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(sub||'&nbsp;')+'</div></div>';
+    const GE={S:'#6d28d9',A:'#14804a',B:'#8a6500',C:'#a85f00',D:'#c4251c'};
+    const cell=(k,v,sub,bar,bc)=>'<div style="min-width:0"><div class="mut" style="font-size:12px">'+k+'</div><div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+v+'</div>'+
+      '<div style="height:4px;border-radius:2px;background:var(--panel);margin-top:2px;overflow:hidden">'+(bar!=null?'<i style="display:block;height:4px;width:'+Math.max(0,Math.min(100,bar))+'%;background:'+bc+'"></i>':'')+'</div><div class="mut" style="font-size:11.5px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(sub||'&nbsp;')+'</div></div>';
     const card=x=>{
       const S=sRank.has(x.id), hi=x.grade==='A+'||S, AC=S?'#7c3aed':'#1fa463';
       const estate=x.appraised!=null, stock=x.acctValue!=null;
       const m=String(x.title||'').match(/^(.*?\d+호)\s*(.*)$/);
       const head=m?m[1]:x.title, tail=m?m[2]:'';
       const ltv=x.ltv!=null?Number(x.ltv):null;
-      const lc=ltv==null?'var(--tx2)':ltv<=50?'#1fa463':ltv<=65?'#c99a00':'#e5332a';
+      const lc=ltv==null?'var(--tx2)':ltv<=50?'#1fa463':ltv<=65?'#8a6500':'#e5332a';
       const badge=S?'<b style="font-size:11.5px;color:#fff;background:linear-gradient(135deg,#7c3aed,#c026d3);border-radius:8px;padding:1px 8px">S <small style="font-weight:700;opacity:.85">(에잇 '+esc(x.grade)+')</small></b>':
         (x.grade?'<b style="font-size:11.5px;color:#fff;background:'+(GC[x.grade]||'#888')+';border-radius:8px;padding:1px 8px">'+esc(x.grade)+'</b>':'');
       let chips='';
@@ -2194,26 +2190,25 @@ async function loadP2pOpenSoon(){
         c1=cell('담보유지비율',x.maintain?x.maintain+'%':'—',esc(x.broker||''),null);
         c2=cell('담보여유금',eok(free)+' <small style="color:#1fa463">('+pct.toFixed(0)+'%)</small>','계좌평가 '+eok(x.acctValue)+' 대비',pct,'#1fa463');
       }else{ c1=cell('LTV',ltv!=null?ltv+'%':'—','',ltv,lc); c2=cell('담보여유금','—','',null); }
-      const inc=x.income!=null?(x.income/1e4).toLocaleString('ko-KR',{maximumFractionDigits:0})+'만':'—';
+      const inc=(x.income!=null&&isFinite(+x.income))?(x.income/1e4).toLocaleString('ko-KR',{maximumFractionDigits:0})+'만':'—';
       const c3=cell('차주 나이·월소득',(x.age!=null?x.age+'세':'—')+' · '+inc,'',null);
-      const kc=x.kcbGrade!=null?'<span style="color:'+(x.kcbGrade<=3?'#1fa463':x.kcbGrade<=5?'#c99a00':'#e5332a')+'">KCB '+x.kcbGrade+'등급</span>':'—';
+      const kc=x.kcbGrade!=null?'<span style="color:'+(x.kcbGrade<=3?'#1fa463':x.kcbGrade<=5?'#8a6500':'#e5332a')+'">KCB '+x.kcbGrade+'등급</span>':'—';
       const c4=cell('신용 · 연체',kc+' · '+(x.clean==null?'—':x.clean?'<span style="color:#1fa463">무연체</span>':'<span style="color:#e5332a">연체이력</span>'),x.kcbScore?x.kcbScore+'점':'',null);
       /* 김군 평가 (근거는 카드 위에 겹쳐 열려 카드 높이에 영향 없음) */
       const ev=x.ev?'<details class="p2p-ev" style="position:relative"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;border:1.5px solid '+GE[x.ev.g]+';background:var(--panel)"><b style="color:#fff;background:'+GE[x.ev.g]+';border-radius:6px;padding:0 7px;font-size:12px">김군 평가 '+x.ev.g+'</b><b style="font-size:13.5px">'+x.ev.score+'점</b>'+(x.ev.capped?'<span style="font-size:10.5px;color:#e5332a;font-weight:800">연체→B상한</span>':'')+'<span class="mut" style="margin-left:auto;font-size:10.5px">근거 ▾</span></summary>'+
-        '<div style="position:absolute;left:0;right:0;top:100%;z-index:5;margin-top:3px;padding:6px 10px 8px;border-radius:9px;border:1.5px solid '+GE[x.ev.g]+';background:var(--panel2);box-shadow:0 8px 24px rgba(0,0,0,.28)">'+x.ev.P.map(p=>'<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;margin-top:4px"><span style="flex:none;width:92px" class="mut">'+p.k+'</span><span style="flex:1;height:6px;border-radius:3px;background:var(--panel);overflow:hidden"><i style="display:block;height:6px;width:'+(p.v/p.mx*100)+'%;background:'+(p.v/p.mx>=.75?'#1fa463':p.v/p.mx>=.45?'#c99a00':'#e5332a')+'"></i></span><b style="flex:none;width:38px;text-align:right">'+p.v+'/'+p.mx+'</b></div>').join('')+'</div></details>':'<div style="height:30px"></div>';
-      const sch='<div style="border-radius:8px;overflow:hidden;border:1.5px solid var(--accent)">'+
-        '<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--accent);color:#fff"><span style="font-size:11.5px;font-weight:800">⏰ 오픈</span><b style="font-size:14px">'+fmtDt(x.openAt)+'</b></div>'+
-        '<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(0,117,74,.10);min-height:24px">'+(x.reservationStart?'<span style="font-size:11.5px;font-weight:800;color:var(--accent)">📝 예약</span><b style="font-size:12.5px">'+fmtDt(x.reservationStart)+' ~ '+fmtDt(x.reservationClose)+'</b>':'<span class="mut" style="font-size:11.5px">예약 일정 없음</span>')+'</div></div>';
-      return '<a class="p2p-card" href="'+esc(x.url)+'" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:7px;height:100%;box-sizing:border-box;text-decoration:none;color:inherit;padding:10px 12px;border:'+(S?'2.5px solid #7c3aed':hi?'2px solid #1fa463':'1.5px solid var(--line)')+';border-radius:12px;background:'+(S?'linear-gradient(135deg,rgba(124,58,237,.14),rgba(203,162,88,.12))':hi?'rgba(31,164,99,.08)':'var(--panel2)')+'">'+
-        '<div style="display:flex;justify-content:space-between;gap:6px;align-items:center;min-height:22px"><span class="mut" style="font-size:11px;white-space:nowrap">'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+(S?' · <b style="color:#7c3aed">⭐ 우선 '+sRank.get(x.id)+'순위</b>':'')+'</span>'+badge+'</div>'+
-        '<div style="min-height:40px"><div style="font-size:'+(hi?16:15)+'px;font-weight:900;color:'+(hi?AC:'var(--tx)')+'">'+esc(head)+'</div><div style="font-size:12.5px;font-weight:700;line-height:1.35;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(tail)+'">'+esc(tail)+'&nbsp;</div></div>'+
-        '<div style="display:flex;align-items:stretch;gap:8px"><div style="flex:1.2;text-align:center;padding:5px 4px;border-radius:9px;background:linear-gradient(135deg,rgba(229,51,42,.16),rgba(229,51,42,.06));border:1.5px solid rgba(229,51,42,.45)"><div style="font-size:10.5px;font-weight:800;color:#c4281f">연 수익률</div><b style="font-size:26px;line-height:1.05;color:#e5332a;letter-spacing:-1px">'+(x.rate!=null?x.rate.toFixed(1)+'<small style="font-size:14px">%</small>':'—')+'</b></div>'+
-          '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px"><div style="font-size:12px"><span class="mut">기간</span> <b>'+(x.months?x.months+'개월':'—')+'</b></div><div style="font-size:12px"><span class="mut">모집</span> <b>'+(x.amount?eok(x.amount):'—')+'</b></div></div></div>'+
-        '<div style="min-height:20px;display:flex;flex-wrap:wrap;gap:4px">'+chips+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px">'+c1+c2+c3+c4+'</div>'+
-        ev+sch+'</a>';
+        '<div style="position:absolute;left:0;right:0;top:100%;z-index:5;margin-top:3px;padding:6px 10px 8px;border-radius:9px;border:1.5px solid '+GE[x.ev.g]+';background:var(--panel2);box-shadow:0 8px 24px rgba(0,0,0,.28)">'+x.ev.P.map(p=>'<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;margin-top:4px"><span style="flex:none;width:92px" class="mut">'+p.k+'</span><span style="flex:1;height:6px;border-radius:3px;background:var(--panel);overflow:hidden"><i style="display:block;height:6px;width:'+(p.v/p.mx*100)+'%;background:'+(p.v/p.mx>=.75?'#1fa463':p.v/p.mx>=.45?'#8a6500':'#e5332a')+'"></i></span><b style="flex:none;width:38px;text-align:right">'+p.v+'/'+p.mx+'</b></div>').join('')+'</div></details>':'<div style="height:30px"></div>';
+      const schOpen='<div class="p2p-open"><span>⏰ 오픈</span><b>'+fmtDt(x.openAt)+'</b>'+(x.reservationStart?'<em>📝 예약 '+fmtDt(x.reservationStart)+' ~ '+fmtDt(x.reservationClose)+'</em>':'')+'</div>';
+      const borderC=S?'#7c3aed':hi?'#1fa463':'var(--line)';
+      return '<a class="p2p-card'+(S?' is-s':hi?' is-hi':'')+'" href="'+esc(x.url)+'" target="_blank" rel="noopener" style="border-color:'+borderC+'">'+
+        '<div class="p2p-r1"><span>'+esc(x.category)+(x.reservationOpen?' · <b style="color:var(--up)">예약중</b>':'')+(S?' · <b style="color:#7c3aed">⭐ 우선 '+sRank.get(x.id)+'순위</b>':'')+'</span>'+badge+'</div>'+
+        '<div class="p2p-r2"><div class="p2p-hd" style="color:'+(hi?AC:'var(--tx)')+'">'+esc(head)+'</div><div class="p2p-tl" title="'+esc(tail)+'">'+esc(tail)+'&nbsp;</div></div>'+
+        '<div class="p2p-r3"><div class="p2p-yield"><small>연 수익률</small><b>'+(x.rate!=null?x.rate.toFixed(1)+'<i>%</i>':'—')+'</b></div>'+
+          '<div class="p2p-kv"><div><span>기간</span><b>'+(x.months?x.months+'개월':'—')+'</b></div><div><span>모집</span><b>'+(x.amount?eok(x.amount):'—')+'</b></div></div></div>'+
+        schOpen.replace(/<em>.*?<\/em>/,'')+
+        '<button type="button" class="p2p-dt-btn" aria-expanded="false">상세보기 ▾</button>'+
+        '<div class="p2p-dt"><div class="p2p-chips">'+chips+'</div><div class="p2p-g4">'+c1+c2+c3+c4+'</div>'+(schOpen.match(/<em>.*?<\/em>/)?'<div class="p2p-res">'+schOpen.match(/<em>(.*?)<\/em>/)[1]+'</div>':'')+ev+'</div></a>';
     };
-    const gridS='display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));grid-auto-rows:1fr;gap:10px;margin-top:8px';
+    const gridS='display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-items:start;gap:12px;margin-top:8px';
     const SECS=[['부동산담보','🏠 부동산담보 상품'],['증권계좌담보','📈 증권계좌담보 상품'],['개인신용','💳 개인신용 상품']];
     let html='', secIdx=0;
     const mobP2p=!!(window.matchMedia&&window.matchMedia('(max-width:700px)').matches); let budgetP2p=3;
@@ -2228,9 +2223,10 @@ async function loadP2pOpenSoon(){
         (top.length?'<div style="'+gridS+'">'+top.map(card).join('')+'</div>':(mobP2p?'':'<p class="mut" style="font-size:12.5px;margin-top:8px">A+ 등급 오픈예정 상품이 없습니다.</p>'))+
         (rest.length?'<div style="text-align:center;margin-top:12px"><button type="button" class="btn sm p2p-more-btn" data-t="'+id+'" data-n="'+rest.length+'" style="padding:6px 18px">상세보기 ▼ (나머지 '+rest.length+'건)</button></div><div id="'+id+'" style="display:none"><div style="'+gridS+'">'+rest.map(card).join('')+'</div></div>':'');
     });
-    if(st) st.textContent='총 '+d.items.length+'건'+(d.updated?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
+    if(st) st.textContent='총 '+d.items.length+'건'+((d.updated&&!isNaN(new Date(d.updated)))?' · '+new Date(d.updated).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준':'');
     box.innerHTML=html+'<p class="mut" style="font-size:11.5px;margin:14px 0 0;line-height:1.55">⭐ 김군 평가는 자체 종합점수(100점)입니다 — 에잇 등급 25 · LTV 20 · 채권순위 10 · 담보여유금 15 · 차주 신용 15 · 소득 대비 이자 10 · 연체 5 (S≥85, A≥75, B≥65, C≥55, 증권계좌는 LTV 제외 환산, 연체 이력은 최고 B). S급 현재 '+sList.length+'건. 공식 등급이 아니며 투자 권유가 아닙니다.<br>담보여유금 = 감정가 − 선순위 대출 − 본 대출(증권계좌는 계좌평가액 − 대출)로 계산한 참고값입니다.</p>';
     box.onclick=function(e){
+      const db=e.target.closest('.p2p-dt-btn'); if(db){ e.preventDefault(); const cd=db.closest('.p2p-card'), o=!cd.classList.contains('open'); cd.classList.toggle('open',o); db.setAttribute('aria-expanded',String(o)); db.textContent=o?'접기 ▴':'상세보기 ▾'; return; }
       const ev=e.target.closest('.p2p-ev'); if(ev){ e.preventDefault(); if(e.target.closest('summary')) ev.open=!ev.open; return; }
       const mb=e.target.closest('.p2p-more-btn');
       if(mb){ const m=document.getElementById(mb.dataset.t); const o=m.style.display==='none'; m.style.display=o?'block':'none'; mb.textContent=o?'접기 ▲':'상세보기 ▼ (나머지 '+mb.dataset.n+'건)'; return; }
@@ -2255,12 +2251,15 @@ async function loadCardTop(){
     if(!d||!d.items||!d.items.length){ fail('⚠ 카드고릴라 Top10을 가져오지 못했습니다(카드고릴라 서버가 자동 조회에 빈 응답을 줍니다). 아래 바로가기로 확인해 주세요.'); return; }
     if(st) st.textContent='카드고릴라 인기순위'+(d.date?' · '+d.date+' 기준':'');
     const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-    box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-top:6px">'+d.items.map(x=>
-      '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)">'+
-      '<b style="width:22px;text-align:center;font-size:15px;color:'+(x.rank<=3?'var(--accent)':'var(--tx2)')+'">'+esc(x.rank)+'</b>'+
-      (x.img?'<img src="'+esc(x.img)+'" alt="" loading="lazy" style="width:44px;height:28px;object-fit:contain;border-radius:3px" onerror="this.style.display=\'none\'">':'')+
-      '<div style="min-width:0"><div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(x.name)+'</div>'+
-      '<div class="mut" style="font-size:11px">'+esc(x.corp)+(x.annualFee?' · 연회비 '+esc(x.annualFee):'')+'</div></div></div>').join('')+'</div>';
+    const cardUrl=x=>x.idx?'https://www.card-gorilla.com/card/detail/'+encodeURIComponent(x.idx):'https://www.card-gorilla.com/search?keyword='+encodeURIComponent(x.name||'');
+    const imgUrl=u=>{ u=String(u||''); return u.indexOf('//')===0?'https:'+u:u; };
+    box.innerHTML='<div class="cg-list">'+d.items.map(x=>
+      '<a class="cg-item" href="'+esc(cardUrl(x))+'" target="_blank" rel="noopener" title="'+esc(x.name)+' 카드 안내 페이지로 이동">'+
+      '<b class="cg-rk'+(x.rank<=3?' top':'')+'">'+esc(x.rank)+'</b>'+
+      '<span class="cg-img">'+(x.img?'<img src="'+esc(imgUrl(x.img))+'" alt="'+esc(x.name)+' 카드 이미지" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">':'')+'<i aria-hidden="true">'+esc(String(x.corp||x.name||'').slice(0,2))+'</i></span>'+
+      '<span class="cg-tx"><span class="cg-nm">'+esc(x.name)+'</span>'+
+      '<span class="cg-sub">'+esc(x.corp)+(x.annualFee?' · 연회비 '+esc(x.annualFee):'')+'</span></span>'+
+      '<span class="cg-go" aria-hidden="true">›</span></a>').join('')+'</div>';
   }catch(e){ console.warn('카드 Top10 실패',e); fail('⚠ 카드고릴라 Top10을 가져오지 못했습니다.'); }
 }
 
@@ -2341,7 +2340,7 @@ async function loadFinSavings(){
     finSavingsData.saving=data.saving||[];
     if(statusEl){
       const updated=data.updated?new Date(data.updated).toLocaleString('ko-KR'):'알 수 없음';
-      statusEl.textContent='자료: 금융감독원 금융상품통합비교공시(금융상품한눈에) · 최근 수집 '+updated+' · 12개월 기준 최고우대금리순'+(cached?' · 최신 데이터 확인 중…':'');
+      statusEl.textContent='자료: 금융감독원 금융상품통합비교공시(금융상품한눈에) · 최근 수집 '+updated+' · 12개월 기준 최고우대금리순'+(cached?' · 최신 데이터 확인 중…':'')+(data.stale?' · ⚠ 금융감독원 서비스 점검으로 마지막 수집 데이터를 표시합니다':'');
     }
   };
   /* 직전에 받은 데이터를 먼저 보여주고(즉시 표시), 서버 응답이 오면 최신으로 교체 */
@@ -2359,7 +2358,7 @@ async function loadFinSavings(){
       finSavingsData.deposit=finSavingsData.deposit&&finSavingsData.deposit.length?finSavingsData.deposit:[];
       finSavingsData.saving=finSavingsData.saving&&finSavingsData.saving.length?finSavingsData.saving:[];
       finSavingsFail=(data&&data.diag&&data.diag.length)?data.diag.join(' / '):'서버가 빈 목록을 돌려줬습니다';
-      if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 일시적으로 가져오지 못했습니다. 잠시 후 새로고침해 주세요.'+devHint('Worker 최신본 재배포 후 원인 표시');
+      if(!shown&&statusEl) statusEl.textContent=(/점검|중단/.test(finSavingsFail)?'⚠ 금융감독원(금융상품한눈에) 서비스 점검으로 일시적으로 금리를 불러올 수 없습니다. 점검 종료 후 자동으로 표시됩니다.':'⚠ 예금·적금 금리를 일시적으로 가져오지 못했습니다. 잠시 후 새로고침해 주세요.')+devHint(finSavingsFail||'Worker 최신본 재배포 후 원인 표시');
     }
   }catch(e){
     console.warn('예금·적금 금리 로딩 실패:', e);
@@ -2712,7 +2711,7 @@ function renderUsFinancialRatiosClassic(it, techD, opt){
   if(pg.v!=null){
     const v=pg.v, lv=v<0.9?'g':v<=1.1?'y':'r', txt=v<0.9?'성장 대비 저평가':v<=1.1?'적정 수준':'성장 대비 고평가';
     const pos=Math.max(2,Math.min(98,v/2*100));
-    pegHtml='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:24px;color:'+(lv==='g'?'#1fa463':lv==='y'?'#c99a00':'#e5332a')+'">'+v.toFixed(2)+'</b>'+usLamp(lv).replace(/>(양호|보통|주의)</,'>'+txt+'<').replace('min-width:38px','')+'</div>'+
+    pegHtml='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:24px;color:'+(lv==='g'?'#1fa463':lv==='y'?'#8a6500':'#e5332a')+'">'+v.toFixed(2)+'</b>'+usLamp(lv).replace(/>(양호|보통|주의)</,'>'+txt+'<').replace('min-width:38px','')+'</div>'+
       '<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:6px;opacity:.85"><i style="flex:.9;background:#1fa463"></i><i style="flex:.2;background:#f0b429"></i><i style="flex:.9;background:#e5332a"></i></div>'+
       '<div style="position:relative;height:12px"><span style="position:absolute;left:'+pos+'%;transform:translateX(-50%);font-size:10px">▲</span></div>'+
       '<div class="mut" style="display:flex;justify-content:space-between;font-size:10.5px"><span>0</span><span>1 적정</span><span>2+</span></div>'+

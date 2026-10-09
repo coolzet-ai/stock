@@ -212,7 +212,7 @@ const FSS_GROUPS = [{ code: '020000', label: '은행' }, { code: '030300', label
 let FIN_DIAG = [];
 async function fetchFinlifePages(path, grp) {
   const mk = page => 'https://finlife.fss.or.kr/finlifeapi/' + path + '.json?auth=' + FSS_SAVINGS_KEY + '&topFinGrpNo=' + grp + '&pageNo=' + page;
-  const get = async page => { try { const r = await fetch(mk(page), { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': 'application/json' } }); if (!r.ok) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' HTTP ' + r.status); return null; } const j = await r.json(); const res = j.result || {}; if (res.err_cd && res.err_cd !== '000') FIN_DIAG.push(path + ' ' + grp + ' ' + res.err_cd + ' ' + (res.err_msg || '')); return res; } catch (e) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' ' + String(e).slice(0, 80)); return null; } };
+  const get = async page => { try { const r = await fetch(mk(page), { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': 'application/json' } }); if (!r.ok) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' HTTP ' + r.status); return null; } const txt = await r.text(); let j; try { j = JSON.parse(txt.replace(/^\uFEFF/, '')); } catch (e) { FIN_DIAG.push(path + ' ' + grp + ' ' + (/서비스 중단|점검/.test(txt) ? '금융감독원 서비스 점검·중단 중(홈페이지 안내)' : 'JSON 아님: ' + txt.slice(0, 40).replace(/\s+/g, ' '))); return null; } const res = j.result || {}; if (res.err_cd && res.err_cd !== '000') FIN_DIAG.push(path + ' ' + grp + ' ' + res.err_cd + ' ' + (res.err_msg || '')); return res; } catch (e) { FIN_DIAG.push(path + ' ' + grp + ' p' + page + ' ' + String(e).slice(0, 80)); return null; } };
   // 1페이지로 전체 페이지 수를 알아낸 뒤 나머지는 동시에 요청한다(예전엔 순차 → 저축은행 4페이지를 하나씩 기다렸다).
   const first = await get(1);
   if (!first) return { base: [], opt: [] };
@@ -272,10 +272,15 @@ async function runFinSavingsJob(env) {
     buildFinlifeList('savingProductsSearch')
   ]);
   const result = { updated: new Date().toISOString(), deposit, saving };
-  if (!deposit.length && !saving.length) { result.diag = FIN_DIAG.slice(0, 6); return result; } // 빈 결과는 캐시하지 않는다(다음 요청에서 다시 시도)
+  if (!deposit.length && !saving.length) {
+    result.diag = FIN_DIAG.slice(0, 6);
+    /* 금융감독원이 점검·장애 중이면 마지막으로 성공했던 수집분을 보여준다(빈 화면 방지) */
+    if (env.KR_KV) { try { const lg = await env.KR_KV.get('fin-savings-lastgood'); if (lg) { const o = JSON.parse(lg); if ((o.deposit && o.deposit.length) || (o.saving && o.saving.length)) { o.stale = true; o.diag = result.diag; return o; } } } catch (e) {} }
+    return result;
+  } // 빈 결과는 캐시하지 않는다(다음 요청에서 다시 시도)
   FIN_DIAG = [];
   if (env.KR_KV) {
-    try { await env.KR_KV.put('fin-savings-latest', JSON.stringify(result), { expirationTtl: 172800 }); } catch (e) {}
+    try { await env.KR_KV.put('fin-savings-latest', JSON.stringify(result), { expirationTtl: 172800 }); await env.KR_KV.put('fin-savings-lastgood', JSON.stringify(result), { expirationTtl: 2592000 }); } catch (e) {}
   }
   return result;
 }
@@ -709,7 +714,7 @@ async function runCardTopJob(env, debug) {
       corp: (c.corp && (c.corp.name || c.corp.corp_name)) || c.corp_name || c.company || it.corp_name || '',
       annualFee: c.annual_fee_basic || c.annual_fee || null,
       benefit: (c.key_benefit && (Array.isArray(c.key_benefit) ? c.key_benefit.map(k => k.title || k.name || k).join(' · ') : c.key_benefit)) || c.benefit || '',
-      img: (c.card_img && (c.card_img.url || c.card_img)) || c.image || null,
+      img: (u => (typeof u === 'string' && u.charAt(0) === '/' && u.charAt(1) !== '/') ? 'https://api.card-gorilla.com:8080' + u : u)((c.card_img && (c.card_img.url || c.card_img)) || c.image || null),
       idx: c.idx || it.idx || c.card_idx || null
     };
   }).filter(x => x.name);

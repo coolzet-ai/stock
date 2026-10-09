@@ -1469,7 +1469,7 @@ html[data-theme="dark"] .pro #pro-brief .pb-line em{color:#4cc38a}
 /* 4. 크립토 칩 메뉴 라벨 짧게 */
 /* 5. 공모주 추천 카드 강조 */
 .pro .ipo-card.rec,.pro .ipo-card[data-rec="1"]{border:2px solid #00754a!important;background:linear-gradient(180deg,rgba(0,117,74,.06),transparent)}
-.pro .ipo-card.wait{border-style:dashed}
+
 .pro .card .pv{margin:10px 0 0;padding:6px 10px;border-radius:8px;background:#ECF7F1;color:#0F2A20;font-size:12.5px;font-weight:600;line-height:1.5}
 .pro .card .pv b{color:#00754a;font-weight:800}
 html[data-theme="dark"] .pro .card .pv{background:#16231c;color:#e6efe9}html[data-theme="dark"] .pro .card .pv b{color:#4cc38a}
@@ -1499,3 +1499,89 @@ html[data-theme="dark"] #pb-sticky{background:#16231c;color:#e6efe9;border-color
 /* 8px 단위 여백 토큰 */
 :root{--sp-1:8px;--sp-2:16px;--sp-3:24px;--sp-4:32px;--fs-1:12px;--fs-2:14px;--fs-3:16px;--fs-4:20px;--fs-5:28px}
 @media(min-width:701px){.pro .grid{gap:16px}}
+/* v48 카드고릴라 순위 */
+.cg-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:8px}
+.cg-item{display:flex;align-items:center;gap:10px;min-height:68px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--tx);text-decoration:none;transition:border-color .15s,box-shadow .15s,transform .15s}
+.cg-item:hover,.cg-item:focus-visible{border-color:var(--accent);box-shadow:0 4px 12px rgba(0,117,74,.15);transform:translateY(-1px)}
+.cg-rk{flex:none;width:26px;text-align:center;font-size:16px;font-weight:900;color:var(--tx2)}
+.cg-rk.top{color:var(--accent)}
+.cg-img{flex:none;position:relative;width:64px;height:42px;border-radius:6px;background:linear-gradient(135deg,#d7dde3,#b9c3cc);display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line)}
+.cg-img img{max-width:100%;max-height:100%;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.cg-img i{position:absolute;font-style:normal;font-size:12px;font-weight:800;color:#33414d;z-index:0}
+.cg-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cg-nm{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-sub{font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-go{flex:none;font-size:20px;color:var(--tx2)}
+html[data-theme="dark"] .cg-img{background:linear-gradient(135deg,#2c3a46,#1f2a33)}
+html[data-theme="dark"] .cg-img i{color:#c9d3db}
+.pro #fin-card-top,.pro #fin-card-status{background:none!important;border:0!important;padding:0!important;margin:8px 0 0!important;overflow:visible!important;border-radius:0}
+.pro #fin-card-top>div:first-child,.pro #fin-card-top>div:first-child>div:first-child{margin:0!important;padding:0!important;background:none!important;color:inherit!important}
+.pro #fin-card-top .cg-list{margin-top:8px}
+.pro tbody[id^="fin-ev-"]{background:none!important;border:0!important;padding:0!important;margin:0!important;border-radius:0;overflow:visible!important}
+.pro #fin-events-status{background:none!important;border:0!important;padding:0!important;margin:28px 0 0!important}
+/* v48 한국주식 투자자·증시자금 핵심 요약 (요약 카드 패턴) */
+.kr-sum{margin:0 0 14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.kr-sline{margin:0;padding:10px 14px;background:#ECF7F1;border-bottom:1px solid #CFE6DA;font-size:14px;font-weight:700;line-height:1.5;color:#0F2A20}
+.kr-sline b{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:6px;background:#00754a;color:#fff;font-size:12px;font-weight:800}
+.kr-sline em{font-style:normal;font-weight:800}
+.kr-sg{display:grid;gap:0}
+.kr-sg3{grid-template-columns:repeat(3,minmax(0,1fr))}.kr-sg2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.kr-sc{display:flex;flex-direction:column;gap:3px;padding:10px 12px 12px;border-top:4px solid var(--c,var(--line));cursor:help;min-width:0}
+.kr-sc+.kr-sc{border-left:1px solid var(--line)}
+.kr-sc small{font-size:12px;font-weight:700;color:var(--tx2)}
+.kr-sc b{font-size:17px;font-weight:900;color:var(--tx);white-space:nowrap}
+.kr-sc span{font-size:12px;color:var(--tx2);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-theme="dark"] .kr-sline{background:#16231c;border-bottom-color:#2c3d33;color:#e6efe9}
+@media(max-width:700px){.kr-sline{font-size:13px;padding:9px 12px}.kr-sc{padding:8px 8px 10px}.kr-sc b{font-size:14px;white-space:normal}.kr-sc span{white-space:normal}}
+@media(min-width:901px){.pro #cr-top{align-items:stretch!important}.pro #cr-top>.card{align-self:stretch!important;height:auto!important;margin-top:0!important;display:flex;flex-direction:column}.pro #cr-top>.card>*:last-child{margin-top:auto}}
+/* v48 공모주 세부정보 */
+.pro .ipo-detail.open::before{content:"세부 정보";display:block;margin:0 0 12px;padding:8px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.2px}
+.pro .ipo-detail .ipo-key .kt{padding:10px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:10px;background:var(--panel)}
+.pro .ipo-detail .ipo-key .kt .k{font-size:12px;font-weight:700;color:var(--tx2)}
+.pro .ipo-detail .ipo-key .kt .v{margin-top:3px;font-size:16px;font-weight:800;color:var(--tx);line-height:1.35}
+.pro .ipo-detail .ipo-key .kt.na{border-left-color:var(--line)}
+.pro .ipo-detail .ipo-key .kt.na .v{font-weight:600;color:var(--tx2)}
+.pro .ipo-detail .ipo-judge{border-radius:12px}
+.pro .ipo-detail details.ipo-more{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+.pro .ipo-detail details.ipo-more>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:46px;padding:0 14px;background:var(--panel2);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;list-style:none}
+.pro .ipo-detail details.ipo-more>summary::-webkit-details-marker{display:none}
+.pro .ipo-detail details.ipo-more>summary::after{content:"펼치기 ＋";font-size:12px;font-weight:700;color:var(--tx2)}
+.pro .ipo-detail details.ipo-more[open]>summary::after{content:"접기 －"}
+.pro .ipo-detail details.ipo-more>*:not(summary){margin-left:14px;margin-right:14px}
+.pro .ipo-detail details.ipo-more>.ipo-detail-grid{margin-bottom:14px}
+.pro .ipo-detail .ipo-detail-grid>div{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.pro .ipo-detail .ipo-detail-grid .k{font-size:12px;font-weight:700;color:var(--tx2)}
+.pro .ipo-detail .ipo-detail-grid .v{margin-top:2px;font-size:14px;font-weight:700;color:var(--tx)}
+.pro .ipo-detail a[onclick*="toggleIpoFinancials"]{display:inline-flex!important;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--accent);border-radius:10px;background:var(--panel);font-size:14px!important;color:var(--accent)!important}
+.pro .ipo-detail>div:last-child:not(.ipo-key):not(.ipo-judge){padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--panel2);font-size:12px!important;line-height:1.6}
+/* v48 P2P 오픈예정 카드: 한 줄 정보 + 상세보기 */
+.pro .p2p-card{display:flex;flex-direction:column;gap:8px;box-sizing:border-box;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--panel);color:var(--tx);text-decoration:none}
+.pro .p2p-card.is-hi{background:rgba(31,164,99,.07)}
+.pro .p2p-card.is-s{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(203,162,88,.10))}
+.pro .p2p-r1{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:24px;font-size:12px;color:var(--tx2);white-space:nowrap}
+.pro .p2p-r2{min-height:48px}
+.pro .p2p-hd{font-size:16px;font-weight:900;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro .p2p-tl{margin-top:2px;font-size:13px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro .p2p-r3{display:flex;align-items:stretch;gap:10px}
+.pro .p2p-yield{flex:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;border-radius:10px;background:rgba(229,51,42,.08);border:1.5px solid rgba(229,51,42,.4)}
+.pro .p2p-yield small{font-size:12px;font-weight:800;color:#b42318}
+.pro .p2p-yield b{font-size:28px;line-height:1.1;letter-spacing:-1px;color:#c4281f}
+.pro .p2p-yield b i{font-size:15px;font-style:normal}
+.pro .p2p-kv{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pro .p2p-kv>div{display:flex;justify-content:space-between;gap:6px;font-size:13px;white-space:nowrap}
+.pro .p2p-kv span{color:var(--tx2)}.pro .p2p-kv b{font-weight:800}
+.pro .p2p-open{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;white-space:nowrap;overflow:hidden}
+.pro .p2p-open span{font-weight:800}.pro .p2p-open b{font-weight:900}
+.pro .p2p-dt-btn{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--accent);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.pro .p2p-dt{display:none;flex-direction:column;gap:10px;padding-top:4px}
+.pro .p2p-card.open .p2p-dt{display:flex}
+.pro .p2p-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:0}
+.pro .p2p-chips:empty{display:none}
+.pro .p2p-g4{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.pro .p2p-res{padding:8px 12px;border-radius:10px;background:rgba(0,117,74,.1);font-size:13px;font-weight:700;color:var(--tx)}
+/* v49 시장 한눈에 보기: 다른 카드와 동일한 박스 구조 + 상단 여백 */
+.pro .pulse{margin-top:24px!important;background:#fff;border:1px solid var(--line);padding:0 14px 14px!important;border-radius:4px}
+.pro #pro-cal+.pulse,.pro .pulse:not(:first-child){margin-top:24px!important}
+.pro .pulse>h3:first-child{margin:0 -14px 14px!important;border-radius:3px 3px 0 0}
+@media(max-width:700px){.pro .pulse{margin-top:20px!important}.pro #pro-cal,.pro .pulse+*{margin-top:20px}}
+html[data-theme="dark"] .pro .pulse{background:var(--panel,#161b22);border-color:var(--line)}

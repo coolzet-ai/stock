@@ -221,6 +221,13 @@ html[data-theme="dark"] .pro .card .pv b{color:#b3f3db}
 html[data-theme="dark"][data-theme="dark"] .pro .card .pv b{color:#94ccb1}
 html[data-theme="dark"] .skel{background:linear-gradient(90deg,var(--panel2,#181d21) 25%,var(--line,#20262c) 50%,var(--panel2,#181d21) 75%)}
 html[data-theme="dark"] #pb-sticky{background:#10251a;color:#d6ebe3;border-bottom:1px solid #274937}
+html[data-theme="dark"] .cg-img{background:linear-gradient(135deg,#1f262c,#2c353d)}
+html[data-theme="dark"] .cg-img i{color:#c3ced7}
+html[data-theme="dark"] .kr-sline{background:#10251a;border-bottom:1px solid #274937;color:#d6ebe3}
+html[data-theme="dark"] .pro .p2p-card.is-s{background:linear-gradient(135deg,rgba(71,50,106,0.12),rgba(108,88,51,0.1))}
+html[data-theme="dark"] .pro .p2p-yield small{color:#e2a19c}
+html[data-theme="dark"] .pro .p2p-yield b{color:#de9a96}
+html[data-theme="dark"] .pro .pulse{background:#101316}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
