@@ -206,6 +206,11 @@ html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#a3e635"]{color:#
 html[data-theme="dark"]:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#b7ecd3 !important}
 html[data-theme="dark"] #mk-acct .ac-l{background:var(--bg2,#312a16)}
 html[data-theme="dark"] #mk-acct input,html[data-theme="dark"] #mk-cmp input{background:var(--bg,#101316)}
+html[data-theme="dark"] #mk-eve .ev-ch{background:var(--bg,#101316)}
+html[data-theme="dark"] .pro .strat-note{background:#131f15;color:#dee7e2}
+html[data-theme="dark"] .pro .strat-note>b{color:#b3f3db}
+html[data-theme="dark"][data-theme="dark"] .pro .strat-note>b{color:#94ccb1}
+html[data-theme="dark"] .pro .fg-hd>a.btn{background:#101316 !important;color:#cdebdf !important;border-color:#1a1f23 !important}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
@@ -245,7 +250,8 @@ html[data-theme="dark"] .pro table.m-cards td:first-child{color:#d6ebe3}
 html[data-theme="dark"] .pro table.m-cards td:first-child::before{color:#a5acbc}
 html[data-theme="dark"] .pro .gl-list .acc-btn::after{color:#a5acbc}
 html[data-theme="dark"] .pro .data-notice .acc-btn::after{color:#b3f3db}
-html[data-theme="dark"] .pro .card>.fg-hd:first-child .tabs button.on,html[data-theme="dark"] .pro #us-idxrel-card .fg-hd .tabs button.on,html[data-theme="dark"] .pro #us-caprel-card .fg-hd .tabs button.on{background:#101316 !important;color:#b3f3db !important}}
+html[data-theme="dark"] .pro .card>.fg-hd:first-child .tabs button.on,html[data-theme="dark"] .pro #us-idxrel-card .fg-hd .tabs button.on,html[data-theme="dark"] .pro #us-caprel-card .fg-hd .tabs button.on{background:#101316 !important;color:#b3f3db !important}
+html[data-theme="dark"] .pro .scard-h .ds{color:#c4cbd1}}
 @media (min-width:701px){html[data-theme="dark"] .pro .lead-pc{color:#b3f3db}}
 /* ===== 미국식 색(상승=초록·하락=빨강) ===== */
 html[data-cv="us"] .pro .chip.up,html[data-cv="us"] .pro .fwd-cur .up,html[data-cv="us"] .pro .cur td .up,html[data-cv="us"] .pro .tr-hd .chips .up{color:#067647 !important}

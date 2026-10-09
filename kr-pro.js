@@ -55,9 +55,9 @@
     var dtf=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',weekday:'short',hour:'numeric',minute:'numeric',hour12:false});
     var mkt=function(){ var p={}; dtf.formatToParts(new Date()).forEach(function(x){p[x.type]=x.value;}); var m=(parseInt(p.hour,10)%24)*60+parseInt(p.minute,10), wd=p.weekday;
       if(wd==='Sat'||wd==='Sun') return ['휴장(주말)','c'];
-      if(m>=540&&m<930) return ['정규장 진행 중','o']; if(m>=480&&m<540) return ['장 시작 전','p']; if(m>=930&&m<1080) return ['시간외','p']; return ['장 마감','c']; };
+      if(m>=540&&m<930) return ['정규장 진행 중','o']; if(m>=480&&m<540) return ['장 시작 전 · 전일 종가 기준','p']; if(m>=930&&m<1260) return ['장 마감 · 종가 기준','c']; return ['장 마감','c']; };
     var upd=function(){
-      var a=mkt(), mk=document.getElementById('ps-mk'); mk.className='ps-mk '+a[1]; mk.textContent='한국장 '+a[0]; mk.title='한국시간 기준 자동 계산(정규장 09:00~15:30) · 공휴일 휴장은 반영되지 않습니다(휴장일에는 직전 종가가 표시됩니다).';
+      var a=mkt(), mk=document.getElementById('ps-mk'); mk.className='ps-mk '+a[1]; mk.textContent='한국장 '+a[0]; mk.title='한국시간 기준 자동 계산(정규장 09:00~15:30). 마감 후 표시되는 현재가는 정규장 종가이며 시간외 단일가·NXT 시세는 반영하지 않습니다. 공휴일 휴장은 반영되지 않습니다.';
       var N=window.MK_NET||{log:[],lastOk:0}, lg=N.log.slice(-20), fails=lg.filter(function(x){return !x;}).length, ratio=lg.length?fails/lg.length:0, age=N.lastOk?(Date.now()-N.lastOk)/1000:null, cls, tx;
       if(!lg.length){ cls='w'; tx='데이터 확인 중'; } else if(age!=null&&age>600){ cls='r'; tx='갱신 지연 ('+Math.round(age/60)+'분 전 마지막 성공)'; }
       else if(ratio<=.15){ cls='g'; tx='데이터 정상'; } else if(ratio<=.5){ cls='w'; tx='일부 데이터 지연'; } else { cls='r'; tx='데이터 연결 불안정'; }
@@ -107,6 +107,18 @@
     var up=document.createElement('button'); up.id='pro-top'; up.type='button'; up.setAttribute('aria-label','맨 위로'); up.textContent='↑ 맨 위로'; up.onclick=function(){ window.scrollTo({top:0,behavior:'smooth'}); }; document.body.appendChild(up);
     window.addEventListener('scroll',function(){ up.classList.toggle('on',window.scrollY>700); },{passive:true});
   }
+
+  /* ===== 공탐 구간 막대 + 마커(미국주식과 동일) ===== */
+  (function(){
+    var dial=document.getElementById('kr-dial'); if(!dial||document.getElementById('pro-scale')) return;
+    var box=dial.parentNode, sc=document.createElement('div'); sc.id='pro-scale';
+    sc.innerHTML='<div class="bar"><i style="width:25%;background:#C2362B"></i><i style="width:20%;background:#E58A3A"></i><i style="width:10%;background:#C9CED4"></i><i style="width:20%;background:#5DA86B"></i><i style="width:25%;background:#1F7A4D"></i><span class="mk" id="pro-mk" style="left:0"><b id="pro-mkv">--</b></span></div>'+
+      '<div class="tk" aria-hidden="true">'+[[0,'0'],[25,'25'],[45,'45'],[55,'55'],[75,'75'],[100,'100']].map(function(t){ return '<span style="left:'+t[0]+'%">'+t[1]+'</span>'; }).join('')+'</div>'+
+      '<div class="lb">'+[[12.5,'극단적 공포'],[35,'공포'],[50,'중립'],[65,'탐욕'],[87.5,'극단적 탐욕']].map(function(t){ return '<span style="left:'+t[0]+'%">'+t[1]+'</span>'; }).join('')+'</div>';
+    box.after(sc);
+    var upd=function(){ var v=document.getElementById('kr-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
+    upd(); setInterval(upd,3000); setTimeout(upd,1200);
+  })();
   loadTicks(); setInterval(loadTicks,60000); setInterval(setFg,3000); setTimeout(setFg,1500);
   /* ===== ④ 용어 툴팁(재무 패널 등) ===== */
   var GL=[['PSR','주가매출비율 = 시가총액 ÷ 매출. 낮을수록 매출 대비 저렴하다고 봅니다.'],['ROE','자기자본이익률. 주주 자본 대비 이익이며, 부채가 많으면 부풀려질 수 있습니다.'],['ROA','총자산이익률. 가진 자산으로 이익을 얼마나 효율적으로 내는지 봅니다.'],

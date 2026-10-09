@@ -68,9 +68,12 @@ async function getDartCorpMap(env, forceRebuild) {
   const resp = await fetch('https://opendart.fss.or.kr/api/corpCode.xml?crtfc_key=' + DART_KEY, {
     headers: { 'User-Agent': UA }
   });
-  if (!resp.ok) throw new Error('corpCode.xml 요청 실패: HTTP ' + resp.status);
+  const dartLastGood = async () => { if (env.KR_KV) { try { const c = await env.KR_KV.get('dart-corp-map-v2-lastgood'); if (c) return JSON.parse(c); } catch (e) {} } return null; };
+  if (!resp.ok) { const lg = await dartLastGood(); if (lg) return lg; throw new Error('corpCode.xml 요청 실패: HTTP ' + resp.status); }
   const buf = new Uint8Array(await resp.arrayBuffer());
   if (buf.length < 30 || (buf[0]!==0x50 || buf[1]!==0x4b || buf[2]!==0x03 || buf[3]!==0x04)) {
+    /* DART가 점검 중(status 800 등)이면 마지막으로 성공했던 목록을 대신 쓴다 */
+    const lg = await dartLastGood(); if (lg) return lg;
     throw new Error('corpCode.xml 응답이 예상한 zip 형식이 아님(인증키 오류 등의 에러 메시지일 수 있음): ' +
       new TextDecoder('utf-8').decode(buf.slice(0, 300)));
   }
@@ -160,6 +163,7 @@ async function getDartCorpMap(env, forceRebuild) {
   if (env.KR_KV) {
     if (Object.keys(map).length > 0) {
       try { await env.KR_KV.put(cacheKey, JSON.stringify(map), { expirationTtl: 86400 }); } catch (e) {}
+      try { await env.KR_KV.put(cacheKey + '-lastgood', JSON.stringify(map), { expirationTtl: 2592000 }); } catch (e) {}
     }
     if (Object.keys(byName).length > 0) {
       try { await env.KR_KV.put(cacheKey + '-byname', JSON.stringify(byName), { expirationTtl: 86400 }); } catch (e) {}
@@ -775,16 +779,20 @@ async function runP2pEightJob(env) {
 }
 
 async function fetchUnicornNewsOne(key, query) {
-  try {
-    const url = 'https://news.google.com/rss/search?q=' + encodeURIComponent(query) +
-      '&hl=en-US&gl=US&ceid=US:en';
-    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-    if (!r.ok) return { key, items: [] };
-    const xml = await r.text();
-    return { key, items: parseGoogleNewsRss(xml, 3) };
-  } catch (e) {
-    return { key, items: [] };
+  const UAx = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+  let items = [];
+  try { /* 1순위: Google News RSS (최근 7일) */
+    const url = 'https://news.google.com/rss/search?q=' + encodeURIComponent(query + ' when:7d') + '&hl=en-US&gl=US&ceid=US:en';
+    const r = await fetch(url, { headers: { 'User-Agent': UAx, 'Accept': 'application/rss+xml, text/xml, */*' } });
+    if (r.ok) items = parseGoogleNewsRss(await r.text(), 3);
+  } catch (e) {}
+  if (!items.length) { /* 2순위: Bing News RSS */
+    try {
+      const r2 = await fetch('https://www.bing.com/news/search?q=' + encodeURIComponent(query) + '&format=rss&setlang=en&cc=US', { headers: { 'User-Agent': UAx, 'Accept-Language': 'en-US,en;q=0.9' } });
+      if (r2.ok) items = parseBingNewsRss(await r2.text(), 3);
+    } catch (e) {}
   }
+  return { key, items };
 }
 
 async function runUnicornNewsJob(env) {
@@ -793,7 +801,8 @@ async function runUnicornNewsJob(env) {
   const byKey = {};
   rows.forEach(r => { byKey[r.key] = r.items; });
   const result = { updated: new Date().toISOString(), news: byKey };
-  if (env.KR_KV) {
+  const anyNews = Object.keys(byKey).some(k => (byKey[k] || []).length);
+  if (env.KR_KV && anyNews) { /* 전부 빈 결과는 캐시하지 않는다 */
     try { await env.KR_KV.put('unicorn-news-latest', JSON.stringify(result), { expirationTtl: 21600 }); } catch (e) {}
   }
   return result;
@@ -2223,6 +2232,7 @@ const handler = {
             if (cached) data = JSON.parse(cached);
           } catch (e) {}
         }
+        if (data && !Object.keys(data.news || {}).some(k => (data.news[k] || []).length)) data = null; /* 예전에 저장된 빈 캐시 무시 */
         if (!data) data = await runUnicornNewsJob(env);
         return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
@@ -2521,13 +2531,18 @@ async function guardedFetch(request, env, ctx) {
     const syms = [...new Set((u.searchParams.get('symbols') || '').split(',').map(x => x.trim().toUpperCase()).filter(x => /^[A-Z0-9.\-]{1,10}$/.test(x) && !/\.(KS|KQ)$/.test(x)))].slice(0, 30);
     if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'symbols required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
     const out = {};
-    await Promise.all(syms.map(async sym => {
-      const ck = new Request('https://cache.local/ext-v1/' + encodeURIComponent(sym));
+    await mapLimit(syms, 8, async sym => {
+      const ck = new Request('https://cache.local/ext-v2/' + encodeURIComponent(sym));
       try {
         const hit = await caches.default.match(ck);
         if (hit) { out[sym] = await hit.json(); return; }
-        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1d&interval=1m&includePrePost=true', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
-        if (!r.ok) { out[sym] = null; return; }
+        /* Yahoo가 동시 요청을 제한(429)하면 '체결 없음'으로 오해되므로: 호스트 2개로 재시도하고, 끝내 실패하면 err 로 표시(캐시 안 함) */
+        let r = null;
+        for (const host of ['query1', 'query2', 'query1']) {
+          try { r = await fetch('https://' + host + '.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1d&interval=1m&includePrePost=true', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } }); if (r.ok) break; } catch (e) { r = null; }
+          await new Promise(res => setTimeout(res, 250));
+        }
+        if (!r || !r.ok) { out[sym] = { err: 1 }; return; }
         const j = await r.json();
         const r0 = j.chart.result[0], mt = r0.meta || {}, ts = r0.timestamp || [], cl = (r0.indicators.quote[0].close || []);
         const ctp = mt.currentTradingPeriod || {}, pre = ctp.pre, reg = ctp.regular, post = ctp.post;
@@ -2547,8 +2562,8 @@ async function guardedFetch(request, env, ctx) {
         }
         out[sym] = res;
         ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(res), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=60' } })));
-      } catch (e) { out[sym] = null; }
-    }));
+      } catch (e) { out[sym] = { err: 1 }; }
+    });
     return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);
   }
   /* 소셜 언급(미국주식) — StockTwits 종목별 최신 30개 글에서 강세/약세 태그 비율·글 속도·대표 글을 계산한다.

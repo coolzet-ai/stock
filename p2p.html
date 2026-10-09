@@ -166,8 +166,20 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 #p2p .sl{display:inline}
 @media(min-width:701px){#p2p .sl{display:block}#p2p .card .sl,#p2p .band .sl{display:block}}
 @media(max-width:700px){#p2p .band{padding:12px 14px!important}}
+
+.p2p-top{grid-template-columns:1fr 1fr!important;align-items:stretch}
+.p2p-code{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.p2p-code b{font-size:26px;font-weight:800;color:var(--accent);letter-spacing:1px}
+.p2p-perks{display:flex;flex-wrap:wrap;gap:6px}
+.p2p-perks span{font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:99px;border:1px solid var(--line);background:var(--panel2);color:var(--tx)}
+@media(max-width:700px){.p2p-top{grid-template-columns:1fr!important}}
+.mk-note{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--panel2);margin-top:6px}
+.mk-note.warn{border-left-color:#C2410C}
+.mk-note-ic{font-size:22px;line-height:1.2}
+.mk-note b{display:block;font-size:14.5px;color:var(--tx)}
+.mk-note p{margin:4px 0 0;font-size:13px;line-height:1.6;color:var(--tx2)}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=03c1c0c7"><link rel="stylesheet" href="mrkim-theme.css?v=6cd9e541">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=e832b976"><link rel="stylesheet" href="mrkim-theme.css?v=7195858d">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -206,28 +218,22 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <p style="margin-top:10px;font-size:13px;font-weight:800;color:#e5332a;border:1.5px solid #e5332a;border-radius:10px;padding:8px 12px;background:rgba(229,51,42,.08)"><span class="sl">⚠ 수익을 보장하지 않으며 원금 손실 위험이 있습니다.</span> <span class="sl">과거 수익률은 미래를 보장하지 않습니다.</span></p>
     </div>
 
-    <div class="grid" style="margin-top:24px">
-      <div class="card" style="border:2.5px solid var(--accent);background:rgba(0,117,74,.10);box-shadow:0 0 0 4px rgba(0,117,74,.10)">
+    <div class="grid p2p-top" style="margin-top:20px">
+      <div class="card p2p-ref" style="border:2px solid var(--accent);background:rgba(0,117,74,.08)">
         <h3 style="color:var(--accent2);font-weight:900">🎁 추천인코드 혜택</h3>
-        <p style="font-size:26px;font-weight:800;color:var(--accent);letter-spacing:1px;margin:6px 0">0OH1UN</p>
-        <p class="mut"><span class="sl">가입 시 코드를 입력하면 리워드가 지급될 수 있습니다.</span> <span class="sl">조건·금액은 가입 화면에서 확인하세요.</span></p>
-        <button class="btn sm" id="p2p-code-btn" style="margin-top:10px">코드 복사하기</button>
+        <div class="p2p-code"><b>0OH1UN</b><button class="btn sm" id="p2p-code-btn">코드 복사하기</button></div>
+        <p class="mut" style="margin:8px 0 0;font-size:13px;line-height:1.55">가입 시 코드를 입력하면 리워드가 지급될 수 있습니다. 조건·금액은 가입 화면에서 확인하세요.</p>
       </div>
-      <div class="card">
+      <div class="card p2p-bm">
         <h3>블랙멤버십 혜택</h3>
-        <p class="mut"><span class="sl">전문투자자·소득적격 투자자를 위한 에잇퍼센트의 VIP 등급입니다(일반 회원은 가입 자격이 제한됩니다).</span> <span class="sl">실제 가입자 평균 투자금은 1.6억 원, 연환산 평균 수익률은 10.42%로 알려져 있습니다.</span></p>
-        <ul style="font-size:13px;color:var(--tx2);line-height:1.6;padding-left:18px;margin-top:8px">
-          <li>1:1 투자 브리핑</li>
-          <li>멤버십 전용 네트워킹</li>
-          <li>플랫폼 이용료 50% 우대</li>
-          <li>출금 수수료 면제</li>
-        </ul>
+        <p class="mut" style="margin:0 0 8px;font-size:13px;line-height:1.55">전문투자자·소득적격 투자자를 위한 VIP 등급(일반 회원은 가입 자격 제한). 가입자 평균 투자금 1.6억 원 · 연환산 평균 수익률 10.42%로 알려져 있습니다.</p>
+        <div class="p2p-perks"><span>1:1 투자 브리핑</span><span>멤버십 네트워킹</span><span>이용료 50% 우대</span><span>출금 수수료 면제</span></div>
       </div>
     </div>
 
     <div class="card" style="margin-top:24px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><h3 style="margin:0">에잇퍼센트 오픈예정 상품</h3><a class="btn sm" href="https://8percent.kr/" target="_blank" rel="noopener" style="white-space:nowrap">바로가기 ↗</a></div>
-      <p class="mut" id="p2p-open-status" style="font-size:12px">오픈예정 상품을 불러오는 중…</p>
+      <div class="fg-hd"><h3>에잇퍼센트 오픈예정 상품</h3><a class="btn sm" href="https://8percent.kr/" target="_blank" rel="noopener" style="white-space:nowrap">바로가기 ↗</a></div>
+      <p class="mut" id="p2p-open-status" style="font-size:12.5px;margin:2px 0 6px">오픈예정 상품을 불러오는 중…</p>
       <div id="p2p-open-list"></div>
     </div>
 
@@ -254,7 +260,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=94fc285d"></script>
+<script src="mrkim-common.js?v=f18250e4"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }

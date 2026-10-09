@@ -126,18 +126,20 @@
   function items() {
     var L = [], A = (typeof mkActionData === 'function') ? mkActionData() : { earn: [], div: [], hot: [], swing: [] };
     var mine = {}; myTickers().forEach(function (t) { mine[t] = 1; }); Object.keys(loadH()).forEach(function (t) { mine[t] = 1; });
-    var near = function (a, max) { return a.filter(function (x) { return x.d <= max; }); };
-    var tag = function (a) { return a.slice(0, 6).map(function (x) { return '<b>' + esc(x.t) + '</b> D-' + (x.d === 0 ? 'day' : x.d); }).join(' · '); };
-    var ea = near(A.earn, 3), em = ea.filter(function (x) { return mine[x.t]; });
-    if (em.length) L.push({ id: 'e-my', h: '내 종목 실적 발표 임박: ' + tag(em), pri: 1 });
-    if (ea.length) L.push({ id: 'e-all', h: '시총 상위·관심 종목 실적 D-3 이내: ' + tag(ea.filter(function (x) { return !mine[x.t]; }).length ? ea.filter(function (x) { return !mine[x.t]; }) : ea), pri: 2 });
-    var dv = near(A.div, 3); if (dv.length) L.push({ id: 'dv', h: '배당락일 임박: ' + tag(dv), pri: 2 });
-    if (A.swing.length) L.push({ id: 'sw', h: '시간외 변동 큰 종목: ' + A.swing.slice(0, 5).map(function (x) { return '<b>' + esc(x.t) + '</b> ' + fmtPct(x.p); }).join(' · '), pri: 1 });
+    var chip = function (t, v, c) { return '<span class="ev-ch' + (mine[t] ? ' my' : '') + (c ? ' ' + c : '') + '"><b>' + esc(t) + '</b>' + (v ? '<i>' + v + '</i>' : '') + '</span>'; };
+    var chips = function (arr, f, n) { n = n || 8; return arr.slice(0, n).map(f).join('') + (arr.length > n ? '<span class="ev-more">외 ' + (arr.length - n) + '</span>' : ''); };
+    var dd = function (x) { return x.d === 0 ? '오늘' : 'D-' + x.d; };
+    var byMine = function (arr) { return arr.slice().sort(function (x, y) { return (mine[y.t] ? 1 : 0) - (mine[x.t] ? 1 : 0); }); };
+    if (A.earn.length) { var ems = A.earn.filter(function (x) { return mine[x.t]; }).length; L.push({ id: 'e', k: '실적', kc: 'k-e', t: '7일 내 실적 발표 ' + A.earn.length + '곳' + (ems ? ' · 내 종목 ' + ems : ''), c: chips(byMine(A.earn), function (x) { return chip(x.t, dd(x), x.d <= 3 ? 'hot' : ''); }), pri: ems ? 1 : 2 }); }
+    if (A.div.length) L.push({ id: 'dv', k: '배당락', kc: 'k-d', t: '7일 내 배당락 ' + A.div.length + '곳 — 배당락일 전 매수해야 배당 대상', c: chips(byMine(A.div), function (x) { return chip(x.t, dd(x), x.d <= 3 ? 'hot' : ''); }), pri: 2 });
+    if (A.swing.length) L.push({ id: 'sw', k: '시간외', kc: 'k-s', t: '시간외 ±3% 이상 ' + A.swing.length + '종목', c: chips(A.swing, function (x) { return chip(x.t, fmtPct(x.p), x.p > 0 ? 'up' : 'dn'); }), pri: 1 });
+    if (A.hot.length) L.push({ id: 'hot', k: '소셜', kc: 'k-h', t: '소셜 글 급증(시간당 15건↑) ' + A.hot.length + '종목', c: chips(A.hot, function (x) { return chip(x.t, '🔥' + x.r.toFixed(0) + '/h'); }), pri: 2 });
     var fg = ($('#pb-fg') || {}).textContent, ev = ($('#pb-ev') || {}).textContent, ev2 = ($('#pb-ev2') || {}).textContent;
-    if (fg && fg !== '--') L.push({ id: 'fg', h: '공포탐욕 현황: <b>' + esc(fg) + '</b> — 분할 규칙을 지킬 구간인지 확인', pri: 3 });
-    if (ev && ev !== '--') L.push({ id: 'ca', h: '다음 주요 일정: <b>' + esc(ev) + '</b>' + (ev2 ? ' (' + esc(ev2) + ')' : ''), pri: 2 });
-    var a = window.MK_ACCT; if (a) { a.alerts.forEach(function (t, i) { L.push({ id: 'ac' + i, h: '내 계좌: ' + esc(t), pri: 0 }); }); if (!a.alerts.length) L.push({ id: 'ac-ok', h: '내 계좌 오늘 <b class="' + cls(a.dayPct) + '">' + fmtPct(a.dayPct) + '</b>' + (a.levPct != null ? ' · 3배 비중 ' + a.levPct.toFixed(0) + '% (한도 ' + a.cap + '%)' : ''), pri: 3 }); }
-    else L.push({ id: 'ac-no', h: '보유 종목을 입력하면 내 계좌 손익과 3배 ETF 비중을 여기서 확인합니다 (관심종목 아래 “내 계좌”)', pri: 4 });
+    if (ev && ev !== '--') L.push({ id: 'ca', k: '일정', kc: 'k-c', t: '다음 주요 일정: <b>' + esc(ev) + '</b>', c: ev2 ? '<span class="ev-sub">' + esc(ev2) + '</span>' : '', pri: 2 });
+    if (fg && fg !== '--') L.push({ id: 'fg', k: '공탐', kc: 'k-f', t: '공포탐욕 <b>' + esc(fg) + '</b>', c: '<span class="ev-sub">분할 규칙을 지킬 구간인지 확인</span>', pri: 3 });
+    var a = window.MK_ACCT;
+    if (a) { a.alerts.forEach(function (t, i) { L.push({ id: 'ac' + i, k: '계좌', kc: 'k-a', t: esc(t), c: '', pri: 0 }); }); if (!a.alerts.length) L.push({ id: 'ac-ok', k: '계좌', kc: 'k-a', t: '내 계좌 오늘 <b class="' + cls(a.dayPct) + '">' + fmtPct(a.dayPct) + '</b>', c: a.levPct != null ? '<span class="ev-sub">3배 비중 ' + a.levPct.toFixed(0) + '% (한도 ' + a.cap + '%)</span>' : '', pri: 3 }); }
+    else L.push({ id: 'ac-no', k: '계좌', kc: 'k-a', t: '보유 종목을 입력하면 손익과 3배 ETF 비중을 확인합니다', c: '<span class="ev-sub">관심종목 아래 “내 계좌”에 입력</span>', pri: 4 });
     L.sort(function (x, y) { return x.pri - y.pri; }); return L;
   }
   var evSig = '';
@@ -145,10 +147,10 @@
     if (!buildEve()) return;
     var mc = marketClock(), clk = $('#ev-clk');
     if (mc && clk) clk.innerHTML = mc.open ? '<span class="ev-o">정규장 진행 중</span> 마감까지 ' + hms(mc.until) : '다음 개장 <b>' + kst(mc.at) + '</b> KST · ' + hms(mc.until) + ' 남음';
-    var L = items(), sig = JSON.stringify(L.map(function (x) { return x.id + x.h; }));
+    var L = items(), sig = JSON.stringify(L.map(function (x) { return x.id + x.t + x.c; }));
     if (sig === evSig) return; evSig = sig;
     var o; try { o = JSON.parse(store.get('mk_chk_' + today()) || '{}'); } catch (e) { o = {}; }
-    $('#ev-ls').innerHTML = L.map(function (x) { return '<li class="' + (o[x.id] ? 'done' : '') + '"><label><input type="checkbox" data-id="' + x.id + '"' + (o[x.id] ? ' checked' : '') + '><span>' + x.h + '</span></label></li>'; }).join('');
+    $('#ev-ls').innerHTML = L.map(function (x) { return '<li class="' + (o[x.id] ? 'done' : '') + '"><label><input type="checkbox" data-id="' + x.id + '"' + (o[x.id] ? ' checked' : '') + '><span class="ev-b"><span class="ev-h"><em class="ev-k ' + x.kc + '">' + x.k + '</em><span class="ev-t">' + x.t + '</span></span>' + (x.c ? '<span class="ev-c">' + x.c + '</span>' : '') + '</span></label></li>'; }).join('');
   }
 
   /* ───────── 종목 비교(최대 3개) ───────── */

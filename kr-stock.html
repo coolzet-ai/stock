@@ -347,6 +347,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .pulse .hm div.tl small b.hm-chg{font-weight:900;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 /* 탭이 많아지면 줄바꿈 */
 .pulse .hm-t{flex-wrap:wrap!important;row-gap:6px}
+/* 종목명이 길어도 잘리지 않게 줄바꿈 */
+.pulse .hm div.tl>span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:700px){.pulse .hm div.tl>span{font-size:12.5px!important;height:auto!important;min-height:32px}.pulse .hm div.tl.big>span{font-size:14.5px!important}}
 </style>
 <style>
 /* 한국주식 보강: 기준일 · 유의 · 접기 제목 */
@@ -376,7 +379,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:block}.fold-btn{padding:4px 9px;font-size:12px}}
 @media(max-width:700px){.risk-note{margin:30px 0 -6px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=03c1c0c7"><link rel="stylesheet" href="mrkim-theme.css?v=6cd9e541">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=e832b976"><link rel="stylesheet" href="mrkim-theme.css?v=7195858d">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -435,8 +438,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     <p class="sub">출처: <a href="https://stock.naver.com/market/stock/kr" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">Npay 증권</a> · 코스피/코스닥 당일 투자자 순매수와 고객예탁금·신용잔고·펀드 추이</p>
     <div class="grid" style="margin-top:16px">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-          <h3 style="margin:0">투자자 동향</h3>
+        <div class="fg-hd">
+          <h3>투자자 동향</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <div class="tabs" data-group="krinvmkt" style="margin:0">
               <button class="kr-investor-market-btn on" data-m="KOSPI" onclick="setKrInvestorMarket('KOSPI')">코스피</button>
@@ -453,8 +456,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         <div id="kr-investor-trend"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
       </div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-          <h3 style="margin:0">증시자금동향</h3>
+        <div class="fg-hd">
+          <h3>증시자금동향</h3>
           <div class="tabs" data-group="krdepper" style="margin:0">
             <button class="kr-deposit-period-btn" data-p="1w" onclick="setKrDepositPeriod('1w')">1주</button>
             <button class="kr-deposit-period-btn" data-p="1m" onclick="setKrDepositPeriod('1m')">1개월</button>
@@ -707,8 +710,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.min.js?v=48895aa2"></script>
-<script src="kr-pro.js?v=1950d7c3"></script>
+<script src="mrkim-common.min.js?v=39021724"></script>
+<script src="kr-pro.js?v=db552901"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
