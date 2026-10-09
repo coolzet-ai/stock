@@ -35,4 +35,16 @@
     up.onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }); }; B.appendChild(up);
     window.addEventListener('scroll', function () { up.classList.toggle('on', window.scrollY > 700); }, { passive: true });
   }
+
+  /* 제목 위계: 문서의 첫 h2를 페이지 제목으로, 여러 줄(<br>) 부제는 한 줄 문장으로 */
+  var h1 = $$('h2').filter(function (h) { return h.offsetParent !== null; })[0];
+  if (h1) { h1.classList.add('pg-title'); var nx = h1.nextElementSibling; if (nx && nx.classList.contains('sub')) nx.classList.add('pg-sub'); }
+  $$('.sub').forEach(function (e) { if (e.querySelector('br') && !e.querySelector('*:not(br)')) { e.innerHTML = e.innerHTML.replace(/<br\s*\/?>/gi, ' · '); } });
+  /* 가로로 넘치는 표에 밀어보기 안내(모바일) */
+  setTimeout(function () {
+    $$('.scroll').forEach(function (sc) {
+      if (sc.previousElementSibling && sc.previousElementSibling.classList.contains('swipe-hint')) return;
+      if (sc.scrollWidth > sc.clientWidth + 8) { var d = document.createElement('div'); d.className = 'swipe-hint'; d.textContent = '↔ 좌우로 밀어서 보기'; sc.before(d); }
+    });
+  }, 2500);
 })();

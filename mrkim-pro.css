@@ -1178,3 +1178,40 @@ html:not([data-theme="dark"]) .pro [style*="163, 230, 53"]{color:#3f6212!importa
 html:not([data-theme="dark"]) .pro [style*="31, 164, 99"]{color:#0b6e3f!important}
 html:not([data-theme="dark"]) .pro [style*="#a3e635"]{color:#3f6212!important}
 html:not([data-theme="dark"]) .pro [style*="#1fa463"]{color:#0b6e3f!important}
+
+/* ===== v39: 글자 위계 · 8px 간격 · 줄간격 · 탭 통일 · 푸터 ===== */
+/* 글자 위계: 페이지 제목 24 / 섹션 제목 17 / 카드 제목 14 / 본문 13.5 / 보조 12 */
+.pro .pg-h1,.pro .pg-title{font-size:24px!important;line-height:1.3;letter-spacing:-.5px;margin:0 0 6px!important;font-weight:800}
+.pro .pg-sub,.pro .pg-h1+.pg-lead{margin:0 0 16px!important}
+.pro h2:not(.pg-title):not(.fold-h){font-size:17px!important;line-height:1.35;font-weight:700;margin:40px 0 8px!important;letter-spacing:-.2px}
+.pro h2.fold-h{font-size:16px!important}
+.pro .sec-h h2{margin-top:0!important}
+.pro .sec-h{margin-bottom:12px;align-items:flex-start}
+.pro .sub{font-size:12.5px;line-height:1.6;margin:0 0 14px;color:var(--tx2)}
+.pro h2+.sub,.pro h2+p{margin-top:0}
+/* 줄간격 3종: 본문 1.6 · 제목 1.35 · 표/칩 1.4 */
+.pro p,.pro li,.pro .mut,.pro .kimcomment,.pro dd{line-height:1.6}
+.pro table,.pro th,.pro td,.pro .tag,.pro .wl-tag{line-height:1.4}
+.pro h3{line-height:1.35}
+/* 카드: 안쪽 16px · 사이 16px (모바일 12px) · 제목줄 12px 아래 */
+.pro .card{padding:16px}
+.pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{margin:-16px -16px 14px}
+.pro .grid{gap:16px}
+.pro .card+.card{margin-top:16px}
+@media(max-width:700px){
+  .pro .pg-h1,.pro .pg-title{font-size:22px!important}
+  .pro h2:not(.pg-title):not(.fold-h){margin-top:32px!important}
+  .pro .grid{gap:12px}
+  .pro .card+.card{margin-top:12px}
+}
+/* 탭·버튼: 테두리 없는 알약 / 최소 높이 */
+.pro .tabs button,.pro .seg button{border:0!important;box-shadow:none;min-height:32px}
+.pro .btn.sm{min-height:34px}
+#hd-tools button{height:32px}
+@media(max-width:760px){#hd-tools button{height:30px}}
+.pro .naver-gift span{font-size:10.5px!important}
+.pro small{font-size:11.5px}
+/* 푸터 */
+.pro footer .logo{color:var(--tx);font-size:18px;font-weight:800}
+.pro footer p,.pro footer li{font-size:13px}
+#mk-ver{margin:8px 0 0;font-size:11.5px;color:var(--tx2)}

@@ -395,6 +395,16 @@
     mergeCap(); setTimeout(mergeCap, 1500); setTimeout(mergeCap, 5000);
     /* 빌드 표시 */
     var sc = $('script[src*="mrkim-common"]'); var m = sc && /[?&]v=([0-9a-f]{6,8})/.exec(sc.getAttribute('src'));
-    var disc = $('footer .disc, footer'); if (m && disc && !$('#mk-ver')) { var v = document.createElement('div'); v.id = 'mk-ver'; v.textContent = '빌드 ' + m[1]; disc.appendChild(v); }
+    var disc = $('footer .wrap') || $('footer'); if (m && disc && !$('#mk-ver')) { var v = document.createElement('div'); v.id = 'mk-ver'; v.textContent = '빌드 ' + m[1]; disc.appendChild(v); }
+
+    /* 11px 미만 글자는 11.5px로(포인트 선물하기 링크 제외) */
+    function tiny() {
+      $$('body *').forEach(function (e) {
+        if (e.closest('.naver-gift,svg,script,style')) return;
+        var own = false; for (var i = 0; i < e.childNodes.length; i++) { var n = e.childNodes[i]; if (n.nodeType === 3 && n.textContent.trim()) { own = true; break; } }
+        if (!own) return; var f = parseFloat(getComputedStyle(e).fontSize); if (f < 11) e.style.setProperty('font-size', '11.5px', 'important');
+      });
+    }
+    [1200, 4000, 9000].forEach(function (t) { setTimeout(tiny, t); });
   })();
 })();
