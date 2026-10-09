@@ -752,9 +752,12 @@ body.pro{
 
 /* v24: 유니콘 카드 줄맞춤(subgrid) */
 #unicorn .grid.uc-on{row-gap:0}
-#unicorn .card.uc-grid{display:grid;grid-row:span 6;grid-template-rows:subgrid;row-gap:0;margin-bottom:14px}
+#unicorn .card.uc-grid{display:grid;grid-row:span 8;grid-template-rows:subgrid;row-gap:0;margin-bottom:14px}
 #unicorn .uc-sec{min-width:0}
 #unicorn .uc-sec.uc-head{margin-bottom:0}
+#unicorn .uc-sec.uc-name>div{margin-bottom:12px!important}
+#unicorn .uc-sec.uc-est .asof{margin-top:8px}
+#unicorn .uc-sec.uc-pnl>div,#unicorn .uc-sec.uc-ipo>div,#unicorn .uc-sec.uc-ipo>p{margin-top:8px}
 #unicorn .uc-sec.uc-news{align-self:start}
 
 /* v25 */
@@ -830,8 +833,8 @@ body.pro{
 
 /* v29: PC(1100px↑)에서 종목 목록을 2단으로 — 스크롤 길이 절반 */
 @media(min-width:1100px){
-  .pro .wl-list{column-count:2;column-gap:24px}
-  .pro .wl-list>.wl-row{break-inside:avoid}
+  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats)){column-count:2;column-gap:24px}
+  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats))>.wl-row{break-inside:avoid}
   .pro .wl-list>div[id^="fin"]{column-span:all}
   .pro .wl-list>.my-empty{column-span:all}
 }
@@ -849,3 +852,7 @@ body.pro{
 #pb-fut .pf-sp{margin-top:2px;max-width:100%}
 #pb-fut .pf-note{margin:6px 0 0;font-size:11px;color:#667085;line-height:1.45}
 @media(max-width:560px){#pb-fut{padding:8px 10px}#pb-fut .pf-grid{gap:5px}#pb-fut .pf-c{padding:5px 6px}#pb-fut .pf-c b{font-size:13px}#pb-fut .pf-sp{width:100%;height:22px}}
+.pro .fwd-tabs button{min-width:0;padding-left:4px;padding-right:4px}
+@media(max-width:700px){.pro .fwd-mx{table-layout:fixed}.pro .fwd-mx th,.pro .fwd-mx td{padding:5px 1px;font-size:10.5px;letter-spacing:-.3px;white-space:nowrap}.pro .fwd-mx th:first-child,.pro .fwd-mx td:first-child{width:21%;white-space:normal;letter-spacing:0;font-size:11px;padding-left:2px}}
+/* v30: 공탐 성과 카드 — 긴 출처/기간 문구가 모바일에서 카드 폭을 밀어내지 않도록 줄바꿈 허용 */
+#pro-fwd{min-width:0}#pro-fwd h3{flex-wrap:wrap;gap:2px 8px}#pro-fwd h3>span{min-width:0}#pro-fwd .src-line,#pro-fwd .src-line span{white-space:normal;min-width:0}

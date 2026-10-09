@@ -115,7 +115,7 @@
     };
     MKT.retry['pro-sector']=loadSec; MK_LAZY(card,function(){ loadSec(); setInterval(loadSec,120000); },3000);
   }
-  var FWD={"range": ["2019-05-31", "2026-09-10"], "hz": {"20": {"rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]], "end": "2026-09-10"}, "40": {"rows": [["극단적 공포", 229, 5.28, 4.78, 76.4, -11.1, 31.0], ["공포", 530, 2.75, 3.51, 75.8, -18.7, 17.9], ["중립", 317, 0.86, 1.84, 66.2, -25.2, 12.4], ["탐욕", 594, 1.86, 3.13, 75.3, -32.2, 10.6], ["극단적 탐욕", 117, 0.1, 1.78, 60.7, -27.6, 9.6]], "end": "2026-08-12"}, "60": {"rows": [["극단적 공포", 229, 7.01, 6.53, 81.7, -9.0, 39.8], ["공포", 518, 3.56, 4.24, 74.9, -18.4, 19.2], ["중립", 316, 3.09, 4.5, 76.3, -17.6, 15.4], ["탐욕", 587, 3.4, 4.49, 78.4, -21.8, 12.8], ["극단적 탐욕", 117, -2.24, 1.67, 53.8, -30.6, 11.4]], "end": "2026-07-15"}, "80": {"rows": [["극단적 공포", 228, 7.35, 7.26, 75.4, -13.3, 43.9], ["공포", 500, 5.39, 6.29, 73.8, -16.0, 24.5], ["중립", 315, 4.54, 5.65, 81.0, -17.6, 20.6], ["탐욕", 587, 4.4, 6.39, 80.1, -28.9, 15.0], ["극단적 탐욕", 117, -2.07, -1.26, 39.3, -23.1, 12.3]], "end": "2026-06-15"}}, "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
+  var FWD={"range": ["2019-05-31", "2026-09-10"], "hz": {"20": {"rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]], "end": "2026-09-10"}, "40": {"rows": [["극단적 공포", 229, 5.28, 4.78, 76.4, -11.1, 31.0], ["공포", 530, 2.75, 3.51, 75.8, -18.7, 17.9], ["중립", 317, 0.86, 1.84, 66.2, -25.2, 12.4], ["탐욕", 594, 1.86, 3.13, 75.3, -32.2, 10.6], ["극단적 탐욕", 117, 0.1, 1.78, 60.7, -27.6, 9.6]], "end": "2026-08-12"}, "60": {"rows": [["극단적 공포", 229, 7.01, 6.53, 81.7, -9.0, 39.8], ["공포", 518, 3.56, 4.24, 74.9, -18.4, 19.2], ["중립", 316, 3.09, 4.5, 76.3, -17.6, 15.4], ["탐욕", 587, 3.4, 4.49, 78.4, -21.8, 12.8], ["극단적 탐욕", 117, -2.24, 1.67, 53.8, -30.6, 11.4]], "end": "2026-07-15"}, "80": {"rows": [["극단적 공포", 228, 7.35, 7.26, 75.4, -13.3, 43.9], ["공포", 500, 5.39, 6.29, 73.8, -16.0, 24.5], ["중립", 315, 4.54, 5.65, 81.0, -17.6, 20.6], ["탐욕", 587, 4.4, 6.39, 80.1, -28.9, 15.0], ["극단적 탐욕", 117, -2.07, -1.26, 39.3, -23.1, 12.3]], "end": "2026-06-15"}, "100": {"rows": [["극단적 공포", 228, 8.68, 8.56, 75.0, -16.6, 51.1], ["공포", 493, 6.24, 7.39, 78.5, -17.0, 32.2], ["중립", 313, 6.18, 8.13, 81.2, -20.0, 21.7], ["탐욕", 576, 5.2, 7.27, 78.0, -26.5, 18.6], ["극단적 탐욕", 117, 1.29, 2.64, 59.8, -19.8, 15.3]], "end": "2026-05-15"}, "200": {"rows": [["극단적 공포", 208, 12.77, 13.82, 68.8, -18.4, 67.5], ["공포", 470, 9.07, 10.49, 73.6, -23.0, 46.8], ["중립", 293, 11.19, 10.73, 81.9, -24.0, 35.5], ["탐욕", 540, 13.19, 14.41, 90.0, -25.3, 31.7], ["극단적 탐욕", 117, 13.86, 14.28, 96.6, -13.3, 24.9]], "end": "2025-12-19"}}, "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
 
   /* ④ 시장 내부지표 · 구간별 이후 20거래일 성과 · 경제지표 */
   var anchor=document.getElementById('pro-sector')||firstGrid;
@@ -133,7 +133,7 @@
       '<div class="pi-sub">지수 추세 (이동평균 대비 · 52주 고점 대비)</div>'+
       '<div id="pi-tr" class="trd"></div><div class="trd-lg"><span><i class="m m200"></i>200일선</span><span><i class="m m50"></i>50일선</span><span><i class="px"></i>현재가</span><span class="mut">막대 = 52주 저점 ~ 고점</span></div>'+
       '</div>'+
-      '<div class="card" id="pro-fwd"><h3><span>공탐 구간별 이후 <span id="fwd-hn">20</span>거래일 성과</span><span class="mut" style="font-weight:400;font-size:11px" id="fwd-rg">S&amp;P500(SPY)</span></h3><div class="tabs fwd-tabs" id="fwd-tabs" role="group" aria-label="보유 기간 선택"><button class="on" data-h="20">20거래일</button><button data-h="40">40거래일</button><button data-h="60">60거래일</button><button data-h="80">80거래일</button></div><div id="fwd-body"></div></div>';
+      '<div class="card" id="pro-fwd"><h3><span>공탐 구간별 이후 <span id="fwd-hn">20</span>거래일 성과</span><span class="mut" style="font-weight:400;font-size:11px" id="fwd-rg">S&amp;P500(SPY)</span></h3><div class="tabs fwd-tabs" id="fwd-tabs" role="group" aria-label="보유 기간 선택"><button class="on" data-h="20">20일</button><button data-h="40">40일</button><button data-h="60">60일</button><button data-h="80">80일</button><button data-h="100">100일</button><button data-h="200">200일</button></div><div id="fwd-body"></div></div>';
     anchor.after(row);
 
     /* ── 20거래일 성과 카드 ── */
@@ -145,7 +145,7 @@
       R.forEach(function(r){ lo=Math.min(lo,r[2]); hi=Math.max(hi,r[2]); });
       var zp=(-lo/(hi-lo||1))*100;
       var h='<div class="fwd-cur">'+(cz>=0?'현재 공탐 <b>'+Math.round(cn)+'</b> · <b>'+ZN[cz]+'</b> 구간 — 과거 이 구간의 이후 '+H+'거래일 평균 <b class="'+(R[cz][2]>=0?'up':'down')+'">'+sg(R[cz][2])+'%</b>, 상승확률 <b>'+R[cz][4].toFixed(1)+'%</b>':'현재 공탐 값을 불러오는 중…')+'</div>';
-      var HS=['20','40','60','80']; h+='<div class="pi-sub">구간 × 보유기간 평균 수익률 (한눈에 비교)</div><table class="pi-tbl fwd-mx"><thead><tr><th>구간</th>'+HS.map(function(k){ return '<th'+(k===H?' class="on"':'')+'>'+k+'일</th>'; }).join('')+'</tr></thead><tbody>'+R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td>'+HS.map(function(k){ var v=FWD.hz[k].rows[i][2]; return '<td class="'+(v>=0?'up':'down')+(k===H?' on':'')+'">'+sg(v,1)+'%</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
+      var HS=['20','40','60','80','100','200']; h+='<div class="pi-sub">구간 × 보유기간 평균 수익률 (한눈에 비교)</div><table class="pi-tbl fwd-mx"><thead><tr><th>구간</th>'+HS.map(function(k){ return '<th'+(k===H?' class="on"':'')+'>'+k+'일</th>'; }).join('')+'</tr></thead><tbody>'+R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td>'+HS.map(function(k){ var v=FWD.hz[k].rows[i][2]; return '<td class="'+(v>=0?'up':'down')+(k===H?' on':'')+'">'+sg(v,1)+'%</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
       h+='<table class="pi-tbl"><thead><tr><th>구간</th><th>표본</th><th>평균</th><th>중앙값</th><th>상승확률</th><th>최악</th></tr></thead><tbody>'+
         R.map(function(r,i){ return '<tr'+(i===cz?' class="cur"':'')+'><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="'+(r[2]>=0?'up':'down')+'">'+sg(r[2])+'%</td><td>'+sg(r[3])+'%</td><td>'+r[4].toFixed(1)+'%</td><td class="down">'+r[5].toFixed(1)+'%</td></tr>'; }).join('')+'</tbody></table>';
       h+='<div class="pi-sub">평균 수익률 · 상승확률</div><div class="fwd-bars">'+
@@ -511,10 +511,27 @@
     var futBusy=false, futT=0;
     var fillFut=async function(){
       var box=document.getElementById('pb-fut'); if(!box||futBusy) return;
-      if(usOpen()){ box.hidden=true; return; }
-      if(Date.now()-futT<55000&&!box.hidden) return;
+      var open=usOpen();
+      if(Date.now()-futT<55000&&!box.hidden&&box._open===open) return;
       futBusy=true;
       try{
+        if(open){
+          var SP=[['^GSPC','S&P500'],['^IXIC','나스닥 종합'],['^DJI','다우존스']];
+          var rs=await Promise.all(SP.map(async function(f){ try{
+            var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(f[0])+'?range=1d&interval=5m');
+            var r=j.chart.result[0], cl=(r.indicators.quote[0].close||[]).filter(function(x){return x!=null;}), p=r.meta.regularMarketPrice, pv=r.meta.chartPreviousClose;
+            if(p==null||!pv) return null; return {p:p,pct:(p/pv-1)*100,pts:cl.concat([p])}; }catch(e){ return null; } }));
+          if(!rs.some(Boolean)){ box.hidden=true; return; }
+          var fm0=function(v){ return v.toLocaleString('en-US',{maximumFractionDigits:2}); };
+          box.innerHTML='<div class="pf-hd"><b>📈 정규장 진행 중 · 미국 3대 지수</b><span>전일 종가 대비 · 장중 5분 흐름</span></div><div class="pf-grid">'+
+            SP.map(function(f,i){ var d=rs[i]; if(!d) return '<div class="pf-c"><small>'+f[1]+'</small><b>--</b></div>'; var up=d.pct>=0, col=up?UP:DN;
+              return '<div class="pf-c"><small>'+f[1]+'</small><b>'+fm0(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span>'+futSpark(d.pts,col)+'</div>'; }).join('')+
+            '</div><p class="pf-note">장중 시세는 약 15분 지연될 수 있습니다. 출처: Yahoo Finance</p>';
+          box.hidden=false; box._open=true; futT=Date.now(); window.__futLine=null;
+          var s1=rs[0]; if(s1) window.__spotLine='S&amp;P500 <em>'+(s1.pct>=0?'+':'')+s1.pct.toFixed(2)+'%</em>';
+          return;
+        }
+        window.__spotLine=null; box._open=false;
         var res=await Promise.all(FUT.map(function(f){ return futOne(f[0]); })), ok=res.filter(Boolean);
         if(!ok.length){ box.hidden=true; return; }
         var fm=function(v){ return v.toLocaleString('en-US',{maximumFractionDigits:2}); };
@@ -524,7 +541,7 @@
             var up=d.pct>=0, col=up?UP:DN;
             return '<div class="pf-c"><small>'+f[1]+'</small><b>'+fm(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span>'+futSpark(d.pts,col)+'</div>'; }).join('')+
           '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance</p>';
-        box.hidden=false; futT=Date.now();
+        box.hidden=false; box._open=false; futT=Date.now();
         var pl=document.getElementById('pb-line');
         if(pl&&ok.length){ var s0=res[0]||ok[0]; window.__futLine=' · 선물 <em>S&amp;P '+(s0.pct>=0?'+':'')+s0.pct.toFixed(2)+'%</em>'; }
       }finally{ futBusy=false; }
@@ -546,7 +563,7 @@
         if(isFinite(fv)){ var zz=fv<25?'극단적 공포':fv<45?'공포':fv<=55?'중립':fv<=75?'탐욕':'극단적 탐욕'; P.push('공포탐욕 '+Math.round(fv)+' <em>'+zz+'</em>'); }
         if(isFinite(vv)){ var vl=vv<15?'낮음':vv<20?'보통':vv<30?'높음':'매우 높음'; P.push('변동성 <em>'+vl+'</em> (VIX '+vv.toFixed(1)+')'); }
         var ev=(document.getElementById('pb-ev')||{}).textContent; if(ev&&ev!=='--'&&ev.indexOf('없음')<0){ var w=(document.getElementById('pb-ev2')||{}).textContent||''; var dm=w.match(/D[-+]?\d+/); P.push('다음 일정 <em>'+ev+(dm?' '+dm[0]:'')+'</em>'); }
-        if(window.__futLine&&!usOpen()&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?'오늘의 시장 상태: '+P.join(' · ')+' <span class="pb-note">· 참고용 요약이며 투자 권유가 아닙니다</span>':'시장 상태를 불러오는 중…';
+        if(usOpen()){ if(window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); } else if(window.__futLine&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?'오늘의 시장 상태: '+P.join(' · ')+' <span class="pb-note">· 참고용 요약이며 투자 권유가 아닙니다</span>':'시장 상태를 불러오는 중…';
         if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } }
     };
     fillBrief(); fillFut(); setInterval(fillFut,60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });

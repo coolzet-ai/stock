@@ -69,17 +69,20 @@
   /* ===== 유니콘 카드: 주제별(기업가치·손익·상장·미국/한국 투자자·뉴스) 줄맞춤 — 카드 내용을 구역으로 묶고 subgrid 로 같은 줄에 맞춘다 ===== */
   (function(){ var g=document.querySelector('#unicorn .grid'); if(!g||!CSS.supports||!CSS.supports('grid-template-rows','subgrid')) return;
     var cards=g.querySelectorAll(':scope > .card'); if(!cards.length) return;
-    var KEYS=['head','pnl','ipo','us','kr','news'];
+    var KEYS=['name','val','est','pnl','ipo','us','kr','news'];
     cards.forEach(function(c){ if(c.dataset.ucs) return; c.dataset.ucs='1';
-      var kids=Array.prototype.slice.call(c.children), secs={}, cur='head';
-      kids.forEach(function(k){ var t=(k.textContent||'').trim();
+      var kids=Array.prototype.slice.call(c.children), secs={}, cur='name', n=0;
+      kids.forEach(function(k){ var t=(k.textContent||'').trim(), st=k.getAttribute('style')||'';
         if(k.id&&/^unicorn-news/.test(k.id)) cur='news';
+        else if(n===0) cur='name';
+        else if(n===1&&/display:\s*grid/.test(st)) cur='val';
+        else if(k.classList&&k.classList.contains('asof')) cur='est';
         else if(/^손익/.test(t)) cur='pnl';
-        else if(/SEC|S-1|상장|IPO/.test(t)&&k.style&&/border-left/.test(k.getAttribute('style')||'')) cur='ipo';
+        else if(/border-left/.test(st)||/^상장/.test(t)) cur='ipo';
         else if(/^주요 투자자\s*—\s*미국/.test(t)) cur='us';
         else if(/^주요 투자자\s*—\s*한국/.test(t)) cur='kr';
         else if(/^최근 뉴스/.test(t)) cur='news';
-        (secs[cur]=secs[cur]||[]).push(k); });
+        n++; (secs[cur]=secs[cur]||[]).push(k); });
       KEYS.forEach(function(key){ var d=document.createElement('div'); d.className='uc-sec uc-'+key; (secs[key]||[]).forEach(function(k){ d.appendChild(k); }); c.appendChild(d); });
       c.classList.add('uc-grid'); });
     g.classList.add('uc-on'); })();
