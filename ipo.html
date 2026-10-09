@@ -166,7 +166,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=71af44ed"><link rel="stylesheet" href="mrkim-theme.css?v=119cd408">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=b1f771e4"><link rel="stylesheet" href="mrkim-theme.css?v=9862d187">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -339,7 +339,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=490a7e20"></script>
+<script src="mrkim-common.js?v=6921df1f"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -624,7 +624,7 @@ function renderIpoList(m){
       : item.stage==='청약중' ? '<span class="ipo-market" style="background:rgba(203,162,88,.22);color:var(--gold)">청약중</span>'
       : item.stage==='수요예측' ? '<span class="ipo-market" style="background:rgba(0,0,0,.1);color:var(--tx2)">수요예측중</span>'
       : '';
-    return '<div class="ipo-card">'+
+    return '<div class="ipo-card'+(!pend&&v.tier>=3?' rec':(pend?' wait':''))+'">'+
       '<div class="ipo-head" onclick="document.getElementById(\'ipo-detail-'+i+'-'+m+'\').classList.toggle(\'open\')">'+
         '<div><span class="ipo-name">'+item.name+'</span><span class="ipo-market">'+item.market+'</span>'+stageBadge+
           '<div class="ipo-dates">'+(item.stage==='청약완료'?'<b style="color:var(--down)">청약완료</b> · '+(item.subscDate||'')+(item.listDate&&item.listDate!=='미정'?' · 상장 '+item.listDate:''):item.stage==='신규상장'?'<b style="color:var(--accent)">상장완료</b>'+(item.listDate&&item.listDate!=='미정'?' · '+item.listDate:''):(item.subscDate||''))+'</div></div>'+
@@ -795,7 +795,7 @@ if(ipoMonthTabs){
   }
 })();
 </script>
-<script src="mrkim-shell.js?v=5be290b4"></script>
-<script src="mrkim-extra.js?v=c1d22204"></script>
+<script src="mrkim-shell.js?v=0e48c2f4"></script>
+<script src="mrkim-extra.js?v=c4d83fd7"></script>
 </body>
 </html>

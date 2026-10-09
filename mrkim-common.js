@@ -1,3 +1,5 @@
+/* 방문자 화면에는 개발용 진단 문구를 숨기고, 관리자 모드(mk_gate_off)에서만 대괄호로 덧붙인다 */
+const devHint=m=>{ try{ return localStorage.getItem('mk_gate_off')==='1'?' ['+m+']':''; }catch(e){ return ''; } };
 /* ===== 성능 보강(공통) =====
    1) 탭이 백그라운드(document.hidden)일 때는 주기 갱신(setInterval)을 건너뛴다 — 요청·배터리 절약.
    2) getJSON: 같은 URL은 45초간 결과 재사용(여러 위젯이 같은 시세를 중복 요청하는 것을 줄임) + 동시 요청 6개로 제한. */
@@ -527,7 +529,7 @@ function cryGaugeSvg(v){
 function renderCryptoGlobalTrend(d){
   const el=document.getElementById('cry-global-trend'); if(!el) return;
   if(!d||!d.fearAndGreed){
-    el.innerHTML='<p class="mut" style="font-size:12.5px">⚠ 글로벌 마켓 트렌드를 불러오지 못했습니다. (Worker에 /coin-global-trend 라우트가 배포되어 있는지 확인해주세요)</p>';
+    el.innerHTML='<p class="mut" style="font-size:12.5px">⚠ 글로벌 마켓 트렌드를 일시적으로 불러오지 못했습니다. 잠시 후 새로고침해 주세요.'+devHint('/coin-global-trend 라우트 배포 확인')+'</p>';
     return;
   }
   const fg=d.fearAndGreed, gl=d.gainersLosers||{}, dom=d.coinDominance||{}, alt=d.altcoinSeasonIndex;
@@ -635,7 +637,7 @@ function renderNextEventBanner(elId, monthEvents, opts){
 function renderBreadthFlow(elId, breadth){
   const el=document.getElementById(elId); if(!el) return;
   if(!breadth || (!breadth.breadth && !breadth.strength)){
-    el.innerHTML='<p class="mut" style="font-size:12px">코스피·코스닥 전종목 수급 데이터 준비 중입니다(Worker가 매일 1회 자동 집계).</p>';
+    el.innerHTML='<p class="mut" style="font-size:12px">코스피·코스닥 전종목 수급 데이터 준비 중입니다. 하루 1회 집계되며 곧 표시됩니다.</p>';
     return;
   }
   let html='<div style="font-size:13px;font-weight:800;margin-bottom:10px">📊 시장 수급 현황 <span class="mut" style="font-weight:400;font-size:11.5px">(7개 지표 중 2·3번 근거)</span></div>';
@@ -783,7 +785,7 @@ async function refreshKrInvestor(){
   const el=document.getElementById('kr-investor-trend'); if(!el) return;
   const m=krInvestorMarket, p=krInvestorPeriod;
   el.innerHTML='<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
-  const NOTE='<p class="mut" style="font-size:12.5px">투자자 동향 데이터를 가져오지 못했습니다 — Worker(/kr-investor-trend, /kr-investor-history)가 배포되어 있는지 확인해주세요.</p>';
+  const NOTE='<p class="mut" style="font-size:12.5px">투자자 동향 데이터를 일시적으로 가져오지 못했습니다. 잠시 후 다시 확인해 주세요.'+devHint('/kr-investor-trend, /kr-investor-history 배포 확인')+'</p>';
   if(p==='1d'){
     let t=await loadKrInvestorTrend(m);
     let bars=null, date=null;
@@ -837,7 +839,7 @@ function setKrDepositPeriod(p){
 function renderKrMarketDeposit(rows){
   const el=document.getElementById('kr-market-deposit'); if(!el) return;
   if(!rows || !rows.length){
-    el.innerHTML='<p class="mut" style="font-size:12.5px">증시자금동향 데이터를 가져오지 못했습니다 — Worker(/kr-market-deposit)가 배포되어 있는지 확인해주세요.</p>';
+    el.innerHTML='<p class="mut" style="font-size:12.5px">증시자금동향 데이터를 일시적으로 가져오지 못했습니다. 잠시 후 다시 확인해 주세요.'+devHint('/kr-market-deposit 배포 확인')+'</p>';
     return;
   }
   const win=rows.slice(-(KR_FLOW_DAYS[krDepositPeriod]+1)); // 기간 시작 기준점 1개 포함
@@ -2283,7 +2285,7 @@ function renderFinEvents(data){
   const statusEl=document.getElementById('fin-events-status');
   const tbodies={증권:document.getElementById('fin-ev-sec'), 은행:document.getElementById('fin-ev-bank'), 카드:document.getElementById('fin-ev-card')};
   if(!data || !data.byCat){
-    if(statusEl) statusEl.textContent='⚠ 이벤트 목록을 가져오지 못했습니다 — Worker(/fin-events)가 배포되어 있고 스케줄러가 한 번 이상 실행됐는지 확인해주세요.';
+    if(statusEl) statusEl.textContent='⚠ 이벤트 목록을 일시적으로 가져오지 못했습니다. 잠시 후 새로고침해 주세요.'+devHint('/fin-events 배포·스케줄러 실행 확인');
     Object.values(tbodies).forEach(tb=>{ if(tb) tb.innerHTML='<tr><td class="mut" colspan="3">불러오지 못했습니다</td></tr>'; });
     return;
   }
@@ -2357,7 +2359,7 @@ async function loadFinSavings(){
       finSavingsData.deposit=finSavingsData.deposit&&finSavingsData.deposit.length?finSavingsData.deposit:[];
       finSavingsData.saving=finSavingsData.saving&&finSavingsData.saving.length?finSavingsData.saving:[];
       finSavingsFail=(data&&data.diag&&data.diag.length)?data.diag.join(' / '):'서버가 빈 목록을 돌려줬습니다';
-      if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다. 잠시 후 새로고침해 주세요. (Worker를 최신 cors-proxy-worker.js로 재배포하면 원인이 이 줄에 표시됩니다)';
+      if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 일시적으로 가져오지 못했습니다. 잠시 후 새로고침해 주세요.'+devHint('Worker 최신본 재배포 후 원인 표시');
     }
   }catch(e){
     console.warn('예금·적금 금리 로딩 실패:', e);
@@ -2392,7 +2394,7 @@ async function loadUsFundamentals(){
       }
     }else{
       if(bodyEl) bodyEl.innerHTML='<tr><td colspan="6" class="mut">재무비율을 가져오지 못했습니다</td></tr>';
-      if(statusEl) statusEl.textContent='⚠ 재무비율을 가져오지 못했습니다 — Worker(/us-fundamentals)가 배포되어 있는지 확인해주세요.';
+      if(statusEl) statusEl.textContent='⚠ 재무비율을 일시적으로 가져오지 못했습니다. 잠시 후 새로고침해 주세요.'+devHint('/us-fundamentals 배포 확인');
     }
   }catch(e){
     console.warn('미국주식 재무비율 로딩 실패:', e);
@@ -3225,7 +3227,7 @@ function renderFinSavingsTable(listId, list){
   if(!el) return;
   if(!list){ el.innerHTML='<div class="fs-row"><span class="mut">불러오는 중…</span></div>'; return; }
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
-  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">'+(list.length?'이 분류에 표시할 상품이 없습니다':'표시할 금리 데이터가 없습니다'+(finSavingsFail?' · '+finSavingsFail.replace(/</g,'&lt;'):''))+'</span></div>'; return; }
+  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">'+(list.length?'이 분류에 표시할 상품이 없습니다':'표시할 금리 데이터가 없습니다'+devHint(finSavingsFail.replace(/</g,'&lt;')))+'</span></div>'; return; }
   const capped=filtered.slice(0,30);
   const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,3);
   const rowsHtml=capped.slice(0,showCount).map(it=>{
@@ -4267,13 +4269,15 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
     ['6', krSubLabel('6','6. 안전자산 수요'), ecos&&ecos.safeHavenScore!=null?ecos.safeHavenScore:null],
     ['7', krSubLabel('7','7. 정크본드 수요'), ecos&&ecos.creditScore!=null?ecos.creditScore:null]
   ];
-  el.innerHTML=rows.map(([num,n,v])=>{
+  const _pend=rows.filter(r=>r[2]==null);
+  el.innerHTML=rows.filter(r=>r[2]!=null).map(([num,n,v])=>{
     if(v==null) return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">준비중</span></td></tr>';
     const [t,c]=label(v);
     const xv=Math.max(9,Math.min(91,v));
     return '<tr class="sb-done"><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'<span class="sb-val" style="left:'+xv.toFixed(1)+'%">'+v.toFixed(1)+'</span></td>'+
       '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br>'+zoneTag(t)+'</td></tr>';
   }).join('');
+  if(_pend.length) el.innerHTML+='<tr class="sb-pending"><td colspan="3"><b>준비중 '+_pend.length+'개</b> · '+_pend.map(r=>r[0]+'번 '+String(r[1]).replace(/^\d+\.\s*/,'').replace(/<[^>]*>/g,'')).join(' · ')+'</td></tr>';
   const kn=document.getElementById('kr-sub-note');
   if(kn) kn.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+['1','2','3','4','5','6','7'].map(k=>SUB_NUM[+k-1]+' '+KR_SUBDESC[k]).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
   renderBreadthFlow('kr-breadth-flow', breadth);
@@ -4920,7 +4924,7 @@ function renderBacktest(res){
   const statusEl=document.getElementById('bt-status');
   if(!res || res.error || !res.curve || !res.curve.length){
     const reason=(res&&res.error)?res.error.join(', ')+' 연동 실패':'알 수 없는 오류';
-    if(statusEl) statusEl.textContent='⚠ '+reason+' — PROXY_BASE에 설정한 Worker 주소가 살아있는지, 코드가 정확히 배포됐는지 확인해주세요.';
+    if(statusEl) statusEl.textContent='⚠ '+reason+' 잠시 후 새로고침해 주세요.'+devHint('PROXY_BASE Worker 주소·배포 확인');
     return;
   }
   if(statusEl) statusEl.textContent=BACKTEST_START_YEAR+'-01-01 ~ '+new Date(res.curve[res.curve.length-1].t).toLocaleDateString('ko-KR')+' 실제 시세 기준 계산 결과입니다.';
@@ -6163,7 +6167,7 @@ async function hydrateIpoQuotes(){
     pn.querySelectorAll('.etf-r').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
     let pts=null; try{pts=await load(id,r);}catch(e){}
     if(!pn.isConnected) return;
-    if(!pts){box.innerHTML='<div class="mut" style="font-size:12.5px;line-height:1.55">ETF 순유입 데이터를 불러오지 못했습니다. Worker(cors-proxy-worker.js)에 <b>api.coinmarketcap.com</b> 허용이 반영(재배포)되어야 합니다. 원문: <a href="https://coinmarketcap.com/ko/etf/'+PAGE[id]+'/" target="_blank" rel="noopener">CoinMarketCap '+NAME[id]+' ETF</a></div>';return;}
+    if(!pts){box.innerHTML='<div class="mut" style="font-size:12.5px;line-height:1.55">ETF 순유입 데이터를 일시적으로 불러오지 못했습니다.'+devHint('Worker에 api.coinmarketcap.com 허용 재배포')+' 원문: <a href="https://coinmarketcap.com/ko/etf/'+PAGE[id]+'/" target="_blank" rel="noopener">CoinMarketCap '+NAME[id]+' ETF</a></div>';return;}
     const sum=pts.reduce((a,p)=>a+p.v,0), last=pts[pts.length-1], inn=pts.filter(p=>p.v>0).length;
     box.innerHTML='<div class="etf-ro mut" style="font-size:12.5px;min-height:18px;margin-bottom:4px;font-weight:700"></div>'+chart(pts)+
       '<div class="etf-sum"><span>기간 합계 <b class="'+(sum>=0?'up':'down')+'">'+fmtM(sum)+'</b></span><span>최근 <b class="'+(last.v>=0?'up':'down')+'">'+fmtM(last.v)+'</b> ('+fmtDt(last.t)+')</span><span>순유입 '+inn+' / 순유출 '+(pts.length-inn)+'</span></div>';
@@ -6426,17 +6430,33 @@ function applyExtChips(){
   });
   updateExtSummary();
 }
+let EXT_BUSY=false;
 async function loadExt(){
   if(!PROXY_BASE||!document.getElementById('tick-tbl')&&!document.getElementById('cap-tbl')) return;
   if(usRegularNow()){ applyExtChips(); return; }
+  if(EXT_BUSY) return; EXT_BUSY=true;
   try{
-    const origin=PROXY_BASE.replace(/\?url=$/,''), syms=extSymbols();
-    for(let i=0;i<syms.length;i+=30){
-      const r=await fetch(origin+'ext?symbols='+syms.slice(i,i+30).map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
-      const j=r.ok?await r.json():null; if(j&&!j.error) Object.assign(EXT_DATA,j);
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const KEYS=['TQQQ','SOXL','TECL','QLD','USD','SCHD'];
+    const syms=extSymbols().sort((a,b)=>(KEYS.indexOf(b)>=0?1:0)-(KEYS.indexOf(a)>=0?1:0));
+    let bad=[];
+    /* 한 번에 12종목씩(Worker 동시조회 한도 안), 2묶음 병렬 · 실패(err)한 종목은 저장하지 않고 다시 시도 */
+    const fetchB=async b=>{
+      try{
+        const r=await fetch(origin+'ext?symbols='+b.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
+        const j=r.ok?await r.json():null;
+        if(j&&!j.error){ Object.keys(j).forEach(k=>{ if(j[k]&&j[k].err) bad.push(k); else EXT_DATA[k]=j[k]; }); } else b.forEach(k=>bad.push(k));
+      }catch(e){ b.forEach(k=>bad.push(k)); }
+    };
+    const ch=[]; for(let i=0;i<syms.length;i+=12) ch.push(syms.slice(i,i+12));
+    for(let i=0;i<ch.length;i+=2){ await Promise.all(ch.slice(i,i+2).map(fetchB)); applyExtChips(); }
+    for(let tryN=0;tryN<2&&bad.length;tryN++){
+      await new Promise(r=>setTimeout(r,2500+tryN*2500));
+      const rb=bad.splice(0); for(let i=0;i<rb.length;i+=6) await fetchB(rb.slice(i,i+6));
+      applyExtChips();
     }
-    applyExtChips();
   }catch(e){ console.warn('시간외 시세 로딩 실패:',e); }
+  EXT_BUSY=false;
 }
 if(document.getElementById('tick-tbl')||document.getElementById('cap-tbl')){
   setTimeout(loadExt,2500); setTimeout(updateExtSummary,6000);

@@ -59,6 +59,15 @@
   window.MK_ACCT = null;
   var acctBox;
   function myTickers() { try { var a = JSON.parse(store.get('mk_my_tickers') || '[]'); return Array.isArray(a) ? a.filter(function (t) { return RE.test(t); }) : []; } catch (e) { return []; } }
+  /* 모바일 접기/펼치기(CSS는 700px 이하에서만 본문을 숨김) — 기본은 접힘 */
+  function mfold(card) {
+    if (!card || card.dataset.mf) return; var h = card.querySelector('h3'); if (!h) return;
+    card.dataset.mf = '1'; card.classList.add('m-fold');
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'm-fold-btn'; h.appendChild(b);
+    var sk = 'mk_m_' + card.id, set = function (o) { card.classList.toggle('m-open', o); b.innerHTML = o ? '<em>접기</em> ➖' : '<em>펼치기</em> ➕'; b.setAttribute('aria-expanded', String(o)); store.set(sk, o ? '1' : '0'); };
+    set(store.get(sk) === '1');
+    h.addEventListener('click', function () { set(!card.classList.contains('m-open')); });
+  }
   function buildAcct() {
     var my = $('#my-wl'); if (!my || $('#mk-acct')) return !!$('#mk-acct');
     acctBox = document.createElement('div'); acctBox.className = 'card'; acctBox.id = 'mk-acct'; acctBox.style.marginTop = '16px';
@@ -67,7 +76,7 @@
       '<form class="ac-add" autocomplete="off"><input type="text" id="ac-t" maxlength="15" placeholder="티커 (예: TQQQ)" aria-label="보유 종목 티커"><input type="number" id="ac-q" min="0" step="any" placeholder="수량" aria-label="수량"><input type="number" id="ac-c" min="0" step="any" placeholder="평균단가($)" aria-label="평균단가"><button type="submit">＋ 추가</button></form>' +
       '<label class="ac-cap">3배 ETF 비중 한도 <input type="number" id="ac-cap" min="1" max="100" step="1" aria-label="3배 ETF 비중 한도(%)"> %</label>' +
       '<p class="mut" style="font-size:12px;margin:8px 0 0;line-height:1.6">달러 종목만 합계에 넣습니다(원화 종목 제외). 시세는 지연될 수 있으며 평가금액·손익은 참고용 계산입니다. 3배 ETF 비중은 보유 종목 중 3배 상품의 평가금액 비율입니다.</p>';
-    my.after(acctBox);
+    my.after(acctBox); mfold(acctBox);
     $('#ac-cap', acctBox).value = levCap();
     acctBox.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault(); var t = $('#ac-t').value.trim().toUpperCase(), q = parseFloat($('#ac-q').value), c = parseFloat($('#ac-c').value);
@@ -92,7 +101,7 @@
     rows.forEach(function (r) { r.w = r.val != null && tot > 0 ? r.val / tot * 100 : null; r.pl = r.val != null && r.cost != null ? r.val - r.q * r.cost : null; r.plp = r.pl != null ? (r.px / r.cost - 1) * 100 : null; r.day = r.px != null && r.prev ? (r.px / r.prev - 1) * 100 : null; });
     rows.sort(function (a, b) { return (b.val || 0) - (a.val || 0); });
     tb.innerHTML = rows.map(function (r) {
-      return '<tr><td><b>' + esc(r.t) + '</b>' + (lv.indexOf(r.t) >= 0 ? ' <span class="ac-l" title="3배 레버리지 상품">3x</span>' : '') + '</td><td>' + r.q + '</td><td>' + (r.cost != null ? r.cost : '—') + '</td><td class="n">' + (r.px != null ? '$' + r.px.toFixed(2) : '—') + '</td><td class="n">' + (r.val != null ? fmtUsd(r.val) : '<span class="na">' + (r.usd ? '—' : '합계 제외') + '</span>') + '</td><td class="n ' + cls(r.plp) + '">' + (r.pl != null ? fmtUsd(r.pl) + ' (' + fmtPct(r.plp) + ')' : '—') + '</td><td class="n ' + cls(r.day) + '">' + fmtPct(r.day) + '</td><td class="n">' + (r.w != null ? r.w.toFixed(1) + '%' : '—') + '</td><td><button type="button" class="ac-x" data-del="' + esc(r.t) + '" aria-label="' + esc(r.t) + ' 삭제">✕</button></td></tr>';
+      return '<tr><td><b>' + esc(r.t) + '</b>' + (lv.indexOf(r.t) >= 0 ? ' <span class="ac-l" title="3배 레버리지 상품">3x</span>' : '') + '<small class="ac-sub">' + r.q + '주 · 평단 ' + (r.cost != null ? '$' + r.cost : '—') + '<br>오늘 <span class="' + cls(r.day) + '">' + fmtPct(r.day) + '</span> · 비중 ' + (r.w != null ? r.w.toFixed(0) + '%' : '—') + '</small></td><td>' + r.q + '</td><td>' + (r.cost != null ? r.cost : '—') + '</td><td class="n">' + (r.px != null ? '$' + r.px.toFixed(2) : '—') + '</td><td class="n">' + (r.val != null ? fmtUsd(r.val) : '<span class="na">' + (r.usd ? '—' : '합계 제외') + '</span>') + '</td><td class="n ' + cls(r.plp) + '">' + (r.pl != null ? '<span class="pl-a">' + fmtUsd(r.pl) + '</span> <span class="pl-p">(' + fmtPct(r.plp) + ')</span>' : '—') + '</td><td class="n ' + cls(r.day) + '">' + fmtPct(r.day) + '</td><td class="n">' + (r.w != null ? r.w.toFixed(1) + '%' : '—') + '</td><td><button type="button" class="ac-x" data-del="' + esc(r.t) + '" aria-label="' + esc(r.t) + ' 삭제">✕</button></td></tr>';
     }).join('');
     var dayPct = tot > 0 && totPrev > 0 ? (tot / totPrev - 1) * 100 : null, dayUsd = tot - totPrev, levPct = tot > 0 ? levV / tot * 100 : null, cap = levCap();
     var plAll = costOk && totCost > 0 ? tot - totCost : null;
@@ -120,6 +129,7 @@
     eve = document.createElement('section'); eve.id = 'mk-eve'; eve.setAttribute('aria-label', '퇴근 후 5분 체크리스트');
     eve.innerHTML = '<div class="ev-hd"><b>🌙 퇴근 후 5분 체크리스트</b><span id="ev-clk" class="ev-clk" role="timer" aria-live="off"></span></div><ul id="ev-ls"></ul><p class="ev-nt">자동으로 모은 확인 목록이며 매매 권유가 아닙니다. 미국 휴장일은 반영하지 않아 개장 시각이 다를 수 있습니다.</p>';
     br.after(eve);
+    eve.addEventListener('click', function (e) { var b = e.target.closest('.ev-tg'); if (!b) return; var li = b.closest('li'), o = !li.classList.contains('open'); evOpen[b.dataset.id] = o; li.classList.toggle('open', o); b.setAttribute('aria-expanded', String(o)); b.textContent = o ? '접기 ➖' : '펼치기 ➕'; });
     eve.addEventListener('change', function (e) { var cb = e.target.closest('input[type=checkbox]'); if (!cb) return; var k = 'mk_chk_' + today(), o; try { o = JSON.parse(store.get(k) || '{}'); } catch (x) { o = {}; } if (cb.checked) o[cb.dataset.id] = 1; else delete o[cb.dataset.id]; store.set(k, JSON.stringify(o)); cb.closest('li').classList.toggle('done', cb.checked); });
     return true;
   }
@@ -143,6 +153,7 @@
     L.sort(function (x, y) { return x.pri - y.pri; }); return L;
   }
   var evSig = '';
+  var evOpen = {};
   function renderEve() {
     if (!buildEve()) return;
     var mc = marketClock(), clk = $('#ev-clk');
@@ -150,7 +161,7 @@
     var L = items(), sig = JSON.stringify(L.map(function (x) { return x.id + x.t + x.c; }));
     if (sig === evSig) return; evSig = sig;
     var o; try { o = JSON.parse(store.get('mk_chk_' + today()) || '{}'); } catch (e) { o = {}; }
-    $('#ev-ls').innerHTML = L.map(function (x) { return '<li class="' + (o[x.id] ? 'done' : '') + '"><label><input type="checkbox" data-id="' + x.id + '"' + (o[x.id] ? ' checked' : '') + '><span class="ev-b"><span class="ev-h"><em class="ev-k ' + x.kc + '">' + x.k + '</em><span class="ev-t">' + x.t + '</span></span>' + (x.c ? '<span class="ev-c">' + x.c + '</span>' : '') + '</span></label></li>'; }).join('');
+    $('#ev-ls').innerHTML = L.map(function (x) { var op = !!evOpen[x.id]; return '<li class="' + (o[x.id] ? 'done' : '') + (op ? ' open' : '') + '"><label><input type="checkbox" data-id="' + x.id + '"' + (o[x.id] ? ' checked' : '') + '><span class="ev-b"><span class="ev-h"><em class="ev-k ' + x.kc + '">' + x.k + '</em><span class="ev-t">' + x.t + '</span></span>' + '</span></label>' + (x.c ? '<button type="button" class="ev-tg" data-id="' + x.id + '" aria-expanded="' + op + '">' + (op ? '접기 ➖' : '펼치기 ➕') + '</button><div class="ev-c">' + x.c + '</div>' : '') + '</li>'; }).join('');
   }
 
   /* ───────── 종목 비교(최대 3개) ───────── */
@@ -160,7 +171,7 @@
     var box = document.createElement('div'); box.className = 'card'; box.id = 'mk-cmp'; box.style.marginTop = '16px';
     box.innerHTML = '<h3><span>🔍 종목 비교</span><span class="mut" style="font-weight:400;font-size:11.5px">최대 3개 · 시세 기준 계산</span></h3>' +
       '<form class="cm-f" autocomplete="off">' + [0, 1, 2].map(function (i) { return '<input type="text" maxlength="15" value="' + esc(d[i] || '') + '" placeholder="티커 ' + (i + 1) + '" aria-label="비교 종목 ' + (i + 1) + '">'; }).join('') + '<button type="submit">비교</button></form><div id="cm-r" class="scroll"></div>';
-    base.after(box);
+    base.after(box); mfold(box);
     box.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); runCmp(); });
     return true;
   }

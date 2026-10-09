@@ -89,6 +89,9 @@
     function mv() {
       if (!build()) return;
       ROWS.forEach(function (r) { var b = document.getElementById(r[0]), row = $('.hp-r[data-for="' + r[0] + '"]', pop); if (b && row && b.parentNode !== row) row.appendChild(b); });
+      var st = document.getElementById('stamp-top');
+      if (st && pop && !pop.contains(st)) { var ur = document.createElement('div'); ur.className = 'hp-upd'; ur.appendChild(st); pop.insertBefore(ur, $('.hp-gift', pop)); }
+      var g2 = document.getElementById('naver-gift-link'), hg = pop && $('.hp-gift', pop); if (g2 && hg) hg.href = g2.href;
     }
     mv(); [300, 900, 2500, 5000].forEach(function (t) { setTimeout(mv, t); });
     var ps = $('#pro-status'); if (ps && window.MutationObserver) new MutationObserver(mv).observe(ps, { childList: true });
@@ -257,6 +260,8 @@
     var generic = !$$('a', toc).some(function (a) { return /^요약/.test(a.textContent.trim()); });
     var GT = $$('a', toc).slice(0, 3).map(function (a, i) { var full = a.textContent.trim().replace('…', ''); return [['①', '②', '③'][i], Array.from(full).slice(0, 6).join(''), full]; });
     var TABS = generic ? GT.concat([['⋯', '더보기', '']]) : KR ? [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⋯', '더보기', '']] : [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⚡', '레버리지', '레버리지'], ['⋯', '더보기', '']];
+    /* 모든 페이지 동일 구성: 홈 · 섹션 3개 · 더보기(전체 섹션 + 사이트 메뉴) */
+    TABS = [['🏠', '홈', '@home']].concat(TABS.filter(function (t) { return t[2]; }).slice(0, 3), [['⋯', '더보기', '']]);
     var bar = document.createElement('nav'); bar.id = 'mk-tabbar'; bar.setAttribute('aria-label', '빠른 이동');
     bar.innerHTML = TABS.map(function (t, i) { return '<button type="button" data-i="' + i + '"' + (t[2] ? '' : ' aria-haspopup="dialog" aria-expanded="false"') + '><span class="ti" aria-hidden="true">' + t[0] + '</span><span class="tl">' + t[1] + '</span></button>'; }).join('');
     document.body.appendChild(bar);
@@ -267,11 +272,12 @@
     var closeSheet = function () { sheet.hidden = true; if (more) more.setAttribute('aria-expanded', 'false'); };
     function fillSheet() {
       var g = $('.ms-g', sheet);
-      g.innerHTML = '<button type="button" data-s="1">🔍 검색</button>' + $$('a', toc).map(function (a, i) { return '<button type="button" data-n="' + i + '">' + a.textContent.trim() + '</button>'; }).join('');
+      g.innerHTML = '<button type="button" data-s="1">🔍 검색</button>' + $$('a', toc).map(function (a, i) { return '<button type="button" data-n="' + i + '">' + a.textContent.trim() + '</button>'; }).join('') + '<div class="ms-sep">다른 페이지</div>' + [['index.html', '🏠 홈'], ['stock.html', '미국주식'], ['kr-stock.html', '한국주식'], ['bond.html', '채권'], ['crypto.html', '가상화폐'], ['finprod.html', '금융상품'], ['ipo.html', '공모주'], ['p2p.html', 'P2P'], ['fx.html', '환율'], ['trade.html', '매매김군']].map(function (l) { return '<a class="ms-l" href="' + l[0] + '">' + l[1] + '</a>'; }).join('');
     }
     bar.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return; var t = TABS[+b.dataset.i];
-      if (t[2]) { closeSheet(); goTo(t[2]); ev('tabbar', t[1]); } else { fillSheet(); sheet.hidden = false; b.setAttribute('aria-expanded', 'true'); var x = $('.ms-x', sheet); if (x) x.focus(); }
+      if (t[2] === '@home') { if (/(^|\/)(index\.html)?$/.test(location.pathname)) window.scrollTo({ top: 0, behavior: 'smooth' }); else location.href = 'index.html'; return; }
+      else if (t[2]) { closeSheet(); goTo(t[2]); ev('tabbar', t[1]); } else { fillSheet(); sheet.hidden = false; b.setAttribute('aria-expanded', 'true'); var x = $('.ms-x', sheet); if (x) x.focus(); }
     });
     sheet.addEventListener('click', function (e) {
       if (e.target.closest('.ms-bg, .ms-x')) { closeSheet(); return; }
@@ -432,5 +438,47 @@
       });
     }
     [1200, 4000, 9000].forEach(function (t) { setTimeout(tiny, t); });
+  })();
+
+  /* ───────── 마지막 방문 이후 변화: 공포탐욕 값을 하루 단위로 저장해 전일/지난 방문 대비를 보여준다 ───────── */
+  (function () {
+    var pg = (location.pathname.split('/').pop() || '').replace(/\.html$/, ''); if (pg !== 'stock' && pg !== 'kr-stock') return;
+    var key = 'mk_pv_' + pg, n = 0, last = null;
+    function ymd() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function tick() {
+      var e = $('#pb-fg'); if (!e) return; var tx = (e.textContent || '').trim(), v = parseFloat(tx); if (!isFinite(v) || tx === last) return; last = tx;
+      var o = {}; try { o = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (x) { o = {}; }
+      var day = ymd(); if (o.day && o.day !== day) o.prev = { v: o.v, day: o.day };
+      o.v = v; o.t = tx; o.day = day; o.ts = Date.now(); try { localStorage.setItem(key, JSON.stringify(o)); } catch (x) {}
+      var hd = $('#pro-brief .pb-hd'), old = $('#pro-brief .pb-delta'); if (old) old.remove();
+      if (hd && o.prev && isFinite(o.prev.v)) { var d = Math.round((v - o.prev.v) * 10) / 10, s = document.createElement('span'); s.className = 'pb-delta'; s.textContent = o.prev.day.slice(5).replace('-', '/') + ' 대비 공탐 ' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d); hd.appendChild(s); }
+    }
+    var t = setInterval(function () { tick(); if (++n > 40) clearInterval(t); }, 2000);
+  })();
+
+  /* ───────── 스켈레톤 로딩 표시 · PC 고정 요약 띠 ───────── */
+  (function () {
+    var n = 0;
+    function skel() {
+      $$('.mut, td, p, span, div').forEach(function (el) {
+        if (el.children.length) { return; }
+        var t = (el.textContent || '').trim();
+        if (t.length && t.length < 40 && /^(불러오는 중|로딩 중|데이터 불러오는 중)/.test(t)) { if (!el.classList.contains('skel')) { el.classList.add('skel'); el.setAttribute('aria-busy', 'true'); } }
+        else if (el.classList.contains('skel')) { el.classList.remove('skel'); el.removeAttribute('aria-busy'); }
+      });
+    }
+    var id = setInterval(function () { skel(); if (++n > 40) clearInterval(id); }, 1500); skel();
+    var br = $('#pro-brief'); if (!br || window.innerWidth <= 700) return;
+    var bar = document.createElement('div'); bar.id = 'pb-sticky'; bar.hidden = true; bar.setAttribute('role', 'status'); document.body.appendChild(bar);
+    function upd() {
+      var ln = $('#pb-line'); if (!ln) return;
+      var tx = (ln.textContent || '').replace(/·\s*참고용 요약이며.*$/, '').replace(/^오늘의 시장 상태:\s*/, '').trim();
+      var hd = $('header'), top = hd ? hd.getBoundingClientRect().bottom : 0;
+      var off = br.getBoundingClientRect().bottom < Math.max(top, 0) + 4;
+      if (bar.textContent !== tx) bar.textContent = tx;
+      bar.style.top = Math.max(0, Math.round(top)) + 'px';
+      bar.hidden = !(off && tx);
+    }
+    window.addEventListener('scroll', upd, { passive: true }); setInterval(upd, 2000);
   })();
 })();

@@ -196,7 +196,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .kb-t{width:100%;border-collapse:collapse;font-size:13.5px}.kb-t th{padding:10px 12px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--line);text-align:center}.kb-t td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center}.kb-t td:nth-child(2){text-align:left}.kb-t .num{text-align:right}.kb-gr{font-weight:800}.kb-rk{font-size:16px;white-space:nowrap}
 @media(max-width:560px){.kb-t th,.kb-t td{padding:9px 6px}.kb-t{font-size:12.5px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=71af44ed"><link rel="stylesheet" href="mrkim-theme.css?v=119cd408">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=b1f771e4"><link rel="stylesheet" href="mrkim-theme.css?v=9862d187">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -292,7 +292,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=490a7e20"></script>
+<script src="mrkim-common.js?v=6921df1f"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
@@ -370,7 +370,7 @@ async function loadKrBondBench(){
   const [t3,aa,bbb]=await Promise.all([ecosSeries(ECOS_ITEM.treasury3y,60),ecosSeries(ECOS_ITEM.corpAA,60),ecosSeries(ECOS_ITEM.corpBBB,60)]);
   const last=a=>a&&a.length?a[a.length-1].v:null;
   const rows=[['국고채 3년',last(t3),'#4a90d9',t3],['회사채 3년 AA-',last(aa),'var(--accent)',aa],['회사채 3년 BBB-',last(bbb),'var(--up)',bbb]].filter(r=>r[1]!=null);
-  if(!rows.length){ el.innerHTML='<p class="mut">한국은행 ECOS 금리를 불러오지 못했습니다. 잠시 후 새로고침해 주세요(Worker가 ecos.bok.or.kr을 허용해야 합니다).</p>'; return; }
+  if(!rows.length){ el.innerHTML='<p class="mut">한국은행 ECOS 금리를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>'; return; }
   const mx=Math.max.apply(null,rows.map(r=>r[1]).concat([12]));
   const bar=r=>'<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:700">'+r[0]+'</span><b style="font-size:18px;color:'+r[2]+'">'+r[1].toFixed(2)+'%</b></div><div style="height:10px;border-radius:5px;background:var(--panel2)"><div style="height:10px;border-radius:5px;width:'+(r[1]/mx*100).toFixed(1)+'%;background:'+r[2]+'"></div></div></div>';
   const sp=(last(bbb)!=null&&last(aa)!=null)?last(bbb)-last(aa):null;
@@ -392,7 +392,7 @@ async function loadKrBondTop10(){
 loadKrBondBench(); loadKrBondTop10();
 
 </script>
-<script src="mrkim-shell.js?v=5be290b4"></script>
-<script src="mrkim-extra.js?v=c1d22204"></script>
+<script src="mrkim-shell.js?v=0e48c2f4"></script>
+<script src="mrkim-extra.js?v=c4d83fd7"></script>
 </body>
 </html>

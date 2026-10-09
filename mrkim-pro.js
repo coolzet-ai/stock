@@ -426,7 +426,7 @@
       h.addEventListener('click',function(e){ if(e.target.closest('a')) return; tg(); });
     }
     var cnn=document.getElementById('us-sub'); if(cnn){ var cc=cnn.closest('.card'); if(cc&&!cc.id) cc.id='pro-cnn'; mf(cc); }
-    mf(document.getElementById('pro-int')); mf(document.getElementById('pro-fwd'));
+    mf(document.getElementById('pro-int')); mf(document.getElementById('pro-fwd')); mf(document.getElementById('pro-cal'));
   })();
 
   /* ⑩-b 데이터 상태 띠 + 정적 카드 + 로딩 정체 감시 */

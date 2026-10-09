@@ -21,7 +21,9 @@
   var hs = $$('main h2, section h2, .wrap > h2').filter(function (h, i, a) { return a.indexOf(h) === i && h.offsetParent !== null && clean(h.textContent).length; });
   if (!$('#pro-toc') && hs.length) {
     var toc = document.createElement('nav'); toc.id = 'pro-toc'; toc.setAttribute('aria-label', '페이지 목차');
-    toc.innerHTML = hs.map(function (h, i) { var t = clean(h.textContent); return '<a href="#" data-i="' + i + '">' + t.slice(0, 13).join('') + (t.length > 13 ? '…' : '') + '</a>'; }).join('');
+    var shortT = function (t) { var x = t.join(''); if (h_ds(t)) return Array.from(h_ds(t)); if (x.length <= 9) return t; var y = x.split(/\s[—·(\-]\s?/)[0].replace(/상대수익률 비교/, '수익률').replace(/주요 이벤트 일정/, '이벤트').replace(/\s*일정$/, ' 일정').replace(/^(가상화폐|주요|4대)\s+/, '').replace(/^(주요)\s+/, ''); return Array.from(y.length >= 2 ? y : x); };
+    var h_ds = function () { return null; };
+    toc.innerHTML = hs.map(function (h, i) { var t = shortT(clean(h.textContent)); return '<a href="#" data-i="' + i + '">' + t.slice(0, 13).join('') + (t.length > 13 ? '…' : '') + '</a>'; }).join('');
     ($('#pro-status') || hd).after(toc);
     toc.addEventListener('click', function (e) {
       var a = e.target.closest('a'); if (!a) return; e.preventDefault();

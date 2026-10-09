@@ -1398,3 +1398,104 @@ html[data-theme="dark"] .pro #fin-savings-list .fs-rate .max{color:#4cc38a!impor
 .pro #fin-savings-list>.fs-row:first-child>.fs-info{margin:0!important;padding:0!important}
 @media(max-width:480px){.pro #fin-savings-list>.fs-row:first-child{padding:10px 12px!important}}
 .pro #finprod h3>.mut{display:block;margin-top:4px}
+/* v46 header: 로고 고정, 업데이트일자·선물하기는 설정 팝오버 하단 */
+.pro header .logo{white-space:nowrap;flex:none}
+.pro header #naver-gift-link,.pro header .naver-gift{display:none!important}
+#hd-pop .hp-upd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 6px 8px;border-bottom:1px solid var(--line);font-size:12px;color:var(--tx2)}
+#hd-pop .hp-upd .updated-top{display:inline-flex!important;flex-wrap:wrap;align-items:center;gap:6px;border:0;background:none;padding:0;color:var(--tx)}
+#hd-pop .hp-upd .updated-top .upd-y,#hd-pop .hp-upd .updated-top .upd-word{display:inline!important}
+#hd-pop .hp-gift{display:flex!important;justify-content:center;gap:6px;margin:10px 4px 4px;padding:0 12px;min-height:46px;border-radius:12px;background:linear-gradient(135deg,#00754a,#00a86b);color:#fff!important;font-size:14px;font-weight:800;box-shadow:0 4px 12px rgba(0,117,74,.35);border:2px solid #fff3}
+#hd-pop .hp-gift:hover{filter:brightness(1.08)}
+html[data-theme="dark"] #hd-pop .hp-gift{background:linear-gradient(135deg,#0b8f5d,#14b57a);color:#fff!important}
+/* v46 내 계좌 모바일 한 줄 · 요약 3칸 · 체크리스트 접힘 · 시간외 */
+#mk-acct .ac-sub{display:none}
+#mk-acct .pl-a,#mk-acct .pl-p{white-space:nowrap}
+@media(max-width:700px){
+#mk-acct .ac-sum{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px}
+#mk-acct .ac-sum>div{padding:8px 8px}
+#mk-acct .ac-sum b{font-size:16px}
+#mk-acct .ac-sum small,#mk-acct .ac-sum span{font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mk-acct .scroll{overflow:visible}
+#mk-acct .ac-t{table-layout:fixed;font-size:12.5px}
+#mk-acct .ac-t th:nth-child(2),#mk-acct .ac-t td:nth-child(2),#mk-acct .ac-t th:nth-child(3),#mk-acct .ac-t td:nth-child(3),#mk-acct .ac-t th:nth-child(7),#mk-acct .ac-t td:nth-child(7),#mk-acct .ac-t th:nth-child(8),#mk-acct .ac-t td:nth-child(8){display:none}
+#mk-acct .ac-t th:nth-child(1){width:34%}#mk-acct .ac-t th:nth-child(4){width:19%}#mk-acct .ac-t th:nth-child(5){width:21%}#mk-acct .ac-t th:nth-child(6){width:19%}#mk-acct .ac-t th:nth-child(9){width:7%}
+#mk-acct .ac-t th,#mk-acct .ac-t td{padding:8px 3px}
+#mk-acct .ac-sub{display:block;margin-top:3px;font-size:11px;line-height:1.4;color:var(--tx2);font-weight:500;white-space:normal}
+#mk-acct .ac-t .pl-a,#mk-acct .ac-t .pl-p{display:block}
+#mk-acct .ac-t .pl-p{font-size:11px}
+#mk-acct .ac-x{min-height:30px;padding:0 6px}
+#mk-acct form input{flex:1 1 40%;min-width:0}
+}
+/* 체크리스트: 동일 크기 항목 + 항목별 펼치기/접기 */
+#mk-eve ul{gap:8px}
+#mk-eve li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;border:1px solid var(--line)!important;border-radius:10px;background:var(--panel2,var(--panel));padding:0 10px}
+#mk-eve li label{min-height:60px;padding:8px 0!important;align-items:center}
+#mk-eve li input{margin-top:0}
+#mk-eve .ev-b{justify-content:center}
+#mk-eve .ev-h{flex-wrap:nowrap}
+#mk-eve .ev-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#mk-eve .ev-tg{flex:none;min-height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+#mk-eve li>.ev-c{grid-column:1/-1;display:none;padding:2px 0 12px}
+#mk-eve li.open>.ev-c{display:flex}
+#mk-eve li.done{opacity:.75}
+#mk-eve li.done label{text-decoration:none}
+#mk-eve li.done .ev-t{text-decoration:line-through}
+.pulse .hm-ext{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#fff;margin-top:2px;white-space:nowrap}
+@media(max-width:700px){
+.pro .pulse.m-fold>h3{gap:8px}
+.pro .pulse.m-fold>h3 small{flex:1;min-width:0;white-space:normal;line-height:1.3}
+.pro .pulse.m-fold:not(.m-open){padding-bottom:12px}
+.pro .pulse.m-fold:not(.m-open)>.breadth,.pro .pulse.m-fold:not(.m-open)>.bl{display:flex!important}
+.pro .pulse.m-fold:not(.m-open)>.bl{justify-content:space-between}
+.pro #pro-cal,.pro .pulse{margin-top:14px!important}
+}
+/* ===== v47 최종 개선 ===== */
+/* 1. 첫 화면: 결론 한 줄을 요약 박스 맨 위에 보이게, 중복되는 부제 제거 */
+.pro #pro-brief .pb-line{position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:12px 16px!important;overflow:visible!important;clip:auto!important;white-space:normal!important;background:#ECF7F1;border-bottom:1px solid #CFE6DA!important;font-size:16px;font-weight:700;line-height:1.5;color:#0F2A20}
+html[data-theme="dark"] .pro #pro-brief .pb-line{background:#16231c;border-bottom-color:#2c3d33!important;color:#e6efe9}
+html[data-theme="dark"] .pro #pro-brief .pb-line em{color:#4cc38a}
+@media(max-width:700px){.pro #pro-brief .pb-line{font-size:14px;padding:10px 12px!important}.pro #pro-brief .pb-note{display:none}}
+@media(min-width:701px){.pro .pg-h1 small{display:none}}
+/* 2. 터치 목표 44px 이상(모바일) */
+@media(max-width:700px){
+.pro .fold-btn,.pro .m-fold-btn,.pro .lead-pc,.pro .ev-tg,#mk-eve .ev-tg,.pro .cal-more-btn,.pro .ev-more-btn,.pro #pro-toc a{min-height:44px}
+.pro .tabs button{min-height:44px}
+.pro .m-fold-btn{padding:0 12px}
+.pro .fg-hd .tabs button{min-height:40px}
+}
+/* 3. 한국주식 지표 '준비중' 묶음 행 */
+.pro #kr-sub tr.sb-pending td{height:auto;padding:10px 8px!important;font-size:12.5px;color:var(--tx2);background:var(--panel2)}
+.pro #kr-sub tr.sb-pending b{color:var(--tx)}
+/* 4. 크립토 칩 메뉴 라벨 짧게 */
+/* 5. 공모주 추천 카드 강조 */
+.pro .ipo-card.rec,.pro .ipo-card[data-rec="1"]{border:2px solid #00754a!important;background:linear-gradient(180deg,rgba(0,117,74,.06),transparent)}
+.pro .ipo-card.wait{border-style:dashed}
+.pro .card .pv{margin:10px 0 0;padding:6px 10px;border-radius:8px;background:#ECF7F1;color:#0F2A20;font-size:12.5px;font-weight:600;line-height:1.5}
+.pro .card .pv b{color:#00754a;font-weight:800}
+html[data-theme="dark"] .pro .card .pv{background:#16231c;color:#e6efe9}html[data-theme="dark"] .pro .card .pv b{color:#4cc38a}
+/* 인덱스 첫 화면 압축 */
+.pro.lite .hero:has(.hero-p){padding:30px 0 26px!important}
+.pro.lite .hero:has(.hero-p) h1{font-size:30px!important}
+.pro.lite .hero:has(.hero-p) .hero-p .sl:nth-child(n+2){display:none}
+.pro.lite .hero:has(.hero-p) #stamp{margin-top:12px!important}
+.pro #pro-brief .pb-delta{margin-left:auto;font-size:12px;font-weight:700;color:#E3F4EA}
+@media(max-width:700px){
+#mk-sheet .ms-sep{grid-column:1/-1;margin:8px 0 0;font-size:12px;font-weight:800;color:var(--tx2)}
+#mk-sheet .ms-g a.ms-l{display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--tx);font-size:13px;font-weight:700;text-decoration:none}
+#mk-tabbar button{min-width:0}
+}
+/* 스켈레톤 */
+@keyframes mk-sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel{font-size:0!important;display:block!important;height:14px;max-width:240px;border-radius:6px;background:linear-gradient(90deg,var(--panel2,#eee) 25%,var(--line,#ddd) 50%,var(--panel2,#eee) 75%);background-size:200% 100%;animation:mk-sk 1.3s linear infinite}
+@media(prefers-reduced-motion:reduce){.skel{animation:none}}
+/* PC 고정 요약 띠 */
+#pb-sticky{position:fixed;left:0;right:0;z-index:60;padding:7px 16px;text-align:center;font-size:13px;font-weight:700;background:#ECF7F1;color:#0F2A20;border-bottom:1px solid #CFE6DA;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+html[data-theme="dark"] #pb-sticky{background:#16231c;color:#e6efe9;border-color:#2c3d33}
+#pb-sticky[hidden]{display:none}
+@media(max-width:700px){#pb-sticky{display:none!important}}
+/* 글자 크기 단계 정리(인라인 지정값을 12/14px 단계로) */
+.pro [style*="font-size:11px"],.pro [style*="font-size:11.5px"],.pro [style*="font-size:12.5px"]{font-size:12px!important}
+.pro [style*="font-size:13.5px"]{font-size:14px!important}
+/* 8px 단위 여백 토큰 */
+:root{--sp-1:8px;--sp-2:16px;--sp-3:24px;--sp-4:32px;--fs-1:12px;--fs-2:14px;--fs-3:16px;--fs-4:20px;--fs-5:28px}
+@media(min-width:701px){.pro .grid{gap:16px}}

@@ -2532,14 +2532,14 @@ async function guardedFetch(request, env, ctx) {
     if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'symbols required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
     const out = {};
     await mapLimit(syms, 8, async sym => {
-      const ck = new Request('https://cache.local/ext-v2/' + encodeURIComponent(sym));
+      const ck = new Request('https://cache.local/ext-v3/' + encodeURIComponent(sym));
       try {
         const hit = await caches.default.match(ck);
         if (hit) { out[sym] = await hit.json(); return; }
         /* Yahoo가 동시 요청을 제한(429)하면 '체결 없음'으로 오해되므로: 호스트 2개로 재시도하고, 끝내 실패하면 err 로 표시(캐시 안 함) */
         let r = null;
         for (const host of ['query1', 'query2', 'query1']) {
-          try { r = await fetch('https://' + host + '.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1d&interval=1m&includePrePost=true', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } }); if (r.ok) break; } catch (e) { r = null; }
+          try { r = await fetch('https://' + host + '.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=2d&interval=1m&includePrePost=true', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } }); if (r.ok) break; } catch (e) { r = null; }
           await new Promise(res => setTimeout(res, 250));
         }
         if (!r || !r.ok) { out[sym] = { err: 1 }; return; }
