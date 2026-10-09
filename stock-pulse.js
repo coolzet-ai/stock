@@ -1,6 +1,6 @@
 (function(){
 const q=(id)=>[...document.querySelectorAll('#'+id+' .wl-row')].map(r=>{const c=r.querySelector('.ch'),p=r.querySelector('.px');if(!c||!p)return null;const m=c.textContent.match(/([\d.]+)\s*%/);if(!m)return null;const rm=(r.querySelector('.wl-tag')||{textContent:''}).textContent.match(/^(\d+)위/);return{t:r.dataset.t,rk:rm?+rm[1]:0,px:p.textContent,v:parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1)}}).filter(Boolean);
-function col(v){const a=Math.min(Math.abs(v)/4,1);const L=v>=0?[200,32,20]:[26,111,168];const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
+function col(v){const a=Math.min(Math.abs(v)/4,1);const US=!!(window.MK_CV&&window.MK_CV.us);const L=v>=0?(US?[6,118,71]:[200,32,20]):(US?[200,32,20]:[26,111,168]);const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
 let mode='cap';
 const MOV={up:null,dn:null};
 async function loadMov(){

@@ -1,7 +1,19 @@
 /* Mr.Kim Signal — 전문 도구형 보강 (티커 띠 · 선형 구간 스케일 · 섹터 히트맵) · body.pro 전용 */
 (function(){
   if(!document.body || !document.body.classList.contains('pro')) return;
-  var UP='#D92D20', DN='#1D4ED8';
+  var US=!!(window.MK_CV&&window.MK_CV.us), UP=US?'#067647':'#D92D20', DN=US?'#C4281B':'#1D4ED8';
+
+  /* 지연 로딩 도우미: 화면 가까이(기본 700px 이내) 오거나, 지정한 시간(delay ms)이 지나면 한 번만 실행.
+     첫 화면(공탐·시세 띠)이 네트워크를 먼저 쓰도록 아래쪽 카드는 뒤로 미룬다. 데이터 절약 모드에서는 가까이 올 때만 실행. */
+  window.MK_LAZY=function(el,fn,delay,margin){
+    var done=false, run=function(){ if(done) return; done=true; if(el&&el.dataset) delete el.dataset.lazy; try{ fn(); }catch(e){ console.warn('지연 로딩 실패',e); } };
+    if(el&&el.dataset) el.dataset.lazy='1';
+    var save=false; try{ save=!!(window.MK_SAVE||localStorage.getItem('mk_save')==='1'); }catch(e){}
+    if(el&&'IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){ if(es.some(function(x){return x.isIntersecting;})){ io.disconnect(); run(); } },{rootMargin:(margin==null?700:margin)+'px 0px'}); io.observe(el);
+    } else { run(); return; }
+    if(delay&&!save) setTimeout(run,delay);
+  };
 
   /* 현재 페이지 메뉴 강조 */
   try{
@@ -94,14 +106,14 @@
     firstGrid.after(card);
     var shm=card.querySelector('#shm');
     shm.innerHTML=SEC.map(function(s){ return '<a href="https://finviz.com/quote.ashx?t='+s[0]+'" target="_blank" rel="noopener" id="sh-'+s[0]+'" style="background:#F1F2F4"><span>'+s[1]+' <small>('+s[0]+')</small></span><em>--</em></a>'; }).join('');
-    var mix=function(p){ var a=Math.min(1,Math.abs(p)/2.5), to=p>=0?[217,45,32]:[29,78,216], f=.25+.75*a; return 'rgb('+Math.round(245+(to[0]-245)*f)+','+Math.round(246+(to[1]-246)*f)+','+Math.round(247+(to[2]-247)*f)+')'; };
+    var mix=function(p){ var a=Math.min(1,Math.abs(p)/2.5), to=p>=0?(US?[6,118,71]:[217,45,32]):(US?[196,40,27]:[29,78,216]), f=.25+.75*a; return 'rgb('+Math.round(245+(to[0]-245)*f)+','+Math.round(246+(to[1]-246)*f)+','+Math.round(247+(to[2]-247)*f)+')'; };
     var loadSec=async function(){
       var res=await Promise.all(SEC.map(function(s){ return quote(s[0]); }));
       res.forEach(function(q,i){ var el=document.getElementById('sh-'+SEC[i][0]); if(!el||!q) return; var bgc=mix(q.pct); el.style.background=bgc; var rgbm=bgc.match(/\d+/g).map(Number), lum=(0.2126*Math.pow(rgbm[0]/255,2.2)+0.7152*Math.pow(rgbm[1]/255,2.2)+0.0722*Math.pow(rgbm[2]/255,2.2)); var darkTx=lum>0.2; el.style.color=darkTx?'#111418':'#fff'; el.dataset.dk=darkTx?'1':''; el.querySelector('em').textContent=(q.pct>=0?'▲ +':'▼ ')+Math.abs(q.pct).toFixed(2)+'%'; });
       var okq=res.filter(Boolean); MKT.set('pro-sector',okq.length?'ok':'fail'); var u=okq.filter(function(q){return q.pct>0;}).length, d=okq.filter(function(q){return q.pct<0;}).length, sm=document.getElementById('shm-sum');
       if(sm&&okq.length) sm.innerHTML='<div class="ss-bar"><i style="width:'+(u/okq.length*100)+'%;background:'+UP+'"></i><i style="width:'+((okq.length-u-d)/okq.length*100)+'%;background:#C9CED4"></i><i style="width:'+(d/okq.length*100)+'%;background:'+DN+'"></i></div><div class="ss-lb"><b style="color:'+UP+'">▲ 상승 '+u+'개</b><span>'+(okq.length-u-d?'보합 '+(okq.length-u-d)+'개':'')+'</span><b style="color:'+DN+'">하락 '+d+'개 ▼</b></div>';
     };
-    MKT.retry['pro-sector']=loadSec; loadSec(); setInterval(loadSec,120000);
+    MKT.retry['pro-sector']=loadSec; MK_LAZY(card,function(){ loadSec(); setInterval(loadSec,120000); },3000);
   }
   var FWD={"range": ["2019-05-31", "2026-09-10"], "hz": {"20": {"rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]], "end": "2026-09-10"}, "40": {"rows": [["극단적 공포", 229, 5.28, 4.78, 76.4, -11.1, 31.0], ["공포", 530, 2.75, 3.51, 75.8, -18.7, 17.9], ["중립", 317, 0.86, 1.84, 66.2, -25.2, 12.4], ["탐욕", 594, 1.86, 3.13, 75.3, -32.2, 10.6], ["극단적 탐욕", 117, 0.1, 1.78, 60.7, -27.6, 9.6]], "end": "2026-08-12"}, "60": {"rows": [["극단적 공포", 229, 7.01, 6.53, 81.7, -9.0, 39.8], ["공포", 518, 3.56, 4.24, 74.9, -18.4, 19.2], ["중립", 316, 3.09, 4.5, 76.3, -17.6, 15.4], ["탐욕", 587, 3.4, 4.49, 78.4, -21.8, 12.8], ["극단적 탐욕", 117, -2.24, 1.67, 53.8, -30.6, 11.4]], "end": "2026-07-15"}, "80": {"rows": [["극단적 공포", 228, 7.35, 7.26, 75.4, -13.3, 43.9], ["공포", 500, 5.39, 6.29, 73.8, -16.0, 24.5], ["중립", 315, 4.54, 5.65, 81.0, -17.6, 20.6], ["탐욕", 587, 4.4, 6.39, 80.1, -28.9, 15.0], ["극단적 탐욕", 117, -2.07, -1.26, 39.3, -23.1, 12.3]], "end": "2026-06-15"}}, "rows": [["극단적 공포", 229, 2.71, 3.04, 70.7, -22.2, 23.1], ["공포", 534, 1.56, 2.15, 71.3, -31.4, 13.8], ["중립", 327, 0.19, 1.06, 61.8, -29.1, 10.5], ["탐욕", 600, 0.75, 1.49, 64.8, -26.5, 7.7], ["극단적 탐욕", 117, 1.28, 1.88, 79.5, -5.8, 5.8]]};
 
@@ -244,7 +256,7 @@
       CAL.mode='live'; drawCal(); MKT.set('pro-cal','ok');
       document.getElementById('pc-note').innerHTML='출처: TradingView 경제캘린더(집계 서버 경유, 5분 캐시) · 미국 · 시각은 한국시간(KST). 예상치는 발표가 임박해야 채워지는 항목이 많습니다. 결과가 예상보다 크면 <b style="color:var(--up)">상회(빨강)</b>, 작으면 <b style="color:var(--down)">하회(파랑)</b>입니다.';
     };
-    MKT.retry['pro-cal']=loadEcon; loadEcon(); setInterval(loadEcon,300000);
+    MKT.retry['pro-cal']=loadEcon; MK_LAZY(cal,function(){ loadEcon(); setInterval(loadEcon,300000); },4200);
 
     /* ── VIX 기간구조 곡선 ── */
     var vixSvg=function(pts,st,cw){
@@ -294,7 +306,7 @@
           '<div class="tr-bar"><i class="fill" style="width:'+pos(h.p)+'%"></i>'+(h.m200?'<u class="m m200" style="left:'+pos(h.m200)+'%"></u>':'')+'<u class="m m50" style="left:'+pos(h.m50)+'%"></u><u class="px" style="left:'+pos(h.p)+'%"></u></div>'+
           '<div class="tr-sc"><span>저점 '+fmt(h.lo,0)+'</span><span>고점 '+fmt(h.hi,0)+'</span></div></div>'; }).join('');
     };
-    MKT.retry['pro-int']=loadInt; loadInt(); setInterval(loadInt,300000);
+    MKT.retry['pro-int']=loadInt; MK_LAZY(document.getElementById('pro-int'),function(){ loadInt(); setInterval(loadInt,300000); },3600);
   }
 
   /* ⑤ 지수 편입·편출 — 지수 선택(전체 / S&P500 / 나스닥100) */
@@ -436,13 +448,24 @@
       else if(ratio<=.5){ cls='w'; txt='일부 데이터 지연'; }
       else { cls='r'; txt='데이터 연결 불안정'; }
       var n=document.getElementById('ps-net'); n.className='ps-net '+cls; if(n.textContent!=='● '+txt) n.textContent='● '+txt;
-      document.getElementById('ps-t').innerHTML=N.lastOk?'<span class="lbl">마지막 갱신 </span>'+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
+      var pt=document.getElementById('ps-t'); pt.className='ps-t'+(age!=null&&age>600?' r':age!=null&&age>300?' w':''); pt.title=age!=null&&age>300?'마지막으로 데이터를 받은 지 '+Math.round(age/60)+'분이 지났습니다. 새로고침(↻)을 눌러 보세요.':'';
+      pt.innerHTML=N.lastOk?'<span class="lbl">마지막 갱신 </span>'+hhmm(new Date(N.lastOk))+':'+pad2z(new Date(N.lastOk).getSeconds()):'';
     };
     upd(); setInterval(upd,5000);
+    /* 공포탐욕지수 카드: 14초가 지나도 값이 없으면 실패 안내 + 다시 시도 */
+    setInterval(function(){
+      var v=document.getElementById('us-val'), n=v?parseFloat((v.textContent||'').replace(/[^\d.]/g,'')):NaN, f=document.getElementById('fg-fail'), card=document.getElementById('us-card');
+      if(isFinite(n)){ if(f) f.remove(); return; }
+      if(!card||f||performance.now()<14000) return;
+      f=document.createElement('p'); f.id='fg-fail'; f.className='net-fail'; f.setAttribute('role','alert');
+      f.innerHTML='⚠ 공포탐욕지수를 불러오지 못했습니다 (CNN 응답 지연·차단 가능) <button type="button" class="net-retry">다시 시도</button>';
+      var b=f.querySelector('button'); b.onclick=function(){ b.disabled=true; b.textContent='불러오는 중…'; try{ if(typeof loadUS==='function') loadUS(); else location.reload(); }catch(e){ location.reload(); } setTimeout(function(){ b.disabled=false; b.textContent='다시 시도'; },6000); };
+      var src=card.querySelector('.fg-src'); if(src) src.after(f); else card.appendChild(f);
+    },4000);
     /* "불러오는 중…"이 오래 남은 곳은 실패 안내 + 재시도 버튼으로 교체 */
     var watch=function(){
       document.querySelectorAll('.mut,.pi-note').forEach(function(e){
-        if((e.textContent||'').trim()!=='불러오는 중…'||e.dataset.wd) return; e.dataset.wd='1';
+        if((e.textContent||'').trim()!=='불러오는 중…'||e.dataset.wd||e.closest('[data-lazy="1"]')) return; e.dataset.wd='1';
         e.innerHTML='⚠ 데이터를 불러오지 못했습니다 (제공처 지연·차단 가능) <button type="button" class="net-retry">다시 시도</button>';
         e.querySelector('button').onclick=function(){ location.reload(); }; e.classList.add('net-fail'); });
     };
@@ -474,7 +497,7 @@
       else if(document.getElementById('cal-body')&&document.querySelector('#cal-body .cal-row, #cal-body tr')){ document.getElementById('pb-ev').textContent='예정된 최상 일정 없음'; document.getElementById('pb-ev2').textContent=''; }
       var arr=[]; document.querySelectorAll('#shm a').forEach(function(a){ var em=a.querySelector('em'), sp=a.querySelector('span'); if(!em||!sp) return; var p=num(em.textContent.replace(/▼\s*/,'-').replace(/▲\s*/,'')); if(isFinite(p)) arr.push([sp.firstChild?sp.firstChild.textContent.trim():'',p]); });
       if(arr.length>3){ arr.sort(function(x,y){return y[1]-x[1];}); var h=arr[0], l=arr[arr.length-1], f=function(x){ return (x[1]>=0?'+':'')+x[1].toFixed(2)+'%'; };
-        document.getElementById('pb-sc').innerHTML='<span style="color:#D92D20">▲ '+h[0]+' '+f(h)+'</span>'; document.getElementById('pb-sc2').innerHTML='<span style="color:#1D4ED8">▼ '+l[0]+' '+f(l)+'</span>'; }
+        document.getElementById('pb-sc').innerHTML='<span style="color:'+UP+'">▲ '+h[0]+' '+f(h)+'</span>'; document.getElementById('pb-sc2').innerHTML='<span style="color:'+DN+'">▼ '+l[0]+' '+f(l)+'</span>'; }
       var pl=document.getElementById('pb-line'); if(pl){ var P=[], fv=num(txt('us-val')), vv=num(vb);
         if(isFinite(fv)){ var zz=fv<25?'극단적 공포':fv<45?'공포':fv<=55?'중립':fv<=75?'탐욕':'극단적 탐욕'; P.push('공포탐욕 '+Math.round(fv)+' <em>'+zz+'</em>'); }
         if(isFinite(vv)){ var vl=vv<15?'낮음':vv<20?'보통':vv<30?'높음':'매우 높음'; P.push('변동성 <em>'+vl+'</em> (VIX '+vv.toFixed(1)+')'); }
@@ -533,7 +556,7 @@
     box.innerHTML='<h3><span>⭐ 내 관심종목</span><span class="mut" style="font-weight:400;font-size:11px">이 브라우저에만 저장 · 최대 '+MAX+'개</span></h3>'+
       '<form class="my-add" autocomplete="off"><input type="text" maxlength="15" placeholder="티커 입력 (예: AAPL · NVDA · BRK-B · 005930.KS)" aria-label="추가할 종목 티커"><button type="submit">＋ 추가</button></form>'+
       '<div class="my-msg" role="status"></div><div class="wl-list" id="my-tbl" style="margin-top:8px"></div>';
-    anchor.after(box);
+    var briefEl=document.getElementById('pro-brief'); box.style.marginTop='12px'; if(briefEl) briefEl.after(box); else anchor.after(box);
     var msg=box.querySelector('.my-msg'), inp=box.querySelector('input'), host=box.querySelector('#my-tbl');
     var say=function(t,bad){ msg.textContent=t||''; msg.className='my-msg'+(bad?' bad':''); };
     var rowHtml=function(t){
@@ -545,7 +568,8 @@
     };
     var paint=function(){
       TICKGROUPS.my.list=list;
-      host.innerHTML=list.length?list.map(rowHtml).join(''):'<div class="my-empty">아직 추가한 종목이 없습니다. 위 입력칸에 티커를 입력해 보세요.</div>';
+      host.innerHTML=list.length?list.map(rowHtml).join(''):'<div class="my-empty">아직 추가한 종목이 없습니다. 위 입력칸에 티커를 입력하거나, <button type="button" class="my-ex">예시 5종목 한 번에 추가</button> (NVDA · AAPL · MSFT · TSLA · QQQ)</div>';
+      host.classList.toggle('my-fold',list.length>5&&!host.classList.contains('my-all')); var mb=box.querySelector('.my-more'); if(mb) mb.style.display=list.length>5?'':'none';
       if(list.length) renderTick('my',(typeof curPer!=='undefined'&&curPer.tick)||'d');
     };
     var fetchAll=async function(){ await Promise.all(list.map(async function(t){ var d=await yclose(t,'1y'); if(d) tickData[t]=d; })); paint(); };
@@ -558,6 +582,12 @@
       if(!d){ say('"'+t+'" 시세를 찾지 못했습니다. 티커를 확인해 주세요(한국 종목은 005930.KS, 코스닥은 .KQ).',1); return; }
       tickData[t]=d; list.push(t); save(list); inp.value=''; say(t+' 추가 완료'); paint();
     });
+    var more=document.createElement('button'); more.type='button'; more.className='my-more'; more.style.display='none'; more.textContent='전체 보기 ▾'; more.setAttribute('aria-expanded','false');
+    more.onclick=function(){ var o=host.classList.toggle('my-all'); more.textContent=o?'접기 ▴':'전체 보기 ▾'; more.setAttribute('aria-expanded',o?'true':'false'); paint(); };
+    host.after(more);
+    var addMany=async function(arr){ say('시세 확인 중…'); for(var i=0;i<arr.length;i++){ var t=arr[i]; if(list.indexOf(t)>=0||list.length>=MAX) continue; var d=await yclose(t,'1y'); if(d){ tickData[t]=d; list.push(t); } } save(list); say('추가 완료 · '+list.length+'개'); paint(); };
+    window.MK_MY_ADD=function(t){ t=String(t||'').trim().toUpperCase(); if(!RE.test(t)) return Promise.resolve(false); if(list.indexOf(t)>=0) return Promise.resolve(true); return addMany([t]).then(function(){ return list.indexOf(t)>=0; }); };
+    host.addEventListener('click',function(e){ if(e.target.closest('.my-ex')){ addMany(['NVDA','AAPL','MSFT','TSLA','QQQ']); return; } });
     host.addEventListener('click',function(e){ var a=e.target.closest('.my-del'); if(!a) return; var t=a.dataset.t; list.splice(list.indexOf(t),1); save(list); say(t+' 삭제'); paint(); });
     document.addEventListener('click',function(e){ if(e.target.closest('.tabs[data-group="tick"] button')) setTimeout(function(){ if(list.length) renderTick('my',curPer.tick); },0); });
     paint(); if(list.length) fetchAll(); setInterval(function(){ if(list.length) fetchAll(); },300000);

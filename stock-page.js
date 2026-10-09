@@ -25,7 +25,12 @@ renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','
 renderCapShareChart('us-cap-chart', US_CAP_DATA);
 applyRankHistory();
 loadUS();
-loadTickGroup('tick'); fillUsRowStats('cap-tbl',1); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); loadTickGroup('lev');
+/* 시세 목록 3종은 첫 화면 데이터(공탐·시세 띠) 뒤로 미루고, 해당 섹션이 가까워지거나 펼쳐지면 즉시 불러온다 */
+{ const L=window.MK_LAZY||((e,f)=>f());
+  const host=id=>{ const e=document.getElementById(id); return e&&(e.closest('.fold-body')||e); };
+  L(host('tick-tbl'),()=>loadTickGroup('tick'),5000);
+  L(host('cap-tbl'),()=>{ fillUsRowStats('cap-tbl',1); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); },5500);
+  L(host('lev-tbl'),()=>loadTickGroup('lev'),6000); }
 /* 접힌 섹션(지수 비교·상관관계 / 지수 편입·편출 / 유니콘)은 처음 펼칠 때 불러온다 — 아래 fold 스크립트의 지연 로딩 */
 initKrwToggle('#krw-toggle');
 

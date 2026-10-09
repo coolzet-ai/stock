@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('mk_theme'),c=localStorage.getItem('mk_cv');if(t==='dark'||(t!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.setAttribute('data-theme','dark');if(c==='us')d.setAttribute('data-cv','us');window.MK_CV={us:c==='us'}}catch(e){window.MK_CV={us:false}}})()</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -200,6 +201,7 @@ td.spark svg{display:block;margin:0 auto}
 
 .asof{margin:4px 0 10px;font-size:12px;line-height:1.5;color:var(--tx2);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
 .asof .ao-b{display:inline-block;padding:1px 8px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-weight:700;color:var(--tx2)}
+.asof .ao-n{color:var(--tx2)}.asof .ao-r{font-weight:700}
 .asof .ao-b.old{background:#FFF4E5;border-color:#F2C27A;color:#8A4B00}
 .asof.est .ao-e{background:#EEF2FF;border-color:#C7D2FE;color:#3730A3}
 .asof a{color:var(--accent);font-weight:700}
@@ -347,7 +349,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .hm-kw{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.hm-kw .hm-k{flex:1 1 320px;margin-bottom:0;min-width:0}
 #stock{padding-top:18px!important}#stock>.wrap>.sec-h{margin-bottom:0}#stock>.wrap>.sec-h .sub{margin-bottom:10px}
 @media(max-width:700px){#stock{padding-top:12px!important}}
-</style><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=29e0c567"><script defer src="mrkim-gate.js?v=7b6c363f"></script>
+</style><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=3d8b18df"><link rel="stylesheet" href="mrkim-theme.css?v=f45383fc"><script defer src="mrkim-gate.js?v=7b6c363f"></script>
 <style>
 /* 시장 한눈에 보기: 티커명 영역 높이 고정(글자 크기가 달라도 가격 블록 시작 위치 동일) · 등락 화살표 */
 .pulse .hm div.tl>span{display:flex;align-items:center;height:38px;padding-top:0;padding-bottom:0;line-height:1.2;box-sizing:border-box}
@@ -462,7 +464,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 
     <h2 style="font-size:21px;margin-top:44px">시가총액 TOP10</h2>
     <p class="sub">미국 증시 상장 종목 시가총액 순위 · 기간별 등락률</p>
-    <p class="asof" data-asof="2026-09-04" data-label="순위·시가총액 비중 스냅샷" data-cycle="수동 갱신(수시 변동) · 등락률은 실시간 시세"></p>
+    <p class="asof" data-asof="2026-09-04" data-label="순위·시가총액 비중 스냅샷" data-cycle="수동 갱신(수시 변동) · 등락률은 실시간 시세" data-next="분기 말 점검 시"></p>
     <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
     <div id="us-cap-chart" style="margin-bottom:24px"></div>
 
@@ -656,7 +658,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   <div class="wrap">
     <h2>주요 이벤트 일정 🇺🇸</h2>
     <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 날짜는 미국 동부시간(ET) 기준 · 2026년</p>
-    <p class="asof" data-label="연간 일정표" data-cycle="수동 갱신 · 발표일은 변경될 수 있음(PCE 일부 추정)"></p>
+    <p class="asof" data-label="연간 일정표" data-next="수시(발표일 변경 시)" data-cycle="수동 갱신 · 발표일은 변경될 수 있음(PCE 일부 추정)"></p>
     <div class="tabs" data-group="evmonth" id="evmonth-tabs">
       <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
       <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
@@ -684,7 +686,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     </div>
     <h2>지수 편입 · 편출 종목 🇺🇸</h2>
     <p class="sub" style="margin-bottom:12px;font-size:13.5px">S&P 500·나스닥100 최근 구성종목 변경 · 시기별 그룹 · 종목명 클릭 시 Finviz로 이동 · 재무 클릭 시 세부 재무정보</p>
-    <p class="asof" data-label="구성종목 변경 목록" data-cycle="수동 갱신 · 분기 리밸런싱·수시 변경 후 반영"></p>
+    <p class="asof" data-label="구성종목 변경 목록" data-next="분기 리밸런싱 발표 후" data-cycle="수동 갱신 · 분기 리밸런싱·수시 변경 후 반영"></p>
 <div class="tabs" data-group="idxchg" style="margin-top:6px"><button class="on" data-p="d">1일</button><button data-p="w">1주</button><button data-p="m">1개월</button><button data-p="y">1년</button></div>
 <div id="idxchg-tbl">
 <div style="margin-top:14px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel2)"><div style="font-size:15px;font-weight:900;margin-bottom:4px">📅 2026.9.21 <span class="mut" style="font-size:12px;font-weight:600">· 편입 2 · 편출 3</span></div><div style="font-size:12.5px;font-weight:800;color:var(--up);margin:10px 0 0">▲ 편입</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="ILMN"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Illumina<span class="ix ix-sp">🟦 S&P500</span></div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=ILMN" target="_blank" rel="noopener">ILMN</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=ILMN" target="_blank" rel="noopener" title="Finviz에서 ILMN 상세 지표 보기">+</a><a href="https://x.com/search?q=%24ILMN%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/ILMN/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials('ILMN','finx0-')" title="재무비율·주가지표(Yahoo Finance)">재무</button></div></div><div id="finx0-ILMN" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div><div class="wl-row" data-t="BE"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Bloom Energy<span class="ix ix-sp">🟦 S&P500</span></div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=BE" target="_blank" rel="noopener">BE</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=BE" target="_blank" rel="noopener" title="Finviz에서 BE 상세 지표 보기">+</a><a href="https://x.com/search?q=%24BE%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/BE/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials('BE','finx0-')" title="재무비율·주가지표(Yahoo Finance)">재무</button></div></div><div id="finx0-BE" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div></div><div style="font-size:12.5px;font-weight:800;color:var(--down);margin:10px 0 0">▼ 편출</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="TTD"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">The Trade Desk<span class="ix ix-sp">🟦 S&P500</span></div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TTD" target="_blank" rel="noopener">TTD</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TTD" target="_blank" rel="noopener" title="Finviz에서 TTD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TTD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/TTD/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials('TTD','finx0-')" title="재무비율·주가지표(Yahoo Finance)">재무</button></div></div><div id="finx0-TTD" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div><div class="wl-row" data-t="BLDR"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Builders FirstSource<span class="ix ix-sp">🟦 S&P500</span></div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=BLDR" target="_blank" rel="noopener">BLDR</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=BLDR" target="_blank" rel="noopener" title="Finviz에서 BLDR 상세 지표 보기">+</a><a href="https://x.com/search?q=%24BLDR%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/BLDR/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials('BLDR','finx0-')" title="재무비율·주가지표(Yahoo Finance)">재무</button></div></div><div id="finx0-BLDR" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div><div class="wl-row" data-t="TAP"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Molson Coors<span class="ix ix-sp">🟦 S&P500</span></div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TAP" target="_blank" rel="noopener">TAP</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TAP" target="_blank" rel="noopener" title="Finviz에서 TAP 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TAP%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/TAP/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials('TAP','finx0-')" title="재무비율·주가지표(Yahoo Finance)">재무</button></div></div><div id="finx0-TAP" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div></div></div>
@@ -743,22 +745,24 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <span class="dl">각 데이터의 저작권과 이용 권리는 해당 제공처에 있으며, 본 사이트는 제공처와 제휴·후원 관계가 없고 공식 서비스가 아닙니다.</span>
       <span class="dl">데이터는 최대 15~20분 이상 지연되거나 누락·오류가 있을 수 있고, 화면 상단 '데이터 상태'와 카드별 갱신 시각으로 확인할 수 있습니다. 장애 시에는 마지막으로 불러온 값이 남아 있을 수 있습니다.</span>
       <span class="dl">'김군 판정'·'등급'은 공개된 단순 규칙(산식 보기 참고)에 따른 분류이며 전문가의 평가·투자자문이 아닙니다. 게시된 자료를 무단 복제·재배포하지 마세요.</span>
+      <span class="dl">이용 통계: 개인 식별 정보 없이 섹션 펼침·탭 클릭 횟수만 하루 단위로 합산합니다. 브라우저의 '추적 금지(Do Not Track)' 설정을 켜면 집계하지 않습니다.</span>
     </div>
     <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
   </div>
 </footer>
 
 <script defer src="mrkim-common.min.js?v=b6755b95"></script>
-<script defer src="mrkim-pro.min.js?v=1c47b614"></script>
-<script defer src="stock-page.js?v=d72831a7"></script>
+<script defer src="mrkim-pro.min.js?v=095ecd50"></script>
+<script defer src="stock-page.js?v=4e85c932"></script>
 <script defer src="stock-fin.js?v=e8bfc40c"></script>
 <script defer src="stock-etf.js?v=e050bd2f"></script>
 
 <script defer src="stock-fold.js?v=47bff4cf"></script>
-<script defer src="stock-pulse.js?v=0ee062db"></script>
+<script defer src="stock-pulse.js?v=c30a53e8"></script>
 <script defer src="stock-mobile.js?v=51a213de"></script>
 <script defer src="stock-ux.js?v=ab06e8fa"></script>
-<script defer src="stock-asof.js?v=32b35b3c"></script>
+<script defer src="stock-asof.js?v=e2fd5216"></script>
 <script defer src="stock-sort.js?v=7cac578b"></script>
+<script defer src="mrkim-extra.js?v=3c654284"></script>
 </body>
 </html>

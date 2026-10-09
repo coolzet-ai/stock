@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('mk_theme'),c=localStorage.getItem('mk_cv');if(t==='dark'||(t!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.setAttribute('data-theme','dark');if(c==='us')d.setAttribute('data-cv','us');window.MK_CV={us:c==='us'}}catch(e){window.MK_CV={us:false}}})()</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="한국주식 시장 한눈에 보기: 코스피 기준 공포탐욕지수와 7개 세부지표, 투자자별 매매동향·증시자금동향, 코스피·코스닥 시가총액 TOP10, 2배 레버리지 ETF, 주요 이벤트 일정, KOSPI200 편입·편출 종목을 한 화면에서 확인하세요. 무료 공개 데이터 기반 참고용 정보입니다.">
@@ -375,7 +376,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:block}.fold-btn{padding:4px 9px;font-size:12px}}
 @media(max-width:700px){.risk-note{margin:30px 0 -6px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=c9e3a53f">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=3d8b18df"><link rel="stylesheet" href="mrkim-theme.css?v=f45383fc">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -700,12 +701,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <span class="dl">각 데이터의 저작권과 이용 권리는 해당 제공처에 있으며, 본 사이트는 제공처와 제휴·후원 관계가 없고 공식 서비스가 아닙니다.</span>
       <span class="dl">데이터는 최대 15~20분 이상 지연되거나 누락·오류가 있을 수 있고, 화면 상단 '데이터 상태'와 카드별 갱신 시각으로 확인할 수 있습니다. 장애 시에는 마지막으로 불러온 값이 남아 있을 수 있습니다.</span>
       <span class="dl">'한국 공포탐욕지수'와 '김군 판정'은 공개된 단순 규칙(산식 보기 참고)에 따른 자체 분류이며 전문가의 평가·투자자문이 아닙니다. 게시된 자료를 무단 복제·재배포하지 마세요.</span>
+      <span class="dl">이용 통계: 개인 식별 정보 없이 섹션 펼침·탭 클릭 횟수만 하루 단위로 합산합니다. 브라우저의 '추적 금지(Do Not Track)' 설정을 켜면 집계하지 않습니다.</span>
     </div>
     <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
   </div>
 </footer>
 
-<script src="mrkim-common.min.js?v=16b057b5"></script>
+<script src="mrkim-common.min.js?v=b6755b95"></script>
 <script src="kr-pro.js?v=bf530263"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
@@ -786,7 +788,7 @@ loadKrFundFlow();
 <script>
 (function(){
 const q=(id)=>[...document.querySelectorAll('#'+id+' .wl-row')].map(r=>{const c=r.querySelector('.ch'),p=r.querySelector('.px');if(!c||!p)return null;const m=c.textContent.match(/([\d.]+)\s*%/);if(!m)return null;const rm=(r.querySelector('.wl-tag')||{textContent:''}).textContent.match(/^(\d+)위/);return{t:r.dataset.t,rk:rm?+rm[1]:0,nm:((r.querySelector('.wl-name a')||{textContent:''}).textContent||'').trim(),px:p.textContent,v:parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1)}}).filter(Boolean);
-function col(v){const a=Math.min(Math.abs(v)/4,1);const L=v>=0?[200,32,20]:[26,111,168];const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
+function col(v){const a=Math.min(Math.abs(v)/4,1);const US=!!(window.MK_CV&&window.MK_CV.us);const L=v>=0?(US?[6,118,71]:[200,32,20]):(US?[200,32,20]:[26,111,168]);const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
 let mode='cap';
 const MOV={up:null,dn:null};
 async function loadMov(){
@@ -847,7 +849,8 @@ async function toggleKrLev(t,ev){
 </script>
 <script src="stock-fold.js?v=47bff4cf"></script>
 <script src="stock-mobile.js?v=51a213de"></script>
-<script src="stock-ux.js?v=5a42b456"></script>
-<script src="stock-asof.js?v=32b35b3c"></script>
+<script src="stock-ux.js?v=ab06e8fa"></script>
+<script src="stock-asof.js?v=e2fd5216"></script>
+<script src="mrkim-extra.js?v=3c654284"></script>
 </body>
 </html>

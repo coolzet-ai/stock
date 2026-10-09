@@ -1,0 +1,25 @@
+/* 수동 보정(자동 변환이 못 잡는 곳): 상태 클래스·인라인 색·배경이 var(--up)인 태그 */
+html[data-theme="dark"] .pro .tabs button.on,html[data-theme="dark"] .pro .seg button.on,html[data-theme="dark"] .pro .tabrow .tabs button.on,html[data-theme="dark"] .pro .tabrow .seg button.on,html[data-theme="dark"] .pro .cal-tabs button.on{color:#fff}
+html[data-theme="dark"] .pro #pro-kc .act.on{color:#fff}
+html[data-theme="dark"] .pro .fold-btn,html[data-theme="dark"] .pro .fold-btn em,html[data-theme="dark"] .pro .cal-more-btn,html[data-theme="dark"] .pro .ev-more-btn,html[data-theme="dark"] .pro #us-sub-note summary,html[data-theme="dark"] .pro .my-more,html[data-theme="dark"] .pro .my-ex,html[data-theme="dark"] .pro .fa-body button,html[data-theme="dark"] #psr-ex a,html[data-theme="dark"] #psr-ex button{color:#4ADE9C}
+html[data-theme="dark"] #pro-tick .pt-live,html[data-theme="dark"] .pro .pt-live{color:#4ADE9C!important}
+html[data-theme="dark"] [style*=";color:var(--accent)"],html[data-theme="dark"] [style^="color:var(--accent)"],html[data-theme="dark"] .pro .asof a,html[data-theme="dark"] .pro p[data-asof] a{color:#4ADE9C!important}
+html[data-theme="dark"] .pro .hi-tag,html[data-theme="dark"] .pro .tag,html[data-theme="dark"] .pro .ca-tag,html[data-theme="dark"] .pro .nev-h .tag,html[data-theme="dark"] #us-next-event .tag{background:#B42318!important;color:#fff!important}
+html[data-theme="dark"] .pro #pro-kc .kc-t em{filter:brightness(1.6) saturate(.9)}
+html[data-theme="dark"] #mk-admin-bar span{color:#C4B5FD}
+html[data-theme="dark"] img{opacity:.92}
+html[data-theme="dark"] #pro-search,html[data-theme="dark"] #pro-search input{background:#151A20;color:#E6E9ED}
+html[data-theme="dark"] #pro-search{border-color:#2FB07F}
+html[data-theme="dark"] #psr-res li button{color:#E6E9ED;border-color:#2A323B}
+html[data-theme="dark"] #psr-res li button:hover{background:#12261E}
+html[data-theme="dark"] #psr-res li span{color:#A9B2BD}
+html[data-theme="dark"] #psr-res li em{color:#4ADE9C}
+html[data-theme="dark"] .pro .fa-body input[type=number]{background:#0D1115;color:#E6E9ED}
+html[data-theme="dark"] .pro .fg-alert{background:#1A2027;border-color:#2A323B}
+html[data-theme="dark"] .pro .fg-alert summary{color:#E6E9ED}
+html[data-theme="dark"] #mk-toast{background:#E6E9ED;color:#111418}
+html[data-theme="dark"] #mk-toast button{background:rgba(0,0,0,.12);color:#111418}
+html[data-theme="dark"] .pro #fg-fail{background:#2C1B1E;border-color:#5A2A2A;color:#FFB4AB}
+html[data-theme="dark"] .pro #fg-fail .net-retry{background:#0D1115;color:#FFB4AB;border-color:#FF7A6E}
+/* KR: 초록 강조 글자(.ix-kp·details>summary)가 어두운 배경에서 대비 부족 */
+html[data-theme="dark"] .ix-kp,html[data-theme="dark"] body.pro summary{color:#5EDBA6!important}
