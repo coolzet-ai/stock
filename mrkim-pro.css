@@ -1100,3 +1100,74 @@ body.pro{
 .pro footer{border-top:1px solid var(--line)}
 .pro .disc b{color:var(--up)}
 .pro .card h3[style*="var(--accent)"]{color:var(--accent2)!important}
+
+/* ===== v38: 카드 제목줄 통일 · 시총 컨트롤 · 위계 · 모바일 마감 ===== */
+/* 1) 카드 제목줄: 연한 면 + 그린 포인트 (진한 그린 띠는 '오늘의 시장 요약'만) */
+.pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{background:var(--panel2);color:var(--tx);border:0;border-bottom:1px solid var(--line);border-left:4px solid var(--accent);border-radius:13px 13px 0 0;padding-left:12px;font-weight:800}
+.pro .card>h3:first-child *,.pro .card>.fg-hd:first-child *,.pro .pulse>h3:first-child *{color:inherit}
+.pro .card>h3:first-child .mut,.pro .card>.fg-hd:first-child .mut,.pro .pulse>h3:first-child .mut{color:var(--tx2)!important}
+.pro .card>.fg-hd:first-child .tabs,.pro .card>h3:first-child .tabs{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.pro .card>.fg-hd:first-child .tabs button,.pro .card>h3:first-child .tabs button{background:transparent!important;color:var(--tx2)!important;border-right:0!important;font-weight:700}
+.pro .card>.fg-hd:first-child .tabs button:hover,.pro .card>h3:first-child .tabs button:hover{background:var(--panel2)!important}
+.pro .card>.fg-hd:first-child .tabs button.on,.pro .card>h3:first-child .tabs button.on{background:var(--accent)!important;color:#fff!important}
+.pro #my-wl>h3:first-child a,.pro .card>h3:first-child a{color:var(--accent2)}
+/* 2) 시총 컨트롤 */
+.cap-ctl{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.cap-ctl>.tabs{margin:0!important;flex:none}
+.cap-ctl>#cap-chip-set{margin:0!important;justify-content:flex-start!important}
+.lg-t{display:inline-flex;align-items:center;min-height:32px;margin:2px 0;padding:0 4px;border:0;background:none;color:var(--tx2);font:inherit;font-size:12px;font-weight:700;cursor:pointer;position:relative}
+.lg-t::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:44px;transform:translateY(-50%)}
+.lg-t:hover{color:var(--accent)}
+/* 3) 관심종목 빈 상태: 예시 버튼을 주 버튼으로 */
+.pro .my-empty .my-ex{background:var(--accent);border-color:var(--accent);color:#fff;border-radius:50px;font-weight:800;padding:8px 16px;min-height:36px}
+.pro .my-empty .my-ex:hover{filter:brightness(1.08)}
+/* 4) PC 첫 화면 위계: 공포탐욕 칸을 더 크게 */
+@media(min-width:901px){
+  #pro-brief .pb-grid{grid-template-columns:1.5fr 1fr 1fr 1fr}
+  #pro-brief .pb-grid>.pb-c:first-child [class*="pb-v"],#pro-brief .pb-grid>.pb-c:first-child b{font-size:1.25em}
+}
+/* 5) 고정 영역 줄이기: 스크롤을 내리면 티커 띠 접기 */
+#pro-tick{transition:height .2s ease,opacity .2s ease}
+body.mk-down #pro-tick{height:0;opacity:0;overflow:hidden;border-bottom-width:0}
+/* 6) 우측 패널: 1500px 이상에서 좁게 */
+@media(min-width:1500px) and (max-width:1839px){
+  #mk-side{display:block;position:fixed;top:140px;right:8px;width:118px;max-height:calc(100vh - 160px);overflow:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:12px;z-index:30}
+  #mk-side .sd-h{display:block;margin:2px 0 6px;font-size:11.5px;color:var(--tx2)}
+  #mk-side ul{list-style:none;margin:0;padding:0}
+  #mk-side .sd-ev,#mk-side .sd-h:nth-of-type(2){display:none}
+  #mk-side li button{display:block;width:100%;text-align:left;min-height:30px;padding:0 6px;border:0;border-radius:6px;background:none;color:var(--tx);font:inherit;font-weight:700;cursor:pointer}
+  #mk-side li button:hover{background:var(--panel2)}
+}
+/* 7) 숫자 열 정렬 · 빈 값 */
+.pro .wl-price,.pro .wl-pct{font-variant-numeric:tabular-nums}
+@media(min-width:701px){.pro .wl-quote .wl-price{min-width:84px;text-align:right}.pro .wl-quote .wl-pct{min-width:72px;text-align:right}}
+.pro .na{color:var(--tx2)!important;font-weight:500;opacity:.85}
+#mk-ver{margin-top:8px;font-size:11px;color:var(--tx2);font-variant-numeric:tabular-nums}
+#hd-pop #hp-one{min-width:56px}
+#hd-pop #hp-one[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+#mk-pos{display:none}
+/* 모바일 */
+@media(max-width:700px){
+  #pro-top:not(.on),html:not(.mk-up) #pro-top{opacity:0!important;pointer-events:none!important}
+  html.mk-up #pro-top.on{opacity:1!important;pointer-events:auto!important}
+  #mk-pos{display:block;position:fixed;left:10px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:79;padding:5px 11px;border-radius:99px;background:var(--house);color:#fff;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s}
+  #mk-pos.on{opacity:.92}
+  /* 요약 4칸: 가로 스와이프 1줄 */
+  #pro-brief .pb-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  #pro-brief .pb-grid::-webkit-scrollbar{display:none}
+  #pro-brief .pb-grid>.pb-c{flex:0 0 66%;scroll-snap-align:start;border-bottom:0!important;border-right:1px solid var(--line)!important}
+  .pro .tabs button{min-height:36px}
+  .pro .wl-tag.has-tc,.pro .wl-er{min-height:24px}
+  .pro .wl-er .er-n{max-width:100%;overflow:hidden;white-space:nowrap}
+  .cap-ctl{flex-direction:column;align-items:stretch}
+  .cap-ctl>.tabs,.cap-ctl>#cap-chip-set{justify-content:center}
+}
+body.pro .card>.fg-hd:first-child h3,body.pro .card>h3:first-child,body.pro .pulse>h3:first-child,body.pro .card>.fg-hd:first-child>h3{color:var(--tx)!important}
+body.pro .card>h3:first-child small,body.pro .card>.fg-hd:first-child small,body.pro .card>.fg-hd:first-child .fg-sub,body.pro .card>h3:first-child .fg-sub,body.pro .pulse>h3:first-child small{color:var(--tx2)!important}
+@media(max-width:700px){
+  .pro .card>.fg-hd:first-child .tabs,.pro #us-idxrel-card .fg-hd .tabs,.pro #us-caprel-card .fg-hd .tabs{background:var(--panel)!important;border:1px solid var(--line)!important}
+  .pro .card>.fg-hd:first-child .tabs button,.pro #us-idxrel-card .fg-hd .tabs button,.pro #us-caprel-card .fg-hd .tabs button{color:var(--tx2)!important}
+  .pro .card>.fg-hd:first-child .tabs button.on,.pro #us-idxrel-card .fg-hd .tabs button.on,.pro #us-caprel-card .fg-hd .tabs button.on{background:var(--accent)!important;color:#fff!important;box-shadow:none}
+}
+.pro .act-legend[hidden]{display:none!important}
+.pro .card>.fg-hd:first-child .tabs button,.pro .card>h3:first-child .tabs button{border:0!important;box-shadow:none}
