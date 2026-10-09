@@ -6181,3 +6181,61 @@ async function hydrateIpoQuotes(){
   loadSent(); loadRank();
   setInterval(()=>{loadSent();loadRank();},300000);
 })();
+
+/* ===================== 시총 TOP30 — 실적 발표 D-day 칩 + 회사 IR 사이트 링크 =====================
+   Worker(/earnings)가 Yahoo calendarEvents의 '다음 실적 발표 예정일'을 내려준다(추정일 포함 가능).
+   칩을 누르면 해당 회사 IR(실적 자료) 사이트가 새 탭으로 열린다. 값이 없으면 칩을 만들지 않는다(임의 날짜 표시 금지). */
+const EARN_IR={
+  NVDA:'https://investor.nvidia.com/', AAPL:'https://investor.apple.com/', GOOGL:'https://abc.xyz/investor/', MSFT:'https://www.microsoft.com/en-us/investor',
+  AMZN:'https://ir.aboutamazon.com/', TSM:'https://investor.tsmc.com/', AVGO:'https://investors.broadcom.com/', META:'https://investor.atmeta.com/',
+  TSLA:'https://ir.tesla.com/', MU:'https://investors.micron.com/', 'BRK-B':'https://www.berkshirehathaway.com/reports.html', AMD:'https://ir.amd.com/',
+  LLY:'https://investor.lilly.com/', JPM:'https://www.jpmorganchase.com/ir', WMT:'https://stock.walmart.com/', V:'https://investor.visa.com/',
+  XOM:'https://corporate.exxonmobil.com/investors', INTC:'https://www.intc.com/', JNJ:'https://www.investor.jnj.com/', MA:'https://investor.mastercard.com/',
+  ABBV:'https://investors.abbvie.com/', CSCO:'https://investor.cisco.com/', BAC:'https://investor.bankofamerica.com/', AMAT:'https://ir.appliedmaterials.com/',
+  COST:'https://investor.costco.com/', CAT:'https://investors.caterpillar.com/', CVX:'https://www.chevron.com/investors', UNH:'https://www.unitedhealthgroup.com/investors',
+  LRCX:'https://investor.lamresearch.com/'
+};
+const EARN_LIST=['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA','MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ','MA','ABBV','CSCO','BAC','AMAT','COST','CAT','CVX','UNH','LRCX'];
+let EARN_DATA=null;
+function injectEarnCss(){
+  if(document.getElementById('er-css')) return;
+  const st=document.createElement('style'); st.id='er-css';
+  st.textContent='.wl-er{margin-top:3px;line-height:1}.er-b{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;border:1px solid #D0D5DD;background:#F2F4F7;color:#344054;font-size:11.5px;font-weight:800;text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+  '.er-b:hover{filter:brightness(.96);text-decoration:underline}.er-b.soon{background:#FEF0C7;border-color:#F5C35A;color:#7A4B00}.er-b.hot{background:#FEE4E2;border-color:#F4A6A0;color:#912018}.er-b.done{background:#D1FADF;border-color:#7ED9A4;color:#05603A}'+
+  '@media(max-width:560px){.er-b{font-size:10.5px;padding:2px 6px}}';
+  document.head.appendChild(st);
+}
+function earnDays(ts){
+  const ny=s=>{const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(s).forEach(x=>p[x.type]=x.value);return Date.UTC(+p.year,+p.month-1,+p.day)/864e5;};
+  return Math.round(ny(new Date(ts*1000))-ny(new Date()));
+}
+function applyEarnBadges(){
+  if(!EARN_DATA) return;
+  injectEarnCss();
+  document.querySelectorAll('#cap-tbl .wl-row,#cap2-tbl .wl-row,#cap3-tbl .wl-row').forEach(row=>{
+    const t=row.dataset.t, e=EARN_DATA[t], info=row.querySelector('.wl-info'); if(!info) return;
+    let box=info.querySelector('.wl-er');
+    if(!e||!e.ts){ if(box) box.remove(); return; }
+    const d=earnDays(e.ts); if(d<-3){ if(box) box.remove(); return; }
+    const dt=new Date(e.ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
+    const rng=e.ts2&&e.ts2!==e.ts?' ~ '+new Date(e.ts2*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'}):'';
+    const cls=d<0?'done':d<=3?'hot':d<=14?'soon':'', label=d<0?'📋 실적 발표 D+'+(-d):d===0?'🔥 실적 발표 D-DAY':(d<=3?'🔔 ':'📣 ')+'실적 D-'+d;
+    const url=EARN_IR[t]||('https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/analysis/');
+    const html='<a class="er-b '+cls+'" href="'+url+'" target="_blank" rel="noopener" title="다음 실적 발표 '+dt+rng+' (미국 현지 기준 · 회사 확정 전에는 추정일) · 누르면 '+t+' '+(EARN_IR[t]?'IR 사이트':'Yahoo 실적 분석')+'로 이동">'+label+'</a>';
+    if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
+    if(box.innerHTML!==html) box.innerHTML=html;
+  });
+}
+async function loadEarnings(){
+  if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'earnings?tickers='+EARN_LIST.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+    const j=r.ok?await r.json():null;
+    if(j&&!j.error){ EARN_DATA=j; applyEarnBadges(); }
+  }catch(e){ console.warn('실적 발표일 로딩 실패:',e); }
+}
+if(document.getElementById('cap-tbl')){
+  setTimeout(loadEarnings,1200);
+  ['cap-tbl','cap2-tbl','cap3-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });
+}
