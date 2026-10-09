@@ -2361,7 +2361,10 @@ async function loadFinSavings(){
     }
   }catch(e){
     console.warn('예금·적금 금리 로딩 실패:', e);
-    if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다.';
+    finSavingsData.deposit=finSavingsData.deposit&&finSavingsData.deposit.length?finSavingsData.deposit:[];
+    finSavingsData.saving=finSavingsData.saving&&finSavingsData.saving.length?finSavingsData.saving:[];
+    finSavingsFail='서버 응답 지연 또는 연결 실패('+(e&&e.name||'error')+')';
+    if(!shown&&statusEl) statusEl.textContent='⚠ 예금·적금 금리를 가져오지 못했습니다. 잠시 후 새로고침해 주세요.';
   }
   renderFinSavings();
 }
@@ -3222,7 +3225,7 @@ function renderFinSavingsTable(listId, list){
   if(!el) return;
   if(!list){ el.innerHTML='<div class="fs-row"><span class="mut">불러오는 중…</span></div>'; return; }
   const filtered=finSavingsGroup==='전체'?list:list.filter(it=>it.group===finSavingsGroup);
-  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">'+(list.length?'이 분류에 표시할 상품이 없습니다':'금리 데이터를 받지 못했습니다'+(finSavingsFail?' — 원인: '+finSavingsFail.replace(/</g,'&lt;'):''))+'</span></div>'; return; }
+  if(!filtered.length){ el.innerHTML='<div class="fs-row"><span class="mut">'+(list.length?'이 분류에 표시할 상품이 없습니다':'표시할 금리 데이터가 없습니다'+(finSavingsFail?' · '+finSavingsFail.replace(/</g,'&lt;'):''))+'</span></div>'; return; }
   const capped=filtered.slice(0,30);
   const showCount=finSavingsExpanded?capped.length:Math.min(capped.length,3);
   const rowsHtml=capped.slice(0,showCount).map(it=>{

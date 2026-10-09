@@ -211,6 +211,8 @@ html[data-theme="dark"] .pro .strat-note{background:#131f15;color:#dee7e2}
 html[data-theme="dark"] .pro .strat-note>b{color:#b3f3db}
 html[data-theme="dark"][data-theme="dark"] .pro .strat-note>b{color:#94ccb1}
 html[data-theme="dark"] .pro .fg-hd>a.btn{background:#101316 !important;color:#cdebdf !important;border-color:#1a1f23 !important}
+html[data-theme="dark"] .pro #fin-savings-list .fs-rate .max{color:#b3f3db}
+html[data-theme="dark"][data-theme="dark"] .pro #fin-savings-list .fs-rate .max{color:#94ccb1 !important}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
