@@ -167,7 +167,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(min-width:701px){#p2p .sl{display:block}#p2p .card .sl,#p2p .band .sl{display:block}}
 @media(max-width:700px){#p2p .band{padding:12px 14px!important}}
 
-.p2p-top{grid-template-columns:1fr 1fr!important;align-items:stretch}
+.p2p-top{grid-template-columns:1fr 1fr!important;align-items:stretch!important}
+.p2p-top>.card{display:flex!important;flex-direction:column;height:100%;box-sizing:border-box;margin:0!important}
+.p2p-top>.card>:last-child{margin-top:auto!important;padding-top:10px}
+.p2p-top>.card>p.mut{margin-bottom:10px!important}
 .p2p-code{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
 .p2p-code b{font-size:26px;font-weight:800;color:var(--accent);letter-spacing:1px}
 .p2p-perks{display:flex;flex-wrap:wrap;gap:6px}
@@ -179,7 +182,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .mk-note b{display:block;font-size:14.5px;color:var(--tx)}
 .mk-note p{margin:4px 0 0;font-size:13px;line-height:1.6;color:var(--tx2)}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=b7aa1dd6"><link rel="stylesheet" href="mrkim-theme.css?v=994aa7c4">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=edb85e87"><link rel="stylesheet" href="mrkim-theme.css?v=a84eb622">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -260,7 +263,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.js?v=d4b0684b"></script>
+<script src="mrkim-common.js?v=7df4b4d6"></script>
 <script>
 const now=new Date();
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }

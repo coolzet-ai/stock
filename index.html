@@ -178,8 +178,15 @@ footer .disc .dl{margin-top:3px}
 footer p[style*="margin-top:16px"]{margin-top:8px!important}
 }
 @media(max-width:700px){.hero{padding:16px 0 14px!important}.hero h1{font-size:24px!important}.hero .badge{margin-bottom:8px!important;font-size:11px}.hero p{font-size:13px!important;margin:8px auto 12px!important}.hero .updated{margin-top:8px!important}footer>.wrap>p:first-of-type{display:none}footer{padding:10px 0 12px!important}footer ul{font-size:11.5px!important}footer .disc{font-size:11.5px!important;padding:8px 10px!important}header .nav{padding-top:6px;padding-bottom:6px}}
+.hub-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+a.hub{display:flex;flex-direction:column;text-decoration:none;color:inherit;min-height:128px}
+a.hub h3{color:var(--tx);font-size:17px;margin-bottom:8px}
+a.hub .pv{margin-top:auto}
+a.hub .mut{margin-bottom:12px}
+@media(max-width:900px){.hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.hub-grid{grid-template-columns:minmax(0,1fr)}a.hub{min-height:124px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=b7aa1dd6"><link rel="stylesheet" href="mrkim-theme.css?v=994aa7c4">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=edb85e87"><link rel="stylesheet" href="mrkim-theme.css?v=a84eb622">
 <script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body class="pro lite">
@@ -223,39 +230,43 @@ footer p[style*="margin-top:16px"]{margin-top:8px!important}
   <div class="wrap">
     <h2>바로가기</h2>
     <p class="sub">원하는 섹션을 선택하세요</p>
-    <div class="grid">
-      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국주식</h3>
+    <div class="grid hub-grid">
+      <a class="card hub" href="stock.html">
+        <h3>미국주식</h3>
         <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
         <p class="pv" data-pv="stock" hidden></p>
       </a>
-      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국주식</h3>
+      <a class="card hub" href="kr-stock.html">
+        <h3>한국주식</h3>
         <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
         <p class="pv" data-pv="kr-stock" hidden></p>
       </a>
-      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
+      <a class="card hub" href="bond.html">
+        <h3>채권</h3>
+        <p class="mut">회사채 A·B등급 고수익 채권 Top10, 브라질 국채 수익률 시각화</p>
+      </a>
+      <a class="card hub" href="crypto.html">
+        <h3>가상화폐</h3>
         <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
       </a>
-      <a class="card" href="fx.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">환율</h3>
+      <a class="card hub" href="fx.html">
+        <h3>환율</h3>
         <p class="mut">김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) 환율, RSI·이격도·200일선, 환전 우대 정보</p>
       </a>
-      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
+      <a class="card hub" href="finprod.html">
+        <h3>금융상품</h3>
         <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
       </a>
-      <a class="card" href="ipo.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">공모주</h3>
+      <a class="card hub" href="ipo.html">
+        <h3>공모주</h3>
         <p class="mut">월간 공모주 캘린더, 청약·상장 일정, 김군코멘트</p>
       </a>
-      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
+      <a class="card hub" href="p2p.html">
+        <h3>P2P</h3>
         <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
       </a>
-      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
+      <a class="card hub" href="trade.html">
+        <h3>매매김군</h3>
         <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
       </a>
     </div>

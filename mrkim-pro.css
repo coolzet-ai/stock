@@ -1535,13 +1535,6 @@ html[data-theme="dark"] .kr-sline{background:#16231c;border-bottom-color:#2c3d33
 @media(max-width:700px){.kr-sline{font-size:13px;padding:9px 12px}.kr-sc{padding:8px 8px 10px}.kr-sc b{font-size:14px;white-space:normal}.kr-sc span{white-space:normal}}
 @media(min-width:901px){.pro #cr-top{align-items:stretch!important}.pro #cr-top>.card{align-self:stretch!important;height:auto!important;margin-top:0!important;display:flex;flex-direction:column}.pro #cr-top>.card>*:last-child{margin-top:auto}}
 /* v48 공모주 세부정보 */
-.pro .ipo-detail.open::before{content:"세부 정보";display:block;margin:0 0 12px;padding:8px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.2px}
-.pro .ipo-detail .ipo-key .kt{padding:10px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:10px;background:var(--panel)}
-.pro .ipo-detail .ipo-key .kt .k{font-size:12px;font-weight:700;color:var(--tx2)}
-.pro .ipo-detail .ipo-key .kt .v{margin-top:3px;font-size:16px;font-weight:800;color:var(--tx);line-height:1.35}
-.pro .ipo-detail .ipo-key .kt.na{border-left-color:var(--line)}
-.pro .ipo-detail .ipo-key .kt.na .v{font-weight:600;color:var(--tx2)}
-.pro .ipo-detail .ipo-judge{border-radius:12px}
 .pro .ipo-detail details.ipo-more{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
 .pro .ipo-detail details.ipo-more>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:46px;padding:0 14px;background:var(--panel2);color:var(--accent);font-size:14px;font-weight:800;cursor:pointer;list-style:none}
 .pro .ipo-detail details.ipo-more>summary::-webkit-details-marker{display:none}
@@ -1552,8 +1545,6 @@ html[data-theme="dark"] .kr-sline{background:#16231c;border-bottom-color:#2c3d33
 .pro .ipo-detail .ipo-detail-grid>div{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
 .pro .ipo-detail .ipo-detail-grid .k{font-size:12px;font-weight:700;color:var(--tx2)}
 .pro .ipo-detail .ipo-detail-grid .v{margin-top:2px;font-size:14px;font-weight:700;color:var(--tx)}
-.pro .ipo-detail a[onclick*="toggleIpoFinancials"]{display:inline-flex!important;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--accent);border-radius:10px;background:var(--panel);font-size:14px!important;color:var(--accent)!important}
-.pro .ipo-detail>div:last-child:not(.ipo-key):not(.ipo-judge){padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--panel2);font-size:12px!important;line-height:1.6}
 /* v48 P2P 오픈예정 카드: 한 줄 정보 + 상세보기 */
 .pro .p2p-card{display:flex;flex-direction:column;gap:8px;box-sizing:border-box;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--panel);color:var(--tx);text-decoration:none}
 .pro .p2p-card.is-hi{background:rgba(31,164,99,.07)}
@@ -1637,3 +1628,96 @@ html[data-theme="dark"] #mk-cmp .cm-rg button.on{background:#e6efe9;color:#11141
 #fin-events-status{margin-top:24px!important}
 #fin-ev-sec th:first-child,#fin-ev-bank th:first-child,#fin-ev-card th:first-child{white-space:nowrap}
 .pro .fin-sec table thead th:first-child{white-space:nowrap;min-width:64px}
+/* v52 공모주 상세: 한 박스 통합 요약 + 간결 일정 + 도구줄 + 재무/동종 패널 */
+.pro .ipo-detail{margin-top:12px;padding-top:12px;font-size:13px}
+.ipo-sum{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.ipo-sum .ipo-key{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0}
+.ipo-sum .ipo-key .kt{padding:9px 12px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent}
+.ipo-sum .ipo-key .kt:nth-child(3n){border-right:0}
+.ipo-sum .ipo-key .kt .k{font-size:11.5px;font-weight:700;color:var(--tx2)}
+.ipo-sum .ipo-key .kt .v{margin-top:2px;font-size:14.5px;font-weight:800;color:var(--tx);line-height:1.35}
+.ipo-sum .ipo-key .kt.na .v{font-weight:600;color:var(--tx2)}
+.ipo-vd{padding:10px 12px;background:var(--panel2);border-left:4px solid var(--vc,var(--accent))}
+.ipo-vd .vl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ipo-vd .vl small{display:block;font-size:11px;color:var(--tx2);font-weight:700}
+.ipo-vd .vl b{font-size:18px;font-weight:900;color:var(--vc,var(--accent))}
+.ipo-vd .sc{margin-left:auto;font-size:22px;font-weight:900;color:var(--vc,var(--accent));font-variant-numeric:tabular-nums}
+.ipo-vd .sc small{display:inline;font-size:11px;margin-left:2px;color:var(--tx2)}
+.ipo-vd .ipo-lamp{margin:0}
+.ipo-vd .ipo-scale{margin-top:8px}
+.ipo-vd.pend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ipo-vd.pend span{flex:1 1 100%;font-size:12.5px;color:var(--tx2)}
+.ipo-why{margin-top:8px}
+.ipo-why>summary{cursor:pointer;min-height:36px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--accent);list-style:none}
+.ipo-why>summary::-webkit-details-marker{display:none}
+.ipo-why>summary::after{content:"＋";margin-left:auto;color:var(--tx2)}
+.ipo-why[open]>summary::after{content:"－"}
+.ipo-why>summary span{font-weight:500;color:var(--tx2);font-size:11.5px}
+.ips{display:flex;align-items:center;gap:14px;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.ips-pill{flex:none;min-width:88px;text-align:center;padding:6px 10px;border-radius:8px;color:#fff;background:var(--accent)}
+.ips-pill.now{background:#8a6500}.ips-pill.soon{background:#c4251c}
+.ips-pill small{display:block;font-size:11px;font-weight:700;opacity:.95;white-space:nowrap}
+.ips-pill b{display:block;font-size:20px;font-weight:900;line-height:1.15;white-space:nowrap}
+.ips-tl{flex:1;min-width:0;display:flex;gap:2px}
+.ips-st{flex:1 1 0;min-width:0;text-align:center;position:relative;padding-top:14px;border-top:3px solid var(--accent);font-size:11px}
+.ips-st.done{border-top-color:var(--line)}.ips-st.now{border-top-color:#8a6500}
+.ips-st i{position:absolute;left:50%;top:-7px;width:11px;height:11px;border-radius:50%;transform:translateX(-50%);background:var(--accent);border:2px solid var(--panel)}
+.ips-st.done i{background:var(--tx2)}.ips-st.now i{background:#8a6500}
+.ips-st span{display:block;font-weight:800;font-size:12px;color:var(--tx)}
+.ips-st em{display:block;font-style:normal;color:var(--tx2);font-size:11px}
+.ips-st b{display:block;font-size:11.5px;color:var(--accent)}.ips-st.done b{color:var(--tx2)}.ips-st.now b{color:#8a6500}
+.ips-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.ips-info>div{padding:8px 12px;border-right:1px solid var(--line);min-width:0}.ips-info>div:last-child{border-right:0}
+.ips-info small{display:block;font-size:11px;font-weight:700;color:var(--tx2)}
+.ips-info b{display:block;font-size:14px;font-weight:800;margin-top:1px}
+.ips-info em{display:block;font-style:normal;font-size:11px;color:var(--tx2);margin-top:1px}
+.pro .ipo-detail details.ipo-more{margin-top:8px}
+.ipo-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.ipo-tools button{min-height:40px;padding:0 14px;border:1px solid var(--accent);border-radius:8px;background:var(--panel);color:var(--accent);font-weight:800;font-size:13px;cursor:pointer}
+.ipo-tools button.on{background:var(--accent);color:#fff}
+.ipo-tools a{margin-left:auto;font-size:12px;color:var(--tx2);text-decoration:underline}
+.ipo-fp{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.ipo-fp>.hd{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:8px 14px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.ipo-fp>.hd b{font-size:13.5px;font-weight:800}
+.ipo-fp>.hd span{font-size:11px;color:var(--tx2)}.ipo-fp>.hd span em{font-style:normal;font-weight:800;color:var(--accent)}
+.ipo-fp>.bd{padding:12px 14px}
+.ipo-fp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px;align-items:start}
+.ipo-fp-rat{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+.ipo-nodata{margin:10px 0 0;padding:8px 12px;border:1px dashed var(--line);border-radius:8px;font-size:12px;color:var(--tx2)}
+.ipo-rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin:0 0 12px}
+.ipo-rk>div{padding:7px 10px;border:1px solid var(--line);border-top:3px solid var(--tx2);border-radius:8px;background:var(--panel)}
+.ipo-rk>div.g1{border-top-color:var(--accent)}.ipo-rk>div.g3{border-top-color:var(--down)}
+.ipo-rk small{display:block;font-size:11px;color:var(--tx2);font-weight:700;white-space:nowrap}
+.ipo-rk b{font-size:19px;font-weight:900}.ipo-rk em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--tx2);margin-left:1px}
+.ipo-rk .g1 b{color:var(--accent)}
+.ipo-pt{border:1px solid var(--line);border-radius:8px}
+.ipo-pt-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.ipo-pt-t thead th{background:var(--panel2);position:sticky;top:0}
+.ipo-pt-t tbody tr:nth-child(even) td:not([style*="gradient"]){background:transparent}
+.ipo-raw{margin-top:10px}.ipo-raw>summary{cursor:pointer;font-size:12px;color:var(--tx2);min-height:36px;display:flex;align-items:center}
+.ipo-asof{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0 0 12px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.ipo-asof #ipo-live-status{flex:1 1 260px;font-size:12.5px;color:var(--tx2)}
+.ipo-asof #ipo-live-status b{color:var(--tx)}.ipo-asof #ipo-live-status em{font-style:normal;color:#8a6500}.ipo-asof small{color:var(--tx2)}
+.ipo-asof button{min-height:40px;padding:0 14px;border:1px solid var(--accent);border-radius:8px;background:var(--panel);color:var(--accent);font-weight:800;font-size:13px;cursor:pointer}
+.ipo-asof button:disabled{opacity:1;color:var(--tx2);border-color:var(--line);cursor:default}
+@media(max-width:700px){
+ .ipo-sum .ipo-key{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ipo-sum .ipo-key .kt:nth-child(3n){border-right:1px solid var(--line)}.ipo-sum .ipo-key .kt:nth-child(2n){border-right:0}
+ .ips{flex-direction:column;align-items:stretch}.ips-pill{align-self:flex-start}
+ .ips-info{grid-template-columns:minmax(0,1fr)}.ips-info>div{border-right:0;border-bottom:1px solid var(--line)}.ips-info>div:last-child{border-bottom:0}
+ .ipo-fp-cols{grid-template-columns:minmax(0,1fr)}
+ .ipo-tools a{margin-left:0}
+}
+/* 시총 뉴스 검색 대체 칩 */
+.er-n.ns{background:var(--panel2,#f6f7f8);color:var(--tx2,#475467);border-style:dashed}
+/* index 카드 */
+.ipo-fp [style*="var(--down)"],.ipo-pt-t [style*="var(--down)"]{color:#14598c!important}
+.ipo-fp tbody td,.ipo-fp table td{background-color:var(--panel)}
+html[data-theme="dark"] .ipo-fp [style*="var(--down)"],html[data-theme="dark"] .ipo-pt-t [style*="var(--down)"]{color:#7ab8ee!important}
+html[data-theme="dark"] .ipo-tools button,html[data-theme="dark"] .ipo-asof button{color:#4cc38a;border-color:#4cc38a}
+html[data-theme="dark"] .ipo-tools button.on{background:#4cc38a;color:#0b1a12}
+html[data-theme="dark"] .ipo-asof button:disabled{color:var(--tx2);border-color:var(--line)}
+html[data-theme="dark"] .ipo-fp>.hd span em,html[data-theme="dark"] .ipo-why>summary,html[data-theme="dark"] .ips-st b,html[data-theme="dark"] .ipo-rk .g1 b{color:#4cc38a}
+html[data-theme="dark"] .ips-st.done b{color:var(--tx2)}
+html[data-theme="dark"] .ipo-vd .vl b,html[data-theme="dark"] .ipo-vd .sc{color:var(--vc,#4cc38a)}
+html[data-theme="dark"] .ipo-asof #ipo-live-status em{color:#f2c14e}

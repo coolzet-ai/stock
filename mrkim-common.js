@@ -3394,7 +3394,7 @@ function buildIpoDataFromApi(items){
   });
   return grouped;
 }
-async function loadIpoListLive(onCached){
+async function loadIpoListLive(onCached,opts){
   if(!PROXY_BASE) return null;
   const LSK='mk_ipo_list_v1';
   /* 직전에 성공한 응답을 브라우저에 저장해 두었다가 먼저 보여준다(서버가 느려도 즉시 표시, 이후 최신 데이터로 교체). */
@@ -3404,7 +3404,7 @@ async function loadIpoListLive(onCached){
   }catch(e){}
   const origin=PROXY_BASE.replace(/\?url=$/,'');
   const once=async(ms)=>{
-    const r=await fetch(origin+'ipo-list',{signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
+    const r=await fetch(origin+'ipo-list'+(opts&&opts.force?'?refresh=1&_='+Date.now():''),{signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const j=await r.json();
     if(!j||!j.items||!j.items.length) throw new Error('empty');
@@ -3808,6 +3808,7 @@ function renderIpoPeerTable(peer){
     const r=arr.findIndex(o=>o.i===0); return r<0?null:{r:r+1,n:arr.length};
   });
   const wins=myRank.filter(o=>o&&o.r===1).length, cnt=myRank.filter(Boolean).length;
+  const mx=metrics.map(m=>Math.max.apply(null,m.v.filter(x=>x!=null&&x>0).concat(0.0001)));
   const th=m=>'<th style="text-align:right;white-space:nowrap;font-size:12px;padding:8px 10px">'+m.t+(m.u==='%'?'':'<br><span style="font-weight:400;font-size:10.5px;color:var(--tx2)">억원</span>')+(m.low?'<br><span style="font-weight:400;font-size:10.5px;color:var(--tx2)">낮을수록↑</span>':'')+'</th>';
   const stick='position:sticky;left:0;background:var(--panel);z-index:1;';
   const head='<tr><th style="text-align:left;'+stick+'font-size:12px;padding:8px 10px">회사</th>'+metrics.map(th).join('')+
@@ -3818,24 +3819,23 @@ function renderIpoPeerTable(peer){
     const label=(me?'★ ':'')+nm.replace(/^동사.*/,'공모기업');
     const cells=metrics.map((m,mi)=>{
       const x=m.v[i], neg=x!=null&&x<0, isBest=best[mi]===i&&m.v.filter(v=>v!=null).length>1;
-      return '<td style="text-align:right;white-space:nowrap;padding:8px 10px;font-weight:'+(isBest||me?800:500)+';color:'+(neg?'var(--down)':'var(--tx)')+';'+(isBest?'background:rgba(0,117,74,.13);':'')+'">'+fmtV(x,m.u)+(isBest?' <span title="비교 대상 중 1위" style="font-size:10px">🏆</span>':'')+'</td>';
+      return '<td style="text-align:right;white-space:nowrap;padding:8px 10px;font-weight:'+(isBest||me?800:500)+';color:'+(neg?'var(--down)':'var(--tx)')+';'+((x!=null&&x>0)?'background:linear-gradient(90deg,'+(isBest?'rgba(0,117,74,.28)':'rgba(0,117,74,.11)')+' '+Math.max(4,x/mx[mi]*100).toFixed(0)+'%,transparent 0);':'')+'">'+fmtV(x,m.u)+(isBest?' <span title="비교 대상 중 1위" style="font-size:10px">🏆</span>':'')+'</td>';
     }).join('');
     const pxCells=me
       ? '<td style="text-align:right;padding:8px 10px" class="mut">—</td><td style="padding:8px 10px" class="mut">미상장/신규</td>'
       : '<td data-peerpx="'+nm.replace(/"/g,'')+'" data-col="ret" style="text-align:right;white-space:nowrap;padding:8px 10px" class="mut">…</td><td data-peerpx="'+nm.replace(/"/g,'')+'" data-col="tech" style="white-space:nowrap;padding:8px 10px" class="mut">…</td>';
-    return '<tr style="'+(me?'background:rgba(0,117,74,.07);':'')+'border-top:1px solid var(--line)"><td style="'+stick+(me?'background:#eef7f2;':'')+'font-weight:'+(me?900:600)+';color:'+(me?'var(--accent)':'var(--tx)')+';white-space:nowrap;padding:8px 10px;font-size:12.5px">'+label+'</td>'+cells+pxCells+'</tr>';
+    return '<tr style="'+(me?'background:rgba(0,117,74,.07);':'')+'border-top:1px solid var(--line)"><td style="'+stick+(me?'background:var(--panel2);':'')+'font-weight:'+(me?900:600)+';color:'+(me?'var(--accent)':'var(--tx)')+';white-space:nowrap;padding:8px 10px;font-size:12.5px">'+label+'</td>'+cells+pxCells+'</tr>';
   }).join('');
-  const rankStrip='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+metrics.map((m,mi)=>{
+  const rankStrip='<div class="ipo-rk">'+metrics.map((m,mi)=>{
     const r=myRank[mi]; if(!r) return '';
-    const good=r.r===1;
-    return '<span style="font-size:11.5px;padding:3px 8px;border-radius:8px;border:1px solid '+(good?'var(--accent)':'var(--line)')+';color:'+(good?'var(--accent)':'var(--tx2)')+';font-weight:'+(good?800:600)+'">'+m.t+' '+r.r+'/'+r.n+'위</span>';
+    return '<div class="'+(r.r===1?'g1':r.r<=Math.ceil(r.n/2)?'g2':'g3')+'"><small>'+m.t+'</small><b>'+r.r+'<em>/'+r.n+'위</em></b></div>';
   }).join('')+'</div>';
   const rawHead='<tr><th>구분</th>'+names.map(c=>'<th style="text-align:right">'+c+'</th>').join('')+'</tr>';
   const rawBody=peer.rows.map(r=>'<tr><td>'+r.label.replace(/[\[\]]/g,'')+'</td>'+r.values.map(v=>'<td style="text-align:right">'+fmt(v)+'</td>').join('')+'</tr>').join('');
-  return '<div class="mut" style="font-size:11px;margin-bottom:8px">공모기업(★)과 동종업체를 한 표로 비교 · 🏆=열별 1위 · 억원 환산(원자료 단위: '+unit+') · 출처: 증권신고서(38.co.kr 발췌)'+(cnt?' · <b style="color:var(--accent)">공모기업 1위 항목 '+wins+'/'+cnt+'개</b>':'')+'</div>'+
+  return '<div class="ipo-fp"><div class="hd"><b>🏢 동종업체 재무비교</b><span>★=공모기업 · 🏆=열별 1위 · 억원 환산 · 출처 증권신고서(38.co.kr)'+(cnt?' · <em>1위 '+wins+'/'+cnt+'개 항목</em>':'')+'</span></div><div class="bd">'+
     rankStrip+
-    '<div class="scroll" style="border:1px solid var(--line);border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead style="background:var(--panel2)">'+head+'</thead><tbody>'+rowsHtml+'</tbody></table></div>'+
-    '<details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-size:12px">원본 표 보기('+unit+')</summary><div class="scroll"><table><thead>'+rawHead+'</thead><tbody>'+rawBody+'</tbody></table></div></details>';
+    '<div class="scroll ipo-pt"><table class="ipo-pt-t"><thead>'+head+'</thead><tbody>'+rowsHtml+'</tbody></table></div>'+
+    '<details class="ipo-raw"><summary>원본 표 보기('+unit+')</summary><div class="scroll"><table><thead>'+rawHead+'</thead><tbody>'+rawBody+'</tbody></table></div></details></div></div>';
 }
 
 /* 동종업체(피어) 주가 정보 시각화 — 회사명으로 종목코드를 찾아(DART corp_code 맵의 stockCode)
@@ -4068,22 +4068,21 @@ function krInvestorPanel(fin, ratios){
   }catch(e){ console.warn('KR 투자자 패널 실패',e); return ''; }
 }
 function renderFinancialsPanel(fin3y, ratios, headNote, footNote){
-  return '<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+headNote+'</div>'+
-    (function(){
-      const pc=(typeof window!=='undefined'&&window.innerWidth>=1000);
-      if(pc){
-        const sp=renderFinancialsChart(fin3y,true);
-        if(sp&&sp.svg!=null){
-          // PC: 왼쪽 절반=매출·영업이익 그래프, 오른쪽=표 설명 + 재무비율
-          return '<div style="display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start">'+
-            '<div style="flex:1 1 360px;min-width:0;max-width:calc(50% - 14px)">'+sp.svg+'</div>'+
-            '<div style="flex:1 1 360px;min-width:0">'+sp.table+'<div style="margin-top:14px">'+renderFinancialRatios(ratios,true)+'</div></div></div>';
-        }
+  const hasR=!!(ratios&&(ratios.growth!=null||ratios.eps!=null||ratios.psr!=null));
+  const rat=hasR?renderFinancialRatios(ratios,true):'';
+  const body=(function(){
+    const pc=(typeof window!=='undefined'&&window.innerWidth>=1000);
+    if(pc){
+      const sp=renderFinancialsChart(fin3y,true);
+      if(sp&&sp.svg!=null){
+        return '<div class="ipo-fp-cols"><div class="ipo-fp-l">'+sp.svg+'</div><div class="ipo-fp-r">'+sp.table+(rat?'<div class="ipo-fp-rat">'+rat+'</div>':'')+'</div></div>';
       }
-      return '<div style="display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start">'+
-        '<div style="flex:2 1 460px;min-width:0">'+renderFinancialsChart(fin3y)+'</div>'+
-        '<div style="flex:1 1 300px;min-width:0">'+renderFinancialRatios(ratios,true)+'</div></div>';
-    })()+(ratios?krInvestorPanel(fin3y,ratios):'')+(footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'');
+    }
+    return '<div class="ipo-fp-cols"><div class="ipo-fp-l">'+renderFinancialsChart(fin3y)+'</div>'+(rat?'<div class="ipo-fp-r">'+rat+'</div>':'')+'</div>';
+  })();
+  return '<div class="ipo-fp"><div class="hd"><b>📊 재무 요약</b><span>'+headNote+'</span></div><div class="bd">'+body+
+    (hasR?krInvestorPanel(fin3y,ratios):'<p class="ipo-nodata">재무비율·주가지표(EPS·PSR)는 DART 성장성지표가 아직 없는 신규 종목이라 표시하지 않습니다.</p>')+
+    (footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'')+'</div></div>';
 }
 
 async function loadKrxIndicators(){
@@ -5754,46 +5753,28 @@ function ipoScheduleHtml(item){
     st.ds=ds; st.de=de;
   });
   const nxt=steps.find(st=>st.state==='now')||steps.find(st=>st.state==='next');
-  let head='';
+  let pill='';
   if(nxt){
     const now_=nxt.state==='now';
-    const col=now_?'var(--gold)':(nxt.ds<=3?'var(--up)':'var(--accent)');
-    head='<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px">'+
-      '<div style="min-width:92px;text-align:center;padding:8px 12px;border-radius:14px;background:'+col+';color:#fff;box-shadow:0 4px 14px '+col+'55">'+
-        '<div style="font-size:11px;font-weight:700;opacity:.9">'+nxt.ic+' '+nxt.nm+(now_?' 진행 중':'')+'</div>'+
-        '<div style="font-size:30px;font-weight:900;line-height:1.1">'+(now_?(nxt.de===0?'오늘 마감':'D-'+nxt.de+' 마감'):(nxt.ds===0?'D-DAY':'D-'+nxt.ds))+'</div></div>'+
-      '<div style="font-size:12.5px;line-height:1.6"><b>'+nxt.nm+' '+f(nxt.a)+(nxt.b>nxt.a?' ~ '+f(nxt.b):'')+'</b><br><span class="mut">'+(now_?'마감까지 '+nxt.de+'일':'시작까지 '+nxt.ds+'일')+'</span></div></div>';
+    const cls=now_?'now':(nxt.ds<=3?'soon':'next');
+    pill='<div class="ips-pill '+cls+'"><small>'+nxt.ic+' '+nxt.nm+(now_?' 진행 중':'')+'</small><b>'+(now_?(nxt.de===0?'오늘 마감':'D-'+nxt.de+' 마감'):(nxt.ds===0?'D-DAY':'D-'+nxt.ds))+'</b></div>';
   }
-  const line=steps.map((st,i)=>{
-    const c=st.state==='done'?'var(--tx2)':st.state==='now'?'var(--gold)':'var(--accent)';
+  const line=steps.map(st=>{
     const dtxt=st.state==='done'?'완료':st.state==='now'?'진행 중':'D-'+st.ds;
-    return '<div style="flex:1 1 0;min-width:68px;text-align:center;position:relative">'+
-      '<div style="height:4px;background:'+(st.state==='done'?'var(--line)':c)+';'+(i===0?'border-radius:2px 0 0 2px;':'')+(i===steps.length-1?'border-radius:0 2px 2px 0;':'')+'opacity:'+(st.state==='next'?.45:1)+'"></div>'+
-      '<i style="position:absolute;left:50%;top:-5px;width:14px;height:14px;border-radius:50%;transform:translateX(-50%);background:'+(st.state==='done'?'var(--tx2)':c)+';border:2px solid var(--panel2);'+(st.state==='now'?'box-shadow:0 0 0 4px '+c+'44':'')+'"></i>'+
-      '<div style="font-size:11.5px;font-weight:800;margin-top:12px">'+st.nm+'</div>'+
-      '<div style="font-size:10.5px;color:var(--tx2)">'+f(st.a)+(st.b>st.a?'~'+f(st.b):'')+'</div>'+
-      '<div style="font-size:11px;font-weight:800;color:'+c+'">'+dtxt+'</div></div>';
+    return '<div class="ips-st '+st.state+'"><i></i><span>'+st.nm+'</span><em>'+f(st.a)+(st.b>st.a?'~'+f(st.b):'')+'</em><b>'+dtxt+'</b></div>';
   }).join('');
-  return '<div style="margin-top:12px;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel2)">'+
-    '<div style="font-size:12px;font-weight:800;color:var(--tx2);margin-bottom:8px">📅 공모 일정 D-day</div>'+head+
-    '<div style="display:flex;gap:2px;padding-top:6px">'+line+'</div>'+ipoSubscribeInfoHtml(item)+'</div>';
+  return '<div class="ips">'+pill+'<div class="ips-tl">'+line+'</div></div>'+ipoSubscribeInfoHtml(item);
 }
-/* 청약 안내 — 주간청약사 · 최소청약주수 · 최소청약금액(증거금 기준). 38.co.kr "청약증거금율/최고한도/최저" 파싱값 사용,
-   최저가 '-'이면 공모 통상 최소 단위인 10주로 안내(증권사별로 다를 수 있음) */
 function ipoSubscribeInfoHtml(item){
   const num=t=>{ const m=String(t||'').match(/\d[\d,]*/); return m?parseInt(m[0].replace(/,/g,''),10):null; };
   const price=num(item.offerPriceFinal)||num(item.offerPriceBand);
   const r=item.subRule||{};
   const minSh=r.minShares||10, rate=r.marginRate!=null?r.marginRate:50;
   const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
-  const cell=(k,v,sub)=>'<div style="flex:1 1 140px;min-width:130px;padding:8px 10px;border-radius:10px;background:var(--panel);border:1px solid var(--line)"><div style="font-size:11px;color:var(--tx2)">'+k+'</div><div style="font-size:15px;font-weight:900;margin-top:2px">'+v+'</div>'+(sub?'<div style="font-size:10.5px;color:var(--tx2);margin-top:2px">'+sub+'</div>':'')+'</div>';
   const uw=item.underwriter?String(item.underwriter).replace(/\s*[,/]\s*/g,' · '):'미정';
-  return '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)"><div style="font-size:12px;font-weight:800;color:var(--tx2);margin-bottom:6px">🧾 청약 안내</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+
-    cell('주간청약사',uw,'해당 증권사 계좌로 청약')+
-    cell('최소청약주수',minSh.toLocaleString('ko-KR')+'주',r.minShares?'공고 기준':'통상 최소 단위(증권사별 상이)')+
-    cell('최소청약금액',price?won(price*minSh*rate/100):'공모가 확정 후',price?'증거금 '+rate+'% 기준 · 주문금액 '+won(price*minSh):'증거금율 '+rate+'%')+
-    (r.maxShares?cell('청약 최고한도',r.maxShares+'주','일반청약자 1인 한도'):'')+
-    '</div></div>';
+  const kv=(k,v,sub)=>'<div><small>'+k+'</small><b>'+v+'</b>'+(sub?'<em>'+sub+'</em>':'')+'</div>';
+  return '<div class="ips-info">'+kv('주간사',uw)+kv('최소청약',minSh.toLocaleString('ko-KR')+'주',r.minShares?'공고 기준':'통상 단위')+
+    kv('필요 증거금',price?won(price*minSh*rate/100):'공모가 확정 후',price?'증거금 '+rate+'% · 주문 '+won(price*minSh):'증거금율 '+rate+'%')+(r.maxShares?kv('청약 한도',r.maxShares+'주'):'')+'</div>';
 }
 
 /* 보호예수 해제 일정(상장일 기준 15일·1개월·3개월·6개월…) — 경과(해제 완료)/예정(D-day) 시각화 */
@@ -6321,6 +6302,9 @@ function applyEarnBadges(){
       const when=n.pubDate?new Date(n.pubDate).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
       html+='<a class="er-n '+(n.dir==='mix'?'':n.dir)+'" href="'+esc(n.url)+'" target="_blank" rel="noopener nofollow" title="'+esc(n.title)+' — '+esc(n.source)+(when?' · '+when:'')+' (최근 2일 · 급등락·실적·규제 키워드 기사 · 누르면 원문 기사로 이동)">'+ic+' <span>'+esc(n.title)+'</span><em>'+esc(n.source)+'</em></a>';
     }
+    if(!html&&isCap&&NEWS_DATA){ /* 자동 수집 기사가 없으면 뉴스 검색 링크로 대체(누르면 최신 기사 목록 열림) */
+      html='<a class="er-n ns" href="https://news.google.com/search?q='+encodeURIComponent(t+' 주가 when:2d')+'&hl=ko&gl=KR&ceid=KR:ko" target="_blank" rel="noopener nofollow" title="'+esc(t)+' 최신 뉴스 검색(Google 뉴스) — 자동 수집된 기사가 아직 없습니다">🗞 <span>'+esc(t)+' 최신 뉴스 검색 ↗</span></a>';
+    }
     let box=info.querySelector('.wl-er');
     if(!html){ if(box) box.remove(); return; }
     if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
@@ -6347,8 +6331,8 @@ async function loadCapNews(){
     const origin=PROXY_BASE.replace(/\?url=$/,'');
     const r=await fetch(origin+'cap-news?tickers='+EARN_LIST.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
     const j=r.ok?await r.json():null;
-    if(j&&!j.error){ NEWS_DATA=j; applyEarnBadges(); mkMiss('news','뉴스',false); } else mkMiss('news','뉴스',true);
-  }catch(e){ console.warn('핵심 뉴스 로딩 실패:',e); mkMiss('news','뉴스',true); }
+    if(j&&!j.error){ NEWS_DATA=j; applyEarnBadges(); mkMiss('news','뉴스',false); } else { NEWS_DATA={}; applyEarnBadges(); mkMiss('news','뉴스',true); }
+  }catch(e){ console.warn('핵심 뉴스 로딩 실패:',e); NEWS_DATA={}; applyEarnBadges(); mkMiss('news','뉴스',true); }
 }
 async function loadEarnings(){
   if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;

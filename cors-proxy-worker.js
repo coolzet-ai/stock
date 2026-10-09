@@ -1976,7 +1976,7 @@ const handler = {
       const UP = /급등|폭등|상승|강세|호조|호실적|사상 최고|신고가|상향|서프라이즈|랠리|반등|수주|승인|돌파|최고가|껑충|뛰/;
       const DOWN = /급락|폭락|하락|약세|부진|쇼크|사상 최저|신저가|하향|우려|리스크|소송|규제|관세|제재|조사|리콜|감원|취소|지연|뚝|추락|밀려|흔들/;
       try {
-        const cacheKey = 'capnews-v2-' + list.slice().sort().join('_').slice(0, 400);
+        const cacheKey = 'capnews-v3-' + list.slice().sort().join('_').slice(0, 400);
         let data = null; const dbg = {};
         if (!debug && env.KR_KV) { try { const c = await env.KR_KV.get(cacheKey); if (c) data = JSON.parse(c); } catch (e) {} }
         if (!data) {
@@ -1994,17 +1994,26 @@ const handler = {
                 if (r2.ok) items = parseBingNewsRss(await r2.text(), 20).filter(it => !it.pubDate || Date.parse(it.pubDate) > Date.now() - 3 * 86400000); else dbg[t] = (dbg[t] || '') + ' bing ' + r2.status;
               } catch (e) { dbg[t] = (dbg[t] || '') + ' bing ' + String(e).slice(0, 40); }
             }
+            if (!items.length) {
+              /* 한국어 피드가 비면 영문 피드로 한 번 더 */
+              try {
+                const r3 = await fetch('https://news.google.com/rss/search?q=' + encodeURIComponent((NAMES[t][NAMES[t].length - 1]) + ' stock when:2d') + '&hl=en-US&gl=US&ceid=US:en', { headers: { 'User-Agent': UA, 'Accept': 'application/rss+xml,text/xml,*/*' } });
+                if (r3.ok) items = parseGoogleNewsRss(await r3.text(), 15); else dbg[t] = (dbg[t] || '') + ' google-en ' + r3.status;
+              } catch (e) { dbg[t] = (dbg[t] || '') + ' google-en ' + String(e).slice(0, 40); }
+            }
             const names = NAMES[t].map(s => s.toLowerCase());
             const okItem = it => { const ti = it.title.toLowerCase(); return names.some(n => ti.indexOf(n) >= 0) && (UP.test(it.title) || DOWN.test(it.title)); };
             const LOWQ = /Simply Wall St|TradingKey|Mitrade|BeInCrypto|MarketBeat|주식 움직였습니다/i;
-            const hit = items.find(it => okItem(it) && !LOWQ.test((it.source || '') + ' ' + it.title)) || items.find(okItem);
+            /* 1순위 종목명+급등락·실적 키워드 기사 → 2순위 종목명만 들어간 최신 기사(방향 mix) */
+            const nameOnly = it => names.some(n => it.title.toLowerCase().indexOf(n) >= 0);
+            const hit = items.find(it => okItem(it) && !LOWQ.test((it.source || '') + ' ' + it.title)) || items.find(okItem) || items.find(it => nameOnly(it) && !LOWQ.test((it.source || '') + ' ' + it.title)) || items.find(nameOnly);
             if (debug) dbg[t] = (dbg[t] || 'ok') + ' items=' + items.length + (hit ? ' hit' : ' nohit');
             if (hit) {
               const up = UP.test(hit.title), dn = DOWN.test(hit.title);
               data[t] = { title: hit.title, url: hit.url, source: hit.source, pubDate: hit.pubDate, dir: up && !dn ? 'up' : dn && !up ? 'down' : 'mix' };
             }
           });
-          if (!debug && env.KR_KV && Object.keys(data).length) { try { await env.KR_KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }); } catch (e) {} }
+          if (!debug && env.KR_KV && Object.keys(data).length) { try { await env.KR_KV.put(cacheKey, JSON.stringify(data), { expirationTtl: Object.keys(data).length >= list.length * 0.6 ? 3600 : 600 }); } catch (e) {} }
         }
         return new Response(JSON.stringify(debug ? { data, dbg } : data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {

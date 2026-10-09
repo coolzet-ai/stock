@@ -237,6 +237,14 @@ html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-ln.cm-c1,html[data-theme=
 html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-ln.cm-c2,html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-sw.cm-c2{background:#293e57}
 html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-rg button.on{background:#18251c;color:#eaedf0}
 html[data-theme="dark"] .pro .cg-more:hover{background:#101316}
+html[data-theme="dark"] .ips-st.now b{color:#f1deab}
+html[data-theme="dark"] .ipo-asof #ipo-live-status em{color:#f1deab}
+html[data-theme="dark"] .er-n.ns{background:var(--panel2,#15181a);color:var(--tx2,#afb9c8)}
+html[data-theme="dark"] .ipo-fp [style*="var(--down)"],html[data-theme="dark"] .ipo-pt-t [style*="var(--down)"]{color:#accee6 !important}
+html[data-theme="dark"][data-theme="dark"] .ipo-tools button,html[data-theme="dark"][data-theme="dark"] .ipo-asof button{color:#94ccb1}
+html[data-theme="dark"][data-theme="dark"] .ipo-tools button.on{color:#e6f4ed}
+html[data-theme="dark"][data-theme="dark"] .ipo-fp>.hd span em,html[data-theme="dark"][data-theme="dark"] .ipo-why>summary,html[data-theme="dark"][data-theme="dark"] .ips-st b,html[data-theme="dark"][data-theme="dark"] .ipo-rk .g1 b{color:#94ccb1}
+html[data-theme="dark"][data-theme="dark"] .ipo-vd .vl b,html[data-theme="dark"][data-theme="dark"] .ipo-vd .sc{color:var(--vc,#94ccb1)}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
