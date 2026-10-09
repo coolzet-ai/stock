@@ -65,17 +65,30 @@
   }
   applyTheme(); applyCv();
 
-  /* ───────── 상단 도구 버튼(절약·원/달러·색·테마·새로고침)을 헤더 '포인트 선물하기' 왼쪽(PC는 업데이트 일자 왼쪽)으로 ───────── */
+  /* ───────── 헤더 '⚙ 설정' 팝오버: 절약·원/달러·색·테마·새로고침(모바일은 포인트 선물하기 링크도) ───────── */
   (function () {
-    var IDS = ['ps-save', 'ps-krw', 'ps-cv', 'ps-theme', 'ps-rf'];
+    var ROWS = [['ps-save', '데이터 절약'], ['ps-krw', '원/달러 환산'], ['ps-cv', '상승·하락 색'], ['ps-theme', '화면 테마'], ['ps-rf', '새로고침']];
+    var host, pop, tg;
+    function build() {
+      var anchor = $('#stamp-top') || $('#naver-gift-link'); if (!anchor || !anchor.parentNode) return false;
+      host = $('#hd-tools');
+      if (!host) {
+        host = document.createElement('div'); host.id = 'hd-tools';
+        tg = document.createElement('button'); tg.type = 'button'; tg.id = 'hd-set'; tg.setAttribute('aria-expanded', 'false'); tg.setAttribute('aria-controls', 'hd-pop'); tg.innerHTML = '<span aria-hidden="true">⚙</span> <span class="lb">설정</span>'; tg.setAttribute('aria-label', '설정 열기');
+        pop = document.createElement('div'); pop.id = 'hd-pop'; pop.hidden = true; pop.setAttribute('role', 'group'); pop.setAttribute('aria-label', '화면 설정');
+        pop.innerHTML = ROWS.map(function (r) { return '<div class="hp-r" data-for="' + r[0] + '"><span class="hp-l">' + r[1] + '</span></div>'; }).join('') + '<a class="hp-gift" href="#" target="_blank" rel="noopener">🎁 네이버포인트 선물하기 (coolzet)</a>';
+        host.appendChild(tg); host.appendChild(pop);
+        anchor.parentNode.insertBefore(host, anchor);
+        var g = $('#naver-gift-link'); if (g) $('.hp-gift', pop).href = g.href;
+        tg.addEventListener('click', function (e) { e.stopPropagation(); var o = pop.hidden; pop.hidden = !o; tg.setAttribute('aria-expanded', String(o)); if (o) { var f = $('button', pop); } });
+        document.addEventListener('click', function (e) { if (!pop.hidden && !host.contains(e.target)) { pop.hidden = true; tg.setAttribute('aria-expanded', 'false'); } });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { pop.hidden = true; tg.setAttribute('aria-expanded', 'false'); tg.focus(); } });
+      }
+      return true;
+    }
     function mv() {
-      var anchor = $('#stamp-top') || $('#naver-gift-link'); if (!anchor || !anchor.parentNode) return;
-      var host = $('#hd-tools');
-      if (!host) { host = document.createElement('div'); host.id = 'hd-tools'; host.setAttribute('role', 'group'); host.setAttribute('aria-label', '화면 설정'); anchor.parentNode.insertBefore(host, anchor); }
-      var have = IDS.map(function (i) { return document.getElementById(i); }).filter(Boolean);
-      var cur = [].map.call(host.children, function (c) { return c.id; }).join(',');
-      if (cur === have.map(function (b) { return b.id; }).join(',')) return;
-      have.forEach(function (b) { host.appendChild(b); });
+      if (!build()) return;
+      ROWS.forEach(function (r) { var b = document.getElementById(r[0]), row = $('.hp-r[data-for="' + r[0] + '"]', pop); if (b && row && b.parentNode !== row) row.appendChild(b); });
     }
     mv(); [300, 900, 2500, 5000].forEach(function (t) { setTimeout(mv, t); });
     var ps = $('#pro-status'); if (ps && window.MutationObserver) new MutationObserver(mv).observe(ps, { childList: true });
@@ -234,5 +247,84 @@
     new MutationObserver(function (ms) { if (!busy) later(); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
     new MutationObserver(later).observe(D, { attributes: true, attributeFilter: ['data-theme'] });
     setInterval(run, 2500); run();
+  })();
+
+  /* ───────── 모바일 하단 탭바 · PC 우측 패널 · 마지막 섹션 복귀 배너 · 도입문 한 줄 ───────── */
+  (function () {
+    var toc = $('#pro-toc'); if (!toc) return;
+    var goTo = function (name) { var a = $$('a', toc).filter(function (x) { return x.textContent.trim().indexOf(name) === 0; })[0]; if (a) a.click(); return !!a; };
+    /* 탭바 */
+    var TABS = KR ? [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⋯', '더보기', '']] : [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⚡', '레버리지', '레버리지'], ['⋯', '더보기', '']];
+    var bar = document.createElement('nav'); bar.id = 'mk-tabbar'; bar.setAttribute('aria-label', '빠른 이동');
+    bar.innerHTML = TABS.map(function (t, i) { return '<button type="button" data-i="' + i + '"' + (t[2] ? '' : ' aria-haspopup="dialog" aria-expanded="false"') + '><span class="ti" aria-hidden="true">' + t[0] + '</span><span class="tl">' + t[1] + '</span></button>'; }).join('');
+    document.body.appendChild(bar);
+    var sheet = document.createElement('div'); sheet.id = 'mk-sheet'; sheet.hidden = true; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-label', '전체 섹션');
+    sheet.innerHTML = '<div class="ms-bg"></div><div class="ms-pn"><div class="ms-hd"><b>전체 섹션</b><button type="button" class="ms-x" aria-label="닫기">✕</button></div><div class="ms-g"></div></div>';
+    document.body.appendChild(sheet);
+    var more = $('button[aria-haspopup]', bar);
+    var closeSheet = function () { sheet.hidden = true; if (more) more.setAttribute('aria-expanded', 'false'); };
+    function fillSheet() {
+      var g = $('.ms-g', sheet);
+      g.innerHTML = '<button type="button" data-s="1">🔍 검색</button>' + $$('a', toc).map(function (a, i) { return '<button type="button" data-n="' + i + '">' + a.textContent.trim() + '</button>'; }).join('');
+    }
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return; var t = TABS[+b.dataset.i];
+      if (t[2]) { closeSheet(); goTo(t[2]); ev('tabbar', t[1]); } else { fillSheet(); sheet.hidden = false; b.setAttribute('aria-expanded', 'true'); var x = $('.ms-x', sheet); if (x) x.focus(); }
+    });
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest('.ms-bg, .ms-x')) { closeSheet(); return; }
+      var b = e.target.closest('button'); if (!b) return;
+      closeSheet();
+      if (b.dataset.s) { var s = $('.pt-s', toc); if (s) s.click(); return; }
+      var a = $$('a', toc)[+b.dataset.n]; if (a) a.click();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+    /* 마지막으로 보던 섹션 기억 + 복귀 배너 */
+    var KEY = 'mk_last_' + page;
+    var heads = function () { return $$('h2.fold-h'); };
+    var last = null;
+    function track() {
+      var hs = heads(), best = null, y = window.innerHeight * 0.35;
+      hs.forEach(function (h) { var r = h.getBoundingClientRect(); if (r.top < y) best = h; });
+      if (best) { var t = $('.fold-t', best); var nm = (t || best).textContent.trim().replace(/\s+/g, ' ').slice(0, 24); if (nm && nm !== last) { last = nm; store.set(KEY, JSON.stringify({ n: nm, t: Date.now() })); } }
+    }
+    var tmr; window.addEventListener('scroll', function () { clearTimeout(tmr); tmr = setTimeout(track, 600); }, { passive: true });
+    try {
+      var prev = JSON.parse(store.get(KEY) || 'null');
+      if (prev && prev.n && Date.now() - prev.t > 30 * 60 * 1000 && Date.now() - prev.t < 14 * 864e5 && window.scrollY < 200) {
+        var hit = heads().filter(function (h) { var t = $('.fold-t', h); return t && t.textContent.trim().replace(/\s+/g, ' ').slice(0, 24) === prev.n; })[0];
+        var host = $('#pro-brief') || $('.pg-lead');
+        if (hit && host && prev.n.indexOf('요약') < 0) {
+          var bn = document.createElement('div'); bn.id = 'mk-resume'; bn.setAttribute('role', 'status');
+          bn.innerHTML = '<span>마지막으로 보던 곳: <b></b></span><button type="button" class="rs-go">이어보기</button><button type="button" class="rs-x" aria-label="닫기">✕</button>';
+          $('b', bn).textContent = prev.n;
+          host.parentNode.insertBefore(bn, host);
+          bn.addEventListener('click', function (e) {
+            if (e.target.closest('.rs-x')) { bn.remove(); return; }
+            if (e.target.closest('.rs-go')) { var a = $$('a', toc).filter(function (x) { return prev.n.indexOf(x.textContent.trim().split(' ')[0]) === 0 || x.textContent.trim().indexOf(prev.n.split(' ')[0]) === 0; })[0]; if (a) a.click(); else { hit.scrollIntoView({ behavior: 'smooth' }); } bn.remove(); }
+          });
+        }
+      }
+    } catch (e) {}
+    /* PC 우측 패널(아주 넓은 화면) */
+    var side = document.createElement('aside'); side.id = 'mk-side'; side.setAttribute('aria-label', '목차와 오늘 일정');
+    document.body.appendChild(side);
+    function sideFill() {
+      var ev2 = '';
+      var items = $$('a', toc).map(function (a, i) { return '<li><button type="button" data-n="' + i + '">' + a.textContent.trim() + '</button></li>'; }).join('');
+      var cal = $$('#pro-cal .cal-row, #pro-cal tr, #pro-cal li').slice(0, 4).map(function (r) { return '<li>' + r.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) + '</li>'; }).join('');
+      side.innerHTML = '<b class="sd-h">바로가기</b><ul>' + items + '</ul>' + (cal ? '<b class="sd-h">오늘·다가오는 일정</b><ul class="sd-ev">' + cal + '</ul>' : '');
+    }
+    side.addEventListener('click', function (e) { var b = e.target.closest('button[data-n]'); if (b) { var a = $$('a', toc)[+b.dataset.n]; if (a) a.click(); } });
+    var sdn = 0; var sdt = setInterval(function () { if (++sdn > 8) clearInterval(sdt); if (window.innerWidth >= 1840) sideFill(); }, 2000);
+    window.addEventListener('resize', function () { if (window.innerWidth >= 1840 && !side.children.length) sideFill(); });
+    if (window.innerWidth >= 1840) setTimeout(sideFill, 600);
+    /* PC 도입문 한 줄(더보기로 펼침) */
+    var lead = $('.pg-lead');
+    if (lead && window.innerWidth > 700) {
+      var mb = document.createElement('button'); mb.type = 'button'; mb.className = 'lead-pc'; mb.textContent = '더보기'; mb.setAttribute('aria-expanded', 'false');
+      lead.after(mb);
+      mb.addEventListener('click', function () { var o = lead.classList.toggle('lead-open'); mb.textContent = o ? '접기' : '더보기'; mb.setAttribute('aria-expanded', String(o)); });
+    }
   })();
 })();

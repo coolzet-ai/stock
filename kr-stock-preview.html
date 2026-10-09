@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Mr.Kim Signal — 한국주식</title>
+<style>
+:root{
+  --bg:#f2f0eb; --panel:#ffffff; --panel2:#edebe9; --line:#e3ddd0;
+  --tx:rgba(0,0,0,.87); --tx2:rgba(0,0,0,.58); --accent:#00754A; --accent2:#006241;
+  --up:#c82014; --down:#1a6fa8; --ok:#1E3932; --house:#1E3932; --gold:#cba258;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);
+  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.45;
+  letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  box-shadow:0 1px 3px rgba(0,0,0,.1),0 2px 2px rgba(0,0,0,.06),0 0 2px rgba(0,0,0,.07)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.nav ul{display:flex;gap:22px;list-style:none;font-size:14px;color:var(--tx2)}
+.nav ul a{text-decoration:none}
+.nav ul a:hover{color:var(--accent)}
+.nav ul a.nav-hi{color:var(--accent);font-weight:800}
+#naver-gift-btn{font-family:inherit}
+.updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
+@media(max-width:640px){.updated-top{display:none}}
+.btn{display:inline-block;background:var(--accent);
+  color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.95)}
+.btn.sm{padding:9px 18px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+.wrap.nav{position:relative}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
+@media(max-width:640px){
+  #krcap-tbl th:nth-child(2), #krcap-tbl td:nth-child(2),
+  #krkq-tbl th:nth-child(2), #krkq-tbl td:nth-child(2){display:none}
+}
+.nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
+@media(max-width:760px){
+  .nav-toggle{display:block}
+  .nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border:1px solid var(--line);border-top:0;flex-direction:column;padding:6px 20px;gap:0;z-index:60}
+  .nav ul.open{display:flex}
+  .nav ul li{width:100%}
+  .nav ul a{display:block;padding:13px 0;border-bottom:1px solid var(--line)}
+  .nav ul li:last-child a{border-bottom:0}
+}
+
+/* hero */
+.hero{padding:70px 0 50px;text-align:center;
+  background:radial-gradient(900px 380px at 50% -60px,rgba(0,117,74,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(0,117,74,.3);
+  background:rgba(0,117,74,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@media(max-width:640px){.hero h1{font-size:31px}}
+@media(max-width:530px){
+  h2{font-size:19px}
+  h3{font-size:14px}
+  .sec-h{gap:8px}
+  .card{padding:14px}
+  .grid{gap:10px}
+  table{font-size:12px}
+  th,td{padding:8px 6px}
+  .big{font-size:26px}
+  .gauge{gap:12px}
+  .dial{width:78px;height:78px}
+  .dial b{width:60px;height:60px;font-size:20px}
+  .badge{font-size:11px;padding:5px 11px}
+  .btn{padding:11px 18px;font-size:13.5px}
+  .band{padding:28px 16px}
+  .band h2{font-size:20px}
+}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h2{font-size:26px;letter-spacing:-.6px}
+.sub{color:var(--tx2);font-size:15px;margin-bottom:22px}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
+.tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
+  padding:8px 15px;border-radius:7px;font-family:inherit}
+.tabs button.on{background:var(--accent);color:#ffffff}
+#evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
+.tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 0 .5px rgba(0,0,0,.14),0 1px 1px rgba(0,0,0,.24)}
+.card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
+.big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.mut{color:var(--tx2);font-size:13px}
+.chg{font-weight:800;font-size:15px}
+.up{color:var(--up)}.down{color:var(--down)}
+
+/* gauge */
+.gauge{display:flex;align-items:center;gap:18px}
+.dial{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--g,#666) var(--p,0%),#e3ddd0 0)}
+.dial b{width:82px;height:82px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font-size:27px;font-weight:800}
+.state{font-size:19px;font-weight:800}
+.kimcomment{display:inline-block;padding:10px 18px;border-radius:10px}
+.fg-row{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.fg-left{min-width:0}
+.fg-left .state{font-size:20px;line-height:1.2}
+.fg-left .mut{margin-top:2px;font-size:12.5px}
+.fg-row .kimcomment{white-space:nowrap;font-size:17px!important;padding:8px 14px;font-weight:800;line-height:1.3}
+.fg-cmt-lab{font-size:11px;color:var(--tx2);font-weight:700;text-align:right;margin-bottom:3px}
+.sub-bar{position:relative;height:9px;border-radius:5px;background:linear-gradient(90deg,#ff4d4f 0%,#ff8a00 30%,#c9d3e3 50%,#a3e635 70%,#22c55e 100%);min-width:90px}
+.sub-bar i{position:absolute;top:-4px;width:5px;height:17px;border-radius:2px;background:var(--tx);transform:translateX(-50%);box-shadow:0 0 0 2px var(--panel)}
+.sub-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--panel2);font-size:11.5px;line-height:1.55;color:var(--tx2)}
+.sub-note b{color:var(--tx)}
+
+.bars{display:flex;gap:6px;align-items:flex-end;height:120px;margin-top:16px}
+.bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
+.bars-labels{display:none;gap:6px;margin-top:4px}
+.bars-labels span{flex:1;text-align:center;font-size:10px;color:var(--tx2);overflow:hidden;white-space:nowrap}
+.trend-lg{margin-top:8px}
+.trend-lg svg{width:100%;height:44px;display:block}
+
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+th.fund-th{white-space:nowrap}
+td.fund-src{text-align:center;width:170px;white-space:nowrap}
+td.fund-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:14px;margin:0 3px}
+td.fund-src a.ts-link{color:var(--tx2)}
+td.fund-src a.news-link{color:#0d5a9e}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
+.t-h{background:rgba(200,32,20,.15);color:#a01810}
+.t-m{background:rgba(0,117,74,.15);color:var(--accent)}
+.t-l{background:rgba(0,0,0,.13);color:var(--tx2)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+td.spark{width:100px;text-align:center}
+td.spark svg{display:block;margin:0 auto}
+
+/* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
+.wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
+.wl-row{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid var(--line)}
+.wl-row:last-child{border-bottom:0}
+.wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
+.wl-bar.up{background:var(--up)}
+.wl-bar.down{background:var(--down)}
+.wl-info{flex:1;min-width:0}
+.wl-tag{font-size:11.5px;color:var(--tx2);white-space:normal;line-height:1.35}
+.wl-name{font-size:15px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name a{color:inherit;text-decoration:none}
+.wl-quote{flex:none;text-align:right;min-width:86px}
+.wl-spark{display:none;flex:none;width:64px;margin:0 6px}
+.wl-spark svg{display:block;width:100%;height:28px}
+@media(min-width:761px){.wl-spark{display:block}}
+.wl-price{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price.up{color:var(--up)}
+.wl-price.down{color:var(--down)}
+.wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
+.wl-pct.up{color:var(--up)}
+.wl-pct.down{color:var(--down)}
+.wl-actions{flex:none;display:flex;flex-direction:column;gap:3px;padding-left:10px;margin-left:2px;
+  border-left:1px solid var(--line);align-items:center;min-width:34px}
+.wl-actions a{font-size:11.5px;font-weight:800;text-decoration:none;color:var(--accent)}
+.wl-actions a.ts-link{color:var(--tx2)}
+.wl-actions a.news-link{color:#0d5a9e}
+@media(max-width:480px){
+  .wl-actions{min-width:26px;padding-left:6px;margin-left:0}
+  .wl-actions a{font-size:10px}
+}
+
+/* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
+#events-tbl-wrap col.ev-date{width:100px}
+#events-tbl-wrap col.ev-name{width:30%}
+#events-tbl-wrap col.ev-imp{width:110px}
+#events-tbl-wrap col.ev-src{width:56px}
+#events-tbl-wrap td.ev-src{text-align:center}
+#events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
+#events-tbl tr.ev-hi{background:rgba(200,32,20,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
+.tag.t-close{background:rgba(0,0,0,.18);color:var(--tx)}
+
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
+.plan h3{font-size:18px;margin-bottom:6px}
+.plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
+.plan li{padding:4px 0 4px 22px;position:relative}
+.plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+.soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
+
+.band{text-align:center;background:linear-gradient(135deg,rgba(0,117,74,.12),rgba(0,98,65,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(0,117,74,.25)}
+.band h2{font-size:29px}
+.band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
+
+footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);font-size:13px}
+.disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+  font-size:12.5px;color:var(--tx2);margin-top:18px}
+.updated{font-size:12.5px;color:var(--tx2)}
+#us-sub,#kr-sub{width:100%;table-layout:auto}#us-sub td,#kr-sub td{padding:8px 4px}#us-sub .tag,#kr-sub .tag{font-size:10.5px;padding:2px 6px;white-space:nowrap}@media(max-width:700px){#us-sub td,#kr-sub td{font-size:12px!important}#us-sub td:nth-child(2),#kr-sub td:nth-child(2){width:22%!important;min-width:40px!important}}
+.disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
+.disc b{color:#c82014;font-size:1.05em}
+</style>
+<style id="krdz">.fold-h{display:flex;align-items:center;gap:10px;margin:18px 0 0!important;padding:14px 16px;font-size:20px!important;line-height:1.4!important;font-weight:800;letter-spacing:-.3px;cursor:pointer;user-select:none;
+  background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:14px;transition:background .15s,box-shadow .15s}
+.fold-h:hover{background:var(--panel2)}.fold-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fold-h.open{background:var(--panel2);box-shadow:0 2px 0 var(--accent) inset}
+.fold-all{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.fold-all button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--tx2);cursor:pointer}.fold-all button:hover{background:var(--panel2);color:var(--tx)}
+.mv{display:inline-flex;gap:6px;align-items:center}.mv span{padding:2px 8px;border-radius:999px;background:var(--panel2);font-weight:700}.mv-l{color:var(--tx2)}.mv-u{color:var(--up)}.mv-d{color:var(--down)}
+.fold-t{flex:none}.fold-sum{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--tx2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold-btn{flex:none;font-size:13px;font-weight:800;color:var(--accent);padding:5px 11px;border:1.5px solid var(--accent);border-radius:999px;background:var(--panel);white-space:nowrap}
+.fold-btn em{font-style:normal}
+.fold-body{padding-top:6px}
+.fold-body > .sub{font-size:13.5px;line-height:1.5;margin:10px 0 12px}
+#unicorn,#events{padding-top:0!important;padding-bottom:0!important}#kr-stock{padding-bottom:0!important}#unicorn{padding-bottom:0!important}
+@media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:none}.fold-btn{padding:4px 9px;font-size:12px}}
+.disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
+.disc b{color:#c82014;font-size:1.05em}
+
+.pulse{max-width:1060px;margin:18px auto 0;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.pulse h3{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.pulse h3 small{font-weight:600;color:var(--tx2);font-size:12px}
+.breadth{display:flex;height:10px;border-radius:99px;overflow:hidden;margin-bottom:6px}
+.breadth i{display:block}.bl{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:12px}
+.hm{display:flex;flex-wrap:wrap;gap:4px}
+.hm div{flex:1 1 90px;min-height:64px;border-radius:8px;color:#fff;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;font-weight:800}
+.hm div.big{flex:2 1 170px;min-height:96px}
+.hm div small{font-weight:700;opacity:.92;font-size:12px}.hm div span{font-size:14px}.hm div.big span{font-size:18px}
+.hm-l{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--tx2);margin-top:8px;justify-content:flex-end}.hm-l i{width:22px;height:8px;border-radius:2px;display:block}
+.hm-t{display:flex;gap:6px;margin-bottom:10px}.hm-t button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--panel);cursor:pointer}.hm-t button.on{background:var(--house);color:#fff;border-color:var(--house)}
+
+.hm div.big{min-height:84px}
+@media(max-width:700px){.hm div{min-height:56px;flex:1 1 30%}.hm div.big{flex:1 1 46%;min-height:72px}.hm div span{font-size:13px}.hm div.big span{font-size:15px}}
+.srt{display:flex;gap:6px;justify-content:flex-end;margin:0 0 8px}.srt button{font:inherit;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--tx2);cursor:pointer}.srt button.on{background:var(--house);color:#fff;border-color:var(--house)}
+
+#events-tbl a.ev-a{color:inherit;text-decoration:none;font-weight:800;border-bottom:1px dotted var(--tx2)}#events-tbl a.ev-a:hover{color:var(--accent);border-color:var(--accent)}
+#events-tbl .ev-i{margin-right:5px}#events-tbl a.ev-a::after{content:" ↗";font-size:11px;color:var(--tx2);font-weight:600}
+@media(max-width:700px){
+ #events-tbl-wrap table,#events-tbl-wrap tbody{display:block;width:100%}#events-tbl-wrap thead,#events-tbl-wrap colgroup{display:none}
+ #events-tbl tr{display:grid;grid-template-columns:54px 1fr;column-gap:10px;padding:10px 8px;border-bottom:1px solid var(--line)}
+ #events-tbl td{display:block;padding:0!important;border:0!important;width:auto!important;word-break:keep-all;overflow-wrap:anywhere}
+ #events-tbl td:nth-child(1){grid-row:1;font-size:12px;font-weight:800;white-space:nowrap}
+ #events-tbl td:nth-child(2){grid-column:2;font-size:14px;line-height:1.45}
+ #events-tbl td:nth-child(3){grid-column:2;font-size:12px;margin-top:3px}
+ #events-tbl tr.ev-hi td:first-child{border-left:0!important}#events-tbl tr.ev-hi{border-left:3px solid #a01810}
+}
+.hm-k{margin-bottom:12px;padding:10px;border-radius:14px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(203,162,88,.16),rgba(203,162,88,.04))}
+.hm-k h4{margin:0 0 8px;font-size:13px;font-weight:900;display:flex;align-items:center;gap:6px}.hm-k h4 small{font-weight:600;color:var(--tx2);font-size:11px}
+.hm-k .hm div{min-height:92px;flex:1 1 0;box-shadow:0 4px 14px rgba(0,0,0,.18);border:2px solid rgba(255,255,255,.55)}
+.hm-k .hm div span{font-size:20px}.hm-k .hm div small{font-size:14px}
+.hm div.star{outline:3px solid var(--gold);outline-offset:-3px}
+@media(max-width:700px){.hm-k .hm div{min-height:78px;flex:1 1 0}.hm-k .hm div span{font-size:16px}.hm-k .hm div small{font-size:12px}}
+
+.rk{display:inline-block;margin-right:4px;font-size:1.05em}
+.wl-name .rk{font-size:17px;vertical-align:-1px}
+.ix{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;font-size:10.5px;font-weight:800;white-space:nowrap;vertical-align:1px}
+.ix-sp{background:rgba(26,111,168,.14);color:#1a6fa8}.ix-nq{background:rgba(124,58,237,.14);color:#7c3aed}.ix-x{background:rgba(0,0,0,.08);color:var(--tx2)}
+.hm div span{white-space:nowrap}
+@media(max-width:420px){.hm-k{padding:8px}.hm-k .hm{gap:3px}.hm-k .hm div{padding:8px 6px;min-height:72px}.hm-k .hm div span{font-size:13.5px}.hm-k .hm div small{font-size:11px}}
+.hm-t{overflow-x:auto;white-space:nowrap}.hm-t button{white-space:nowrap;flex:none}
+@media(max-width:420px){.hm-t button{font-size:11px;padding:5px 9px}.pulse h3 small{display:none}}
+.fg-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}.fg-hd h3{margin:0}.fg-hd .tabs button{padding:6px 12px;font-size:13px}
+@media(max-width:420px){.fg-hd .tabs button{padding:6px 9px;font-size:12.5px}}
+.hm-kw{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.hm-kw .hm-k{flex:1 1 320px;margin-bottom:0;min-width:0}
+#kr-stock{padding-top:18px!important}#kr-stock>.wrap>.sec-h{margin-bottom:0}#kr-stock>.wrap>.sec-h .sub{margin-bottom:10px}
+@media(max-width:700px){#kr-stock{padding-top:12px!important}}
+
+#kr-stock{padding-top:18px!important;padding-bottom:0!important}#kr-stock>.wrap>.sec-h{margin-bottom:0}#kr-stock>.wrap>.sec-h .sub{margin-bottom:10px}
+</style></head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
+    <ul id="nav-menu">
+      <li><a href="stock.html">미국주식</a></li>
+      <li><a href="kr-stock.html">한국주식</a></li>
+      <li><a href="crypto.html">가상화폐</a></li>
+      <li><a href="finprod.html">금융상품</a></li>
+      <li><a href="ipo.html">공모주</a></li>
+      <li><a href="p2p.html">P2P</a></li>
+      <li><a href="fx.html">환율</a></li>
+      <li><a href="trade.html" class="nav-hi">매매김군</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="updated-top" id="stamp-top"></span>
+      <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="kr-stock">
+  <div class="wrap">
+    <div class="sec-h">
+      <div>
+        <h2>공포탐욕지수 🇰🇷</h2>
+        <p class="sub">미국주식과 동일한 CNN 7개 세부지표 방식으로 설계 · 코스피(KOSPI) 기준</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>현재 지수</h3>
+        <div style="display:flex;justify-content:center"><div class="dial" id="kr-dial"><b id="kr-val">--</b></div></div>
+        <div class="fg-row">
+          <div class="fg-left"><div class="state" id="kr-state">불러오는 중</div><div class="mut" id="kr-note">코스피 vs 125일 이동평균 이격도 기준</div></div>
+          <div><div class="fg-cmt-lab">김군코멘트</div><div id="kr-kimcomment" class="kimcomment">불러오는 중…</div></div>
+        </div>
+        <p class="mut" style="margin-top:12px;font-size:12px" id="kr-detail">코스피 지수를 불러오는 중입니다.</p>
+        <div id="kr-breadth-flow" style="margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)"><p class="mut" style="font-size:12px">수급 데이터를 불러오는 중…</p></div>
+      </div>
+      <div class="card">
+        <h3>7개 세부지표 (CNN 방식 설계)</h3>
+        <table><tbody id="kr-sub"></tbody></table>
+        <div class="sub-note" id="kr-sub-note"></div>
+        <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번은 Yahoo KOSPI, 4·5번은 KRX Open API(파생상품), 6·7번은 한국은행 ECOS로 계산됩니다. 4번은 KOSPI200 지수옵션(정규월물+위클리) 콜/풋 거래량 기준입니다. 2·3번(주가 강도·주가 폭)은 코스피·코스닥 전종목 배치 집계가 필요해 별도 아키텍처(Worker 자동실행) 작업 중입니다.</p>
+      </div>
+    </div>
+
+    <div id="kr-next-event" style="display:none;margin-top:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
+
+    <h2 style="font-size:21px;margin-top:44px">투자자별 매매 동향 · 증시자금동향</h2>
+    <p class="sub">출처: <a href="https://stock.naver.com/market/stock/kr" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">Npay 증권</a> · 코스피/코스닥 당일 투자자 순매수와 고객예탁금·신용잔고·펀드 추이</p>
+    <div class="grid" style="margin-top:16px">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <h3 style="margin:0">투자자 동향</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="tabs" data-group="krinvmkt" style="margin:0">
+              <button class="kr-investor-market-btn on" data-m="KOSPI" onclick="setKrInvestorMarket('KOSPI')">코스피</button>
+              <button class="kr-investor-market-btn" data-m="KOSDAQ" onclick="setKrInvestorMarket('KOSDAQ')">코스닥</button>
+            </div>
+            <div class="tabs" data-group="krinvper" style="margin:0">
+              <button class="kr-investor-period-btn on" data-p="1d" onclick="setKrInvestorPeriod('1d')">1일</button>
+              <button class="kr-investor-period-btn" data-p="1w" onclick="setKrInvestorPeriod('1w')">1주</button>
+              <button class="kr-investor-period-btn" data-p="1m" onclick="setKrInvestorPeriod('1m')">1개월</button>
+              <button class="kr-investor-period-btn" data-p="3m" onclick="setKrInvestorPeriod('3m')">3개월</button>
+            </div>
+          </div>
+        </div>
+        <div id="kr-investor-trend"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <h3 style="margin:0">증시자금동향</h3>
+          <div class="tabs" data-group="krdepper" style="margin:0">
+            <button class="kr-deposit-period-btn" data-p="1w" onclick="setKrDepositPeriod('1w')">1주</button>
+            <button class="kr-deposit-period-btn" data-p="1m" onclick="setKrDepositPeriod('1m')">1개월</button>
+            <button class="kr-deposit-period-btn on" data-p="3m" onclick="setKrDepositPeriod('3m')">3개월</button>
+          </div>
+        </div>
+        <div id="kr-market-deposit"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+      </div>
+    </div>
+
+    <h2 style="font-size:21px;margin-top:44px">코스피·코스닥·대표종목 상대수익률 비교</h2>
+    <p class="sub">코스피·코스닥 지수와 삼성전자·SK하이닉스를 기간 시작일=100으로 환산해 비교</p>
+    <div class="tabs" data-group="krrel">
+      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    </div>
+    <div class="card" style="margin-top:16px" id="kr-idxrel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <h3 style="font-size:15px;color:var(--tx2);margin:32px 0 10px">자산간 상관관계 — 코스피 기준</h3>
+    <p class="sub" style="margin-bottom:0">원/달러 환율·S&amp;P500·VIX·반도체(SOXX)와 최근 90거래일 상관계수 · 매크로 환경 파악용</p>
+    <div class="card" style="margin-top:16px" id="kr-corr-grid"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <h2 style="font-size:21px;margin-top:44px">시가총액 TOP10 (코스피)</h2>
+    <p class="sub">코스피 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 11일 기준 순위)</p>
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
+    <div id="krcap-cap-chart" style="margin-bottom:24px"></div>
+
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">TOP10 상대수익률 비교</h3>
+    <div class="tabs" data-group="krcaprel">
+      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    </div>
+    <div class="card" style="margin:16px 0 24px" id="krcap-caprel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <div class="tabs" data-group="krcap">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="krcap-tbl">
+          <div class="wl-row" data-t="005930.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('005930',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">1위 · 005930</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/005930" target="_blank" rel="noopener" title="삼성전자 IR 페이지 (IRGO)">삼성전자</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=005930" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/005930.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('005930')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-005930" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="000660.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('000660',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">2위 · 000660</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/000660" target="_blank" rel="noopener" title="SK하이닉스 IR 페이지 (IRGO)">SK하이닉스</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=000660" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/000660.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('000660')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-000660" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="402340.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('402340',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">3위 · 402340</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/402340" target="_blank" rel="noopener" title="SK스퀘어 IR 페이지 (IRGO)">SK스퀘어</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=402340" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/402340.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('402340')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-402340" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="009150.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('009150',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">4위 · 009150</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/009150" target="_blank" rel="noopener" title="삼성전기 IR 페이지 (IRGO)">삼성전기</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=009150" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/009150.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('009150')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-009150" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="005380.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('005380',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">5위 · 005380</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/005380" target="_blank" rel="noopener" title="현대차 IR 페이지 (IRGO)">현대차</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=005380" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/005380.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('005380')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-005380" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="373220.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('373220',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">6위 · 373220</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/373220" target="_blank" rel="noopener" title="LG에너지솔루션 IR 페이지 (IRGO)">LG에너지솔루션</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=373220" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/373220.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('373220')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-373220" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="207940.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('207940',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">7위 · 207940</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/207940" target="_blank" rel="noopener" title="삼성바이오로직스 IR 페이지 (IRGO)">삼성바이오로직스</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=207940" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/207940.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('207940')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-207940" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="105560.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('105560',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">8위 · 105560</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/105560" target="_blank" rel="noopener" title="KB금융 IR 페이지 (IRGO)">KB금융</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=105560" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/105560.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('105560')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-105560" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="032830.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('032830',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">9위 · 032830</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/032830" target="_blank" rel="noopener" title="삼성생명 IR 페이지 (IRGO)">삼성생명</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=032830" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/032830.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('032830')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-032830" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="028260.KS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('028260',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">10위 · 028260</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/028260" target="_blank" rel="noopener" title="삼성물산 IR 페이지 (IRGO)">삼성물산</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=028260" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/028260.KS/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('028260')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-028260" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+        </div>
+    </div>
+    <div style="margin-top:10px"><button class="btn sm" id="krcap2-btn" onclick="toggleMoreRows('krcap2')" style="cursor:pointer">11~20위 더 보기 ▾</button></div>
+    <div id="krcap2-wrap" style="display:none;margin-top:8px"><div class="scroll"><div class="wl-list" id="krcap2-tbl"></div></div></div>
+    <p class="mut" style="margin-top:10px;font-size:12px">출처: 한국거래소(KRX) 시가총액 기준 순위(stockdigging.com 2026-09-11 집계)<br>· 종목명을 클릭하면 IRGO의 해당 기업 IR 페이지로, 세부내용의 +는 네이버 증권, N은 최신 뉴스로 이동합니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">시가총액 TOP10 (코스닥)</h2>
+    <p class="sub">코스닥 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 10일 기준 순위)</p>
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
+    <div id="krkq-cap-chart" style="margin-bottom:24px"></div>
+    <div class="tabs" data-group="krkq">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="krkq-tbl">
+          <div class="wl-row" data-t="196170.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('196170',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">1위 · 196170</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/196170" target="_blank" rel="noopener" title="알테오젠 IR 페이지 (IRGO)">알테오젠</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=196170" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/196170.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('196170')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-196170" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="086520.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('086520',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">2위 · 086520</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/086520" target="_blank" rel="noopener" title="에코프로 IR 페이지 (IRGO)">에코프로</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=086520" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/086520.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('086520')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-086520" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="247540.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('247540',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">3위 · 247540</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/247540" target="_blank" rel="noopener" title="에코프로비엠 IR 페이지 (IRGO)">에코프로비엠</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=247540" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/247540.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('247540')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-247540" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="036930.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('036930',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">4위 · 036930</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/036930" target="_blank" rel="noopener" title="주성엔지니어링 IR 페이지 (IRGO)">주성엔지니어링</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=036930" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/036930.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('036930')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-036930" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="277810.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('277810',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">5위 · 277810</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/277810" target="_blank" rel="noopener" title="레인보우로보틱스 IR 페이지 (IRGO)">레인보우로보틱스</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=277810" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/277810.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('277810')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-277810" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="240810.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('240810',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">6위 · 240810</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/240810" target="_blank" rel="noopener" title="원익IPS IR 페이지 (IRGO)">원익IPS</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=240810" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/240810.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('240810')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-240810" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="039030.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('039030',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">7위 · 039030</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/039030" target="_blank" rel="noopener" title="이오테크닉스 IR 페이지 (IRGO)">이오테크닉스</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=039030" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/039030.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('039030')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-039030" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="058470.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('058470',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">8위 · 058470</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/058470" target="_blank" rel="noopener" title="리노공업 IR 페이지 (IRGO)">리노공업</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=058470" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/058470.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('058470')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-058470" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="222800.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('222800',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">9위 · 222800</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/222800" target="_blank" rel="noopener" title="심텍 IR 페이지 (IRGO)">심텍</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=222800" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/222800.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('222800')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-222800" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="108490.KQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials('108490',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">10위 · 108490</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/108490" target="_blank" rel="noopener" title="로보티즈 IR 페이지 (IRGO)">로보티즈</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=108490" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/108490.KQ/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials('108490')" style="color:#facc15" title="손익계산서(최근 3년, DART 전자공시)">재무</a></div></div>
+          <div id="fin-108490" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+        </div>
+    </div>
+    <div style="margin-top:10px"><button class="btn sm" id="krkq2-btn" onclick="toggleMoreRows('krkq2')" style="cursor:pointer">11~20위 더 보기 ▾</button></div>
+    <div id="krkq2-wrap" style="display:none;margin-top:8px"><div class="scroll"><div class="wl-list" id="krkq2-tbl"></div></div></div>
+    <p class="mut" style="margin-top:10px;font-size:12px">출처: 한국거래소(KRX) 시가총액 기준 순위(stockdigging.com 2026-09-10 집계)<br>· 종목명을 클릭하면 IRGO의 해당 기업 IR 페이지로, 세부내용의 +는 네이버 증권, N은 최신 뉴스로 이동합니다.</p>
+
+    <h2 style="font-size:21px;margin-top:44px">주요 이벤트 일정</h2>
+    <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 2026년</p>
+    <div class="tabs" data-group="krevmonth" id="kr-evmonth-tabs">
+      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
+      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
+      <span class="row-break"></span><button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
+    </div>
+    <div class="scroll" id="kr-events-tbl-wrap">
+      <table>
+        <colgroup>
+          <col class="ev-date"><col class="ev-name"><col><col class="ev-imp"><col class="ev-src">
+        </colgroup>
+        <thead><tr><th>날짜</th><th>이벤트</th><th>영향/구분</th><th>중요도</th><th>출처</th></tr></thead>
+        <tbody id="kr-events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 한국은행 기준금리 결정일 8회(1·2·4·5·7·8·10·11월), 코스피200 옵션 만기일(매월 둘째 목요일), 코스피200·코스닥150 정기변경(연 2회, 6월·12월)을 포함합니다<br>· 6월은 KRX 확정 발표 기준, 12월은 과거 패턴 기반 예상일입니다<br>· 통계청 CPI·고용 등 세부 발표일은 추후 추가 예정입니다.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">이번 달 휴장일</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">한국거래소(KRX) 공식 휴장일 기준</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>날짜</th><th>안내</th><th>구분</th></tr></thead>
+        <tbody id="kr-holidays-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="margin-bottom:8px">투자김군</div>
+    <p>주식 · 가상화폐 시장 신호 대시보드</p>
+    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.55">
+      <li>본 프로그램은 지속적으로 기능이 개선될 예정입니다.</li>
+      <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
+    </ul>
+    <div class="disc">
+      <b>투자 유의사항</b><br>
+      <span class="dl">본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.</span>
+      <span class="dl">투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다.</span>
+      <span class="dl">시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.</span>
+    </div>
+    <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="mrkim-common.js?v=ef66c1ef"></script>
+<script>
+/* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
+   — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
+   찾아준다(mrkim-common.js 참고). PSR은 KRCAP_CAP_DATA/KRKQ_CAP_DATA 시가총액 스냅샷을 종목명으로
+   매칭해 계산하므로, 아래 맵의 이름이 그 두 배열의 label과 정확히 일치해야 한다. */
+const KR_TOP10_NAME_BY_CODE={
+  '005930':'삼성전자','000660':'SK하이닉스','402340':'SK스퀘어','009150':'삼성전기','005380':'현대차',
+  '373220':'LG에너지솔루션','207940':'삼성바이오로직스','105560':'KB금융','032830':'삼성생명','028260':'삼성물산',
+  '196170':'알테오젠','086520':'에코프로','247540':'에코프로비엠','036930':'주성엔지니어링','277810':'레인보우로보틱스',
+  '240810':'원익IPS','039030':'이오테크닉스','058470':'리노공업','222800':'심텍','108490':'로보티즈',
+  '012450':'한화에어로스페이스','034020':'두산에너빌리티','055550':'신한지주','006400':'삼성SDI','329180':'HD현대중공업','000270':'기아','034730':'SK','068270':'셀트리온','066570':'LG전자','086790':'하나금융지주',
+  '028300':'HLB','000250':'삼천당제약','403870':'HPSP','319660':'피에스케이','095340':'ISC','440110':'파두','031980':'피에스케이홀딩스','084370':'유진테크','067310':'하나마이크론','131290':'티에스이'
+};
+const finLoaded={};
+async function toggleFinancials(stockCode, ev){
+  if(ev && ev.target && ev.target.closest && ev.target.closest('a')) return;
+  const el=document.getElementById('fin-'+stockCode);
+  if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(!finLoaded[stockCode]){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
+      const {fin3y,growth,eps,psr,dividend}=await dartFinancialsWithRatios(stockCode, KR_TOP10_NAME_BY_CODE[stockCode]);
+      /* 기술 평가용 종가(5일선·200일선·RSI) — 이미 불러온 tickData를 쓰고, 없으면 .KS→.KQ 순으로 조회 */
+      let techD=null;
+      try{
+        const tk=Object.keys(tickData).find(k=>k.indexOf(stockCode+'.')===0);
+        techD=tk?tickData[tk]:null;
+        if(!techD){ techD=await yclose(stockCode+'.KS','1y')||await yclose(stockCode+'.KQ','1y'); }
+      }catch(e){}
+      let finAll=fin3y, estInfo=null;
+      try{ estInfo=await krConsensusEst(stockCode); }catch(e){}
+      if(fin3y&&fin3y.length&&estInfo&&estInfo.est&&estInfo.est.length){ finAll=fin3y.concat(estInfo.est); }
+      el.innerHTML=(fin3y&&fin3y.length)
+        ? renderFinancialsPanel(finAll,{growth,eps,psr,techD,dividend},'손익계산서 최근 '+fin3y.length+'개년'+(finAll!==fin3y?' + 올해 예상(E)':'')+'(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)'+(finAll!==fin3y?' · 예상치: 네이버 증권(FnGuide 컨센서스)':''),null)
+        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.</p>';
+      finLoaded[stockCode]=true;
+    }
+  }else{
+    el.style.display='none';
+  }
+}
+</script>
+<script>
+const krEvMonthTabs=document.getElementById('kr-evmonth-tabs');
+if(krEvMonthTabs){
+  krEvMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    krEvMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderKrEvents(+b.dataset.m);
+  });
+  const nowMonthKr=new Date().getMonth()+1;
+  const defMonthKr=KR_MONTH_EVENTS[nowMonthKr]?nowMonthKr:9;
+  const defBtnKr=krEvMonthTabs.querySelector('button[data-m="'+defMonthKr+'"]');
+  if(defBtnKr) defBtnKr.classList.add('on');
+  renderKrEvents(defMonthKr);
+}
+renderNextEventBanner('kr-next-event', KR_MONTH_EVENTS, {excludeHoliday:true});
+
+
+const now=new Date();
+{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
+
+renderTick('krcap','d'); renderTick('krkq','d');
+renderCapShareChart('krcap-cap-chart', KRCAP_CAP_DATA);
+renderCapShareChart('krkq-cap-chart', KRKQ_CAP_DATA);
+loadTickGroup('krcap').then(()=>{ renderCapRelCompare('krcap-caprel-chart','krcap',KRCAP_CAP_DATA,curPer.krcaprel); fillKrRowStats('krcap-tbl'); }); loadTickGroup('krkq').then(()=>fillKrRowStats('krkq-tbl'));
+loadIdxRelKR();
+loadKRCorr();
+loadKR();
+loadKrFundFlow();
+
+</script>
+<script>
+/* 섹션 접기/펼치기 — 동일한 제목 바(폰트 20px·줄간격 1.4), 좌측 포인트 선, 요약 칩, 펼치기/접기 버튼. 기본은 접힘 */
+(function(){
+  const SUM={
+    '투자자별 매매 동향 · 증시자금동향':()=>'개인·외국인·기관 · 예탁금·신용잔고',
+    '코스피·코스닥·대표종목 상대수익률 비교':()=>'그래프 + 상관관계',
+    '시가총액 TOP10 (코스피)':()=>'TOP10 (+11~20위)',
+    '시가총액 TOP10 (코스닥)':()=>'TOP10 (+11~20위)',
+    '주요 이벤트 일정':()=>'월별 일정 · 휴장일'
+  };
+  function fold(h2){
+    if(!h2||h2.dataset.fold) return; h2.dataset.fold='1';
+    const nodes=[]; let n=h2.nextElementSibling;
+    while(n && n.tagName!=='H2'){ nodes.push(n); n=n.nextElementSibling; }
+    const box=document.createElement('div'); box.className='fold-body'; h2.after(box); nodes.forEach(x=>box.appendChild(x));
+    const title=h2.textContent.replace(/\s+/g,' ').trim();
+    const key=Object.keys(SUM).find(k=>title.indexOf(k)===0);
+    h2.className='fold-h'; h2.removeAttribute('style'); h2.id=h2.id||''; 
+    const flag=(title.indexOf('🇰🇷')>=0||key)?' 🇰🇷':'';
+    h2.innerHTML='<span class="fold-t">'+(key||title)+flag+'</span><span class="fold-sum"></span><span class="fold-btn"><em>펼치기</em> ➕</span>';
+    h2.setAttribute('role','button'); h2.setAttribute('aria-expanded','false'); h2.tabIndex=0;
+    const sum=h2.querySelector('.fold-sum'), btn=h2.querySelector('.fold-btn');
+    const LST={'시가총액 TOP10 (코스피)':'krcap-tbl','시가총액 TOP10 (코스닥)':'krkq-tbl'};
+    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([((r.querySelector('.wl-name a')||{}).textContent||r.dataset.t).trim(),v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; return '<span class="mv"><span class="mv-l">'+a.length+'종목</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
+    const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
+    refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
+    const set=open=>{ box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; h2.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
+    set(false);
+    const tg=e=>{ if(e.target.closest('a')) return; set(box.style.display==='none'); };
+    h2.addEventListener('click',tg); h2.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(e);} });
+    h2._set=set;
+  }
+  document.querySelectorAll('#kr-stock > .wrap > h2').forEach(fold);
+  const all=[...document.querySelectorAll('h2.fold-h')];
+  if(all[0]){ const bar=document.createElement('div'); bar.className='fold-all'; bar.innerHTML='<button type="button" data-o="1">모두 펼치기 ➕</button><button type="button" data-o="0">모두 접기 ➖</button>'; all[0].before(bar); bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; all.forEach(h=>h._set(b.dataset.o==='1')); }); }
+  const openByHash=()=>{ const h=location.hash&&document.querySelector(location.hash); if(h&&h._set) h._set(true); };
+  openByHash(); window.addEventListener('hashchange',openByHash);
+})();
+</script>
+<script>
+(function(){
+const q=(id)=>[...document.querySelectorAll('#'+id+' .wl-row')].map(r=>{const c=r.querySelector('.ch'),p=r.querySelector('.px');if(!c||!p)return null;const m=c.textContent.match(/([\d.]+)\s*%/);if(!m)return null;const rm=(r.querySelector('.wl-tag')||{textContent:''}).textContent.match(/^(\d+)위/);return{t:r.dataset.t,rk:rm?+rm[1]:0,nm:((r.querySelector('.wl-name a')||{textContent:''}).textContent||'').trim(),px:p.textContent,v:parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1)}}).filter(Boolean);
+function col(v){const a=Math.min(Math.abs(v)/4,1);const L=v>=0?[200,32,20]:[26,111,168];const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
+let mode='cap';
+function draw(){
+  let all=[].concat(q('krcap-tbl'),q('krkq-tbl'));
+ if(!all.length)return;
+ let p=document.querySelector('.pulse');
+ if(!p){p=document.createElement('div');p.className='pulse';const bar=document.querySelector('.fold-all');bar.before(p);p.addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;draw()}})}
+ const KEY=[];
+ const rows=mode==='cap'?q('krcap-tbl'):q('krkq-tbl');
+ const up=all.filter(x=>x.v>0).length,dn=all.filter(x=>x.v<0).length,fl=all.length-up-dn;
+ p.innerHTML='<h3>시장 한눈에 보기 🇰🇷 <small>'+all.length+'개 종목 기준 · 실시간 등락 히트맵</small></h3>'+
+ '<div class="breadth"><i style="width:'+up/all.length*100+'%;background:var(--up)"></i><i style="width:'+fl/all.length*100+'%;background:#aaa"></i><i style="width:'+dn/all.length*100+'%;background:var(--down)"></i></div>'+
+ '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
+ '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">코스피 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">코스닥 TOP10</button></div>'+
+ '<div class="hm">'+rows.map((x,i)=>'<div class="'+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'" style="background:'+col(x.v)+'"><span>'+(x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+(x.nm||x.t)+'</span><small>'+x.px+' · '+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</small></div>').join('')+'</div>'+
+ '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
+}
+setTimeout(draw,5000);setInterval(draw,20000);
+})();
+</script>
+</body>
+</html>

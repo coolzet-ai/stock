@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Mr.Kim Signal — 미국주식</title>
+<style>
+:root{
+  --bg:#f2f0eb; --panel:#ffffff; --panel2:#edebe9; --line:#e3ddd0;
+  --tx:rgba(0,0,0,.87); --tx2:rgba(0,0,0,.58); --accent:#00754A; --accent2:#006241;
+  --up:#c82014; --down:#1a6fa8; --ok:#1E3932; --house:#1E3932; --gold:#cba258;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);
+  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.45;
+  letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  box-shadow:0 1px 3px rgba(0,0,0,.1),0 2px 2px rgba(0,0,0,.06),0 0 2px rgba(0,0,0,.07)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.nav ul{display:flex;gap:22px;list-style:none;font-size:14px;color:var(--tx2)}
+.nav ul a{text-decoration:none}
+.nav ul a:hover{color:var(--accent)}
+.nav ul a.nav-hi{color:var(--accent);font-weight:800}
+#naver-gift-btn{font-family:inherit}
+.updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
+@media(max-width:640px){.updated-top{display:none}}
+.btn{display:inline-block;background:var(--accent);
+  color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.95)}
+.btn.sm{padding:9px 18px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+.wrap.nav{position:relative}
+.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
+@media(max-width:640px){
+  #tick-tbl th:nth-child(2), #tick-tbl td:nth-child(2),
+  #lev-tbl th:nth-child(2), #lev-tbl td:nth-child(2){display:none}
+}
+.nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
+@media(max-width:760px){
+  .nav-toggle{display:block}
+  .nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);border:1px solid var(--line);border-top:0;flex-direction:column;padding:6px 20px;gap:0;z-index:60}
+  .nav ul.open{display:flex}
+  .nav ul li{width:100%}
+  .nav ul a{display:block;padding:13px 0;border-bottom:1px solid var(--line)}
+  .nav ul li:last-child a{border-bottom:0}
+}
+
+/* hero */
+.hero{padding:70px 0 50px;text-align:center;
+  background:radial-gradient(900px 380px at 50% -60px,rgba(0,117,74,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(0,117,74,.3);
+  background:rgba(0,117,74,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@media(max-width:640px){.hero h1{font-size:31px}}
+@media(max-width:530px){
+  h2{font-size:19px}
+  h3{font-size:14px}
+  .sec-h{gap:8px}
+  .card{padding:14px}
+  .grid{gap:10px}
+  table{font-size:12px}
+  th,td{padding:8px 6px}
+  .big{font-size:26px}
+  .gauge{gap:12px}
+  .dial{width:78px;height:78px}
+  .dial b{width:60px;height:60px;font-size:20px}
+  .badge{font-size:11px;padding:5px 11px}
+  .btn{padding:11px 18px;font-size:13.5px}
+  .band{padding:28px 16px}
+  .band h2{font-size:20px}
+}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+#unicorn,#events{border-top:0}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h2{font-size:26px;letter-spacing:-.6px}
+.sub{color:var(--tx2);font-size:15px;margin-bottom:22px}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
+.tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
+  padding:8px 15px;border-radius:7px;font-family:inherit}
+.tabs button.on{background:var(--accent);color:#ffffff}
+#evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
+.tabs .row-break{flex-basis:100%;height:0;padding:0;margin:0}
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 0 .5px rgba(0,0,0,.14),0 1px 1px rgba(0,0,0,.24)}
+.card h3{font-size:15px;color:var(--tx2);font-weight:700;margin-bottom:10px}
+.big{font-size:38px;font-weight:800;letter-spacing:-1.5px}
+.mut{color:var(--tx2);font-size:13px}
+.chg{font-weight:800;font-size:15px}
+.up{color:var(--up)}.down{color:var(--down)}
+
+/* gauge */
+.gauge{display:flex;align-items:center;gap:18px}
+.dial{width:104px;height:104px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--g,#666) var(--p,0%),#e3ddd0 0)}
+.dial b{width:82px;height:82px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font-size:27px;font-weight:800}
+.state{font-size:19px;font-weight:800}
+.kimcomment{display:inline-block;padding:10px 18px;border-radius:10px}
+.fg-row{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.fg-left{min-width:0}
+.fg-left .state{font-size:20px;line-height:1.2}
+.fg-left .mut{margin-top:2px;font-size:12.5px}
+.fg-row .kimcomment{white-space:nowrap;font-size:17px!important;padding:8px 14px;font-weight:800;line-height:1.3}
+.fg-cmt-lab{font-size:11px;color:var(--tx2);font-weight:700;text-align:right;margin-bottom:3px}
+.sub-bar{position:relative;height:9px;border-radius:5px;background:linear-gradient(90deg,#ff4d4f 0%,#ff8a00 30%,#c9d3e3 50%,#a3e635 70%,#22c55e 100%);min-width:90px}
+.sub-bar i{position:absolute;top:-4px;width:5px;height:17px;border-radius:2px;background:var(--tx);transform:translateX(-50%);box-shadow:0 0 0 2px var(--panel)}
+.sub-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--panel2);font-size:11.5px;line-height:1.55;color:var(--tx2)}
+.sub-note b{color:var(--tx)}
+
+.bars{display:flex;gap:6px;align-items:flex-end;height:120px;margin-top:16px}
+.bars i{flex:1;background:var(--panel2);border-radius:3px 3px 0 0;display:block}
+.bars-labels{display:none;gap:6px;margin-top:4px}
+.bars-labels span{flex:1;text-align:center;font-size:10px;color:var(--tx2);overflow:hidden;white-space:nowrap}
+.trend-lg{margin-top:8px}
+.trend-lg svg{width:100%;height:44px;display:block}
+
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--tx2);font-size:12.5px;font-weight:700;letter-spacing:.4px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+th.fund-th{white-space:nowrap}
+td.fund-src{text-align:center;width:150px;white-space:nowrap}
+td.fund-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:14px;margin:0 3px}
+td.fund-src a.ts-link{color:var(--tx2)}
+td.fund-src a.news-link{color:#0d5a9e}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
+.t-h{background:rgba(200,32,20,.15);color:#a01810}
+.t-m{background:rgba(0,117,74,.15);color:var(--accent)}
+.t-l{background:rgba(0,0,0,.13);color:var(--tx2)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+td.spark{width:100px;text-align:center}
+td.spark svg{display:block;margin:0 auto}
+
+/* 모바일 시세 앱(관심종목) 스타일 워치리스트 행 */
+.wl-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:16px;background:var(--panel)}
+.wl-row{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid var(--line)}
+.wl-row:last-child{border-bottom:0}
+.wl-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line);flex:none}
+.wl-bar.up{background:var(--up)}
+.wl-bar.down{background:var(--down)}
+.wl-info{flex:1;min-width:0}
+.wl-tag{font-size:11.5px;color:var(--tx2);white-space:normal;line-height:1.35}
+.wl-name{font-size:15px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-name a{color:inherit;text-decoration:none}
+.wl-quote{flex:none;text-align:right;min-width:86px}
+.wl-spark{display:none;flex:none;width:64px;margin:0 6px}
+.wl-spark svg{display:block;width:100%;height:28px}
+@media(min-width:761px){.wl-spark{display:block}}
+.wl-price{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
+.wl-price.up{color:var(--up)}
+.wl-price.down{color:var(--down)}
+.wl-pct{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--tx2)}
+.wl-pct.up{color:var(--up)}
+.wl-pct.down{color:var(--down)}
+.wl-actions{flex:none;display:flex;flex-direction:column;gap:3px;padding-left:10px;margin-left:2px;
+  border-left:1px solid var(--line);align-items:center;min-width:34px}
+.wl-actions a{font-size:11.5px;font-weight:800;text-decoration:none;color:var(--accent)}
+.wl-actions a.ts-link{color:var(--tx2)}
+.wl-actions a.news-link{color:#0d5a9e}
+@media(max-width:480px){
+  .wl-actions{min-width:26px;padding-left:6px;margin-left:0}
+  .wl-actions a{font-size:10px}
+}
+
+/* 이벤트 캘린더 표 전용 열 너비 · 출처 열 · 최상 중요도 하이라이트 */
+#events-tbl-wrap col.ev-date{width:100px}
+#events-tbl-wrap col.ev-name{width:30%}
+#events-tbl-wrap col.ev-imp{width:110px}
+#events-tbl-wrap col.ev-src{width:56px}
+#events-tbl-wrap td.ev-src{text-align:center}
+#events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
+#events-tbl tr.ev-hi{background:rgba(200,32,20,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
+.tag.t-close{background:rgba(0,0,0,.18);color:var(--tx)}
+.idx-chg-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13px;background:var(--panel2)}
+.idx-chg-row a{text-decoration:none;color:inherit}
+.idx-chg-row.idx-in{border-left:3px solid var(--up)}
+.idx-chg-row.idx-out{border-left:3px solid var(--down)}
+.idx-chg-row .mut{font-size:11px;white-space:nowrap;flex:none}
+.idx-chg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.idx-chg-grid{grid-template-columns:1fr}}
+.chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--tx2);white-space:nowrap}
+.chip-top10{background:rgba(0,117,74,.18);color:var(--accent);font-weight:700}
+
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
+.plan h3{font-size:18px;margin-bottom:6px}
+.plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
+.plan li{padding:4px 0 4px 22px;position:relative}
+.plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+.soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
+
+.band{text-align:center;background:linear-gradient(135deg,rgba(0,117,74,.12),rgba(0,98,65,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(0,117,74,.25)}
+.band h2{font-size:29px}
+.band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
+
+footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);font-size:13px}
+.disc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;
+  font-size:12.5px;color:var(--tx2);margin-top:18px}
+.updated{font-size:12.5px;color:var(--tx2)}
+#us-sub,#kr-sub{width:100%;table-layout:auto}#us-sub td,#kr-sub td{padding:8px 4px}#us-sub .tag,#kr-sub .tag{font-size:10.5px;padding:2px 6px;white-space:nowrap}@media(max-width:700px){#us-sub td,#kr-sub td{font-size:12px!important}#us-sub td:nth-child(2),#kr-sub td:nth-child(2){width:22%!important;min-width:40px!important}}
+.fold-h{display:flex;align-items:center;gap:10px;margin:18px 0 0!important;padding:14px 16px;font-size:20px!important;line-height:1.4!important;font-weight:800;letter-spacing:-.3px;cursor:pointer;user-select:none;
+  background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:14px;transition:background .15s,box-shadow .15s}
+.fold-h:hover{background:var(--panel2)}.fold-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fold-h.open{background:var(--panel2);box-shadow:0 2px 0 var(--accent) inset}
+.fold-all{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.fold-all button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--tx2);cursor:pointer}.fold-all button:hover{background:var(--panel2);color:var(--tx)}
+.mv{display:inline-flex;gap:6px;align-items:center}.mv span{padding:2px 8px;border-radius:999px;background:var(--panel2);font-weight:700}.mv-l{color:var(--tx2)}.mv-u{color:var(--up)}.mv-d{color:var(--down)}
+.fold-t{flex:none}.fold-sum{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--tx2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold-btn{flex:none;font-size:13px;font-weight:800;color:var(--accent);padding:5px 11px;border:1.5px solid var(--accent);border-radius:999px;background:var(--panel);white-space:nowrap}
+.fold-btn em{font-style:normal}
+.fold-body{padding-top:6px}
+.fold-body > .sub{font-size:13.5px;line-height:1.5;margin:10px 0 12px}
+#unicorn,#events{padding-top:0!important;padding-bottom:0!important}#stock{padding-bottom:0!important}#unicorn{padding-bottom:0!important}
+@media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:none}.fold-btn{padding:4px 9px;font-size:12px}}
+.disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
+.disc b{color:#c82014;font-size:1.05em}
+</style>
+<style id="dz">
+.tape{position:sticky;top:0;z-index:40;background:#111a17;color:#fff;overflow:hidden;white-space:nowrap;border-bottom:1px solid #000;font-size:12.5px}
+.tape-in{display:inline-block;padding:7px 0;animation:tp 60s linear infinite}
+.tape span{display:inline-block;margin:0 16px}.tape b{margin-right:6px}.tape .u{color:#ff7a70}.tape .d{color:#6db8ff}
+@keyframes tp{to{transform:translateX(-50%)}}
+.pulse{max-width:1060px;margin:18px auto 0;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.pulse h3{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.pulse h3 small{font-weight:600;color:var(--tx2);font-size:12px}
+.breadth{display:flex;height:10px;border-radius:99px;overflow:hidden;margin-bottom:6px}
+.breadth i{display:block}.bl{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:12px}
+.hm{display:flex;flex-wrap:wrap;gap:4px}
+.hm div{flex:1 1 90px;min-height:64px;border-radius:8px;color:#fff;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;font-weight:800}
+.hm div.big{flex:2 1 170px;min-height:96px}
+.hm div small{font-weight:700;opacity:.92;font-size:12px}.hm div span{font-size:14px}.hm div.big span{font-size:18px}
+.hm-l{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--tx2);margin-top:8px;justify-content:flex-end}.hm-l i{width:22px;height:8px;border-radius:2px;display:block}
+.hm-t{display:flex;gap:6px;margin-bottom:10px}.hm-t button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--panel);cursor:pointer}.hm-t button.on{background:var(--house);color:#fff;border-color:var(--house)}
+</style></head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="mrkim-signal.html" class="logo" style="text-decoration:none">Mr.<span>Kim Signal</span></a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
+    <ul id="nav-menu">
+      <li><a href="stock.html">미국주식</a></li>
+      <li><a href="kr-stock.html">한국지수</a></li>
+      <li><a href="crypto.html">가상화폐</a></li>
+      <li><a href="finprod.html">금융상품</a></li>
+      <li><a href="ipo.html">공모주</a></li>
+      <li><a href="p2p.html">P2P</a></li>
+      <li><a href="fx.html">환율</a></li>
+      <li><a href="trade.html" class="nav-hi">매매김군</a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:14px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2);cursor:pointer;white-space:nowrap" title="미국주식·비트코인 등 달러 표시 가격에 원화를 괄호로 병기합니다">
+        <input type="checkbox" id="krw-toggle" style="accent-color:var(--accent);cursor:pointer">원화 표시
+      </label>
+      <span class="updated-top" id="stamp-top"></span>
+      <a class="btn sm naver-gift" id="naver-gift-link" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener" title="네이버페이 포인트 선물하기"><span style="font-size:9.5px;font-weight:400">네이버포인트</span><br><span style="font-size:9.5px;font-weight:400">선물하기</span><br><span style="font-weight:800;font-size:14px;letter-spacing:.3px">(coolzet)</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="stock">
+  <div class="wrap">
+    <div class="sec-h">
+      <div>
+        <h2>공포탐욕지수 🇺🇸</h2>
+        <p class="sub">CNN Business Fear &amp; Greed Index 공식 데이터 연동 · 0 극단적 공포 ~ 100 극단적 탐욕</p>
+      </div>
+      <div class="tabs" data-group="us">
+        <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+        <button data-p="m">월간</button><button data-p="y">연간</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>현재 지수 <span id="us-per" class="mut">· 일간</span></h3>
+<div class="fg-top" style="display:flex;align-items:center;gap:16px"><div class="dial" id="us-dial"><a href="https://www.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" title="CNN 공식 원문 보기"><b id="us-val">--</b></a></div><div style="flex:1;min-width:0"><div class="mut" style="font-size:12px;margin-bottom:2px">최근 흐름</div><div class="trend-lg" id="us-trend"></div></div></div>
+        <div class="fg-row">
+          <div class="fg-left"><div class="state" id="us-state">불러오는 중</div><div class="mut" id="us-note">전일 대비 --</div></div>
+          <div><div class="fg-cmt-lab">김군코멘트</div><div id="us-kimcomment" class="kimcomment">불러오는 중…</div></div>
+        </div>
+        <div class="bars" id="us-bars"></div>
+        <div class="bars-labels" id="us-bars-labels"></div>
+        <div id="us-next-event" style="display:none;margin-top:14px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap"></div>
+      </div>
+
+      <div class="card">
+        <h3>CNN 7개 세부지표</h3>
+        <table><tbody id="us-sub"><tr><td class="mut">불러오는 중…</td></tr></tbody></table>
+        <p class="mut" id="us-src" style="margin-top:10px;font-size:12px"></p>
+        <div class="sub-note" id="us-sub-note"></div>
+      </div>
+    </div>
+
+
+    <h2 style="font-size:21px;margin-top:44px">주요 지수 ETF 상대수익률 비교</h2>
+    <p class="sub">S&amp;P500·나스닥100·다우존스·러셀2000·반도체 ETF를 기간 시작일=100으로 환산해 비교 · 어떤 지수가 더 잘 버텼는지 한눈에 확인</p>
+    <div class="tabs" data-group="usrel">
+      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    </div>
+    <div class="card" style="margin-top:16px" id="us-idxrel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <h3 style="font-size:15px;color:var(--tx2);margin:32px 0 10px">자산간 상관관계 — S&amp;P500 기준</h3>
+    <p class="sub" style="margin-bottom:0">VIX·금·달러인덱스·비트코인과 최근 90거래일 상관계수 · 매크로 환경 파악용</p>
+    <div class="card" style="margin-top:16px" id="us-corr-grid"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <h2 id="tickers" style="font-size:21px;margin-top:44px">김군 관심종목</h2>
+    <p class="sub">기간별 등락률 비교</p>
+    <div class="tabs" data-group="tick">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="tick-tbl">
+          <div class="wl-row" data-t="QLD"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('QLD',event)" style="cursor:pointer"><div class="wl-tag">나스닥100 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/qld" target="_blank" rel="noopener">QLD</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=QLD" target="_blank" rel="noopener" title="Finviz에서 QLD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24QLD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 QLD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/QLD/news/" target="_blank" rel="noopener" class="news-link" title="QLD 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-QLD" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="USD"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('USD',event)" style="cursor:pointer"><div class="wl-tag">반도체 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/usd" target="_blank" rel="noopener">USD</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=USD" target="_blank" rel="noopener" title="Finviz에서 USD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24USD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 USD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/USD/news/" target="_blank" rel="noopener" class="news-link" title="USD 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-USD" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="ROM"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('ROM',event)" style="cursor:pointer"><div class="wl-tag">기술주 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/rom" target="_blank" rel="noopener">ROM</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=ROM" target="_blank" rel="noopener" title="Finviz에서 ROM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24ROM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 ROM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/ROM/news/" target="_blank" rel="noopener" class="news-link" title="ROM 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-ROM" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="SCHD"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('SCHD',event)" style="cursor:pointer"><div class="wl-tag">미국 대표 배당성장 ETF</div><div class="wl-name"><a href="https://www.schwabassetmanagement.com/products/schd" target="_blank" rel="noopener">SCHD</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SCHD" target="_blank" rel="noopener" title="Finviz에서 SCHD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SCHD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SCHD 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SCHD/news/" target="_blank" rel="noopener" class="news-link" title="SCHD 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-SCHD" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="JEPQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('JEPQ',event)" style="cursor:pointer"><div class="wl-tag">나스닥100 커버드콜 월배당 ETF</div><div class="wl-name"><a href="https://am.jpmorgan.com/us/en/asset-management/adv/products/jpmorgan-nasdaq-equity-premium-income-etf-etf-shares-46654q203" target="_blank" rel="noopener">JEPQ</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=JEPQ" target="_blank" rel="noopener" title="Finviz에서 JEPQ 상세 지표 보기">+</a><a href="https://x.com/search?q=%24JEPQ%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 JEPQ 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/JEPQ/news/" target="_blank" rel="noopener" class="news-link" title="JEPQ 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-JEPQ" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="DRAM"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('DRAM',event)" style="cursor:pointer"><div class="wl-tag">글로벌 메모리반도체 테마 ETF</div><div class="wl-name"><a href="https://www.roundhillinvestments.com/etf/dram/" target="_blank" rel="noopener">DRAM</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=DRAM" target="_blank" rel="noopener" title="Finviz에서 DRAM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24DRAM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 DRAM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/DRAM/news/" target="_blank" rel="noopener" class="news-link" title="DRAM 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-DRAM" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="RAM"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('RAM',event)" style="cursor:pointer"><div class="wl-tag">DRAM 2배 레버리지 ETF</div><div class="wl-name"><a href="https://www.roundhillinvestments.com/etf/ram/" target="_blank" rel="noopener">RAM</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=RAM" target="_blank" rel="noopener" title="Finviz에서 RAM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24RAM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 RAM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/RAM/news/" target="_blank" rel="noopener" class="news-link" title="RAM 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-RAM" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="GLDM"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('GLDM',event)" style="cursor:pointer"><div class="wl-tag">금(金) 현물 추종 ETF</div><div class="wl-name"><a href="https://www.ssga.com/us/en/individual/etfs/spdr-gold-minishares-trust-gldm" target="_blank" rel="noopener">GLDM</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=GLDM" target="_blank" rel="noopener" title="Finviz에서 GLDM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24GLDM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 GLDM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/GLDM/news/" target="_blank" rel="noopener" class="news-link" title="GLDM 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-GLDM" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="SLVP"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('SLVP',event)" style="cursor:pointer"><div class="wl-tag">글로벌 은(銀) 광업주 ETF</div><div class="wl-name"><a href="https://www.ishares.com/us/products/239674/ishares-msci-global-silver-metals-miners-etf" target="_blank" rel="noopener">SLVP</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SLVP" target="_blank" rel="noopener" title="Finviz에서 SLVP 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SLVP%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SLVP 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SLVP/news/" target="_blank" rel="noopener" class="news-link" title="SLVP 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-SLVP" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+        </div>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">이름 왼쪽 여백을 클릭하면 주요 보유종목·섹터 비중을, 세부내용의 +는 Finviz 상세 지표, X는 @TrendSpider의 해당 티커 게시물 검색, N은 야후 파이낸스의 해당 티커 최신 뉴스로 이동합니다(게시물·기사 존재 여부는 자동으로 판별되지 않으며, 없으면 결과가 비어 있을 수 있습니다).</p>
+
+    <h2 style="font-size:21px;margin-top:44px">시가총액 TOP10</h2>
+    <p class="sub">미국 증시 상장 종목 시가총액 순위 · 기간별 등락률</p>
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">시가총액 비중 (비중순)</h3>
+    <div id="us-cap-chart" style="margin-bottom:24px"></div>
+
+    <h3 style="font-size:15px;color:var(--tx2);margin:16px 0 10px">TOP10 상대수익률 비교</h3>
+    <div class="tabs" data-group="caprel">
+      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button>
+      <button data-p="6m">6개월</button><button data-p="1y">1년</button>
+    </div>
+    <div class="card" style="margin:16px 0 24px" id="us-caprel-chart"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <div class="tabs" data-group="cap">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="cap-tbl">
+          <div class="wl-row" data-t="NVDA"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">1위 · 엔비디아</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=NVDA" target="_blank" rel="noopener">NVDA</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=NVDA" target="_blank" rel="noopener" title="Finviz에서 NVDA 상세 지표 보기">+</a><a href="https://x.com/search?q=%24NVDA%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 NVDA 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/NVDA/news/" target="_blank" rel="noopener" class="news-link" title="NVDA 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('NVDA')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-NVDA" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="AAPL"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">2위 · 애플</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=AAPL" target="_blank" rel="noopener">AAPL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=AAPL" target="_blank" rel="noopener" title="Finviz에서 AAPL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24AAPL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 AAPL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/AAPL/news/" target="_blank" rel="noopener" class="news-link" title="AAPL 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('AAPL')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-AAPL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="GOOGL"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">3위 · 알파벳(구글)</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=GOOGL" target="_blank" rel="noopener">GOOGL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=GOOGL" target="_blank" rel="noopener" title="Finviz에서 GOOGL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24GOOGL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 GOOGL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/GOOGL/news/" target="_blank" rel="noopener" class="news-link" title="GOOGL 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('GOOGL')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-GOOGL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="MSFT"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">4위 · 마이크로소프트</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=MSFT" target="_blank" rel="noopener">MSFT</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=MSFT" target="_blank" rel="noopener" title="Finviz에서 MSFT 상세 지표 보기">+</a><a href="https://x.com/search?q=%24MSFT%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 MSFT 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/MSFT/news/" target="_blank" rel="noopener" class="news-link" title="MSFT 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('MSFT')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-MSFT" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="AMZN"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">5위 · 아마존</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=AMZN" target="_blank" rel="noopener">AMZN</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=AMZN" target="_blank" rel="noopener" title="Finviz에서 AMZN 상세 지표 보기">+</a><a href="https://x.com/search?q=%24AMZN%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 AMZN 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/AMZN/news/" target="_blank" rel="noopener" class="news-link" title="AMZN 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('AMZN')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-AMZN" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="TSM"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">6위 · TSMC(대만)</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TSM" target="_blank" rel="noopener">TSM</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TSM" target="_blank" rel="noopener" title="Finviz에서 TSM 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TSM%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 TSM 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/TSM/news/" target="_blank" rel="noopener" class="news-link" title="TSM 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('TSM')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-TSM" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="SPCX"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">7위 · 스페이스X</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=SPCX" target="_blank" rel="noopener">SPCX</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SPCX" target="_blank" rel="noopener" title="Finviz에서 SPCX 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SPCX%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SPCX 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SPCX/news/" target="_blank" rel="noopener" class="news-link" title="SPCX 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('SPCX')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-SPCX" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="AVGO"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">8위 · 브로드컴</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=AVGO" target="_blank" rel="noopener">AVGO</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=AVGO" target="_blank" rel="noopener" title="Finviz에서 AVGO 상세 지표 보기">+</a><a href="https://x.com/search?q=%24AVGO%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 AVGO 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/AVGO/news/" target="_blank" rel="noopener" class="news-link" title="AVGO 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('AVGO')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-AVGO" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="META"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">9위 · 메타 플랫폼스</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=META" target="_blank" rel="noopener">META</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=META" target="_blank" rel="noopener" title="Finviz에서 META 상세 지표 보기">+</a><a href="https://x.com/search?q=%24META%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 META 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/META/news/" target="_blank" rel="noopener" class="news-link" title="META 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('META')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-META" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="TSLA"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">10위 · 테슬라</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TSLA" target="_blank" rel="noopener">TSLA</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TSLA" target="_blank" rel="noopener" title="Finviz에서 TSLA 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TSLA%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 TSLA 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/TSLA/news/" target="_blank" rel="noopener" class="news-link" title="TSLA 관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleUsFinancials('TSLA')" style="color:#facc15" title="재무비율·주가지표(Yahoo Finance)">재무</a></div></div>
+          <div id="fin-TSLA" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+        </div>
+    </div>
+    <div style="margin-top:10px"><button class="btn sm" id="cap2-btn" onclick="toggleMoreRows('cap2')" style="cursor:pointer">11~20위 더 보기 ▾</button></div>
+    <div id="cap2-wrap" style="display:none;margin-top:8px"><div class="scroll"><div class="wl-list" id="cap2-tbl"></div></div></div>
+    <p class="mut" style="margin-top:10px;font-size:12px">순위는 미국 증시에 상장된 종목 기준(2026년 9월 초 기준 스냅샷)<br>· 시가총액은 수시로 변동<br>· 종목명을 클릭하면 Finviz 상세 페이지로, 세부내용의 +는 Finviz 상세 지표, X는 @TrendSpider의 해당 티커 게시물 검색, N은 최신 뉴스, 재무는 재무비율·주가지표(Yahoo Finance)로 이동합니다.</p>
+    <p class="mut" style="margin-top:4px;font-size:12px">※ 재무비율의 영업이익증가율은 Yahoo Finance가 별도 제공하지 않아 분기 실적(이익) 성장률로 대체 표기 · 일부 종목은 데이터 소스 제약으로 일시적으로 "—"가 표시될 수 있습니다.</p>
+
+
+    <h2 style="font-size:21px;margin-top:44px">레버리지 ETF</h2>
+    <p class="sub">TQQQ · UPRO · UDOW · TECL · BULZ · SOXL · WEBL · DFEN · FAS · LABU · HIBL · KORU · 3배 레버리지 ETF·ETN · 기간별 등락률 (변동성이 매우 큰 상품입니다)</p>
+    <div class="tabs" data-group="lev">
+      <button class="on" data-p="d">일간</button><button data-p="w">주간</button>
+      <button data-p="m">월간</button><button data-p="y">연간</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="lev-tbl">
+          <div class="wl-row" data-t="TQQQ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('TQQQ',event)" style="cursor:pointer"><div class="wl-tag">나스닥100 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/tqqq" target="_blank" rel="noopener">TQQQ</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TQQQ" target="_blank" rel="noopener" title="Finviz에서 TQQQ 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TQQQ%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 TQQQ 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/TQQQ/news/" target="_blank" rel="noopener" class="news-link" title="TQQQ 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-TQQQ" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="UPRO"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('UPRO',event)" style="cursor:pointer"><div class="wl-tag">S&amp;P500 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/upro" target="_blank" rel="noopener">UPRO</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=UPRO" target="_blank" rel="noopener" title="Finviz에서 UPRO 상세 지표 보기">+</a><a href="https://x.com/search?q=%24UPRO%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 UPRO 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/UPRO/news/" target="_blank" rel="noopener" class="news-link" title="UPRO 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-UPRO" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="UDOW"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('UDOW',event)" style="cursor:pointer"><div class="wl-tag">다우존스30 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/udow" target="_blank" rel="noopener">UDOW</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=UDOW" target="_blank" rel="noopener" title="Finviz에서 UDOW 상세 지표 보기">+</a><a href="https://x.com/search?q=%24UDOW%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 UDOW 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/UDOW/news/" target="_blank" rel="noopener" class="news-link" title="UDOW 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-UDOW" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="TECL"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('TECL',event)" style="cursor:pointer"><div class="wl-tag">미국 기술주 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-technology-bull-bear-3x-etfs" target="_blank" rel="noopener">TECL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TECL" target="_blank" rel="noopener" title="Finviz에서 TECL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TECL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 TECL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/TECL/news/" target="_blank" rel="noopener" class="news-link" title="TECL 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-TECL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="BULZ"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('BULZ',event)" style="cursor:pointer"><div class="wl-tag">FANG+ 혁신기업 3배 레버리지 ETN</div><div class="wl-name"><a href="https://microsectors.com/products/bulz/" target="_blank" rel="noopener">BULZ</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=BULZ" target="_blank" rel="noopener" title="Finviz에서 BULZ 상세 지표 보기">+</a><a href="https://x.com/search?q=%24BULZ%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 BULZ 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/BULZ/news/" target="_blank" rel="noopener" class="news-link" title="BULZ 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-BULZ" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="SOXL"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('SOXL',event)" style="cursor:pointer"><div class="wl-tag">반도체 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-semiconductor-bull-bear-3x-etfs" target="_blank" rel="noopener">SOXL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=SOXL" target="_blank" rel="noopener" title="Finviz에서 SOXL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24SOXL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 SOXL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/SOXL/news/" target="_blank" rel="noopener" class="news-link" title="SOXL 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-SOXL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="WEBL"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('WEBL',event)" style="cursor:pointer"><div class="wl-tag">인터넷 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-dow-jones-internet-bull-bear-3x-etfs" target="_blank" rel="noopener">WEBL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=WEBL" target="_blank" rel="noopener" title="Finviz에서 WEBL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24WEBL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 WEBL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/WEBL/news/" target="_blank" rel="noopener" class="news-link" title="WEBL 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-WEBL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="DFEN"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('DFEN',event)" style="cursor:pointer"><div class="wl-tag">항공우주·방산 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-aerospace-defense-bull-3x-etf" target="_blank" rel="noopener">DFEN</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=DFEN" target="_blank" rel="noopener" title="Finviz에서 DFEN 상세 지표 보기">+</a><a href="https://x.com/search?q=%24DFEN%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 DFEN 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/DFEN/news/" target="_blank" rel="noopener" class="news-link" title="DFEN 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-DFEN" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="FAS"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('FAS',event)" style="cursor:pointer"><div class="wl-tag">금융 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-financial-bull-bear-3x-etfs" target="_blank" rel="noopener">FAS</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=FAS" target="_blank" rel="noopener" title="Finviz에서 FAS 상세 지표 보기">+</a><a href="https://x.com/search?q=%24FAS%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 FAS 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/FAS/news/" target="_blank" rel="noopener" class="news-link" title="FAS 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-FAS" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="LABU"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('LABU',event)" style="cursor:pointer"><div class="wl-tag">바이오텍 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-s-p-biotech-bull-bear-3x-etfs" target="_blank" rel="noopener">LABU</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=LABU" target="_blank" rel="noopener" title="Finviz에서 LABU 상세 지표 보기">+</a><a href="https://x.com/search?q=%24LABU%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 LABU 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/LABU/news/" target="_blank" rel="noopener" class="news-link" title="LABU 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-LABU" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="HIBL"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('HIBL',event)" style="cursor:pointer"><div class="wl-tag">S&P500 고베타 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-s-p-500-high-beta-bull-3x-etf" target="_blank" rel="noopener">HIBL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=HIBL" target="_blank" rel="noopener" title="Finviz에서 HIBL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24HIBL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 HIBL 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/HIBL/news/" target="_blank" rel="noopener" class="news-link" title="HIBL 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-HIBL" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+          <div class="wl-row" data-t="KORU"><div class="wl-bar"></div><div class="wl-info" onclick="toggleEtfHoldings('KORU',event)" style="cursor:pointer"><div class="wl-tag">한국(MSCI Korea) 3배 레버리지 ETF</div><div class="wl-name"><a href="https://www.direxion.com/product/daily-msci-south-korea-bull-3x-etf" target="_blank" rel="noopener">KORU</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=KORU" target="_blank" rel="noopener" title="Finviz에서 KORU 상세 지표 보기">+</a><a href="https://x.com/search?q=%24KORU%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 KORU 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/KORU/news/" target="_blank" rel="noopener" class="news-link" title="KORU 관련 최신 뉴스 보기">N</a></div></div>
+          <div id="etf-hold-KORU" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>
+        </div>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">이름 왼쪽 여백을 클릭하면 주요 보유종목·섹터 비중을 볼 수 있습니다<br>⚠ 3배 레버리지 상품은 일간 수익률을 추종하며 변동성이 매우 크고 장기 보유 시 지수와 괴리가 발생할 수 있습니다<br>· 티커명을 클릭하면 운용사 공식 상품 페이지로, 세부내용의 +는 Finviz 지표 페이지, X는 @TrendSpider의 해당 티커 게시물 검색, N은 최신 뉴스로 이동합니다.</p>
+  </div>
+</section>
+
+<!-- 유니콘 기업(비상장 AI 기업) -->
+<section id="unicorn">
+  <div class="wrap">
+    <h2 style="font-size:21px">유니콘 기업</h2>
+    <p class="sub">엔트로픽·오픈AI 등 비상장 AI 기업의 최근 기업가치·매출·투자자 현황 · 사모(私募) 시장 정보라 공개 시점마다 크게 달라질 수 있습니다 · 상장(IPO) 전망이 빠른 순서대로 정렬</p>
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/anthropic.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://www.anthropic.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">Anthropic</a> <a href="https://x.com/search?q=Anthropic&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Anthropic 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $965B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.5 Series H)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $470~500억<br><span class="mut" style="font-size:11px;font-weight:400">(2026.5 기준)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 아직 순손실이나 첫 분기 흑자 전환 근접으로 보도됨</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(0,117,74,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">2026.6 SEC 비공개 S-1 제출<br>· 상장 시기 미확정<br>(2026 하반기~2027 관측)</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip chip-top10">Google</span><span class="chip chip-top10">Microsoft</span><span class="chip chip-top10">Amazon</span>
+          <span class="chip">Sequoia</span><span class="chip">Altimeter</span><span class="chip">Dragoneer</span><span class="chip">Greenoaks</span><span class="chip">GIC</span><span class="chip">Coatue</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">삼성전자</span><span class="chip chip-top10">SK하이닉스</span>
+        </div>
+        <div class="mut" style="margin-top:4px;font-size:11px">(메모리 공급 등 전략적 파트너<br>— 지분투자 여부는 비공개)</div>
+        <div class="mut" style="margin-top:10px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">최근 뉴스</div>
+        <div id="unicorn-news-anthropic"><div class="mut" style="font-size:11.5px">불러오는 중…</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/openai.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://openai.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">OpenAI</a> <a href="https://x.com/search?q=OpenAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 OpenAI 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $852B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.3 라운드, 최대 $1T 거론)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $200~250억<br><span class="mut" style="font-size:11px;font-weight:400">(2026 초, 편차 있음)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 대규모 순손실 지속(분기당 100억 달러 안팎 추정 보도)</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(0,117,74,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">2026.5~6 SEC 비공개 S-1 제출<br>· 2026년 4분기~2027년 상장 목표 거론<br>(공식 확정 아님)</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Microsoft</span><span class="chip">SoftBank</span><span class="chip">Thrive Capital</span><span class="chip">a16z</span><span class="chip">ARK Invest</span><span class="chip">BlackRock</span><span class="chip">Fidelity</span><span class="chip">Sequoia</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 직접 지분투자 없음<br>(삼성전자·SK하이닉스는 '스타게이트' 프로젝트향 메모리 공급 협력)</div>
+        <div class="mut" style="margin-top:10px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">최근 뉴스</div>
+        <div id="unicorn-news-openai"><div class="mut" style="font-size:11.5px">불러오는 중…</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/databricks.com" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://www.databricks.com" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">Databricks</a> <a href="https://x.com/search?q=Databricks&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 Databricks 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $134B<br><span class="mut" style="font-size:11px;font-weight:400">(2025.12 → $165~175B 추진 중)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $54억<br><span class="mut" style="font-size:11px;font-weight:400">(2026.2, 전년比 +65%)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 잉여현금흐름(FCF)은 흑자, 회계상 순이익 여부는 비공개</div>
+        <div style="margin-top:8px;font-size:12.5px;background:rgba(0,117,74,.1);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0">공식 일정 없음<br>· CEO는 "2027년 이후" 가능성 언급</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip chip-top10">Meta</span><span class="chip">JPMorgan(부채금융 주관)</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 한국 기업 투자자 없음</div>
+        <div class="mut" style="margin-top:10px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">최근 뉴스</div>
+        <div id="unicorn-news-databricks"><div class="mut" style="font-size:11.5px">불러오는 중…</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <img src="https://logo.clearbit.com/x.ai" alt="" style="width:32px;height:32px;border-radius:8px;flex:none" onerror="this.style.display='none'">
+          <div><a href="https://x.ai" target="_blank" rel="noopener" style="font-weight:800;font-size:17px;text-decoration:none;color:var(--tx)">xAI</a> <a href="https://x.com/search?q=xAI&f=live" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-size:12px" title="X에서 xAI 관련 게시물 검색">X</a></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:12.5px">
+          <div><div class="mut" style="font-size:11px">최근 기업가치</div><div style="font-weight:700">약 $170~230B<br><span class="mut" style="font-size:11px;font-weight:400">(2026.1, 추가 라운드 논의)</span></div></div>
+          <div><div class="mut" style="font-size:11px">매출(연환산)</div><div style="font-weight:700">약 $20~38억<br><span class="mut" style="font-size:11px;font-weight:400">(추정치 편차 큼)</span></div></div>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">손익: 대규모 인프라 투자 지속 중, 순손실 상태로 추정</div>
+        <div class="mut" style="margin-top:8px;font-size:12.5px">상장(IPO) 전망: 공식 일정 없음</div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 미국</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+          <span class="chip chip-top10">Nvidia</span><span class="chip">Cisco Investments</span><span class="chip">Fidelity</span><span class="chip">Valor Equity Partners</span><span class="chip">Sequoia</span><span class="chip">a16z</span><span class="chip">BlackRock</span>
+        </div>
+        <div class="mut" style="margin-top:8px;font-size:11px">주요 투자자 — 한국</div>
+        <div class="mut" style="font-size:12.5px;margin-top:4px">확인된 한국 기업 투자자 없음</div>
+        <div class="mut" style="margin-top:10px;font-size:11px;border-top:1px solid var(--line);padding-top:8px">최근 뉴스</div>
+        <div id="unicorn-news-xai"><div class="mut" style="font-size:11.5px">불러오는 중…</div></div>
+      </div>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ 위 수치는 비상장 사모 시장 정보라 공식 재무제표 기준이 아니며, 라운드가 진행 중이거나 언론 보도 시점에 따라 실제 확정치와 다를 수 있습니다.<br>· 기업명을 클릭하면 공식 홈페이지로, X는 X(트위터)에서 해당 기업 관련 게시물 검색 결과로 이동합니다.<br>· 상장(IPO) 전망이 빠른 순서대로 정렬했습니다.<br>· 투자자 중 <span class="chip chip-top10" style="font-size:11px">주황색</span>으로 표시된 곳은 미국·한국 시가총액 TOP10 이내 기업입니다.<br>· 투자 권유 목적이 아닙니다.</p>
+  </div>
+</section>
+
+<!-- 주식 이벤트 -->
+<section id="events">
+  <div class="wrap">
+    <h2>주요 이벤트 일정 🇺🇸</h2>
+    <p class="sub">월을 선택하면 해당 월의 구체적인 날짜별 일정을 확인할 수 있습니다 · 날짜는 미국 동부시간(ET) 기준 · 2026년</p>
+    <div class="tabs" data-group="evmonth" id="evmonth-tabs">
+      <button data-m="1">1월</button><button data-m="2">2월</button><button data-m="3">3월</button>
+      <button data-m="4">4월</button><button data-m="5">5월</button><button data-m="6">6월</button>
+      <span class="row-break"></span><button data-m="7">7월</button><button data-m="8">8월</button><button data-m="9">9월</button>
+      <button data-m="10">10월</button><button data-m="11">11월</button><button data-m="12">12월</button>
+    </div>
+    <div class="scroll" id="events-tbl-wrap">
+      <table>
+        <colgroup>
+          <col class="ev-date"><col class="ev-name"><col><col class="ev-imp"><col class="ev-src">
+        </colgroup>
+        <thead><tr><th>날짜</th><th>이벤트</th><th>영향/구분</th><th>중요도</th><th>출처</th></tr></thead>
+        <tbody id="events-tbl"><tr><td class="mut" colspan="5">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ FOMC·CPI·고용보고서 등 발표일은 정부기관 사정(연방정부 셧다운 등)에 따라 변경될 수 있습니다<br>· PCE 일부 월은 추정치입니다<br>· 최신 일정은 각 출처 링크에서 확인하세요.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">지수 편입 · 편출</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">S&P 500·나스닥100 최근 구성종목 변경 · 시기별 그룹 · 종목명 클릭 시 Finviz로 이동</p>
+<div class="tabs" data-group="idxchg" style="margin-top:6px"><button class="on" data-p="d">일간</button><button data-p="w">주간</button><button data-p="m">월간</button><button data-p="y">연간</button></div>
+<div id="idxchg-tbl">
+<div style="margin-top:14px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel2)"><div style="font-size:15px;font-weight:900;margin-bottom:4px">📅 2026.9.21 <span class="mut" style="font-size:12px;font-weight:600">· 편입 2 · 편출 3</span></div><div style="font-size:12.5px;font-weight:800;color:var(--up);margin:10px 0 0">▲ 편입</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="ILMN"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Illumina · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=ILMN" target="_blank" rel="noopener">ILMN</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=ILMN" target="_blank" rel="noopener" title="Finviz에서 ILMN 상세 지표 보기">+</a><a href="https://x.com/search?q=%24ILMN%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/ILMN/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="BE"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Bloom Energy · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=BE" target="_blank" rel="noopener">BE</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=BE" target="_blank" rel="noopener" title="Finviz에서 BE 상세 지표 보기">+</a><a href="https://x.com/search?q=%24BE%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/BE/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div><div style="font-size:12.5px;font-weight:800;color:var(--down);margin:10px 0 0">▼ 편출</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="TTD"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">The Trade Desk · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TTD" target="_blank" rel="noopener">TTD</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TTD" target="_blank" rel="noopener" title="Finviz에서 TTD 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TTD%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/TTD/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="BLDR"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Builders FirstSource · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=BLDR" target="_blank" rel="noopener">BLDR</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=BLDR" target="_blank" rel="noopener" title="Finviz에서 BLDR 상세 지표 보기">+</a><a href="https://x.com/search?q=%24BLDR%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/BLDR/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="TAP"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Molson Coors · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TAP" target="_blank" rel="noopener">TAP</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TAP" target="_blank" rel="noopener" title="Finviz에서 TAP 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TAP%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/TAP/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div></div>
+<div style="margin-top:14px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel2)"><div style="font-size:15px;font-weight:900;margin-bottom:4px">📅 2026.8 <span class="mut" style="font-size:12px;font-weight:600">· 편입 2 · 편출 2</span></div><div style="font-size:12.5px;font-weight:800;color:var(--up);margin:10px 0 0">▲ 편입</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="FERG"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Ferguson Enterprises · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=FERG" target="_blank" rel="noopener">FERG</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=FERG" target="_blank" rel="noopener" title="Finviz에서 FERG 상세 지표 보기">+</a><a href="https://x.com/search?q=%24FERG%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/FERG/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="RDDT"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Reddit · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=RDDT" target="_blank" rel="noopener">RDDT</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=RDDT" target="_blank" rel="noopener" title="Finviz에서 RDDT 상세 지표 보기">+</a><a href="https://x.com/search?q=%24RDDT%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/RDDT/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div><div style="font-size:12.5px;font-weight:800;color:var(--down);margin:10px 0 0">▼ 편출</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="EA"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Electronic Arts · S&P500 · 비상장 전환</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=EA" target="_blank" rel="noopener">EA</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=EA" target="_blank" rel="noopener" title="Finviz에서 EA 상세 지표 보기">+</a><a href="https://x.com/search?q=%24EA%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/EA/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="AVB"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">AvalonBay Communities · S&P500 · 피인수</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=AVB" target="_blank" rel="noopener">AVB</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=AVB" target="_blank" rel="noopener" title="Finviz에서 AVB 상세 지표 보기">+</a><a href="https://x.com/search?q=%24AVB%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/AVB/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div></div>
+<div style="margin-top:14px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel2)"><div style="font-size:15px;font-weight:900;margin-bottom:4px">📅 2026.6.22 <span class="mut" style="font-size:12px;font-weight:600">· 편입 7 · 편출 2</span></div><div style="font-size:12.5px;font-weight:800;color:var(--up);margin:10px 0 0">▲ 편입</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="CRWV"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">CoreWeave · 나스닥100</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" rel="noopener">CRWV</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" rel="noopener" title="Finviz에서 CRWV 상세 지표 보기">+</a><a href="https://x.com/search?q=%24CRWV%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/CRWV/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="MRVL"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Marvell Technology · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank" rel="noopener">MRVL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank" rel="noopener" title="Finviz에서 MRVL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24MRVL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/MRVL/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="NBIS"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Nebius · 나스닥100</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=NBIS" target="_blank" rel="noopener">NBIS</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=NBIS" target="_blank" rel="noopener" title="Finviz에서 NBIS 상세 지표 보기">+</a><a href="https://x.com/search?q=%24NBIS%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/NBIS/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="ALAB"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Astera Labs · 나스닥100</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=ALAB" target="_blank" rel="noopener">ALAB</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=ALAB" target="_blank" rel="noopener" title="Finviz에서 ALAB 상세 지표 보기">+</a><a href="https://x.com/search?q=%24ALAB%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/ALAB/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="RKLB"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Rocket Lab · 나스닥100</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=RKLB" target="_blank" rel="noopener">RKLB</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=RKLB" target="_blank" rel="noopener" title="Finviz에서 RKLB 상세 지표 보기">+</a><a href="https://x.com/search?q=%24RKLB%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/RKLB/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="TER"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Teradyne · 나스닥100</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=TER" target="_blank" rel="noopener">TER</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=TER" target="_blank" rel="noopener" title="Finviz에서 TER 상세 지표 보기">+</a><a href="https://x.com/search?q=%24TER%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/TER/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="FLEX"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Flex · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=FLEX" target="_blank" rel="noopener">FLEX</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=FLEX" target="_blank" rel="noopener" title="Finviz에서 FLEX 상세 지표 보기">+</a><a href="https://x.com/search?q=%24FLEX%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/FLEX/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div><div style="font-size:12.5px;font-weight:800;color:var(--down);margin:10px 0 0">▼ 편출</div><div class="wl-list" style="margin-top:6px"><div class="wl-row" data-t="POOL"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Pool Corp · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=POOL" target="_blank" rel="noopener">POOL</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=POOL" target="_blank" rel="noopener" title="Finviz에서 POOL 상세 지표 보기">+</a><a href="https://x.com/search?q=%24POOL%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/POOL/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div><div class="wl-row" data-t="CPB"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">Campbell's Company · S&P500</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=CPB" target="_blank" rel="noopener">CPB</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div><div class="wl-actions"><a href="https://finviz.com/quote.ashx?t=CPB" target="_blank" rel="noopener" title="Finviz에서 CPB 상세 지표 보기">+</a><a href="https://x.com/search?q=%24CPB%20from%3Atrendspider&f=live" target="_blank" rel="noopener" class="ts-link" title="X 검색">X</a><a href="https://finance.yahoo.com/quote/CPB/news/" target="_blank" rel="noopener" class="news-link" title="최신 뉴스">N</a></div></div></div></div>
+</div>
+    <p class="mut" style="margin-top:10px;font-size:12px">⚠ S&P Dow Jones Indices·Nasdaq 공식 발표 기준(2026년 6~9월분) · 편입은 지수 편입 시 패시브 자금 유입, 편출은 유출 압력이 발생하는 경향이 있습니다<br>· 정렬은 대략적인 시가총액 순서이며 실시간 순위가 아닙니다<br>· 피인수·비상장 전환으로 인한 편출은 사유를 표기했습니다.</p>
+
+    <h3 style="font-size:16px;margin-top:32px;color:var(--tx2)">이번 달 휴장일</h3>
+    <p class="sub" style="margin-bottom:12px;font-size:13.5px">증시 전일 휴장 · 채권시장만 휴장 · 조기폐장 안내</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>날짜</th><th>안내</th><th>구분</th></tr></thead>
+        <tbody id="holidays-tbl"><tr><td class="mut" colspan="3">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" style="margin-bottom:8px">투자김군</div>
+    <p>주식 · 가상화폐 시장 신호 대시보드</p>
+    <ul style="margin:14px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px;line-height:1.55">
+      <li>본 프로그램은 지속적으로 기능이 개선될 예정입니다.</li>
+      <li>네이버포인트로 응원하고 싶으시다면 ID: coolzet 으로 선물해주세요.</li>
+    </ul>
+    <div class="disc">
+      <b>투자 유의사항</b><br>
+      <span class="dl">본 사이트에서 제공하는 모든 지표와 자료는 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다.</span>
+      <span class="dl">투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다.</span>
+      <span class="dl">시세 데이터는 제공처 사정에 따라 지연되거나 오차가 있을 수 있습니다.</span>
+    </div>
+    <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="mrkim-common.js?v=ef66c1ef"></script>
+<script>
+const evMonthTabs=document.getElementById('evmonth-tabs');
+if(evMonthTabs){
+  evMonthTabs.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    evMonthTabs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    renderEvents(+b.dataset.m);
+  });
+  const nowMonth=new Date().getMonth()+1;
+  const defMonth=MONTH_EVENTS[nowMonth]?nowMonth:9;
+  const defBtn=evMonthTabs.querySelector('button[data-m="'+defMonth+'"]');
+  if(defBtn) defBtn.classList.add('on');
+  renderEvents(defMonth);
+}
+renderNextEventBanner('us-next-event', MONTH_EVENTS, {excludeHoliday:true});
+
+
+const now=new Date();
+{ const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
+
+renderUS('d'); renderTick('tick','d'); renderTick('cap','d'); renderTick('lev','d');
+renderCapShareChart('us-cap-chart', US_CAP_DATA);
+applyRankHistory();
+loadUS();
+loadTickGroup('tick'); fillUsRowStats('cap-tbl',1); loadTickGroup('cap').then(()=>renderCapRelCompare('us-caprel-chart','cap',US_CAP_DATA,curPer.caprel)); loadTickGroup('lev'); loadTickGroup('idxchg');
+loadIdxRelUS();
+loadUSCorr();
+initKrwToggle('#krw-toggle');
+loadUnicornNews();
+
+</script>
+<script>
+/* 미국지수 시가총액 TOP10 재무비율·주가지표 — 한국지수 페이지의 "재무" 클릭식 토글과 동일한 방식.
+   /us-fundamentals 는 10개 종목 전체를 한 번에 반환하므로(loadUsFundamentalsOnce, mrkim-common.js
+   참고), 처음 "재무"를 누른 시점에 한 번만 불러와 캐시해두고 이후 클릭은 그 캐시에서 즉시 렌더링한다. */
+const usFinLoaded={};
+async function toggleUsFinancials(ticker){
+  const el=document.getElementById('fin-'+ticker);
+  if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(!usFinLoaded[ticker]){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
+      const cache=await loadUsFundamentalsOnce(US_FUND_SET2.indexOf(ticker)>=0?2:1);
+      let techD=null;
+      try{ techD=(typeof tickData!=='undefined'&&tickData[ticker])||await yclose(ticker,'1y'); }catch(e){}
+      el.innerHTML=renderUsFinancialRatios(cache?cache[ticker]:null, techD);
+      usFinLoaded[ticker]=true;
+    }
+  }else{
+    el.style.display='none';
+  }
+}
+</script>
+<script>
+/* 관심종목(ETF) 행의 가운데 빈 공간(종목 아이콘·이름이 있는 wl-info 영역) 클릭 시 주요
+   보유종목(티커별 가중치)·섹터 가중치를 펼쳐 보여준다. wl-info 안의 링크(종목명)를 눌렀을 때는
+   원래 링크 이동이 우선이라 여기서는 토글하지 않는다. */
+const etfHoldLoaded={};
+async function toggleEtfHoldings(ticker, ev){
+  if(ev && ev.target && ev.target.closest && ev.target.closest('a')) return;
+  const el=document.getElementById('etf-hold-'+ticker);
+  if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(!etfHoldLoaded[ticker]){
+      el.innerHTML='<p class="mut" style="font-size:12.5px">Yahoo Finance에서 불러오는 중…</p>';
+      const data=await loadEtfHoldings(ticker);
+      let lev='';
+      try{ if(typeof LEV_META!=='undefined'&&LEV_META[ticker]) lev=await renderLevPanel(ticker,data); }catch(e){ console.warn('레버리지 패널 실패',e); }
+      el.innerHTML=lev+renderEtfHoldings(data);
+      etfHoldLoaded[ticker]=true;
+    }
+  }else{
+    el.style.display='none';
+  }
+}
+</script>
+
+<script>
+/* 섹션 접기/펼치기 — 동일한 제목 바(폰트 20px·줄간격 1.4), 좌측 포인트 선, 요약 칩, 펼치기/접기 버튼. 기본은 접힘 */
+(function(){
+  const SUM={
+    '주요 지수 ETF 상대수익률 비교':()=>'지수 5종 · 그래프 + 상관관계',
+    '김군 관심종목':()=>document.querySelectorAll('#tick-tbl .wl-row').length+'종목',
+    '시가총액 TOP10':()=>'TOP10 (+11~20위)',
+    '레버리지 ETF':()=>document.querySelectorAll('#lev-tbl .wl-row').length+'종목',
+    '유니콘 기업':()=>document.querySelectorAll('#unicorn .card').length+'개사',
+    '주요 이벤트 일정':()=>'월별 일정 · 편입·편출 · 휴장일'
+  };
+  function fold(h2){
+    if(!h2||h2.dataset.fold) return; h2.dataset.fold='1';
+    const nodes=[]; let n=h2.nextElementSibling;
+    while(n && n.tagName!=='H2'){ nodes.push(n); n=n.nextElementSibling; }
+    const box=document.createElement('div'); box.className='fold-body'; h2.after(box); nodes.forEach(x=>box.appendChild(x));
+    const title=h2.textContent.replace(/\s+/g,' ').trim();
+    const key=Object.keys(SUM).find(k=>title.indexOf(k)===0);
+    h2.className='fold-h'; h2.removeAttribute('style'); h2.id=h2.id||''; 
+    const flag=(title.indexOf('🇺🇸')>=0||key)?' 🇺🇸':'';
+    h2.innerHTML='<span class="fold-t">'+(key||title)+flag+'</span><span class="fold-sum"></span><span class="fold-btn"><em>펼치기</em> ➕</span>';
+    h2.setAttribute('role','button'); h2.setAttribute('aria-expanded','false'); h2.tabIndex=0;
+    const sum=h2.querySelector('.fold-sum'), btn=h2.querySelector('.fold-btn');
+    const LST={'김군 관심종목':'tick-tbl','시가총액 TOP10':'cap-tbl','레버리지 ETF':'lev-tbl'};
+    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; return '<span class="mv"><span class="mv-l">'+a.length+'종목</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
+    const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
+    refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
+    const set=open=>{ box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; h2.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
+    set(false);
+    const tg=e=>{ if(e.target.closest('a')) return; set(box.style.display==='none'); };
+    h2.addEventListener('click',tg); h2.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(e);} });
+    h2._set=set;
+  }
+  document.querySelectorAll('#stock > .wrap > h2, #unicorn > .wrap > h2, #events > .wrap > h2').forEach(fold);
+  const all=[...document.querySelectorAll('h2.fold-h')];
+  if(all[0]){ const bar=document.createElement('div'); bar.className='fold-all'; bar.innerHTML='<button type="button" data-o="1">모두 펼치기 ➕</button><button type="button" data-o="0">모두 접기 ➖</button>'; all[0].before(bar); bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; all.forEach(h=>h._set(b.dataset.o==='1')); }); }
+  const openByHash=()=>{ const h=location.hash&&document.querySelector(location.hash); if(h&&h._set) h._set(true); };
+  openByHash(); window.addEventListener('hashchange',openByHash);
+})();
+</script>
+<script>
+(function(){
+const q=(id)=>[...document.querySelectorAll('#'+id+' .wl-row')].map(r=>{const c=r.querySelector('.ch'),p=r.querySelector('.px');if(!c||!p)return null;const m=c.textContent.match(/([\d.]+)\s*%/);if(!m)return null;return{t:r.dataset.t,px:p.textContent,v:parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1)}}).filter(Boolean);
+function col(v){const a=Math.min(Math.abs(v)/4,1);const L=v>=0?[200,32,20]:[26,111,168];const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
+let mode='cap';
+function draw(){
+ const nav=document.querySelector('nav,header');
+ let all=[].concat(q('cap-tbl'),q('tick-tbl'),q('lev-tbl'));
+ if(!all.length)return;
+ let tp=document.querySelector('.tape');if(!tp){tp=document.createElement('div');tp.className='tape';document.body.prepend(tp)}
+ const it=all.map(x=>'<span><b>'+x.t+'</b>'+x.px+' <em class="'+(x.v>=0?'u':'d')+'" style="font-style:normal">'+(x.v>=0?'▲':'▼')+Math.abs(x.v).toFixed(2)+'%</em></span>').join('');
+ tp.innerHTML='<div class="tape-in">'+it+it+'</div>';
+ let p=document.querySelector('.pulse');
+ if(!p){p=document.createElement('div');p.className='pulse';const bar=document.querySelector('.fold-all');bar.before(p);p.addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;draw()}})}
+ const rows=mode==='cap'?q('cap-tbl'):mode==='tick'?q('tick-tbl'):q('lev-tbl');
+ const up=all.filter(x=>x.v>0).length,dn=all.filter(x=>x.v<0).length,fl=all.length-up-dn;
+ p.innerHTML='<h3>시장 한눈에 보기 <small>'+all.length+'개 종목 기준 · 실시간 등락 히트맵</small></h3>'+
+ '<div class="breadth"><i style="width:'+up/all.length*100+'%;background:var(--up)"></i><i style="width:'+fl/all.length*100+'%;background:#aaa"></i><i style="width:'+dn/all.length*100+'%;background:var(--down)"></i></div>'+
+ '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
+ '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">시가총액 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">관심종목</button><button data-m="lev" class="'+(mode==='lev'?'on':'')+'">레버리지 ETF</button></div>'+
+ '<div class="hm">'+rows.map((x,i)=>'<div class="'+(mode==='cap'&&i<3?'big':'')+'" style="background:'+col(x.v)+'"><span>'+x.t+'</span><small>'+x.px+' · '+(x.v>=0?'+':'')+x.v.toFixed(2)+'%</small></div>').join('')+'</div>'+
+ '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
+}
+setTimeout(draw,5000);setInterval(draw,20000);
+})();
+</script></body>
+</html>

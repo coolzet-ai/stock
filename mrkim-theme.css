@@ -195,6 +195,9 @@ html[data-theme="dark"] #hd-tools #ps-cv .cv-u2,html[data-theme="dark"] #hd-tool
 html[data-theme="dark"] #hd-tools #ps-cv .cv-d2,html[data-theme="dark"] #hd-tools #ps-cv .cv-d{color:#8ea3de}
 html[data-theme="dark"] #hd-tools #ps-cv.us .cv-u{color:#b3efd6}
 html[data-theme="dark"] #hd-tools #ps-cv.us .cv-d{color:#e09c96}
+html[data-theme="dark"] .pro .wl-tag .er-b.soon,html[data-theme="dark"] .pro .wl-tag .er-b.hot,html[data-theme="dark"] .pro .wl-tag .dv-b.soon{background:#1f100f !important;border-color:#56312e !important;color:#e2a19c !important}
+html[data-theme="dark"] #ps-miss{border:1px solid #7a6942;background:#211d10;color:#eabda9}
+html[data-theme="dark"] #pb-act a{color:#b8edda}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
@@ -228,6 +231,7 @@ html[data-theme="dark"] .pro table.m-cards td:first-child::before{color:#a5acbc}
 html[data-theme="dark"] .pro .gl-list .acc-btn::after{color:#a5acbc}
 html[data-theme="dark"] .pro .data-notice .acc-btn::after{color:#b8edda}
 html[data-theme="dark"] .pro .card>.fg-hd:first-child .tabs button.on,html[data-theme="dark"] .pro #us-idxrel-card .fg-hd .tabs button.on,html[data-theme="dark"] .pro #us-caprel-card .fg-hd .tabs button.on{background:#101316 !important;color:#b8edda !important}}
+@media (min-width:701px){html[data-theme="dark"] .pro .lead-pc{color:#b8edda}}
 /* ===== 미국식 색(상승=초록·하락=빨강) ===== */
 html[data-cv="us"] .pro .chip.up,html[data-cv="us"] .pro .fwd-cur .up,html[data-cv="us"] .pro .cur td .up,html[data-cv="us"] .pro .tr-hd .chips .up{color:#067647 !important}
 html[data-cv="us"] .pro .cur td:nth-child(3),html[data-cv="us"] .pro .cur.fb>.up{color:#067647 !important}

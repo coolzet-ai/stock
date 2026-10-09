@@ -6263,6 +6263,7 @@ function applyEarnBadges(){
     if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
     if(box.innerHTML!==html) box.innerHTML=html;
   });
+  try{ updateActionLine(); }catch(e){}
 }
 async function loadDivs(){
   if(!PROXY_BASE) return;
@@ -6274,8 +6275,8 @@ async function loadDivs(){
       const r=await fetch(origin+'divs?symbols='+syms.slice(i,i+20).map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
       const j=r.ok?await r.json():null; if(j&&!j.error) Object.assign(DIV_DATA,j);
     }
-    applyEarnBadges();
-  }catch(e){ console.warn('배당 정보 로딩 실패:',e); }
+    applyEarnBadges(); mkMiss('div','배당',!Object.keys(DIV_DATA).length);
+  }catch(e){ console.warn('배당 정보 로딩 실패:',e); mkMiss('div','배당',true); }
 }
 async function loadCapNews(){
   if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
@@ -6283,8 +6284,8 @@ async function loadCapNews(){
     const origin=PROXY_BASE.replace(/\?url=$/,'');
     const r=await fetch(origin+'cap-news?tickers='+EARN_LIST.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
     const j=r.ok?await r.json():null;
-    if(j&&!j.error){ NEWS_DATA=j; applyEarnBadges(); }
-  }catch(e){ console.warn('핵심 뉴스 로딩 실패:',e); }
+    if(j&&!j.error){ NEWS_DATA=j; applyEarnBadges(); mkMiss('news','뉴스',false); } else mkMiss('news','뉴스',true);
+  }catch(e){ console.warn('핵심 뉴스 로딩 실패:',e); mkMiss('news','뉴스',true); }
 }
 async function loadEarnings(){
   if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
@@ -6292,8 +6293,8 @@ async function loadEarnings(){
     const origin=PROXY_BASE.replace(/\?url=$/,'');
     const r=await fetch(origin+'earnings?tickers='+EARN_LIST.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
     const j=r.ok?await r.json():null;
-    if(j&&!j.error){ EARN_DATA=j; applyEarnBadges(); }
-  }catch(e){ console.warn('실적 발표일 로딩 실패:',e); }
+    if(j&&!j.error){ EARN_DATA=j; applyEarnBadges(); mkMiss('earn','실적일',!Object.keys(j).length); } else mkMiss('earn','실적일',true);
+  }catch(e){ console.warn('실적 발표일 로딩 실패:',e); mkMiss('earn','실적일',true); }
 }
 if(document.getElementById('cap-tbl')){
   setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800); setTimeout(loadDivs,2200);
@@ -6410,7 +6411,7 @@ async function socLoad(set){
     const part=list.slice(i,i+15), first=(SOC.trend===null&&i===0);
     jobs.push(socFetch('social?tickers='+part.map(encodeURIComponent).join(',')+(first?'&trend=1':'')).then(j=>{ part.forEach(t=>{ SOC.st[t]=(j&&j[t])||null; }); if(j&&j._trend) SOC.trend=j._trend; else if(first&&SOC.trend===null) SOC.trend=[]; }));
   }
-  if(SOC.rdStatus===null){ const all=[...new Set([...SOC_SETS.cap(),...SOC_SETS.tick(),...SOC_SETS.lev()])]; jobs.push(socFetch('social-reddit?tickers='+all.map(encodeURIComponent).join(',')).then(j=>{ if(j&&j._status==='ok'){ SOC.rd=j; SOC.rdStatus='ok'; } else SOC.rdStatus='blocked'; })); }
+  if(SOC.rdStatus===null){ const all=[...new Set([...SOC_SETS.cap(),...SOC_SETS.tick(),...SOC_SETS.lev()])]; jobs.push(socFetch('social-reddit?tickers='+all.map(encodeURIComponent).join(',')).then(j=>{ if(j&&j._status==='ok'){ SOC.rd=j; SOC.rdStatus='ok'; mkMiss('rd','Reddit',false); } else { SOC.rdStatus='blocked'; mkMiss('rd','Reddit',true); } })); }
   await Promise.all(jobs);
 }
 function socRender(){
@@ -6433,10 +6434,11 @@ function socRender(){
     if(r.rd&&r.rd.top) tops.push('<a href="'+socEsc(r.rd.top.url)+'" target="_blank" rel="noopener nofollow" title="'+socEsc(r.rd.top.title)+'">🟠 '+socEsc(r.rd.top.title)+'</a><small>Reddit r/'+socEsc(r.rd.top.sub)+' · ▲'+r.rd.top.score+'</small>');
     h+='<div class="sr"><span class="rk">'+(i+1)+'</span><span class="nm"><b>'+r.t+'</b>'+(tr?'<span class="tr" title="StockTwits 트렌딩 '+tr+'위">트렌딩 '+tr+'위</span>':'')+hot+'<small>'+socEsc(socName(r.t))+'</small></span>'+
       '<span class="c-bb">'+bb+'</span><span class="c-rt">'+(s?s.rate.toFixed(1)+'<small class="na"> 글/시</small>':'<span class="na">—</span>')+'</span><span class="c-wl">'+(s&&s.watch?(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch.toLocaleString('ko-KR')):'<span class="na">—</span>')+'</span><span class="c-rd">'+rdTxt+'</span>'+
-      '<span class="tp">'+(tops.length?tops.join(''):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
+      '<span class="tp">'+(tops.length?(window.matchMedia&&matchMedia('(max-width:900px)').matches?'<details class="tpd"><summary>대표 글 보기</summary>'+tops.join('')+'</details>':tops.join('')):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
   });
   if(SOC.rdStatus==='blocked') h+='<p class="mut" style="margin:8px 4px 0;font-size:12px">Reddit이 서버 접속을 막아 이번에는 Reddit 언급을 불러오지 못했습니다(임의 값은 넣지 않습니다).</p>';
   body.innerHTML=h;
+  try{ const hr=rows.filter(r=>r.s).sort((a,b)=>b.rate-a.rate)[0], hb=rows.filter(r=>r.pctBull!=null).sort((a,b)=>b.pctBull-a.pctBull)[0]; if(hr) window.MK_SOC_SUM='글 속도 1위 '+hr.t+' ('+hr.rate.toFixed(0)+'글/시)'+(hb?' · 강세 최고 '+hb.t+' '+hb.pctBull.toFixed(0)+'%':''); }catch(e){}
 }
 async function socShow(set){
   SOC.cur=set; const body=document.getElementById('soc-body'); if(!body) return;
@@ -6450,3 +6452,42 @@ if(document.getElementById('us-social')){
   let started=false; const go=()=>{ if(started) return; started=true; socShow('cap'); };
   if('IntersectionObserver' in window){ new IntersectionObserver((es,ob)=>{ if(es.some(x=>x.isIntersecting)){ ob.disconnect(); go(); } },{rootMargin:'400px'}).observe(document.getElementById('us-social')); } else setTimeout(go,3000);
 }
+
+/* ===================== 오늘의 행동 알림 · 데이터 미수신 표시 · 공용 데이터 노출 ===================== */
+window.MK_DATA=function(){ return {earn:(typeof EARN_DATA!=='undefined'?EARN_DATA:null), div:(typeof DIV_DATA!=='undefined'?DIV_DATA:null), news:(typeof NEWS_DATA!=='undefined'?NEWS_DATA:null), ext:(typeof EXT_DATA!=='undefined'?EXT_DATA:null), soc:(typeof SOC!=='undefined'?SOC:null)}; };
+const MK_MISS={};
+window.mkMiss=function(key,label,on){
+  if(on) MK_MISS[key]=label; else delete MK_MISS[key];
+  const ps=document.getElementById('pro-status'); if(!ps) return;
+  let e=document.getElementById('ps-miss'); const names=Object.keys(MK_MISS).map(k=>MK_MISS[k]);
+  if(!names.length){ if(e) e.remove(); return; }
+  if(!e){ e=document.createElement('span'); e.id='ps-miss'; e.className='ps-miss'; e.setAttribute('role','status'); const anchor=document.getElementById('ps-net')||ps.firstChild; if(anchor&&anchor.after) anchor.after(e); else ps.appendChild(e); }
+  e.textContent='⚠ 일부 미수신: '+names.join('·'); e.title='제공처 지연·차단 등으로 아래 항목은 이번에 불러오지 못해 비워 두었습니다(임의 값 없음): '+names.join(', ');
+};
+function mkActionData(){
+  const D=window.MK_DATA(), out={earn:[],div:[],hot:[],swing:[]};
+  if(D.earn) Object.keys(D.earn).forEach(t=>{ const e=D.earn[t]; if(e&&e.ts){ const d=earnDays(e.ts); if(d>=0&&d<=7) out.earn.push({t,d}); } });
+  if(D.div) Object.keys(D.div).forEach(t=>{ const e=D.div[t]; if(e&&e.ex){ const d=earnDays(e.ex); if(d>=0&&d<=7) out.div.push({t,d}); } });
+  if(D.soc&&D.soc.st) Object.keys(D.soc.st).forEach(t=>{ const s=D.soc.st[t]; if(s&&s.rate>=15) out.hot.push({t,r:s.rate}); });
+  if(D.ext&&!usRegularNow()) Object.keys(D.ext).forEach(t=>{ const e=D.ext[t]; if(e&&e.pct!=null&&Math.abs(e.pct)>=3&&(Date.now()/1000-e.t)<=60*3600) out.swing.push({t,p:e.pct}); });
+  out.earn.sort((a,b)=>a.d-b.d); out.div.sort((a,b)=>a.d-b.d); out.hot.sort((a,b)=>b.r-a.r); out.swing.sort((a,b)=>Math.abs(b.p)-Math.abs(a.p));
+  return out;
+}
+window.mkActionData=mkActionData;
+function updateActionLine(){
+  const st=document.getElementById('pb-state'); if(!st) return;
+  const a=mkActionData(); let box=document.getElementById('pb-act');
+  const list=(arr,f)=>arr.slice(0,3).map(f).join('·')+(arr.length>3?' 외 '+(arr.length-3):'');
+  const parts=[];
+  if(a.earn.length) parts.push('<a href="#cap-tbl" data-go="cap">📣 7일 내 실적 <b>'+a.earn.length+'</b> <span>'+list(a.earn,x=>x.t+(x.d===0?'(오늘)':' D-'+x.d))+'</span></a>');
+  if(a.div.length) parts.push('<a href="#cap-tbl" data-go="cap">💰 7일 내 배당락 <b>'+a.div.length+'</b> <span>'+list(a.div,x=>x.t+(x.d===0?'(오늘)':' D-'+x.d))+'</span></a>');
+  if(a.swing.length) parts.push('<a href="#cap-tbl" data-go="cap">🌙 시간외 ±3% <b>'+a.swing.length+'</b> <span>'+list(a.swing,x=>x.t+' '+(x.p>0?'+':'−')+Math.abs(x.p).toFixed(1)+'%')+'</span></a>');
+  if(a.hot.length) parts.push('<a href="#social" data-go="soc">🔥 소셜 급증 <b>'+a.hot.length+'</b> <span>'+list(a.hot,x=>x.t)+'</span></a>');
+  if(!parts.length){ if(box) box.remove(); return; }
+  const html='<b class="ac-h">오늘의 알림</b>'+parts.join('');
+  if(!box){ box=document.createElement('div'); box.id='pb-act'; box.setAttribute('role','status'); st.after(box);
+    box.addEventListener('click',e=>{ const l=e.target.closest('a[data-go]'); if(!l) return; e.preventDefault(); const key=l.dataset.go==='soc'?'소셜':'시총'; const toc=document.getElementById('pro-toc'); const link=toc&&[].slice.call(toc.querySelectorAll('a')).find(x=>x.textContent.trim().indexOf(key)===0); if(link) link.click(); }); }
+  if(box.innerHTML!==html) box.innerHTML=html;
+}
+window.updateActionLine=updateActionLine;
+setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);

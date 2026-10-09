@@ -3,23 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<title>Mr.Kim Signal — 미국주식·한국주식·가상화폐 시장 신호</title>
+<title>Mr.Kim Signal — P2P</title>
 <style>
 :root{
-  --bg:#f2f0eb; --panel:#ffffff; --panel2:#edebe9; --line:#e3ddd0;
-  --tx:rgba(0,0,0,.87); --tx2:rgba(0,0,0,.58); --accent:#00754A; --accent2:#006241;
-  --up:#c82014; --down:#1a6fa8; --ok:#1E3932; --house:#1E3932; --gold:#cba258;
+  --bg:#0b0f17; --panel:#131a26; --panel2:#182131; --line:#243044;
+  --tx:#e8edf6; --tx2:#9fb0c9; --accent:#ffb020; --accent2:#ff8a00;
+  --up:#ff4d4f; --down:#3d9dff; --ok:#22c55e;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);
-  font-family:'Inter','Apple SD Gothic Neo','Nanum Gothic',system-ui,sans-serif;line-height:1.6;
-  letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+  font-family:system-ui,'Apple SD Gothic Neo','Nanum Gothic',sans-serif;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 a{color:inherit}
-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+header{position:sticky;top:0;z-index:50;background:rgba(11,15,23,.9);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
 .logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
@@ -30,17 +27,15 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .nav ul a.nav-hi{color:var(--accent);font-weight:800}
 #naver-gift-btn{font-family:inherit}
 .updated-top{font-size:12px;color:var(--tx2);white-space:nowrap}
-.updated-top{line-height:1.3;text-align:right}.updated-top .upd-word{display:block;line-height:1.3}
-@media(max-width:640px){.updated-top{font-size:10.5px;text-align:right}.updated-top .upd-word{display:block}}
-.btn{display:inline-block;background:var(--accent);
-  color:#ffffff;font-weight:600;padding:13px 26px;border-radius:50px;text-decoration:none;
-  border:0;cursor:pointer;font-size:15px;transition:transform .2s ease,filter .2s ease}
+@media(max-width:640px){.updated-top{display:none}}
+.btn{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#1a1206;font-weight:800;padding:13px 26px;border-radius:10px;text-decoration:none;
+  border:0;cursor:pointer;font-size:15px}
 .btn:hover{filter:brightness(1.08)}
-.btn:active{transform:scale(.95)}
 .btn.sm{padding:9px 18px;font-size:14px}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .wrap.nav{position:relative}
-.naver-gift{padding:2px 6px;line-height:1.0;text-align:center;white-space:normal}
+.naver-gift{padding:4px 12px;line-height:1.0;text-align:center;white-space:normal}
 .nav-toggle{display:none;background:transparent;border:1px solid var(--line);color:var(--tx);font-size:18px;padding:5px 11px;border-radius:8px;cursor:pointer;line-height:1;font-family:inherit}
 @media(max-width:760px){
   .nav-toggle{display:block}
@@ -53,9 +48,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 
 /* hero */
 .hero{padding:70px 0 50px;text-align:center;
-  background:radial-gradient(900px 380px at 50% -60px,rgba(0,117,74,.16),transparent 70%)}
-.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(0,117,74,.3);
-  background:rgba(0,117,74,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+  background:radial-gradient(900px 380px at 50% -60px,rgba(255,176,32,.16),transparent 70%)}
+.badge{display:inline-block;font-size:13px;color:var(--accent);border:1px solid rgba(255,176,32,.35);
+  background:rgba(255,176,32,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px}
 .hero h1{font-size:44px;line-height:1.25;letter-spacing:-1.2px;font-weight:800}
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero p{color:var(--tx2);margin:16px auto 26px;max-width:620px;font-size:17px}
@@ -77,6 +72,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
   .btn{padding:11px 18px;font-size:13.5px}
   .band{padding:28px 16px}
   .band h2{font-size:20px}
+  .updated-top{display:none}
 }
 
 section{padding:56px 0;border-top:1px solid var(--line)}
@@ -88,7 +84,7 @@ h2{font-size:26px;letter-spacing:-.6px}
 .tabs{display:inline-flex;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;gap:2px}
 .tabs button{background:transparent;color:var(--tx2);font-size:13.5px;font-weight:700;
   padding:8px 15px;border-radius:7px;font-family:inherit}
-.tabs button.on{background:var(--accent);color:#ffffff}
+.tabs button.on{background:var(--accent);color:#1a1206}
 #evmonth-tabs button, #kr-evmonth-tabs button, #crypto-evmonth-tabs button{width:42px;padding:8px 0;text-align:center}
 
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
@@ -122,12 +118,12 @@ th.fund-th{white-space:nowrap}
 td.fund-src{text-align:center;width:150px;white-space:nowrap}
 td.fund-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:14px;margin:0 3px}
 td.fund-src a.ts-link{color:var(--tx2)}
-td.fund-src a.news-link{color:#0d5a9e}
+td.fund-src a.news-link{color:#7cc4ff}
 .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:6px;white-space:nowrap}
-.t-h{background:rgba(200,32,20,.15);color:#a01810}
-.t-m{background:rgba(0,117,74,.15);color:var(--accent)}
-.t-l{background:rgba(0,0,0,.13);color:var(--tx2)}
-.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.t-h{background:rgba(255,77,79,.15);color:#ff7a7c}
+.t-m{background:rgba(255,176,32,.15);color:var(--accent)}
+.t-l{background:rgba(159,176,201,.13);color:var(--tx2)}
+.scroll{overflow-x:auto}
 td.spark{width:100px;text-align:center}
 td.spark svg{display:block;margin:0 auto}
 
@@ -138,20 +134,20 @@ td.spark svg{display:block;margin:0 auto}
 #events-tbl-wrap col.ev-src{width:56px}
 #events-tbl-wrap td.ev-src{text-align:center}
 #events-tbl-wrap td.ev-src a{font-weight:800;text-decoration:none;color:var(--accent);font-size:15px}
-#events-tbl tr.ev-hi{background:rgba(200,32,20,.08)}
-#events-tbl tr.ev-hi td:first-child{border-left:3px solid #a01810}
-.tag.t-close{background:rgba(0,0,0,.18);color:var(--tx)}
+#events-tbl tr.ev-hi{background:rgba(255,77,79,.08)}
+#events-tbl tr.ev-hi td:first-child{border-left:3px solid #ff7a7c}
+.tag.t-close{background:rgba(159,176,201,.18);color:var(--tx)}
 
 .plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
-.plan.hi{border-color:rgba(0,117,74,.5);box-shadow:0 0 0 1px rgba(0,117,74,.15)}
+.plan.hi{border-color:rgba(255,176,32,.5);box-shadow:0 0 0 1px rgba(255,176,32,.15)}
 .plan h3{font-size:18px;margin-bottom:6px}
 .plan ul{list-style:none;margin:14px 0 18px;font-size:14.5px;color:var(--tx2)}
 .plan li{padding:6px 0 6px 22px;position:relative}
 .plan li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
 .soon{font-size:11.5px;background:var(--panel2);color:var(--tx2);padding:3px 8px;border-radius:6px;margin-left:6px}
 
-.band{text-align:center;background:linear-gradient(135deg,rgba(0,117,74,.12),rgba(0,98,65,.05));
-  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(0,117,74,.25)}
+.band{text-align:center;background:linear-gradient(135deg,rgba(255,176,32,.12),rgba(255,138,0,.05));
+  border-radius:18px;padding:44px 24px;margin:56px 0;border:1px solid rgba(255,176,32,.25)}
 .band h2{font-size:29px}
 .band p{color:var(--tx2);margin:12px auto 22px;max-width:520px}
 
@@ -161,25 +157,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .updated{font-size:12.5px;color:var(--tx2)}
 .disc .dl{display:block;margin-top:5px;font-weight:700;color:var(--tx)}
 .disc b{color:#c82014;font-size:1.05em}
-.hero-p{max-width:1000px!important;word-break:keep-all}.hero-p .sl{display:inline}
-@media(min-width:701px){.hero-p .sl{display:block}}
-@media(max-width:700px){body,body *{word-break:keep-all;overflow-wrap:break-word}}
-/* hero-fit */
-@media(max-width:700px){
-.hero{padding:26px 0 22px!important}.hero .badge{margin-bottom:12px!important;padding:5px 12px}
-.hero h1{font-size:27px!important;letter-spacing:-.8px}
-.hero p{margin:12px auto 16px!important;font-size:14px!important;line-height:1.55}
-.hero-p .sl{display:block}
-.hero .cta .btn{padding:10px 22px!important}.hero .updated{margin-top:12px!important;font-size:13px}
-footer{padding:14px 0 16px!important}footer .logo{margin-bottom:4px!important;font-size:17px}
-footer p{margin:0!important;font-size:12px}footer ul{margin:8px 0 0!important;font-size:12px!important;line-height:1.55!important}
-footer .disc{margin-top:10px!important;padding:10px 12px!important;font-size:12px;line-height:1.5}
-footer .disc .dl{margin-top:3px}
-footer p[style*="margin-top:16px"]{margin-top:8px!important}
-}
-@media(max-width:700px){.hero{padding:16px 0 14px!important}.hero h1{font-size:24px!important}.hero .badge{margin-bottom:8px!important;font-size:11px}.hero p{font-size:13px!important;margin:8px auto 12px!important}.hero .updated{margin-top:8px!important}footer>.wrap>p:first-of-type{display:none}footer{padding:10px 0 12px!important}footer ul{font-size:11.5px!important}footer .disc{font-size:11.5px!important;padding:8px 10px!important}header .nav{padding-top:6px;padding-bottom:6px}}
 </style>
-<script src="mrkim-gate.js?v=7b6c363f"></script>
 </head>
 <body>
 
@@ -189,8 +167,7 @@ footer p[style*="margin-top:16px"]{margin-top:8px!important}
     <button class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기">☰</button>
     <ul id="nav-menu">
       <li><a href="stock.html">미국주식</a></li>
-      <li><a href="kr-stock.html">한국주식</a></li>
-      <li><a href="bond.html">채권</a></li>
+      <li><a href="kr-stock.html">한국지수</a></li>
       <li><a href="crypto.html">가상화폐</a></li>
       <li><a href="finprod.html">금융상품</a></li>
       <li><a href="ipo.html">공모주</a></li>
@@ -206,58 +183,47 @@ footer p[style*="margin-top:16px"]{margin-top:8px!important}
 </header>
 
 <main>
-<section class="hero" style="border:0">
-<section class="hero" style="border:0">
+<section id="p2p">
   <div class="wrap">
-    <span class="badge">● 주식 · 가상화폐 시장 신호 대시보드</span>
-    <h1>시장의 <em>공포와 탐욕</em>을<br>매일 한 장으로 정리합니다</h1>
-    <p class="hero-p"><span class="sl">미국주식·한국주식 공포탐욕지수, 핵심 종목·시가총액 TOP10·레버리지 ETF 수익률, 그리고 놓치면 안 되는 이벤트 일정까지.</span> <span class="sl">일간·주간·월간·연간 흐름을 한 화면에서 확인하세요.</span> <span class="sl">가상화폐 시황도 <a href="crypto.html" style="color:var(--accent);text-decoration:underline">같은 화면</a>에서 확인할 수 있습니다.</span></p>
-    <div class="cta">
-      <a class="btn ghost btn sm" href="stock.html" style="padding:13px 26px">대시보드 보기</a>
-    </div>
-    <p class="updated" style="margin-top:20px" id="stamp">데이터 불러오는 중…</p>
-  </div>
-</section>
-</section>
+    <h2>P2P</h2>
+    <p class="sub">에잇퍼센트(8퍼센트) 소개 · 추천인 코드 · 투자상품 안내</p>
 
-<section>
-  <div class="wrap">
-    <h2>바로가기</h2>
-    <p class="sub">원하는 섹션을 선택하세요</p>
-    <div class="grid">
-      <a class="card" href="stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">미국주식</h3>
-        <p class="mut">미국 공포탐욕지수, 김군 관심종목, 시가총액 TOP10, 레버리지 ETF, 주요 이벤트</p>
-      </a>
-      <a class="card" href="kr-stock.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">한국주식</h3>
-        <p class="mut">한국 공포탐욕지수(모멘텀 기반), 코스피·코스닥 시가총액 TOP10, 주요 이벤트</p>
-      </a>
-      <a class="card" href="crypto.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">가상화폐</h3>
-        <p class="mut">크립토 공포탐욕지수, BTC·ETH·SOL·XRP 시세·시가총액 비중, 이벤트 캘린더</p>
-      </a>
-      <a class="card" href="fx.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">환율</h3>
-        <p class="mut">김군 관심 화폐(USD·JPY·CNY·EUR·CHF·BRL) 환율, RSI·이격도·200일선, 환전 우대 정보</p>
-      </a>
-      <a class="card" href="finprod.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">금융상품</h3>
-        <p class="mut">예금·적금 금리 비교, 인기 카드, 금융사·카드사 이벤트 바로가기</p>
-      </a>
-      <a class="card" href="ipo.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">공모주</h3>
-        <p class="mut">월간 공모주 캘린더, 청약·상장 일정, 김군코멘트</p>
-      </a>
-      <a class="card" href="p2p.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">P2P</h3>
-        <p class="mut">에잇퍼센트 소개, 추천인코드, 블랙멤버십 혜택</p>
-      </a>
-      <a class="card" href="trade.html" style="text-decoration:none;color:inherit;display:block">
-        <h3 style="color:var(--tx);font-size:17px;margin-bottom:8px">매매김군</h3>
-        <p class="mut">규칙 기반 분할매수 전략 백테스트 — 원금·배당금·수익률·MDD</p>
-      </a>
+    <div class="card">
+      <h3>회사소개</h3>
+      <p class="mut">에잇퍼센트(8PERCENT)는 2014년 국내 최초로 중금리대출 기반 P2P 금융 서비스를 시작한 온라인투자연계금융(온투업) 회사입니다. 2021년 국내 1호 온투업 정식 등록을 받았으며, 창립 이후 누적 대출 연결 규모가 수천억 원대에 이릅니다. 대표: 이효진<br>· 사업자등록번호 220-88-92058<br>· 서울 영등포구 소재.</p>
     </div>
+
+    <div class="band" style="margin:20px 0 0">
+      <h2 style="font-size:24px">부동산담보·증권계좌담보 상품, 연 9~11%대</h2>
+      <p>에잇퍼센트 온투업 상품은 담보 기반으로 설계되어 있으며, 부동산담보 상품은 연 11% 내외, 증권계좌담보 상품은 연 9% 내외의 수익률을 기록해왔습니다. 주식·암호화폐 대비 낮은 변동성으로 매달 예측 가능한 이자 수익(패시브 인컴)을 추구하는 투자자들이 주로 찾습니다.</p>
+      <p class="mut" style="margin-top:10px;font-size:12px">※ 과거 수익률이며 미래 수익을 보장하지 않습니다. 상품별 실제 금리·조건은 공식 사이트에서 확인하세요.</p>
+    </div>
+
+    <div class="grid" style="margin-top:24px">
+      <div class="card">
+        <h3>추천인코드 혜택</h3>
+        <p style="font-size:26px;font-weight:800;color:var(--accent);letter-spacing:1px;margin:6px 0">0OH1UN</p>
+        <p class="mut">가입 시 추천인 코드를 입력하면 신규 회원과 추천인 모두에게 리워드가 지급되는 경우가 많습니다. 정확한 지급 조건과 금액은 시기별 이벤트에 따라 달라지므로, 가입 화면·앱 내 이벤트 페이지에서 최종 확인하시기 바랍니다.</p>
+        <button class="btn sm" id="p2p-code-btn" style="margin-top:10px">코드 복사하기</button>
+      </div>
+      <div class="card">
+        <h3>블랙멤버십 혜택</h3>
+        <p class="mut">전문투자자·소득적격 투자자를 위한 에잇퍼센트의 VIP 등급입니다(일반 회원은 가입 자격이 제한됩니다). 실제 가입자 평균 투자금은 1.6억 원, 연환산 평균 수익률은 10.42%로 알려져 있습니다.</p>
+        <ul style="font-size:13px;color:var(--tx2);line-height:1.9;padding-left:18px;margin-top:8px">
+          <li>1:1 투자 브리핑</li>
+          <li>멤버십 전용 네트워킹</li>
+          <li>플랫폼 이용료 50% 우대</li>
+          <li>출금 수수료 면제</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>에잇퍼센트 현재 투자상품</h3>
+      <p class="mut">투자상품 목록은 로그인 후 실시간으로 바뀌므로 이 페이지에 직접 표시하는 대신 공식 사이트로 연결합니다.</p>
+      <a class="btn sm" style="margin-top:10px" href="https://8percent.kr/" target="_blank" rel="noopener">에잇퍼센트 바로가기 ↗</a>
+    </div>
+    <p class="mut" style="margin-top:16px;font-size:12px">⚠ P2P(온라인투자연계금융) 투자는 원금 손실 위험이 있으며 예금자보호법의 보호 대상이 아닙니다. 투자 전 상품별 연체율·부실률을 반드시 확인하세요.</p>
   </div>
 </section>
 </main>
@@ -280,23 +246,12 @@ footer p[style*="margin-top:16px"]{margin-top:8px!important}
   </div>
 </footer>
 
+<script src="mrkim-common.js"></script>
 <script>
 const now=new Date();
-{ const _st=document.querySelector('#stamp-top'); if(_st) _st.innerHTML='<b>'+now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+'</b><span class="upd-word"> 업데이트</span>'; }
 { const _s=document.querySelector('#stamp'); if(_s) _s.textContent='최종 갱신 '+now.toLocaleString('ko-KR'); }
+{ const _st=document.querySelector('#stamp-top'); if(_st) _st.textContent=now.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})+' 업데이트'; }
 
-const naverGiftLink=document.getElementById('naver-gift-link');
-if(naverGiftLink){
-  naverGiftLink.addEventListener('click',async()=>{
-    try{ await navigator.clipboard.writeText('coolzet'); }catch(e){}
-    alert('아이디 coolzet 복사되었습니다.');
-  });
-}
-const navToggle=document.getElementById('nav-toggle');
-const navMenu=document.getElementById('nav-menu');
-if(navToggle && navMenu){
-  navToggle.addEventListener('click',()=>{ navMenu.classList.toggle('open'); });
-}
 </script>
 </body>
 </html>
