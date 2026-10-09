@@ -1071,12 +1071,20 @@ async function __getJSON(url){
 /* Yahoo 일봉 종가 배열 */
 /* Yahoo 일봉 종가: 같은 시점(40ms)에 요청된 3개 이상의 종목은 Worker의 /yq 로 한 번에 묶어 받는다.
    묶음 요청이 실패하거나 일부 종목이 비면 기존 개별 요청으로 자동 대체한다. */
+/* [종가 보정] Yahoo는 장 마감 직후 일봉의 마지막 close를 null로 내려주는 경우가 있다(meta.regularMarketPrice에는 종가가 있음).
+   null을 그냥 버리면 하루 전 종가가 '최신'으로 표시되므로, 마지막 봉이 null이면 meta의 정규장 종가로 채운다. */
+function mkFillClose(r){
+  var q=((r.indicators&&r.indicators.quote&&r.indicators.quote[0]&&r.indicators.quote[0].close)||[]).slice(), ts=r.timestamp||[], m=r.meta||{}, n=q.length;
+  if(n&&q[n-1]==null&&m.regularMarketPrice!=null&&ts[n-1]&&m.regularMarketTime>=ts[n-1]) q[n-1]=m.regularMarketPrice;
+  return q;
+}
+window.mkFillClose=mkFillClose;
 const __YQ={q:[],t:null,bad:0};
 async function __ycloseOne(sym,range){
   const j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+
       encodeURIComponent(sym)+'?range='+(range||'1y')+'&interval=1d');
   try{
-    const q=j.chart.result[0].indicators.quote[0].close.filter(x=>x!=null);
+    const q=mkFillClose(j.chart.result[0]).filter(x=>x!=null);
     return q.length>30?q:null;
   }catch(e){ return null; }
 }
@@ -1115,7 +1123,7 @@ async function yCloseWithDates(sym,range){
       encodeURIComponent(sym)+'?range='+(range||'1y')+'&interval=1d');
   try{
     const ts=j.chart.result[0].timestamp;
-    const closes=j.chart.result[0].indicators.quote[0].close;
+    const closes=mkFillClose(j.chart.result[0]);
     if(!ts || !closes || ts.length<30) return null;
     const dates=ts.map(t=>new Date(t*1000).toISOString().slice(0,10));
     return {dates, closes};

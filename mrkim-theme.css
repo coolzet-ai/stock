@@ -170,6 +170,11 @@ html[data-theme="dark"] .pro .fa-body input[type=number]{border:1px solid #4f5a6
 html[data-theme="dark"] .pro .fa-body button{background:#101316;color:#b8edda}
 html[data-theme="dark"] .pro .fa-note{color:#a5acbc}
 html[data-theme="dark"] #mk-toast button{background:rgba(16,19,22,0.16)}
+html[data-theme="dark"] #pro-brief #pb-fut{border-top:1px solid #2b3038;background:#121619}
+html[data-theme="dark"] #pb-fut .pf-hd span{color:#979faf}
+html[data-theme="dark"] #pb-fut .pf-c{border:1px solid #2b3038;background:#101316}
+html[data-theme="dark"] #pb-fut .pf-c small{color:#979faf}
+html[data-theme="dark"] #pb-fut .pf-note{color:#979faf}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}

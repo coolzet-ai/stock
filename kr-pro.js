@@ -13,7 +13,7 @@
   async function quote(sym){
     try{
       var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(sym)+'?range=5d&interval=1d');
-      var r=j.chart.result[0], c=r.indicators.quote[0].close.filter(function(x){return x!=null;});
+      var r=j.chart.result[0], c=mkFillClose(r).filter(function(x){return x!=null;});
       var p=(r.meta&&r.meta.regularMarketPrice!=null)?r.meta.regularMarketPrice:c[c.length-1];
       var prev=c.length>=2?c[c.length-2]:null;
       if(prev==null||!isFinite(p)) return null;
