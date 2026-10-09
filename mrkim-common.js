@@ -1819,7 +1819,8 @@ function levDropBadges(d){
   const cum=(1-d[d.length-1]/d[i])*100;
   let h='';
   const st='color:#fff;';
-  if(n>=2) h+='<span class="tb tb-streak'+(n>=4?' s4':n===3?' s3':' s2')+'" style="'+st+'background:'+(n>=4?'#7E22CE':n===3?'#C2410C':'#A16207')+';box-shadow:0 0 0 2px '+(n>=4?'rgba(126,34,206,.28)':n===3?'rgba(194,65,12,.28)':'rgba(161,98,7,.28)')+';font-weight:800" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
+  if(n===2) h+='<span class="tb tb-streak s2" style="background:#E4E7EC;color:#344054;font-weight:800" title="2거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">2연하</span>';
+  if(n>=3) h+='<span class="tb tb-streak'+(n>=4?' s4':' s3')+'" style="'+st+'background:'+(n>=4?'#7E22CE':'#C2410C')+';box-shadow:0 0 0 2px '+(n>=4?'rgba(126,34,206,.28)':'rgba(194,65,12,.28)')+';font-weight:800" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
   if(cum>30) h+='<span class="tb" style="'+st+'background:#dc2626" title="연속 하락 구간 종가 기준 누적 −'+cum.toFixed(1)+'% (30% 초과)">급락 −'+cum.toFixed(0)+'%</span>';
   return h;
 }
@@ -1832,7 +1833,7 @@ function renderTickBadges(row,d){
   if(!html){ if(box) box.remove(); return; }
   if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
   box.innerHTML=html+(row.closest('#lev-tbl,#krlev-tbl')?levDropBadges(d):'');
-  if(row.closest('#lev-tbl,#krlev-tbl')){ const sn=levStreakN(d); row.classList.toggle('st2',sn===2); row.classList.toggle('st3',sn===3); row.classList.toggle('st4',sn>=4); }
+  if(row.closest('#lev-tbl,#krlev-tbl')){ const sn=levStreakN(d); row.classList.toggle('st3',sn===3); row.classList.toggle('st4',sn>=4); }
   // 티커명 앞 신호등
   let sg=nm.querySelector('.wl-sig');
   const sig=valuationSignal(d);
@@ -3079,37 +3080,37 @@ function renderEtfHoldings(data){
     return '<p class="mut" style="font-size:12.5px">보유종목·섹터 정보를 가져오지 못했습니다(개별주 ETN이거나 Yahoo가 이 상품의 구성정보를 제공하지 않을 수 있습니다).</p>';
   }
   const pct=v=>(v*100).toFixed(1)+'%';
-  let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fx-2col">';
+  const COLS=['#0A6B48','#1F8A5F','#3FA37A','#66B896','#8CCBB0'];
+  let html='<div class="eh2" style="display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px">';
   if(data.holdings.length){
-    html+='<div><div class="mut" style="font-size:11px;margin-bottom:6px">주요 보유종목 TOP'+Math.min(10,data.holdings.length)+'</div>';
-    data.holdings.slice(0,10).forEach(h=>{
-      const w=Math.max(2,(h.pct||0)*100/Math.max(...data.holdings.map(x=>x.pct||0))*100);
-      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11.5px">'+
-        '<span style="width:52px;flex:none;font-weight:700">'+(h.symbol||'')+'</span>'+
-        '<div style="flex:1;background:var(--panel2);border-radius:3px;overflow:hidden;height:14px">'+
-          '<div style="width:'+w.toFixed(1)+'%;height:100%;background:var(--accent)"></div>'+
-        '</div>'+
-        '<span style="width:44px;text-align:right;flex:none;font-weight:700">'+pct(h.pct)+'</span>'+
-      '</div>';
+    const hs=data.holdings.slice(0,10), mx=Math.max.apply(null,hs.map(x=>x.pct||0))||1, sum=hs.reduce((a,x)=>a+(x.pct||0),0), top3=hs.slice(0,3).reduce((a,x)=>a+(x.pct||0),0);
+    html+='<div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px"><b style="font-size:13px">주요 보유종목 TOP'+hs.length+'</b><span class="mut" style="font-size:12px">상위10 합계 <b style="color:var(--tx)">'+pct(sum)+'</b> · 상위3 <b style="color:var(--tx)">'+pct(top3)+'</b></span></div>'+
+      /* 누적 비중 띠: 종목별 실제 비중 비율대로 */
+      '<div role="img" aria-label="상위 10종목 누적 비중 '+pct(sum)+'" style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line);margin-bottom:8px">'+
+        hs.map((h,i)=>'<i title="'+(h.symbol||'')+' '+pct(h.pct||0)+'" style="display:block;width:'+((h.pct||0)*100).toFixed(2)+'%;background:'+COLS[Math.min(4,Math.floor(i/2))]+';border-right:1px solid var(--panel2)"></i>').join('')+'</div>';
+    hs.forEach((h,i)=>{
+      const w=Math.max(2,(h.pct||0)/mx*100);
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px">'+
+        '<span style="width:16px;flex:none;text-align:right;color:var(--tx2);font-size:11.5px">'+(i+1)+'</span>'+
+        '<span style="width:54px;flex:none;font-weight:800">'+(h.symbol||'')+'</span>'+
+        '<div style="flex:1;min-width:0;background:var(--panel);border-radius:3px;overflow:hidden;height:16px"><div style="width:'+w.toFixed(1)+'%;height:100%;background:'+COLS[Math.min(4,Math.floor(i/2))]+'"></div></div>'+
+        '<span style="width:46px;text-align:right;flex:none;font-weight:800;font-variant-numeric:tabular-nums">'+pct(h.pct)+'</span></div>';
     });
-    html+='</div>';
+    html+='<div class="mut" style="font-size:11px;margin-top:4px">막대 길이 = 비중 크기 비교(1위 기준) · 위 띠는 실제 비중 비율</div></div>';
   }else html+='<div></div>';
   if(data.sectors.length){
-    html+='<div><div class="mut" style="font-size:11px;margin-bottom:6px">섹터 가중치</div>';
-    const maxPct=Math.max(...data.sectors.map(s=>s.pct||0));
-    data.sectors.slice(0,10).forEach(s=>{
+    const ss=data.sectors.slice(0,10), maxPct=Math.max.apply(null,ss.map(s=>s.pct||0));
+    html+='<div><div style="margin-bottom:6px"><b style="font-size:13px">섹터 가중치</b></div>';
+    ss.forEach(s=>{
       const w=maxPct>0?Math.max(2,(s.pct/maxPct)*100):2;
-      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11.5px">'+
-        '<span style="width:70px;flex:none">'+(ETF_SECTOR_NAME[s.key]||s.key)+'</span>'+
-        '<div style="flex:1;background:var(--panel2);border-radius:3px;overflow:hidden;height:14px">'+
-          '<div style="width:'+w.toFixed(1)+'%;height:100%;background:var(--gold)"></div>'+
-        '</div>'+
-        '<span style="width:44px;text-align:right;flex:none;font-weight:700">'+pct(s.pct)+'</span>'+
-      '</div>';
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px">'+
+        '<span style="width:76px;flex:none">'+(ETF_SECTOR_NAME[s.key]||s.key)+'</span>'+
+        '<div style="flex:1;min-width:0;background:var(--panel);border-radius:3px;overflow:hidden;height:16px"><div style="width:'+w.toFixed(1)+'%;height:100%;background:var(--gold)"></div></div>'+
+        '<span style="width:46px;text-align:right;flex:none;font-weight:800;font-variant-numeric:tabular-nums">'+pct(s.pct)+'</span></div>';
     });
     html+='</div>';
   }else html+='<div></div>';
-  html+='</div><div class="mut" style="font-size:10px;margin-top:6px">출처: Yahoo Finance · 보유 구성은 운용사가 주기적으로 갱신합니다</div>';
+  html+='</div><style>@media(max-width:700px){.eh2{grid-template-columns:minmax(0,1fr)!important}}</style><div class="mut" style="font-size:11px;margin-top:6px">출처: Yahoo Finance · 보유 구성은 운용사가 주기적으로 갱신합니다</div>';
   return html;
 }
 

@@ -131,9 +131,7 @@ html[data-theme="dark"] .pro #pro-brief .pb-line{background:#10251a;border-botto
 html[data-theme="dark"] .pro #pro-brief .pb-line em{color:#b8edda}
 html[data-theme="dark"] .pro #pro-brief .pb-note{color:#a5acbc}
 html[data-theme="dark"] .skel{background:linear-gradient(90deg,#171c20 25%,#1d2227 37%,#171c20 63%);color:#b2bac5 !important}
-html[data-theme="dark"] #ps-save{border:1px solid #394451;background:#101316;color:#bdc7d6}
-html[data-theme="dark"] .pro .wl-row.st2{background:#292513}
-html[data-theme="dark"] .pro .wl-row.st2.m-x{background:#292513}
+html[data-theme="dark"] #ps-save,html[data-theme="dark"] #ps-krw{border:1px solid #394451;background:#101316;color:#bdc7d6}
 html[data-theme="dark"] .pro .wl-row.st3{background:#291e13}
 html[data-theme="dark"] .pro .wl-row.st4{background:#1c1124}
 html[data-theme="dark"] .pro .wl-row.st3.m-x{background:#291e13}

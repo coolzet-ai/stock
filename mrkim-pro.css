@@ -681,14 +681,14 @@ body.pro{
 .skel{background:linear-gradient(90deg,#EEF1EF 25%,#E1E7E3 37%,#EEF1EF 63%);background-size:400% 100%;animation:mkskel 1.4s ease infinite;border-radius:6px;color:#4B5563!important}
 @keyframes mkskel{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .mk-save #unicorn img{display:none}
-#ps-save{white-space:nowrap;flex:none;font:inherit;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid #BFC8D2;background:#fff;color:#344054;cursor:pointer;margin-right:4px;position:relative}
-#ps-save[aria-pressed=true]{background:#0A6B48;border-color:#0A6B48;color:#fff}
+#ps-save,#ps-krw{white-space:nowrap;flex:none;font:inherit;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid #BFC8D2;background:#fff;color:#344054;cursor:pointer;margin-right:4px;position:relative}
+#ps-save[aria-pressed=true],#ps-krw[aria-pressed=true]{background:#0A6B48;border-color:#0A6B48;color:#fff}
 #ptr{position:fixed;left:50%;top:0;z-index:70;transform:translate(-50%,-60px);padding:8px 16px;border-radius:99px;background:#0A6B48;color:#fff;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .15s}
 #ptr.on{opacity:1}
 .swipe-hint,.lead-more{display:none}
 @media(max-width:700px){
   html{overscroll-behavior-y:contain}
-  #ps-save::after{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:44px;transform:translateY(-50%)}
+  #ps-save::after,#ps-krw::after{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:44px;transform:translateY(-50%)}
   .pro .swipe-hint{display:block;margin:2px 0 6px;font-size:12px;color:#566074;text-align:right}
   .pro .pg-lead:not(.m-lead-open){display:none}
   .pro .lead-more{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin:0 0 -6px;background:none;border:0;color:#0A6B48;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
@@ -739,7 +739,6 @@ body.pro{
 @media(min-width:701px){.acc-b{display:block!important}}
 
 /* v22 레버리지 연속 하락 하이라이트: 3연하=진한 주황, 4연하 이상=진한 보라 */
-.pro .wl-row.st2{background:#FFF7D6;box-shadow:inset 0 0 0 1px #E3C04A}.pro .wl-row.st2.m-x{background:#FFF7D6}
 .pro .wl-row.st3{background:#FFE9D6;box-shadow:inset 0 0 0 1px #F59E5B}
 .pro .wl-row.st4{background:#F3E4FF;box-shadow:inset 0 0 0 1px #B46BE8}
 .pro .wl-row.st3.m-x{background:#FFE9D6}.pro .wl-row.st4.m-x{background:#F3E4FF}
@@ -921,3 +920,5 @@ html[data-cv="us"] .pro .wl-row:where(:has(>.wl-bar.down)){background:#FDEEEC}
 .pro .wl-row .wl-price.up,.pro .wl-row .wl-pct.up{color:#B42318}
 html[data-cv="us"] .pro .wl-row .wl-price.up,html[data-cv="us"] .pro .wl-row .wl-pct.up{color:#067647}
 html[data-cv="us"] .pro .wl-row .wl-price.down,html[data-cv="us"] .pro .wl-row .wl-pct.down{color:#B42318}
+/* v33: 모바일 상태 줄 — 버튼이 늘어 잘리지 않도록 줄바꿈 */
+@media(max-width:700px){#pro-status{flex-wrap:wrap;overflow:visible;row-gap:5px}#pro-status button#ps-cv{margin-left:auto}#ps-save,#ps-krw{margin-right:0}}

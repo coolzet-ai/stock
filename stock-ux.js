@@ -22,6 +22,15 @@
     b.onclick=function(){ try{ localStorage.setItem('mk_save',saveOn?'0':'1'); }catch(e){} location.reload(); };
     rf.before(b); };
   wire(); [800,2500].forEach(function(t){ setTimeout(wire,t); });
+  /* ===== 원/달러 표기 방식 버튼: 상단 '원화 표시' 체크박스를 새로고침 왼쪽 버튼으로 옮김 ===== */
+  var wireKrw=function(){
+    var rf=document.getElementById('ps-rf'), cb=document.getElementById('krw-toggle'); if(!rf||!cb||document.getElementById('ps-krw')) return;
+    var b=document.createElement('button'); b.type='button'; b.id='ps-krw';
+    var sync=function(){ var on=cb.checked; b.setAttribute('aria-pressed',on?'true':'false'); b.textContent=on?'$+₩ 병기':'$ 달러'; b.title=on?'달러 가격 옆에 원화를 괄호로 함께 표시 중 (누르면 달러만 표시)':'달러로만 표시 중 (누르면 원화를 괄호로 병기)'; };
+    b.onclick=function(){ cb.checked=!cb.checked; cb.dispatchEvent(new Event('change')); sync(); };
+    cb.addEventListener('change',sync); sync();
+    rf.before(b); var lb=cb.closest('label'); if(lb) lb.style.display='none'; };
+  wireKrw(); [800,2500].forEach(function(t){ setTimeout(wireKrw,t); });
   /* ===== 표 → 카드(모바일): 각 칸에 머리글을 data-label 로 달아 CSS가 카드로 보여준다 ===== */
   var cards=function(){
     ['holidays-tbl','kr-holidays-tbl'].forEach(function(id){ var tb=document.getElementById(id); if(!tb) return; var tbl=tb.closest('table'); if(!tbl) return;
