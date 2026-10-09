@@ -6196,13 +6196,15 @@ const EARN_IR={
   LRCX:'https://investor.lamresearch.com/'
 };
 const EARN_LIST=['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA','MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ','MA','ABBV','CSCO','BAC','AMAT','COST','CAT','CVX','UNH','LRCX'];
-let EARN_DATA=null;
+let EARN_DATA=null, NEWS_DATA=null;
 function injectEarnCss(){
   if(document.getElementById('er-css')) return;
   const st=document.createElement('style'); st.id='er-css';
   st.textContent='.wl-er{margin-top:3px;line-height:1}.er-b{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;border:1px solid #D0D5DD;background:#F2F4F7;color:#344054;font-size:11.5px;font-weight:800;text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}'+
   '.er-b:hover{filter:brightness(.96);text-decoration:underline}.er-b.soon{background:#FEF0C7;border-color:#F5C35A;color:#7A4B00}.er-b.hot{background:#FEE4E2;border-color:#F4A6A0;color:#912018}.er-b.done{background:#D1FADF;border-color:#7ED9A4;color:#05603A}'+
-  '@media(max-width:560px){.er-b{font-size:10.5px;padding:2px 6px}}';
+  '.wl-er{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}.er-n{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:2px 8px;border-radius:99px;border:1px solid #D0D5DD;background:#fff;color:#344054;font-size:11.5px;font-weight:700;text-decoration:none;min-width:0}.er-n span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px}.er-n em{font-style:normal;font-weight:500;color:#475467;white-space:nowrap}.er-n:hover{text-decoration:underline}.er-n.up{background:#FEF3F2;border-color:#F4A6A0;color:#912018}.er-n.down{background:#EFF4FF;border-color:#A4BCFD;color:#1D3FA6}'+
+  'html[data-cv="us"] .er-n.up{background:#ECFDF3;border-color:#7ED9A4;color:#05603A}html[data-cv="us"] .er-n.down{background:#FEF3F2;border-color:#F4A6A0;color:#912018}'+
+  '@media(max-width:560px){.er-b{font-size:10.5px;padding:2px 6px}.er-n{font-size:10.5px;padding:2px 6px}.er-n span{max-width:190px}.er-n em{display:none}}';
   document.head.appendChild(st);
 }
 function earnDays(ts){
@@ -6210,21 +6212,43 @@ function earnDays(ts){
   return Math.round(ny(new Date(ts*1000))-ny(new Date()));
 }
 function applyEarnBadges(){
-  if(!EARN_DATA) return;
+  if(!EARN_DATA&&!NEWS_DATA) return;
   injectEarnCss();
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   document.querySelectorAll('#cap-tbl .wl-row,#cap2-tbl .wl-row,#cap3-tbl .wl-row').forEach(row=>{
-    const t=row.dataset.t, e=EARN_DATA[t], info=row.querySelector('.wl-info'); if(!info) return;
+    const t=row.dataset.t, info=row.querySelector('.wl-info'); if(!info) return;
+    let html='';
+    const e=EARN_DATA&&EARN_DATA[t];
+    if(e&&e.ts){
+      const d=earnDays(e.ts);
+      if(d>=-3){
+        const dt=new Date(e.ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
+        const rng=e.ts2&&e.ts2!==e.ts?' ~ '+new Date(e.ts2*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'}):'';
+        const cls=d<0?'done':d<=3?'hot':d<=14?'soon':'', label=d<0?'📋 실적 발표 D+'+(-d):d===0?'🔥 실적 발표 D-DAY':(d<=3?'🔔 ':'📣 ')+'실적 D-'+d;
+        const url=EARN_IR[t]||('https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/analysis/');
+        html+='<a class="er-b '+cls+'" href="'+url+'" target="_blank" rel="noopener" title="다음 실적 발표 '+dt+rng+' (미국 현지 기준 · 회사 확정 전에는 추정일) · 누르면 '+t+' '+(EARN_IR[t]?'IR 사이트':'Yahoo 실적 분석')+'로 이동">'+label+'</a>';
+      }
+    }
+    const n=NEWS_DATA&&NEWS_DATA[t];
+    if(n&&n.url&&n.title){
+      const ic=n.dir==='up'?'📈':n.dir==='down'?'📉':'🗞',tag=n.dir==='up'?'상승 이슈':n.dir==='down'?'하락 이슈':'핵심 이슈';
+      const when=n.pubDate?new Date(n.pubDate).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+      html+='<a class="er-n '+(n.dir==='mix'?'':n.dir)+'" href="'+esc(n.url)+'" target="_blank" rel="noopener nofollow" title="'+esc(n.title)+' — '+esc(n.source)+(when?' · '+when:'')+' (최근 2일 · 급등락·실적·규제 키워드 기사 · 누르면 원문 기사로 이동)">'+ic+' <span>'+esc(n.title)+'</span><em>'+esc(n.source)+'</em></a>';
+    }
     let box=info.querySelector('.wl-er');
-    if(!e||!e.ts){ if(box) box.remove(); return; }
-    const d=earnDays(e.ts); if(d<-3){ if(box) box.remove(); return; }
-    const dt=new Date(e.ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
-    const rng=e.ts2&&e.ts2!==e.ts?' ~ '+new Date(e.ts2*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'}):'';
-    const cls=d<0?'done':d<=3?'hot':d<=14?'soon':'', label=d<0?'📋 실적 발표 D+'+(-d):d===0?'🔥 실적 발표 D-DAY':(d<=3?'🔔 ':'📣 ')+'실적 D-'+d;
-    const url=EARN_IR[t]||('https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/analysis/');
-    const html='<a class="er-b '+cls+'" href="'+url+'" target="_blank" rel="noopener" title="다음 실적 발표 '+dt+rng+' (미국 현지 기준 · 회사 확정 전에는 추정일) · 누르면 '+t+' '+(EARN_IR[t]?'IR 사이트':'Yahoo 실적 분석')+'로 이동">'+label+'</a>';
+    if(!html){ if(box) box.remove(); return; }
     if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
     if(box.innerHTML!==html) box.innerHTML=html;
   });
+}
+async function loadCapNews(){
+  if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,'');
+    const r=await fetch(origin+'cap-news?tickers='+EARN_LIST.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
+    const j=r.ok?await r.json():null;
+    if(j&&!j.error){ NEWS_DATA=j; applyEarnBadges(); }
+  }catch(e){ console.warn('핵심 뉴스 로딩 실패:',e); }
 }
 async function loadEarnings(){
   if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
@@ -6236,6 +6260,6 @@ async function loadEarnings(){
   }catch(e){ console.warn('실적 발표일 로딩 실패:',e); }
 }
 if(document.getElementById('cap-tbl')){
-  setTimeout(loadEarnings,1200);
+  setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800);
   ['cap-tbl','cap2-tbl','cap3-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });
 }

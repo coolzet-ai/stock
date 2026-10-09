@@ -1946,6 +1946,41 @@ const handler = {
     // 관심종목(ETF) 카드 클릭 시 "주요 티커별 가중치·섹터 가중치" — 종목별 온디맨드 조회.
     // 보유종목 구성은 자주 안 바뀌므로 KV에 24시간 캐시한다(배치잡이 아니라 클릭 시 필요한
     // 종목만 그때그때 조회 — ETF 7개 전부를 미리 받아둘 필요는 없어 보인다).
+    // 시총 TOP30 "핵심 뉴스" — Google News RSS(한국어, 최근 2일)에서 종목별로 주가 급등·급락·실적·규제 등
+    // 시장 영향 키워드가 들어간 최신 기사 1건을 골라 원문(기사 링크)·출처와 함께 내려준다. 1시간 KV 캐시.
+    if (reqUrl.pathname === '/cap-news') {
+      const NAMES = { NVDA:'엔비디아', AAPL:'애플', GOOGL:'알파벳 구글', MSFT:'마이크로소프트', AMZN:'아마존', TSM:'TSMC', SPCX:'스페이스X', AVGO:'브로드컴', META:'메타', TSLA:'테슬라', MU:'마이크론', 'BRK-B':'버크셔 해서웨이', AMD:'AMD', LLY:'일라이 릴리', JPM:'JP모건', WMT:'월마트', V:'비자', XOM:'엑슨모빌', INTC:'인텔', JNJ:'존슨앤드존슨', MA:'마스터카드', ABBV:'애브비', CSCO:'시스코', BAC:'뱅크오브아메리카', AMAT:'어플라이드 머티어리얼즈', COST:'코스트코', CAT:'캐터필러', CVX:'셰브런', UNH:'유나이티드헬스', LRCX:'램리서치' };
+      const list = (reqUrl.searchParams.get('tickers') || '').toUpperCase().split(',').map(s => s.trim()).filter(s => NAMES[s]).slice(0, 35);
+      if (!list.length) return new Response(JSON.stringify({ error: 'tickers required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
+      const UP = /급등|폭등|상승|강세|호조|호실적|사상 최고|신고가|상향|서프라이즈|랠리|반등|수주|승인/;
+      const DOWN = /급락|폭락|하락|약세|부진|쇼크|사상 최저|신저가|하향|우려|리스크|소송|규제|관세|제재|조사|리콜|감원|취소|지연/;
+      try {
+        const cacheKey = 'capnews-v1-' + list.slice().sort().join('_').slice(0, 400);
+        let data = null;
+        if (env.KR_KV) { try { const c = await env.KR_KV.get(cacheKey); if (c) data = JSON.parse(c); } catch (e) {} }
+        if (!data) {
+          data = {};
+          await mapLimit(list, 6, async (t) => {
+            try {
+              const q = NAMES[t] + ' 주가 when:2d';
+              const r = await fetch('https://news.google.com/rss/search?q=' + encodeURIComponent(q) + '&hl=ko&gl=KR&ceid=KR:ko', { headers: { 'User-Agent': UA, 'Accept': 'application/rss+xml,text/xml,*/*', 'Accept-Language': 'ko-KR,ko;q=0.9' } });
+              if (!r.ok) return;
+              const items = parseGoogleNewsRss(await r.text(), 12);
+              const hit = items.find(it => UP.test(it.title) || DOWN.test(it.title));
+              if (hit) {
+                const up = UP.test(hit.title), dn = DOWN.test(hit.title);
+                data[t] = { title: hit.title, url: hit.url, source: hit.source, pubDate: hit.pubDate, dir: up && !dn ? 'up' : dn && !up ? 'down' : 'mix' };
+              }
+            } catch (e) {}
+          });
+          if (env.KR_KV) { try { await env.KR_KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }); } catch (e) {} }
+        }
+        return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // 시총 TOP30 "실적 발표 D-day" — Yahoo quoteSummary calendarEvents(다음 실적 발표 예정일).
     // 30개를 한 번에 모아 KV에 6시간 캐시(요청 1회당 서브리퀘스트 수 절약). 날짜는 회사 확정 전 추정일일 수 있다.
     if (reqUrl.pathname === '/earnings') {
