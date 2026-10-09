@@ -483,6 +483,7 @@
       '<a class="pb-c" href="#pro-int" data-go="int"><small>변동성(VIX)</small><b id="pb-vx">--</b><span id="pb-vx2"></span></a>'+
       '<a class="pb-c" href="#pro-cal" data-go="cal"><small>다음 주요 일정</small><b id="pb-ev">--</b><span id="pb-ev2"></span></a>'+
       '<a class="pb-c" href="#pro-sector" data-go="sec"><small>섹터 강세 · 약세</small><b id="pb-sc">--</b><span id="pb-sc2"></span></a></div></div><div id="pb-fut" hidden></div>';
+    var stl=document.createElement('div'); stl.id='pb-state'; stl.setAttribute('role','status'); br.querySelector('.pb-hd').after(stl);
     var lead=wrap.querySelector('.pg-lead'); if(lead) lead.after(br); else wrap.prepend(br);
     var ZC=['#C42318','#B54708','#475467','#3F7D20','#0B6B3A'];
     var num=function(t){ var m=(t||'').match(/-?[\d.]+/); return m?parseFloat(m[0]):NaN; };
@@ -548,9 +549,12 @@
     };
     window.__fillFut=fillFut;
     var fillBrief=function(){
+      (function(){ var e=document.getElementById('pb-state'); if(!e) return; var n=nyp(Date.now()), wk=n&&(n.w==='Sat'||n.w==='Sun'), op=usOpen(), tm=hhmm();
+        var h=op?'<i class="ps-d on"></i>🟢 정규장 진행 중 · 실시간 시세(약 15분 지연 가능)':wk?'<i class="ps-d"></i>🌙 주말 휴장 · 직전 금요일 종가 기준':'<i class="ps-d"></i>🌙 정규장 마감 · 종가 기준 · 선물은 아래 카드';
+        h+='<span class="ps-t">확인 '+tm+'</span>'; if(e._h!==h){ e._h=h; e.innerHTML=h; } })();
       var v=num(txt('us-val'));
       if(isFinite(v)){ var z=v<25?0:v<45?1:v<=55?2:v<=75?3:4, ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], AC=['매수 시작 구간','매수 시작 구간','관망','매수 금지 구간','매수 금지 구간'];
-        var b=document.getElementById('pb-fg'); b.textContent=Math.round(v)+' · '+ZN[z]; b.style.color=ZC[z]; document.getElementById('pb-fg2').textContent='김군코멘트: '+AC[z]; }
+        var b=document.getElementById('pb-fg'); b.textContent=Math.round(v)+' · '+ZN[z]; b.style.color=ZC[z]; b.parentNode.dataset.z=z; document.getElementById('pb-fg2').textContent='김군코멘트: '+AC[z]; }
       var vt=document.getElementById('pt-4'), vb=vt?vt.querySelector('b').textContent:'--', bd=txt('vts-badge');
       if(vb&&vb!=='--'){ document.getElementById('pb-vx').textContent=vb; document.getElementById('pb-vx2').textContent=bd&&bd!=='--'?'기간구조 '+bd:''; }
       var al=document.querySelector('#cal-top .cal-alert');

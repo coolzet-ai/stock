@@ -29,7 +29,7 @@ const curPer={kridx:'d',idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d'
   usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m',cryrel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
-const arrowSign=v=>(v>0?'▲':(v<0?'▼':'—'))+' '+Math.abs(v).toFixed(2)+'%';
+const arrowSign=v=>(v>0?'▲ +':(v<0?'▼ −':'— '))+Math.abs(v).toFixed(2)+'%';
 const cls=v=>v>0?'up':(v<0?'down':'');
 
 function zoneTag(t){const m={'극단적 공포':'#D92D20','공포':'#C2570C','중립':'#64748B','탐욕':'#4D7C0F','극단적 탐욕':'#15803D'};return '<span class="tag" style="background:'+(m[t]||'#64748B')+';color:#fff;font-weight:800;padding:2px 8px">'+t+'</span>';}

@@ -177,6 +177,22 @@ html[data-theme="dark"] #pb-fut .pf-hd span{color:#979faf}
 html[data-theme="dark"] #pb-fut .pf-c{border:1px solid #2b3038;background:#101316}
 html[data-theme="dark"] #pb-fut .pf-c small{color:#979faf}
 html[data-theme="dark"] #pb-fut .pf-note{color:#979faf}
+html[data-theme="dark"] #pro-brief .pb-c small{color:#afb9c8}
+html[data-theme="dark"] #pro-brief .pb-c{border-top:4px solid #4f5a6b}
+html[data-theme="dark"] #pro-brief .pb-c[data-go="kc"][data-z="0"]{background:#221010}
+html[data-theme="dark"] #pro-brief .pb-c[data-go="kc"][data-z="1"]{background:#231a10}
+html[data-theme="dark"] #pro-brief .pb-c[data-go="kc"][data-z="3"]{background:#19280f}
+html[data-theme="dark"] #pro-brief .pb-c[data-go="kc"][data-z="4"]{background:#122a1d}
+html[data-theme="dark"] #pro-brief #pb-state{color:#bdc7d6;border-bottom:1px solid #2b3038;background:#101316}
+html[data-theme="dark"] #pro-brief #pb-state .ps-d{background:#3a424f}
+html[data-theme="dark"] #pro-brief #pb-state .ps-t{color:#afb9c8}
+html[data-theme="dark"] .pro .wl-row:where(:has(>.wl-bar.up)){background:#1f110f}
+html[data-theme="dark"] .pro .wl-row:where(:has(>.wl-bar.down)){background:#0f1420}
+html[data-theme="dark"][data-cv="us"] .pro .wl-row:where(:has(>.wl-bar.up)){background:#10261a}
+html[data-theme="dark"][data-cv="us"] .pro .wl-row:where(:has(>.wl-bar.down)){background:#221210}
+html[data-theme="dark"] .pro .wl-row .wl-price.up,html[data-theme="dark"] .pro .wl-row .wl-pct.up{color:#e2a19c}
+html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-price.up,html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-pct.up{color:#b3efd6}
+html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-price.down,html[data-theme="dark"][data-cv="us"] .pro .wl-row .wl-pct.down{color:#e2a19c}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
@@ -217,6 +233,8 @@ html[data-cv="us"] .pro #pro-kc .kc-d.up{color:#067647}
 html[data-cv="us"] .pro #pro-kc .kc-d.down{color:#C4281B}
 html[data-cv="us"] .pro .fwd-mx .up{color:#067647}
 html[data-cv="us"] .pro .fwd-mx .down{color:#C4281B}
+html[data-cv="us"] .pro .wl-row .wl-price.up,html[data-cv="us"] .pro .wl-row .wl-pct.up{color:#067647}
+html[data-cv="us"][data-cv="us"] .pro .wl-row .wl-price.down,html[data-cv="us"][data-cv="us"] .pro .wl-row .wl-pct.down{color:#067647}
 /* ===== 수동 보정 ===== */
 /* 수동 보정(자동 변환이 못 잡는 곳): 상태 클래스·인라인 색·배경이 var(--up)인 태그 */
 html[data-theme="dark"] .pro .tabs button.on,html[data-theme="dark"] .pro .seg button.on,html[data-theme="dark"] .pro .tabrow .tabs button.on,html[data-theme="dark"] .pro .tabrow .seg button.on,html[data-theme="dark"] .pro .cal-tabs button.on{color:#fff}
