@@ -6484,7 +6484,7 @@ function injectSocCss(){
   '#soc-body .tp a{color:var(--tx,#101828);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#soc-body .tp a:hover{text-decoration:underline}#soc-body .tp small{color:var(--tx2,#475467);font-size:11px}'+
   '#soc-body .hot{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FEF0C7;color:#7A4B00;font-size:10.5px;font-weight:800}#soc-body .tr{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#EEF4FF;color:#1D3FA6;font-size:10.5px;font-weight:800}'+
   'html[data-theme="dark"] #soc-body .bt .u{color:#6CE9A6}html[data-theme="dark"] #soc-body .bt .d{color:#FDA29B}html[data-theme="dark"] #soc-body .hot{background:#3b2f0a;color:#FEDF89}html[data-theme="dark"] #soc-body .tr{background:#1a2748;color:#B2CCFF}'+
-  '@media(max-width:900px){#soc-body .sr{grid-template-columns:28px 1fr auto;grid-template-areas:"rk nm rt" "bb bb bb" "rd rd rd" "tp tp tp";gap:6px 8px;padding:10px 6px}#soc-body .sr.h{display:none}#soc-body .sr .rk{grid-area:rk}#soc-body .sr .nm{grid-area:nm}#soc-body .sr .c-rt{grid-area:rt;text-align:right}#soc-body .sr .c-wl,#soc-body .sr .c-rd{display:none}#soc-body .sr .c-bb{grid-area:bb}#soc-body .sr .tp{grid-area:tp}#soc-body .sr .m-rd{grid-area:rd;display:block;font-size:11.5px;color:var(--tx2,#475467)}}'+
+  '@media(max-width:900px){#soc-body .sr{grid-template-columns:28px 1fr auto;grid-template-areas:"rk nm rt" "bb bb bb" "rd rd rd";gap:6px 8px;padding:10px 6px}#soc-body .sr.h{display:none}#soc-body .sr .rk{grid-area:rk}#soc-body .sr .nm{grid-area:nm}#soc-body .sr .c-rt{grid-area:rt;text-align:right}#soc-body .sr .c-wl,#soc-body .sr .c-rd{display:none}#soc-body .sr .c-bb{grid-area:bb}#soc-body .sr .tp{display:none}#soc-body .sr .m-rd{grid-area:rd;display:block;font-size:11.5px;color:var(--tx2,#475467)}}'+
   '#soc-body .soc-more{display:block;width:100%;margin-top:10px;min-height:44px;border:1px solid var(--line,#D5DCD8);border-radius:8px;background:var(--panel,#fff);color:var(--tx,#111418);font:inherit;font-size:13px;font-weight:700;cursor:pointer}'+
   '@media(min-width:901px){#soc-body .sr .m-rd{display:none}}';
   document.head.appendChild(st);
@@ -6517,7 +6517,7 @@ function socRender(){
   const note=document.getElementById('soc-note'); if(note) note.textContent='· StockTwits 최근 글 30개 기준 · '+got+'/'+rows.length+'종목 수신'+(SOC.rdStatus==='blocked'?' · Reddit 연결 불가':'');
   const sb=(k,l)=>'<button type="button" data-sort="'+k+'" class="'+(SOC.sort===k?'on':'')+'">'+l+(SOC.sort===k?' ▾':'')+'</button>';
   let h='<div class="sr h"><span>#</span><span>종목</span><span>'+sb('bull','강세')+' / '+sb('bear','약세')+'</span><span>'+sb('rate','글 속도')+'</span><span>'+sb('watch','관심등록')+'</span><span>'+sb('rd','Reddit')+'</span><span>대표 글 (원문 링크)</span></div>';
-  const SOC_N=10, socOpen=!!(SOC.exp&&SOC.exp[SOC.cur]), socHide=rows.length>SOC_N&&!socOpen;
+  const SOC_MOB=!!(window.matchMedia&&matchMedia('(max-width:900px)').matches), SOC_N=SOC_MOB?3:10, socOpen=!!(SOC.exp&&SOC.exp[SOC.cur]), socHide=rows.length>SOC_N&&!socOpen;
   rows.forEach((r,i)=>{
     if(socHide&&i>=SOC_N) return;
     const s=r.s, tr=SOC.trend&&SOC.trend.indexOf(r.t.replace('-','.'))>=0?SOC.trend.indexOf(r.t.replace('-','.'))+1:null;
@@ -6528,7 +6528,7 @@ function socRender(){
     if(r.rd&&r.rd.top) tops.push('<a href="'+socEsc(r.rd.top.url)+'" target="_blank" rel="noopener nofollow" title="'+socEsc(r.rd.top.title)+'">🟠 '+socEsc(r.rd.top.title)+'</a><small>Reddit r/'+socEsc(r.rd.top.sub)+' · ▲'+r.rd.top.score+'</small>');
     h+='<div class="sr"><span class="rk">'+(i+1)+'</span><span class="nm"><b>'+r.t+'</b>'+(tr?'<span class="tr" title="StockTwits 트렌딩 '+tr+'위">트렌딩 '+tr+'위</span>':'')+hot+'<small>'+socEsc(socName(r.t))+'</small></span>'+
       '<span class="c-bb">'+bb+'</span><span class="c-rt">'+(s?s.rate.toFixed(1)+'<small class="na"> 글/시</small>':'<span class="na">—</span>')+'</span><span class="c-wl">'+(s&&s.watch?(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch.toLocaleString('ko-KR')):'<span class="na">—</span>')+'</span><span class="c-rd">'+rdTxt+'</span>'+
-      '<span class="tp">'+(tops.length?(window.matchMedia&&matchMedia('(max-width:900px)').matches?'<details class="tpd"><summary>대표 글 보기</summary>'+tops.join('')+'</details>':tops.join('')):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
+      '<span class="tp">'+(tops.length?tops.join(''):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
   });
   if(rows.length>SOC_N) h+='<button type="button" class="soc-more" data-more="1" aria-expanded="'+socOpen+'">'+(socOpen?'Top '+SOC_N+'만 보기 ▴':'나머지 '+(rows.length-SOC_N)+'종목 상세보기 ▾')+'</button>';
   if(SOC.rdStatus==='blocked') h+='<p class="mut" style="margin:8px 4px 0;font-size:12px">Reddit이 서버 접속을 막아 이번에는 Reddit 언급을 불러오지 못했습니다(임의 값은 넣지 않습니다).</p>';

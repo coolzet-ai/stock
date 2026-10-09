@@ -1725,3 +1725,17 @@ html[data-theme="dark"] .ipo-asof #ipo-live-status em{color:#f2c14e}
 .pro .wl-list>.wl-rb{grid-column:1/-1}
 .pro .wl-list>.wl-row:has(+ .wl-rb){grid-column:1/-1}
 .pro .wl-list>.wl-row{align-self:start}
+
+/* v54 시장 한눈에 보기: 종목 타일의 가격·등락률 시인성 + 모바일 글자 크기 고정, 모바일 블록 간격 통일 */
+.pro .pulse .hm div.tl small{gap:3px}
+.pro .pulse .hm div.tl small b{font-size:14px!important;font-weight:800!important;opacity:1!important;letter-spacing:0}
+.pro .pulse .hm div.tl small b.hm-chg{display:inline-block;align-self:flex-start;font-size:14px!important;font-weight:800!important;padding:1px 7px;border-radius:3px;background:rgba(0,0,0,.30);color:#fff;text-shadow:none;white-space:nowrap}
+.pro .pulse .hm-k .hm div.tl small b,.pro .pulse .hm-k .hm div.tl small b.hm-chg{font-size:14px!important}
+.pro .pulse .hm div.tl{min-height:72px!important}
+.pro .pulse .hm div.tl>span{text-shadow:0 1px 1px rgba(0,0,0,.25)}
+@media(max-width:700px){
+  .pro .pulse .hm div.tl small,.pro .pulse .hm div.tl.big small,.pro .pulse .hm-k .hm div.tl small{font-size:13px!important;padding-left:6px!important;padding-right:6px!important}
+  .pro .pulse .hm div.tl small b,.pro .pulse .hm div.tl small b.hm-chg,.pro .pulse .hm-k .hm div.tl small b,.pro .pulse .hm-k .hm div.tl small b.hm-chg{font-size:13px!important}
+  .pro .wrap>:is(#pro-brief,#mk-eve,#my-wl,#mk-acct,#mk-cmp,.grid,#pro-sector,.pro-row,#pro-cal,.pulse,.fold-all,.fold-h,#tickers,#social,#unicorn,#events){margin-top:14px!important;margin-bottom:0!important}
+  .pro .wrap>#pro-brief{margin-top:20px!important}
+}
