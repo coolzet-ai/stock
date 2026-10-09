@@ -6302,18 +6302,21 @@ async function loadEarnings(){
 }
 if(document.getElementById('cap-tbl')){
   setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800); setTimeout(loadDivs,2200);
-  /* 시총 TOP30: 실적·배당락·뉴스 표시 설정/해제 버튼 */
+  /* 시총 TOP30: 실적·배당락·뉴스 표시 설정/해제 버튼 (기존 .tabs 모양을 그대로 사용 · CSS 파일과 무관하게 동작) */
   (function(){
     const tb=document.getElementById('cap-tbl'); if(!tb) return;
     const tabs=document.querySelector('.tabs[data-group="cap"]'); if(!tabs||document.getElementById('cap-chip-set')) return;
-    const K=[['er','📅 실적','er'],['dv','💰 배당락','dv'],['nw','📰 뉴스','nw']];
+    const K=[['er','📅 실적'],['dv','💰 배당락'],['nw','📰 뉴스']];
     const get=k=>{ try{ return localStorage.getItem('mk_chip_'+k)!=='0'; }catch(e){ return true; } };
-    const bar=document.createElement('div'); bar.id='cap-chip-set'; bar.setAttribute('role','group'); bar.setAttribute('aria-label','시총 종목 표시 항목');
-    bar.innerHTML='<span class="ccs-l">표시</span>'+K.map(k=>'<button type="button" data-k="'+k[0]+'">'+k[1]+'</button>').join('');
+    if(!document.getElementById('cap-chip-css')){ const st=document.createElement('style'); st.id='cap-chip-css';
+      st.textContent='#cap-tbl.hide-er .er-b,#cap2-tbl.hide-er .er-b,#cap3-tbl.hide-er .er-b,#cap-tbl.hide-dv .dv-b,#cap2-tbl.hide-dv .dv-b,#cap3-tbl.hide-dv .dv-b,#cap-tbl.hide-nw .er-n,#cap2-tbl.hide-nw .er-n,#cap3-tbl.hide-nw .er-n{display:none!important}#cap-chip-set{display:flex!important;justify-content:flex-end;align-items:center;gap:6px;margin:0 0 8px}#cap-chip-set .ccs-l{font-size:12px;font-weight:700;color:var(--tx2);margin-right:4px}#cap-chip-set button{cursor:pointer}';
+      document.head.appendChild(st); }
+    const bar=document.createElement('div'); bar.id='cap-chip-set'; bar.className='tabs'; bar.setAttribute('data-group','capchip'); bar.setAttribute('role','group'); bar.setAttribute('aria-label','시총 종목 표시 항목 설정');
+    bar.innerHTML=K.map(k=>'<button type="button" data-k="'+k[0]+'">'+k[1]+'</button>').join('');
     tabs.after(bar);
     const apply=()=>{ ['cap-tbl','cap2-tbl','cap3-tbl'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; K.forEach(k=>el.classList.toggle('hide-'+k[0],!get(k[0]))); });
-      K.forEach(k=>{ const b=bar.querySelector('[data-k="'+k[0]+'"]'); const on=get(k[0]); b.setAttribute('aria-pressed',String(on)); b.title=k[1].replace(/^\S+ /,'')+' 표시 '+(on?'켜짐 — 누르면 끔':'꺼짐 — 누르면 켬'); }); };
-    bar.addEventListener('click',e=>{ const b=e.target.closest('button[data-k]'); if(!b) return; const k=b.dataset.k; try{ localStorage.setItem('mk_chip_'+k,get(k)?'0':'1'); }catch(x){} apply(); });
+      K.forEach(k=>{ const b=bar.querySelector('[data-k="'+k[0]+'"]'); const on=get(k[0]); b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); b.title=k[1].replace(/^\S+ /,'')+' 표시 '+(on?'켜짐 — 누르면 끔':'꺼짐 — 누르면 켬'); }); };
+    bar.addEventListener('click',e=>{ const b=e.target.closest('button[data-k]'); if(!b) return; e.stopPropagation(); const k=b.dataset.k; try{ localStorage.setItem('mk_chip_'+k,get(k)?'0':'1'); }catch(x){} apply(); });
     apply(); setTimeout(apply,1500); setTimeout(apply,5000);
   })();
   ['cap-tbl','cap2-tbl','cap3-tbl','tick-tbl','lev-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });

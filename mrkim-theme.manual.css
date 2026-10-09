@@ -23,3 +23,6 @@ html[data-theme="dark"] .pro #fg-fail{background:#2C1B1E;border-color:#5A2A2A;co
 html[data-theme="dark"] .pro #fg-fail .net-retry{background:#0D1115;color:#FFB4AB;border-color:#FF7A6E}
 /* KR: 초록 강조 글자(.ix-kp·details>summary)가 어두운 배경에서 대비 부족 */
 html[data-theme="dark"] .ix-kp,html[data-theme="dark"] body.pro summary{color:#5EDBA6!important}
+
+html[data-theme="dark"] .pro .nav ul a.on-page,html[data-theme="dark"] .pro header .logo span{color:#4ADE9C}
+html[data-theme="dark"] .pro .nav ul a.on-page{box-shadow:inset 0 -2px 0 #4ADE9C}
