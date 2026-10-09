@@ -922,3 +922,12 @@ html[data-cv="us"] .pro .wl-row .wl-price.up,html[data-cv="us"] .pro .wl-row .wl
 html[data-cv="us"] .pro .wl-row .wl-price.down,html[data-cv="us"] .pro .wl-row .wl-pct.down{color:#B42318}
 /* v33: 모바일 상태 줄 — 버튼이 늘어 잘리지 않도록 줄바꿈 */
 @media(max-width:700px){#pro-status{flex-wrap:wrap;overflow:visible;row-gap:5px}#pro-status button#ps-cv{margin-left:auto}#ps-save,#ps-krw{margin-right:0}}
+/* v34: 모바일에서도 선물·현물 3칸을 한 줄에 — 칸 안에서는 위(이름·가격·등락률) 아래(그래프) */
+@media(max-width:560px){
+  #pb-fut .pf-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  #pb-fut .pf-c{flex-direction:column;gap:2px;padding:6px 4px;align-items:center;justify-content:flex-start}
+  #pb-fut .pf-t small{font-size:11px;white-space:nowrap}
+  #pb-fut .pf-c b{font-size:13.5px;letter-spacing:-.3px;white-space:nowrap}
+  #pb-fut .pf-c span{font-size:12px;white-space:nowrap}
+  #pb-fut .pf-sp{width:100%;max-width:92px;height:24px}
+}
