@@ -550,6 +550,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
         </div>
     </div>
     <p class="mut" style="margin-top:10px;font-size:12px">이름 왼쪽 여백을 클릭하면 주요 보유종목·섹터 비중을 볼 수 있습니다<br>⚠ 3배 레버리지 상품은 일간 수익률을 추종하며 변동성이 매우 크고 장기 보유 시 지수와 괴리가 발생할 수 있습니다<br>· 티커명을 클릭하면 운용사 공식 상품 페이지로, 세부내용의 +는 Finviz 지표 페이지, X는 @TrendSpider의 해당 티커 게시물 검색, N은 최신 뉴스로 이동합니다.</p>
+
+    <h2 id="social" style="font-size:21px;margin-top:44px">소셜 언급 · 투자자 커뮤니티 🇺🇸</h2>
+    <p class="sub">StockTwits 강세·약세 태그와 글 속도 · Reddit(r/wallstreetbets·stocks·investing) 언급 · 원문 <a href="https://stocktwits.com/" target="_blank" rel="noopener">StockTwits</a> · <a href="https://www.reddit.com/r/wallstreetbets/" target="_blank" rel="noopener">Reddit</a></p>
+    <p class="asof" data-label="소셜 언급(최근 글 기준)" data-cycle="화면을 열 때마다 불러옴(10~15분 캐시)"></p>
+    <div class="card" id="us-social">
+      <div class="fg-hd"><h3 role="heading" aria-level="3" style="font-size:15px">소셜 활성도 <span class="mut" id="soc-note" style="font-weight:400;font-size:12px">· 최근 글 30개 기준</span></h3>
+        <div class="tabs" data-group="soc"><button class="on" data-p="cap">시총 TOP30</button><button data-p="tick">관심종목</button><button data-p="lev">레버리지 ETF</button></div></div>
+      <div id="soc-body"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+      <p class="mut" style="margin-top:10px;font-size:12px">⚠ 게시글 수 기준의 참고 지표입니다. 봇·밈 글로 부풀려질 수 있고, 강세·약세는 글쓴이가 직접 태그한 글만 집계해 투자 판단 근거가 아닙니다. 값을 받지 못한 항목은 비워 둡니다.</p>
+    </div>
   </div>
 </section>
 
@@ -753,8 +763,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script defer src="mrkim-common.min.js?v=16cff533"></script>
-<script defer src="mrkim-pro.min.js?v=1122dffa"></script>
+<script defer src="mrkim-common.min.js?v=afcbf1c8"></script>
+<script defer src="mrkim-pro.min.js?v=0faf0797"></script>
 <script defer src="stock-page.js?v=ece9162e"></script>
 <script defer src="stock-fin.js?v=e8bfc40c"></script>
 <script defer src="stock-etf.js?v=8ebf5e9a"></script>

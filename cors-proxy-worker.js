@@ -1949,33 +1949,45 @@ const handler = {
     // 시총 TOP30 "핵심 뉴스" — Google News RSS(한국어, 최근 2일)에서 종목별로 주가 급등·급락·실적·규제 등
     // 시장 영향 키워드가 들어간 최신 기사 1건을 골라 원문(기사 링크)·출처와 함께 내려준다. 1시간 KV 캐시.
     if (reqUrl.pathname === '/cap-news') {
-      const NAMES = { NVDA:'엔비디아', AAPL:'애플', GOOGL:'알파벳 구글', MSFT:'마이크로소프트', AMZN:'아마존', TSM:'TSMC', SPCX:'스페이스X', AVGO:'브로드컴', META:'메타', TSLA:'테슬라', MU:'마이크론', 'BRK-B':'버크셔 해서웨이', AMD:'AMD', LLY:'일라이 릴리', JPM:'JP모건', WMT:'월마트', V:'비자', XOM:'엑슨모빌', INTC:'인텔', JNJ:'존슨앤드존슨', MA:'마스터카드', ABBV:'애브비', CSCO:'시스코', BAC:'뱅크오브아메리카', AMAT:'어플라이드 머티어리얼즈', COST:'코스트코', CAT:'캐터필러', CVX:'셰브런', UNH:'유나이티드헬스', LRCX:'램리서치' };
+      const NAMES = { NVDA:['엔비디아','NVIDIA'], AAPL:['애플','Apple'], GOOGL:['알파벳','구글','Alphabet'], MSFT:['마이크로소프트','Microsoft'], AMZN:['아마존','Amazon'], TSM:['TSMC','대만 반도체'], SPCX:['스페이스X','SpaceX'], AVGO:['브로드컴','Broadcom'], META:['메타 플랫폼','메타플랫폼','메타(','페이스북','Meta Platforms'], TSLA:['테슬라','Tesla'], MU:['마이크론','Micron'], 'BRK-B':['버크셔','Berkshire'], AMD:['AMD'], LLY:['일라이 릴리','일라이릴리','Eli Lilly'], JPM:['JP모건','JPMorgan','제이피모건'], WMT:['월마트','Walmart'], V:['비자카드','비자(V','Visa Inc','비자 주가'], XOM:['엑슨모빌','Exxon'], INTC:['인텔','Intel'], JNJ:['존슨앤드존슨','존슨앤존슨','J&J','Johnson'], MA:['마스터카드','Mastercard'], ABBV:['애브비','AbbVie'], CSCO:['시스코','Cisco'], BAC:['뱅크오브아메리카','BofA','Bank of America'], AMAT:['어플라이드 머티어리얼즈','어플라이드머티어리얼즈','Applied Materials'], COST:['코스트코','Costco'], CAT:['캐터필러','Caterpillar'], CVX:['셰브런','Chevron'], UNH:['유나이티드헬스','UnitedHealth'], LRCX:['램리서치','Lam Research'] };
+      const QN = { 'BRK-B':'버크셔 해서웨이', GOOGL:'알파벳 구글', LLY:'일라이 릴리', V:'비자카드 Visa', META:'메타 플랫폼스', AMAT:'어플라이드 머티어리얼즈' };
       const list = (reqUrl.searchParams.get('tickers') || '').toUpperCase().split(',').map(s => s.trim()).filter(s => NAMES[s]).slice(0, 35);
       if (!list.length) return new Response(JSON.stringify({ error: 'tickers required' }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
-      const UP = /급등|폭등|상승|강세|호조|호실적|사상 최고|신고가|상향|서프라이즈|랠리|반등|수주|승인/;
-      const DOWN = /급락|폭락|하락|약세|부진|쇼크|사상 최저|신저가|하향|우려|리스크|소송|규제|관세|제재|조사|리콜|감원|취소|지연/;
+      const debug = reqUrl.searchParams.get('debug') === '1';
+      const UP = /급등|폭등|상승|강세|호조|호실적|사상 최고|신고가|상향|서프라이즈|랠리|반등|수주|승인|돌파|최고가|껑충|뛰/;
+      const DOWN = /급락|폭락|하락|약세|부진|쇼크|사상 최저|신저가|하향|우려|리스크|소송|규제|관세|제재|조사|리콜|감원|취소|지연|뚝|추락|밀려|흔들/;
       try {
-        const cacheKey = 'capnews-v1-' + list.slice().sort().join('_').slice(0, 400);
-        let data = null;
-        if (env.KR_KV) { try { const c = await env.KR_KV.get(cacheKey); if (c) data = JSON.parse(c); } catch (e) {} }
+        const cacheKey = 'capnews-v2-' + list.slice().sort().join('_').slice(0, 400);
+        let data = null; const dbg = {};
+        if (!debug && env.KR_KV) { try { const c = await env.KR_KV.get(cacheKey); if (c) data = JSON.parse(c); } catch (e) {} }
         if (!data) {
           data = {};
-          await mapLimit(list, 6, async (t) => {
+          await mapLimit(list, 5, async (t) => {
+            const q = (QN[t] || NAMES[t][0]) + ' 주가';
+            let items = [];
             try {
-              const q = NAMES[t] + ' 주가 when:2d';
-              const r = await fetch('https://news.google.com/rss/search?q=' + encodeURIComponent(q) + '&hl=ko&gl=KR&ceid=KR:ko', { headers: { 'User-Agent': UA, 'Accept': 'application/rss+xml,text/xml,*/*', 'Accept-Language': 'ko-KR,ko;q=0.9' } });
-              if (!r.ok) return;
-              const items = parseGoogleNewsRss(await r.text(), 12);
-              const hit = items.find(it => UP.test(it.title) || DOWN.test(it.title));
-              if (hit) {
-                const up = UP.test(hit.title), dn = DOWN.test(hit.title);
-                data[t] = { title: hit.title, url: hit.url, source: hit.source, pubDate: hit.pubDate, dir: up && !dn ? 'up' : dn && !up ? 'down' : 'mix' };
-              }
-            } catch (e) {}
+              const r = await fetch('https://news.google.com/rss/search?q=' + encodeURIComponent(q + ' when:2d') + '&hl=ko&gl=KR&ceid=KR:ko', { headers: { 'User-Agent': UA, 'Accept': 'application/rss+xml,text/xml,*/*', 'Accept-Language': 'ko-KR,ko;q=0.9' } });
+              if (r.ok) items = parseGoogleNewsRss(await r.text(), 15); else dbg[t] = 'google ' + r.status;
+            } catch (e) { dbg[t] = 'google ' + String(e).slice(0, 40); }
+            if (!items.length) {
+              try {
+                const r2 = await fetch('https://www.bing.com/news/search?q=' + encodeURIComponent(q) + '&format=rss&setlang=ko&cc=KR', { headers: { 'User-Agent': UA, 'Accept-Language': 'ko-KR,ko;q=0.9' } });
+                if (r2.ok) items = parseBingNewsRss(await r2.text(), 20).filter(it => !it.pubDate || Date.parse(it.pubDate) > Date.now() - 3 * 86400000); else dbg[t] = (dbg[t] || '') + ' bing ' + r2.status;
+              } catch (e) { dbg[t] = (dbg[t] || '') + ' bing ' + String(e).slice(0, 40); }
+            }
+            const names = NAMES[t].map(s => s.toLowerCase());
+            const okItem = it => { const ti = it.title.toLowerCase(); return names.some(n => ti.indexOf(n) >= 0) && (UP.test(it.title) || DOWN.test(it.title)); };
+            const LOWQ = /Simply Wall St|TradingKey|Mitrade|BeInCrypto|MarketBeat|주식 움직였습니다/i;
+            const hit = items.find(it => okItem(it) && !LOWQ.test((it.source || '') + ' ' + it.title)) || items.find(okItem);
+            if (debug) dbg[t] = (dbg[t] || 'ok') + ' items=' + items.length + (hit ? ' hit' : ' nohit');
+            if (hit) {
+              const up = UP.test(hit.title), dn = DOWN.test(hit.title);
+              data[t] = { title: hit.title, url: hit.url, source: hit.source, pubDate: hit.pubDate, dir: up && !dn ? 'up' : dn && !up ? 'down' : 'mix' };
+            }
           });
-          if (env.KR_KV) { try { await env.KR_KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }); } catch (e) {} }
+          if (!debug && env.KR_KV && Object.keys(data).length) { try { await env.KR_KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }); } catch (e) {} }
         }
-        return new Response(JSON.stringify(data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(debug ? { data, dbg } : data), { headers: { ...CORS, 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
@@ -2494,6 +2506,144 @@ async function guardedFetch(request, env, ctx) {
         const arr = cl.filter(x => x != null);
         out[sym] = arr.length ? arr : null;
         if (out[sym]) ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(out[sym]), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=300' } })));
+      } catch (e) { out[sym] = null; }
+    }));
+    return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);
+  }
+  /* 시간외(장전·장후) 시세 — Yahoo chart(1분봉, includePrePost)에서 마지막 장전/장후 봉을 골라
+     정규장 종가 대비 등락률을 계산한다. 정규장 중이거나 시간외 봉이 없으면 null(추정하지 않음). 60초 캐시. */
+  if (u.pathname.replace(/\/{2,}/g, '/') === '/ext') {
+    const syms = [...new Set((u.searchParams.get('symbols') || '').split(',').map(x => x.trim().toUpperCase()).filter(x => /^[A-Z0-9.\-]{1,10}$/.test(x) && !/\.(KS|KQ)$/.test(x)))].slice(0, 30);
+    if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'symbols required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
+    const out = {};
+    await Promise.all(syms.map(async sym => {
+      const ck = new Request('https://cache.local/ext-v1/' + encodeURIComponent(sym));
+      try {
+        const hit = await caches.default.match(ck);
+        if (hit) { out[sym] = await hit.json(); return; }
+        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=1d&interval=1m&includePrePost=true', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+        if (!r.ok) { out[sym] = null; return; }
+        const j = await r.json();
+        const r0 = j.chart.result[0], mt = r0.meta || {}, ts = r0.timestamp || [], cl = (r0.indicators.quote[0].close || []);
+        const ctp = mt.currentTradingPeriod || {}, pre = ctp.pre, reg = ctp.regular, post = ctp.post;
+        let res = null, i = cl.length - 1;
+        while (i >= 0 && cl[i] == null) i--;
+        if (i >= 0 && mt.regularMarketPrice) {
+          const t = ts[i], px = cl[i];
+          let st = null;
+          if (post && t >= post.start && t <= post.end) st = 'post';
+          else if (pre && t >= pre.start && t < pre.end) st = 'pre';
+          if (st && Math.abs(px / mt.regularMarketPrice - 1) < 0.5) res = { st, px: Math.round(px * 10000) / 10000, base: mt.regularMarketPrice, pct: Math.round((px / mt.regularMarketPrice - 1) * 10000) / 100, t };
+        }
+        out[sym] = res;
+        ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(res), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=60' } })));
+      } catch (e) { out[sym] = null; }
+    }));
+    return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);
+  }
+  /* 소셜 언급(미국주식) — StockTwits 종목별 최신 30개 글에서 강세/약세 태그 비율·글 속도·대표 글을 계산한다.
+     trend=1 이면 StockTwits 트렌딩 심볼 순위(_trend)도 함께 준다. 10분 캐시. */
+  if (u.pathname.replace(/\/{2,}/g, '/') === '/social') {
+    const syms = [...new Set((u.searchParams.get('tickers') || '').split(',').map(x => x.trim().toUpperCase()).filter(x => /^[A-Z0-9.\-]{1,10}$/.test(x) && !/\.(KS|KQ)$/.test(x)))].slice(0, 20);
+    if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'tickers required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
+    const out = {};
+    await Promise.all(syms.map(async sym => {
+      const ck = new Request('https://cache.local/social-v1/' + encodeURIComponent(sym));
+      try {
+        const hit = await caches.default.match(ck);
+        if (hit) { out[sym] = await hit.json(); return; }
+        const r = await fetch('https://api.stocktwits.com/api/2/streams/symbol/' + encodeURIComponent(sym.replace('-', '.')) + '.json', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+        if (!r.ok) { out[sym] = null; return; }
+        const j = await r.json();
+        const ms = j.messages || [];
+        if (!ms.length) { out[sym] = null; return; }
+        let bull = 0, bear = 0;
+        ms.forEach(m => { const s = m.entities && m.entities.sentiment && m.entities.sentiment.basic; if (s === 'Bullish') bull++; else if (s === 'Bearish') bear++; });
+        const t0 = Date.parse(ms[0].created_at), t1 = Date.parse(ms[ms.length - 1].created_at);
+        const spanH = Math.max(0.05, (t0 - t1) / 3600000);
+        let best = ms[0]; ms.forEach(m => { const l = (m.likes && m.likes.total) || 0, bl = (best.likes && best.likes.total) || 0; if (l > bl) best = m; });
+        const res = { n: ms.length, bull, bear, rate: Math.round(Math.min(999, ms.length / spanH) * 10) / 10, watch: (j.symbol && j.symbol.watchlist_count) || null, last: ms[0].created_at,
+          top: { body: String(best.body || '').replace(/\s+/g, ' ').slice(0, 140), user: best.user && best.user.username, url: best.user ? 'https://stocktwits.com/' + best.user.username + '/message/' + best.id : null, likes: (best.likes && best.likes.total) || 0, at: best.created_at } };
+        out[sym] = res;
+        ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(res), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=600' } })));
+      } catch (e) { out[sym] = null; }
+    }));
+    if (u.searchParams.get('trend') === '1') {
+      try {
+        const r = await fetch('https://api.stocktwits.com/api/2/trending/symbols.json', { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+        if (r.ok) { const j = await r.json(); out._trend = (j.symbols || []).map(s => s.symbol); }
+      } catch (e) {}
+    }
+    return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);
+  }
+  /* 소셜 언급 — Reddit(r/wallstreetbets·stocks·investing·StockMarket 인기글) 티커 언급 횟수 + 대표 글.
+     Reddit이 서버 IP를 막으면 _status:'blocked' 로만 응답한다(추정 금지). 15분 캐시. */
+  if (u.pathname.replace(/\/{2,}/g, '/') === '/social-reddit') {
+    const syms = [...new Set((u.searchParams.get('tickers') || '').split(',').map(x => x.trim().toUpperCase()).filter(x => /^[A-Z0-9.\-]{1,10}$/.test(x) && !/\.(KS|KQ)$/.test(x)))].slice(0, 80);
+    if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'tickers required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
+    const ck = new Request('https://cache.local/social-reddit-v1');
+    let posts = null;
+    try { const hit = await caches.default.match(ck); if (hit) posts = await hit.json(); } catch (e) {}
+    if (!posts) {
+      posts = [];
+      await Promise.all(['wallstreetbets', 'stocks', 'investing', 'StockMarket'].map(async sub => {
+        for (const host of ['www.reddit.com', 'old.reddit.com']) {
+          try {
+            const r = await fetch('https://' + host + '/r/' + sub + '/hot.json?limit=100&raw_json=1', { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MrKimSignal/1.0)', 'Accept': 'application/json' } });
+            if (!r.ok) continue;
+            const j = await r.json();
+            ((j.data && j.data.children) || []).forEach(c => { const d = c.data || {}; if (d.title) posts.push({ t: d.title, s: d.score || 0, u: 'https://www.reddit.com' + d.permalink, r: sub, c: d.created_utc }); });
+            return;
+          } catch (e) {}
+        }
+      }));
+      if (posts.length) ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(posts), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=900' } })));
+    }
+    if (!posts.length) return withCors(new Response(JSON.stringify({ _status: 'blocked' }), { headers: { 'Content-Type': 'application/json' } }), origin);
+    const ALIAS = { NVDA: ['nvidia'], AAPL: ['apple'], GOOGL: ['alphabet', 'google'], GOOG: ['alphabet', 'google'], MSFT: ['microsoft'], AMZN: ['amazon'], TSM: ['tsmc'], AVGO: ['broadcom'], META: ['facebook', 'meta platforms'], TSLA: ['tesla'], MU: ['micron'], 'BRK-B': ['berkshire'], AMD: ['advanced micro'], LLY: ['eli lilly'], JPM: ['jpmorgan'], WMT: ['walmart'], V: ['visa inc'], XOM: ['exxon'], INTC: ['intel'], JNJ: ['johnson & johnson'], MA: ['mastercard'], ABBV: ['abbvie'], CSCO: ['cisco'], BAC: ['bank of america'], AMAT: ['applied materials'], COST: ['costco'], CAT: ['caterpillar'], CVX: ['chevron'], UNH: ['unitedhealth'], LRCX: ['lam research'], SPCX: ['spacex'] };
+    const NEED_DOLLAR = new Set(['V', 'MA', 'MU', 'CAT', 'COST', 'META', 'TAP', 'POOL', 'FLEX', 'ROM', 'RAM', 'USD', 'FAS', 'BE', 'TER', 'EA', 'AMD', 'ALL']);
+    const out = { _status: 'ok', _posts: posts.length };
+    syms.forEach(t => {
+      const tk = t.replace('-', '.'), needD = tk.length <= 2 || NEED_DOLLAR.has(tk);
+      const re = new RegExp('(^|[^A-Za-z0-9$])' + (needD ? '\\$' : '\\$?') + tk.replace('.', '[.\\-]') + '(?![A-Za-z0-9])');
+      const al = (ALIAS[t] || []);
+      let cnt = 0, best = null;
+      posts.forEach(p => { const lo = p.t.toLowerCase(); if (re.test(p.t) || al.some(a => lo.indexOf(a) >= 0)) { cnt++; if (!best || p.s > best.s) best = p; } });
+      out[t] = { c: cnt, top: best ? { title: best.t.slice(0, 140), url: best.u, score: best.s, sub: best.r } : null };
+    });
+    return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);
+  }
+  /* 배당락일·배당률 — Yahoo quoteSummary(summaryDetail+calendarEvents). 배당률은 (연 배당금 ÷ 전일 종가)로 계산해
+     단위 혼동(%/소수)을 피하고, 없으면 trailingAnnualDividendYield(소수)를 쓴다. 6시간 캐시. */
+  if (u.pathname.replace(/\/{2,}/g, '/') === '/divs') {
+    const syms = [...new Set((u.searchParams.get('symbols') || '').split(',').map(x => x.trim().toUpperCase()).filter(x => /^[A-Z0-9.\-]{1,10}$/.test(x) && !/\.(KS|KQ)$/.test(x)))].slice(0, 25);
+    if (!syms.length) return withCors(new Response(JSON.stringify({ error: 'symbols required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), origin);
+    const out = {};
+    const auth = await getYahooAuth();
+    const raw = v => (v && typeof v === 'object' && 'raw' in v) ? v.raw : (typeof v === 'number' ? v : null);
+    await Promise.all(syms.map(async sym => {
+      const ck = new Request('https://cache.local/divs-v1/' + encodeURIComponent(sym));
+      try {
+        const hit = await caches.default.match(ck);
+        if (hit) { out[sym] = await hit.json(); return; }
+        let url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(sym) + '?modules=summaryDetail,calendarEvents';
+        const headers = { 'User-Agent': UA, 'Accept': 'application/json' };
+        if (auth) { url += '&crumb=' + encodeURIComponent(auth.crumb); headers['Cookie'] = auth.cookie; }
+        const r = await fetch(url, { headers });
+        if (!r.ok) { out[sym] = null; return; }
+        const j = await r.json();
+        const res0 = j && j.quoteSummary && j.quoteSummary.result && j.quoteSummary.result[0];
+        if (!res0) { out[sym] = null; return; }
+        const sd = res0.summaryDetail || {}, ce = res0.calendarEvents || {};
+        const rate = raw(sd.dividendRate) != null ? raw(sd.dividendRate) : raw(sd.trailingAnnualDividendRate);
+        const pc = raw(sd.previousClose);
+        let y = (rate != null && pc) ? rate / pc : null;
+        if (y == null) { const ty = raw(sd.trailingAnnualDividendYield); if (ty != null) y = ty; }
+        const ex = raw(ce.exDividendDate) != null ? raw(ce.exDividendDate) : raw(sd.exDividendDate);
+        const pay = raw(ce.dividendDate);
+        const res = (y || ex) ? { ex: ex || null, pay: pay || null, rate: rate, y: y != null ? Math.round(y * 100000) / 100000 : null } : null;
+        out[sym] = res;
+        ctx.waitUntil(caches.default.put(ck, new Response(JSON.stringify(res), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=21600' } })));
       } catch (e) { out[sym] = null; }
     }));
     return withCors(new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json' } }), origin);

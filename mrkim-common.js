@@ -6196,7 +6196,7 @@ const EARN_IR={
   LRCX:'https://investor.lamresearch.com/'
 };
 const EARN_LIST=['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA','MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ','MA','ABBV','CSCO','BAC','AMAT','COST','CAT','CVX','UNH','LRCX'];
-let EARN_DATA=null, NEWS_DATA=null;
+let EARN_DATA=null, NEWS_DATA=null, DIV_DATA=null;
 function injectEarnCss(){
   if(document.getElementById('er-css')) return;
   const st=document.createElement('style'); st.id='er-css';
@@ -6204,7 +6204,11 @@ function injectEarnCss(){
   '.er-b:hover{filter:brightness(.96);text-decoration:underline}.er-b.soon{background:#FEF0C7;border-color:#F5C35A;color:#7A4B00}.er-b.hot{background:#FEE4E2;border-color:#F4A6A0;color:#912018}.er-b.done{background:#D1FADF;border-color:#7ED9A4;color:#05603A}'+
   '.wl-er{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}.er-n{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:2px 8px;border-radius:99px;border:1px solid #D0D5DD;background:#fff;color:#344054;font-size:11.5px;font-weight:700;text-decoration:none;min-width:0}.er-n span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px}.er-n em{font-style:normal;font-weight:500;color:#475467;white-space:nowrap}.er-n:hover{text-decoration:underline}.er-n.up{background:#FEF3F2;border-color:#F4A6A0;color:#912018}.er-n.down{background:#EFF4FF;border-color:#A4BCFD;color:#1D3FA6}'+
   'html[data-cv="us"] .er-n.up{background:#ECFDF3;border-color:#7ED9A4;color:#05603A}html[data-cv="us"] .er-n.down{background:#FEF3F2;border-color:#F4A6A0;color:#912018}'+
-  '@media(max-width:560px){.er-b{font-size:10.5px;padding:2px 6px}.er-n{font-size:10.5px;padding:2px 6px}.er-n span{max-width:190px}.er-n em{display:none}}';
+  '.wl-tag.has-tc{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px}.wl-tc{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}'+
+  '.dv-b{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;border:1px solid #BDB4FE;background:#F4F3FF;color:#3E1C96;font-size:11.5px;font-weight:800;text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.2}'+
+  '.dv-b.soon{background:#EBE9FE;border-color:#9B8AFB;color:#32177A}.dv-b.past{background:#F2F4F7;border-color:#D0D5DD;color:#475467;font-weight:700}.dv-b:hover{text-decoration:underline}'+
+  'html[data-theme="dark"] .dv-b{background:#2a2350;border-color:#6a5acd;color:#D9D6FE}html[data-theme="dark"] .dv-b.past{background:#2b3139;border-color:#3d4650;color:#C7CED6}html[data-theme="dark"] .dv-b.soon{background:#352a6b;color:#EBE9FE}'+
+  '@media(max-width:560px){.er-b,.dv-b{font-size:10.5px;padding:2px 6px}.er-n{font-size:10.5px;padding:2px 6px}.er-n span{max-width:190px}.er-n em{display:none}}';
   document.head.appendChild(st);
 }
 function earnDays(ts){
@@ -6212,26 +6216,49 @@ function earnDays(ts){
   return Math.round(ny(new Date(ts*1000))-ny(new Date()));
 }
 function applyEarnBadges(){
-  if(!EARN_DATA&&!NEWS_DATA) return;
+  if(!EARN_DATA&&!NEWS_DATA&&!DIV_DATA) return;
   injectEarnCss();
   const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  document.querySelectorAll('#cap-tbl .wl-row,#cap2-tbl .wl-row,#cap3-tbl .wl-row').forEach(row=>{
+  const fd=(ts)=>new Date(ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
+  document.querySelectorAll('#cap-tbl .wl-row,#cap2-tbl .wl-row,#cap3-tbl .wl-row,#tick-tbl .wl-row,#lev-tbl .wl-row').forEach(row=>{
     const t=row.dataset.t, info=row.querySelector('.wl-info'); if(!info) return;
-    let html='';
-    const e=EARN_DATA&&EARN_DATA[t];
+    const isCap=!!row.closest('#cap-tbl,#cap2-tbl,#cap3-tbl');
+    /* 이름 옆 칩: 실적 D-day(시총 종목) + 배당락일·배당률 */
+    let tc='';
+    const e=isCap&&EARN_DATA&&EARN_DATA[t];
     if(e&&e.ts){
       const d=earnDays(e.ts);
       if(d>=-3){
-        const dt=new Date(e.ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
-        const rng=e.ts2&&e.ts2!==e.ts?' ~ '+new Date(e.ts2*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'}):'';
+        const rng=e.ts2&&e.ts2!==e.ts?' ~ '+fd(e.ts2):'';
         const cls=d<0?'done':d<=3?'hot':d<=14?'soon':'', label=d<0?'📋 실적 발표 D+'+(-d):d===0?'🔥 실적 발표 D-DAY':(d<=3?'🔔 ':'📣 ')+'실적 D-'+d;
         const url=EARN_IR[t]||('https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/analysis/');
-        html+='<a class="er-b '+cls+'" href="'+url+'" target="_blank" rel="noopener" title="다음 실적 발표 '+dt+rng+' (미국 현지 기준 · 회사 확정 전에는 추정일) · 누르면 '+t+' '+(EARN_IR[t]?'IR 사이트':'Yahoo 실적 분석')+'로 이동">'+label+'</a>';
+        tc+='<a class="er-b '+cls+'" href="'+url+'" target="_blank" rel="noopener" title="다음 실적 발표 '+fd(e.ts)+rng+' (미국 현지 기준 · 회사 확정 전에는 추정일) · 누르면 '+t+' '+(EARN_IR[t]?'IR 사이트':'Yahoo 실적 분석')+'로 이동">'+label+'</a>';
       }
     }
-    const n=NEWS_DATA&&NEWS_DATA[t];
+    const dv=DIV_DATA&&DIV_DATA[t];
+    if(dv&&(dv.y||dv.ex)){
+      const yp=dv.y?(dv.y*100).toFixed(dv.y*100<1?2:1)+'%':'';
+      let label,cls='';
+      if(dv.ex){
+        const d=earnDays(dv.ex);
+        if(d>=0){ label='💰 배당락 '+(d===0?'오늘':'D-'+d)+(yp?' · '+yp:''); cls=d<=7?'soon':''; }
+        else label='💰 배당락 '+new Date(dv.ex*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'numeric',day:'numeric'})+' 완료'+(yp?' · '+yp:''), cls='past';
+      } else label='💰 배당률 '+yp;
+      const tip='배당락일 '+(dv.ex?fd(dv.ex)+' (미국 현지 기준)':'정보 없음')+(dv.pay?' · 지급일 '+fd(dv.pay):'')+(dv.rate!=null?' · 연 배당금 $'+dv.rate.toFixed(2):'')+(yp?' · 배당률(연, 전일 종가 기준) '+yp:'')+' · 누르면 Yahoo 배당 이력으로 이동';
+      tc+='<a class="dv-b '+cls+'" href="https://finance.yahoo.com/quote/'+encodeURIComponent(t)+'/history/?filter=div" target="_blank" rel="noopener" title="'+esc(tip)+'">'+label+'</a>';
+    }
+    const tag=info.querySelector('.wl-tag');
+    let tbox=info.querySelector('.wl-tc');
+    if(!tc){ if(tbox) tbox.remove(); }
+    else{
+      if(!tbox){ tbox=document.createElement('span'); tbox.className='wl-tc'; if(tag){ tag.classList.add('has-tc'); tag.appendChild(tbox); } else { const nm=info.querySelector('.wl-name'); if(nm) info.insertBefore(tbox,nm); else info.appendChild(tbox); } }
+      if(tbox.innerHTML!==tc) tbox.innerHTML=tc;
+    }
+    /* 뉴스 칩은 이름 아래 */
+    let html='';
+    const n=isCap&&NEWS_DATA&&NEWS_DATA[t];
     if(n&&n.url&&n.title){
-      const ic=n.dir==='up'?'📈':n.dir==='down'?'📉':'🗞',tag=n.dir==='up'?'상승 이슈':n.dir==='down'?'하락 이슈':'핵심 이슈';
+      const ic=n.dir==='up'?'📈':n.dir==='down'?'📉':'🗞';
       const when=n.pubDate?new Date(n.pubDate).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
       html+='<a class="er-n '+(n.dir==='mix'?'':n.dir)+'" href="'+esc(n.url)+'" target="_blank" rel="noopener nofollow" title="'+esc(n.title)+' — '+esc(n.source)+(when?' · '+when:'')+' (최근 2일 · 급등락·실적·규제 키워드 기사 · 누르면 원문 기사로 이동)">'+ic+' <span>'+esc(n.title)+'</span><em>'+esc(n.source)+'</em></a>';
     }
@@ -6240,6 +6267,19 @@ function applyEarnBadges(){
     if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
     if(box.innerHTML!==html) box.innerHTML=html;
   });
+}
+async function loadDivs(){
+  if(!PROXY_BASE) return;
+  const syms=[...new Set([...TICKGROUPS.cap.list,...TICKGROUPS.cap2.list,...TICKGROUPS.cap3.list,...TICKGROUPS.tick.list,...TICKGROUPS.lev.list])];
+  const origin=PROXY_BASE.replace(/\?url=$/,'');
+  DIV_DATA=DIV_DATA||{};
+  try{
+    for(let i=0;i<syms.length;i+=20){
+      const r=await fetch(origin+'divs?symbols='+syms.slice(i,i+20).map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined});
+      const j=r.ok?await r.json():null; if(j&&!j.error) Object.assign(DIV_DATA,j);
+    }
+    applyEarnBadges();
+  }catch(e){ console.warn('배당 정보 로딩 실패:',e); }
 }
 async function loadCapNews(){
   if(!PROXY_BASE||!document.getElementById('cap-tbl')) return;
@@ -6260,6 +6300,157 @@ async function loadEarnings(){
   }catch(e){ console.warn('실적 발표일 로딩 실패:',e); }
 }
 if(document.getElementById('cap-tbl')){
-  setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800);
-  ['cap-tbl','cap2-tbl','cap3-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });
+  setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800); setTimeout(loadDivs,2200);
+  ['cap-tbl','cap2-tbl','cap3-tbl','tick-tbl','lev-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });
+}
+
+/* ===================== 시간외(장전·장후) 시세 칩 =====================
+   Worker(/ext)가 정규장 종가 대비 장전/장후 등락률을 내려준다. 정규장 중이거나 시간외 데이터가 없으면 칩을 숨긴다. */
+const EXT_TABLES='#tick-tbl,#cap-tbl,#cap2-tbl,#cap3-tbl,#lev-tbl,#idxchg-tbl';
+let EXT_DATA={}, EXT_TM=null;
+function injectExtCss(){
+  if(document.getElementById('ext-css')) return;
+  const st=document.createElement('style'); st.id='ext-css';
+  st.textContent='.wl-ext{margin:5px 0 0;font-size:11px;font-weight:700;line-height:1.2;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}.wl-ext b{font-weight:800}'+
+  '.wl-ext .e-l{color:#475467;font-weight:600}.wl-ext.up b{color:#B42318}.wl-ext.down b{color:#1D3FA6}.wl-ext.flat b{color:#475467}'+
+  'html[data-cv="us"] .wl-ext.up b{color:#05603A}html[data-cv="us"] .wl-ext.down b{color:#B42318}';
+  st.textContent+='#pb-ext{border-top:1px solid var(--line,#E1E4E8);padding:10px 14px 12px;background:var(--panel2,#FAFBFA);font-size:12px;line-height:1.4}#pb-ext .x-h{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;margin-bottom:8px}#pb-ext .x-h b{font-size:14px}#pb-ext .x-h span{color:var(--tx2,#475467);font-size:11.5px}'+
+    '#pb-ext .x-box{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);border:1px solid var(--line,#D0D5DD);border-radius:10px;background:var(--panel,#fff);overflow:hidden}'+
+    '#pb-ext .x-col{min-width:0;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}#pb-ext .x-col+.x-col{border-left:1px solid var(--line,#D0D5DD)}'+
+    '#pb-ext .x-t{display:flex;align-items:center;gap:6px;margin:0 0 2px;font-size:14px;font-weight:900;color:var(--tx,#101828)}#pb-ext .x-t i{font-style:normal;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:99px;color:#fff}#pb-ext .x-t.up i{background:#B42318}#pb-ext .x-t.down i{background:#1D3FA6}'+
+    '#pb-ext .x-c{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;min-width:0;height:52px;padding:0 12px;border:1px solid var(--line,#D0D5DD);border-left-width:4px;border-radius:8px;background:var(--panel,#fff);color:var(--tx,#101828);font-variant-numeric:tabular-nums}'+
+    '#pb-ext .x-c strong{font-size:15px;font-weight:900;letter-spacing:-.2px;white-space:nowrap}#pb-ext .x-c small{font-size:11.5px;color:var(--tx2,#475467);white-space:nowrap;text-align:right;overflow:hidden;text-overflow:ellipsis}#pb-ext .x-c b{font-size:19px;font-weight:900;white-space:nowrap}'+
+    '#pb-ext .x-c.up{border-left-color:#D92D20;background:#FEF6F5}#pb-ext .x-c.up b{color:#B42318}#pb-ext .x-c.down{border-left-color:#2E5BDB;background:#F3F6FE}#pb-ext .x-c.down b{color:#1D3FA6}#pb-ext .x-c.none{display:flex;justify-content:center;border-left-color:var(--line,#D0D5DD);color:var(--tx2,#475467);background:transparent}'+
+    'html[data-cv="us"] #pb-ext .x-t.up i{background:#05603A}html[data-cv="us"] #pb-ext .x-t.down i{background:#B42318}html[data-cv="us"] #pb-ext .x-c.up{border-left-color:#12B76A;background:#F3FBF6}html[data-cv="us"] #pb-ext .x-c.up b{color:#05603A}html[data-cv="us"] #pb-ext .x-c.down{border-left-color:#D92D20;background:#FEF6F5}html[data-cv="us"] #pb-ext .x-c.down b{color:#B42318}'+
+    'html[data-theme="dark"] #pb-ext .x-c.up b{color:#FDA29B}html[data-theme="dark"] #pb-ext .x-c.down b{color:#84ADFF}html[data-theme="dark"][data-cv="us"] #pb-ext .x-c.up b{color:#6CE9A6}html[data-theme="dark"][data-cv="us"] #pb-ext .x-c.down b{color:#FDA29B}html[data-theme="dark"] #pb-ext .x-c.up,html[data-theme="dark"] #pb-ext .x-c.down{background:var(--panel,#1c2128)!important}'+
+    '@media(max-width:700px){#pb-ext{padding:10px 8px 12px}#pb-ext .x-col{padding:8px 7px 9px;gap:5px}#pb-ext .x-t{font-size:13px}#pb-ext .x-c{grid-template-columns:1fr auto;grid-template-rows:auto auto;height:auto;min-height:50px;padding:5px 7px;gap:0 4px}#pb-ext .x-c strong{font-size:13.5px;grid-column:1}#pb-ext .x-c b{font-size:14.5px;grid-column:2;grid-row:1}#pb-ext .x-c small{grid-column:1/-1;text-align:left;font-size:11px}}';
+  document.head.appendChild(st);
+}
+function updateExtSummary(){
+  const br=document.getElementById('pro-brief'); if(!br) return;
+  let box=document.getElementById('pb-ext');
+  const arr=Object.keys(EXT_DATA).map(t=>({t,e:EXT_DATA[t]})).filter(x=>x.e&&x.e.pct!=null&&(Date.now()/1000-x.e.t)<=60*3600);
+  if(usRegularNow()||arr.length<3){ if(box) box.remove(); return; }
+  const st=arr.some(x=>x.e.st==='pre')&&!arr.some(x=>x.e.st==='post')?'pre':'post';
+  const up=arr.filter(x=>x.e.pct>0).sort((a,b)=>b.e.pct-a.e.pct).slice(0,3), dn=arr.filter(x=>x.e.pct<0).sort((a,b)=>a.e.pct-b.e.pct).slice(0,3);
+  const f2=(typeof fmt==='function'?fmt:(v=>v.toFixed(2)));
+  const chip=x=>'<div class="x-c '+(x.e.pct>0?'up':'down')+'" title="'+x.t+' 정규장 종가 $'+f2(x.e.base)+' → '+(st==='pre'?'장전':'장후')+' $'+f2(x.e.px)+'"><strong>'+x.t+'</strong><b>'+(x.e.pct>0?'▲ +':'▼ −')+Math.abs(x.e.pct).toFixed(2)+'%</b><small>$'+f2(x.e.px)+'</small></div>';
+  const html='<div class="x-h"><b>'+(st==='pre'?'☀ 장전':'🌙 장후')+' 시세 요약</b><span>정규장 종가 대비 · 관심종목·시총·레버리지·지수 편입편출 '+arr.length+'종목 중 · Yahoo Finance(지연 가능)</span></div>'+
+    '<div class="x-box"><div class="x-col"><div class="x-t up"><i>상승</i>TOP'+up.length+'</div>'+(up.length?up.map(chip).join(''):'<div class="x-c none">해당 없음</div>')+'</div>'+
+    '<div class="x-col"><div class="x-t down"><i>하락</i>TOP'+dn.length+'</div>'+(dn.length?dn.map(chip).join(''):'<div class="x-c none">해당 없음</div>')+'</div></div>';
+  if(!box){ box=document.createElement('div'); box.id='pb-ext'; const fut=document.getElementById('pb-fut'); if(fut) fut.after(box); else br.appendChild(box); }
+  if(box.innerHTML!==html) box.innerHTML=html;
+}
+function usRegularNow(){
+  const p={}; new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
+  const m=(parseInt(p.hour,10)%24)*60+parseInt(p.minute,10); return p.weekday!=='Sat'&&p.weekday!=='Sun'&&m>=570&&m<960;
+}
+function extSymbols(){
+  const s=new Set(); document.querySelectorAll(EXT_TABLES.split(',').map(x=>x+' .wl-row[data-t]').join(',')).forEach(r=>{ const t=r.dataset.t; if(t&&!/\.(KS|KQ)$/.test(t)) s.add(t); }); return [...s];
+}
+function applyExtChips(){
+  injectExtCss();
+  const reg=usRegularNow();
+  document.querySelectorAll(EXT_TABLES.split(',').map(x=>x+' .wl-row[data-t]').join(',')).forEach(row=>{
+    const q=row.querySelector('.wl-quote'); if(!q) return;
+    let box=q.querySelector('.wl-ext'); const e=EXT_DATA[row.dataset.t];
+    if(reg||!e||e.pct==null||(Date.now()/1000-e.t)>60*3600){ if(box) box.remove(); return; }
+    const cls=e.pct>0?'up':e.pct<0?'down':'flat', f=(typeof fmt==='function'?fmt:(v=>v.toFixed(2)));
+    const html='<span class="e-l">'+(e.st==='pre'?'☀ 장전':'🌙 장후')+' $'+f(e.px)+'</span> <b>'+(e.pct>0?'▲ +':e.pct<0?'▼ −':'')+Math.abs(e.pct).toFixed(2)+'%</b>';
+    if(!box){ box=document.createElement('div'); box.className='wl-ext'; q.appendChild(box); }
+    box.className='wl-ext '+cls; box.title=(e.st==='pre'?'장전':'장후')+' 시세 — 정규장 종가 대비 (Yahoo Finance, 수 분 지연 가능)';
+    if(box.innerHTML!==html) box.innerHTML=html;
+  });
+  updateExtSummary();
+}
+async function loadExt(){
+  if(!PROXY_BASE||!document.getElementById('tick-tbl')&&!document.getElementById('cap-tbl')) return;
+  if(usRegularNow()){ applyExtChips(); return; }
+  try{
+    const origin=PROXY_BASE.replace(/\?url=$/,''), syms=extSymbols();
+    for(let i=0;i<syms.length;i+=30){
+      const r=await fetch(origin+'ext?symbols='+syms.slice(i,i+30).map(encodeURIComponent).join(','),{signal:AbortSignal.timeout?AbortSignal.timeout(20000):undefined});
+      const j=r.ok?await r.json():null; if(j&&!j.error) Object.assign(EXT_DATA,j);
+    }
+    applyExtChips();
+  }catch(e){ console.warn('시간외 시세 로딩 실패:',e); }
+}
+if(document.getElementById('tick-tbl')||document.getElementById('cap-tbl')){
+  setTimeout(loadExt,2500); setTimeout(updateExtSummary,6000);
+  setInterval(loadExt,(window.MK_SAVE?3:1)*90000);
+  EXT_TABLES.split(',').forEach(id=>{ const el=document.querySelector(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(()=>{ if(extSymbols().some(s=>!(s in EXT_DATA))) loadExt(); else applyExtChips(); },400); }).observe(el,{childList:true}); } });
+}
+
+/* ===================== 소셜 언급(미국주식) — StockTwits + Reddit =====================
+   Worker(/social, /social-reddit). 탭(시총 TOP30·관심종목·레버리지)별로 필요한 종목만 조회한다. */
+const SOC_SETS={cap:()=>[...TICKGROUPS.cap.list,...TICKGROUPS.cap2.list,...TICKGROUPS.cap3.list], tick:()=>TICKGROUPS.tick.list.slice(), lev:()=>TICKGROUPS.lev.list.slice()};
+const SOC={st:{}, rd:null, rdStatus:null, trend:null, cur:'cap', sort:'rate', loaded:{}};
+function injectSocCss(){
+  if(document.getElementById('soc-css')) return;
+  const st=document.createElement('style'); st.id='soc-css';
+  st.textContent='#soc-body .sr{display:grid;grid-template-columns:34px minmax(120px,1.1fr) minmax(150px,1.4fr) 76px 76px 70px minmax(160px,2.2fr);align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--line,#E4E7EC);font-size:12.5px;font-variant-numeric:tabular-nums}'+
+  '#soc-body .sr.h{font-size:11.5px;font-weight:800;color:var(--tx2,#475467);background:var(--panel2,#F6F8F7);border-radius:6px;padding:6px 10px}#soc-body .sr.h button{font:inherit;font-weight:800;background:none;border:0;padding:0;color:inherit;cursor:pointer;text-align:left}#soc-body .sr.h button.on{color:var(--tx,#101828);text-decoration:underline}'+
+  '#soc-body .sr .rk{font-weight:800;color:var(--tx2,#475467);text-align:center}#soc-body .sr .nm b{font-size:14px;font-weight:900}#soc-body .sr .nm small{display:block;color:var(--tx2,#475467);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '#soc-body .bb{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line,#E4E7EC)}#soc-body .bb i{display:block;height:100%}#soc-body .bb .bu{background:#12B76A}#soc-body .bb .be{background:#F04438}'+
+  '#soc-body .bt{display:flex;justify-content:space-between;font-size:11.5px;margin-top:2px;font-weight:700}#soc-body .bt .u{color:#05603A}#soc-body .bt .d{color:#B42318}#soc-body .na{color:var(--tx2,#475467)}'+
+  '#soc-body .tp a{color:var(--tx,#101828);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#soc-body .tp a:hover{text-decoration:underline}#soc-body .tp small{color:var(--tx2,#475467);font-size:11px}'+
+  '#soc-body .hot{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#FEF0C7;color:#7A4B00;font-size:10.5px;font-weight:800}#soc-body .tr{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:99px;background:#EEF4FF;color:#1D3FA6;font-size:10.5px;font-weight:800}'+
+  'html[data-theme="dark"] #soc-body .bt .u{color:#6CE9A6}html[data-theme="dark"] #soc-body .bt .d{color:#FDA29B}html[data-theme="dark"] #soc-body .hot{background:#3b2f0a;color:#FEDF89}html[data-theme="dark"] #soc-body .tr{background:#1a2748;color:#B2CCFF}'+
+  '@media(max-width:900px){#soc-body .sr{grid-template-columns:28px 1fr auto;grid-template-areas:"rk nm rt" "bb bb bb" "rd rd rd" "tp tp tp";gap:6px 8px;padding:10px 6px}#soc-body .sr.h{display:none}#soc-body .sr .rk{grid-area:rk}#soc-body .sr .nm{grid-area:nm}#soc-body .sr .c-rt{grid-area:rt;text-align:right}#soc-body .sr .c-wl,#soc-body .sr .c-rd{display:none}#soc-body .sr .c-bb{grid-area:bb}#soc-body .sr .tp{grid-area:tp}#soc-body .sr .m-rd{grid-area:rd;display:block;font-size:11.5px;color:var(--tx2,#475467)}}'+
+  '@media(min-width:901px){#soc-body .sr .m-rd{display:none}}';
+  document.head.appendChild(st);
+}
+function socName(t){ const r=document.querySelector('.wl-row[data-t="'+t+'"] .wl-tag'); return r?r.textContent.replace(/\s+/g,' ').trim():''; }
+function socEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+async function socFetch(path){
+  if(!PROXY_BASE) return null;
+  const origin=PROXY_BASE.replace(/\?url=$/,'');
+  try{ const r=await fetch(origin+path,{signal:AbortSignal.timeout?AbortSignal.timeout(25000):undefined}); return r.ok?await r.json():null; }catch(e){ console.warn('소셜 로딩 실패',e); return null; }
+}
+async function socLoad(set){
+  const list=SOC_SETS[set]().filter(t=>!(t in SOC.st));
+  const jobs=[];
+  for(let i=0;i<list.length;i+=15){
+    const part=list.slice(i,i+15), first=(SOC.trend===null&&i===0);
+    jobs.push(socFetch('social?tickers='+part.map(encodeURIComponent).join(',')+(first?'&trend=1':'')).then(j=>{ part.forEach(t=>{ SOC.st[t]=(j&&j[t])||null; }); if(j&&j._trend) SOC.trend=j._trend; else if(first&&SOC.trend===null) SOC.trend=[]; }));
+  }
+  if(SOC.rdStatus===null){ const all=[...new Set([...SOC_SETS.cap(),...SOC_SETS.tick(),...SOC_SETS.lev()])]; jobs.push(socFetch('social-reddit?tickers='+all.map(encodeURIComponent).join(',')).then(j=>{ if(j&&j._status==='ok'){ SOC.rd=j; SOC.rdStatus='ok'; } else SOC.rdStatus='blocked'; })); }
+  await Promise.all(jobs);
+}
+function socRender(){
+  const body=document.getElementById('soc-body'); if(!body) return;
+  injectSocCss();
+  const list=SOC_SETS[SOC.cur]();
+  const rows=list.map(t=>{ const s=SOC.st[t]; const tg=s?s.bull+s.bear:0; return {t, s, tg, pctBull:tg>=5?s.bull/tg*100:null, rate:s?s.rate:null, rd:SOC.rd&&SOC.rd[t]?SOC.rd[t]:null}; });
+  const key={rate:r=>r.rate==null?-1:r.rate, bull:r=>r.pctBull==null?-1:r.pctBull, bear:r=>r.pctBull==null?-1:100-r.pctBull, rd:r=>r.rd?r.rd.c:-1, watch:r=>r.s&&r.s.watch?r.s.watch:-1}[SOC.sort]||(r=>0);
+  rows.sort((a,b)=>key(b)-key(a));
+  const got=rows.filter(r=>r.s).length;
+  const note=document.getElementById('soc-note'); if(note) note.textContent='· StockTwits 최근 글 30개 기준 · '+got+'/'+rows.length+'종목 수신'+(SOC.rdStatus==='blocked'?' · Reddit 연결 불가':'');
+  const sb=(k,l)=>'<button type="button" data-sort="'+k+'" class="'+(SOC.sort===k?'on':'')+'">'+l+(SOC.sort===k?' ▾':'')+'</button>';
+  let h='<div class="sr h"><span>#</span><span>종목</span><span>'+sb('bull','강세')+' / '+sb('bear','약세')+'</span><span>'+sb('rate','글 속도')+'</span><span>'+sb('watch','관심등록')+'</span><span>'+sb('rd','Reddit')+'</span><span>대표 글 (원문 링크)</span></div>';
+  rows.forEach((r,i)=>{
+    const s=r.s, tr=SOC.trend&&SOC.trend.indexOf(r.t.replace('-','.'))>=0?SOC.trend.indexOf(r.t.replace('-','.'))+1:null;
+    const hot=s&&s.rate>=15?'<span class="hot" title="최근 글이 시간당 15개 이상 올라오는 중">🔥 급증</span>':'';
+    const bb=r.pctBull==null?'<span class="na">태그 글 부족'+(s?' ('+r.tg+'/30)':'')+'</span>':'<div class="bb" role="img" aria-label="강세 '+r.pctBull.toFixed(0)+'% 약세 '+(100-r.pctBull).toFixed(0)+'%"><i class="bu" style="width:'+r.pctBull+'%"></i><i class="be" style="width:'+(100-r.pctBull)+'%"></i></div><div class="bt"><span class="u">강세 '+r.pctBull.toFixed(0)+'%</span><span class="d">약세 '+(100-r.pctBull).toFixed(0)+'%</span></div>';
+    const rdTxt=SOC.rdStatus==='ok'?(r.rd?r.rd.c+'건':'0건'):'<span class="na">—</span>';
+    const tops=[]; if(s&&s.top&&s.top.url) tops.push('<a href="'+socEsc(s.top.url)+'" target="_blank" rel="noopener nofollow" title="'+socEsc(s.top.body)+'">💬 '+socEsc(s.top.body||'(내용 없음)')+'</a><small>StockTwits · @'+socEsc(s.top.user)+(s.top.likes?' · ♥'+s.top.likes:'')+'</small>');
+    if(r.rd&&r.rd.top) tops.push('<a href="'+socEsc(r.rd.top.url)+'" target="_blank" rel="noopener nofollow" title="'+socEsc(r.rd.top.title)+'">🟠 '+socEsc(r.rd.top.title)+'</a><small>Reddit r/'+socEsc(r.rd.top.sub)+' · ▲'+r.rd.top.score+'</small>');
+    h+='<div class="sr"><span class="rk">'+(i+1)+'</span><span class="nm"><b>'+r.t+'</b>'+(tr?'<span class="tr" title="StockTwits 트렌딩 '+tr+'위">트렌딩 '+tr+'위</span>':'')+hot+'<small>'+socEsc(socName(r.t))+'</small></span>'+
+      '<span class="c-bb">'+bb+'</span><span class="c-rt">'+(s?s.rate.toFixed(1)+'<small class="na"> 글/시</small>':'<span class="na">—</span>')+'</span><span class="c-wl">'+(s&&s.watch?(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch.toLocaleString('ko-KR')):'<span class="na">—</span>')+'</span><span class="c-rd">'+rdTxt+'</span>'+
+      '<span class="tp">'+(tops.length?tops.join(''):'<span class="na">수신된 글 없음</span>')+'</span><span class="m-rd">'+(SOC.rdStatus==='ok'?'Reddit 언급 '+(r.rd?r.rd.c:0)+'건 · ':'')+(s&&s.watch?'관심등록 '+(s.watch>=1e4?(s.watch/1e4).toFixed(1)+'만':s.watch):'')+'</span></div>';
+  });
+  if(SOC.rdStatus==='blocked') h+='<p class="mut" style="margin:8px 4px 0;font-size:12px">Reddit이 서버 접속을 막아 이번에는 Reddit 언급을 불러오지 못했습니다(임의 값은 넣지 않습니다).</p>';
+  body.innerHTML=h;
+}
+async function socShow(set){
+  SOC.cur=set; const body=document.getElementById('soc-body'); if(!body) return;
+  if(!SOC.loaded[set]){ body.innerHTML='<p class="mut" style="font-size:12.5px">StockTwits·Reddit에서 불러오는 중…</p>'; await socLoad(set); SOC.loaded[set]=true; }
+  if(SOC.cur===set) socRender();
+}
+if(document.getElementById('us-social')){
+  const box=document.querySelector('.tabs[data-group="soc"]');
+  if(box) box.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.p) socShow(b.dataset.p); });
+  document.getElementById('soc-body').addEventListener('click',e=>{ const b=e.target.closest('button[data-sort]'); if(b){ SOC.sort=b.dataset.sort; socRender(); } });
+  let started=false; const go=()=>{ if(started) return; started=true; socShow('cap'); };
+  if('IntersectionObserver' in window){ new IntersectionObserver((es,ob)=>{ if(es.some(x=>x.isIntersecting)){ ob.disconnect(); go(); } },{rootMargin:'400px'}).observe(document.getElementById('us-social')); } else setTimeout(go,3000);
 }
