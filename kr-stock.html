@@ -379,7 +379,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:block}.fold-btn{padding:4px 9px;font-size:12px}}
 @media(max-width:700px){.risk-note{margin:30px 0 -6px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=2984b4fe"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=1d9d7ead"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -708,8 +708,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
   </div>
 </footer>
 
-<script src="mrkim-common.min.js?v=a85a7af9"></script>
-<script src="kr-pro.js?v=426d252f"></script>
+<script src="mrkim-common.min.js?v=94bc431c"></script>
+<script src="kr-pro.js?v=83e050c3"></script>
 <script>
 /* DART 전자공시 손익계산서 3년 시각화 + 재무비율(매출액증가율·영업이익증가율)·주가지표(EPS·PSR)
    — 코스피·코스닥 TOP10 전 종목(20개) 지원. corp_code는 Worker의 /dart-corp 엔드포인트가 자동으로
@@ -724,6 +724,7 @@ const KR_TOP10_NAME_BY_CODE={'267270':'HD건설기계','000990':'DB하이텍','4
   '028300':'HLB','000250':'삼천당제약','403870':'HPSP','319660':'피에스케이','095340':'ISC','440110':'파두','031980':'피에스케이홀딩스','084370':'유진테크','067310':'하나마이크론','131290':'티에스이'
 };
 const finLoaded={};
+function finRetry(code){ finLoaded[code]=false; const el=document.getElementById('fin-'+code); if(el){ el.style.display='none'; } delete dartCorpCodeCache[code]; toggleFinancials(code); }
 async function toggleFinancials(stockCode, ev){
   if(ev && ev.target && ev.target.closest && ev.target.closest('a')) return;
   const el=document.getElementById('fin-'+stockCode);
@@ -745,8 +746,9 @@ async function toggleFinancials(stockCode, ev){
       if(fin3y&&fin3y.length&&estInfo&&estInfo.est&&estInfo.est.length){ finAll=fin3y.concat(estInfo.est); }
       el.innerHTML=(fin3y&&fin3y.length)
         ? renderFinancialsPanel(finAll,{growth,eps,psr,techD,dividend},'손익계산서 최근 '+fin3y.length+'개년'+(finAll!==fin3y?' + 올해 예상(E)':'')+'(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)'+(finAll!==fin3y?' · 예상치: 네이버 증권(FnGuide 컨센서스)':''),null)
-        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.</p>';
-      finLoaded[stockCode]=true;
+        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.<span id="finwhy-'+stockCode+'"></span> <button type="button" class="btn sm" onclick="finRetry(\''+stockCode+'\')" style="cursor:pointer;margin-left:6px">↻ 다시 불러오기</button></p>';
+      if(fin3y&&fin3y.length){ finLoaded[stockCode]=true; }
+      else { try{ const cc=await resolveDartCorpCodes([stockCode]); const w=document.getElementById('finwhy-'+stockCode); if(w) w.textContent=cc&&cc[0]?' (DART 응답 없음·일시 지연일 수 있습니다)':' (DART 고유번호를 찾지 못했습니다)'; }catch(e){} }
     }
   }else{
     el.style.display='none';
@@ -849,7 +851,7 @@ async function toggleKrLev(t,ev){
 }
 </script>
 <script src="stock-fold.js?v=f46fb660"></script>
-<script src="stock-mobile.js?v=51a213de"></script>
+<script src="stock-mobile.js?v=c01b15ef"></script>
 <script src="stock-ux.js?v=ee54fa7a"></script>
 <script src="stock-asof.js?v=e2fd5216"></script>
 <script src="mrkim-extra.js?v=7441ed8f"></script>

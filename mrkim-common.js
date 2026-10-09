@@ -1606,30 +1606,32 @@ const TICKGROUPS={
 function injectRowStatCss(){
   if(document.getElementById('rowstat-css')) return;
   const st=document.createElement('style'); st.id='rowstat-css';
-  st.textContent='.wl-stats{display:none;flex:none;grid-template-columns:repeat(6,minmax(56px,1fr));gap:2px 6px;width:372px;text-align:center;padding:0 4px}'+
+  st.textContent='.wl-stats{display:none;flex:none;grid-template-columns:66px 80px 48px 70px 76px 50px;gap:2px 4px;width:418px;text-align:center;padding:0 4px;box-sizing:border-box}'+
     '@media(min-width:1000px){.wl-stats{display:grid}}'+
-    '.wl-stats .k{font-size:10px;color:var(--tx2);white-space:nowrap}.wl-stats .v{font-size:12.5px;font-weight:800;white-space:nowrap}';
+    '.wl-stats>div{min-width:0;overflow:hidden}.wl-stats .k{font-size:10px;color:var(--tx2);white-space:nowrap}.wl-stats .v{font-size:12.5px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;min-height:1.25em}';
   document.head.appendChild(st);
 }
 function rowStatsHtml(o){
   /* 값이 없는 지표는 칸 자체를 만들지 않는다(— 표시 금지) */
   const has=v=>v!=null&&!isNaN(v);
   const pc=v=>'<span style="color:'+(v>=0?'var(--up)':'var(--down)')+'">'+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
-  const cell=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-  const cs=[];
-  if(has(o.rg)) cs.push(cell('매출증가율',pc(o.rg)));
-  if(has(o.og)) cs.push(cell('영업이익증가율',pc(o.og)));
-  if(has(o.per)) cs.push(cell('PER',o.per.toFixed(1)));
-  if(has(o.eps)) cs.push(cell('EPS(TTM)',o.kr?Math.round(o.eps).toLocaleString('ko-KR'):o.eps.toFixed(2)));
-  if(has(o.feps)) cs.push(cell('EPS(Fwd)',o.kr?Math.round(o.feps).toLocaleString('ko-KR'):o.feps.toFixed(2)));
-  if(has(o.psr)) cs.push(cell('PSR',o.psr.toFixed(2)));
+  const cell=(k,v)=>'<div><div class="k">'+k+'</div><div class="v">'+(v==null?'&nbsp;':v)+'</div></div>';
+  /* 칸 위치(열 폭)는 고정하고, 값이 없는 지표는 값을 비워 둔다(임의 값·— 표시 없음) — 행마다 글자가 겹치거나 밀리지 않게 */
+  const cs=[
+    cell('매출증가율',has(o.rg)?pc(o.rg):null),
+    cell('영업이익증가율',has(o.og)?pc(o.og):null),
+    cell('PER',has(o.per)?o.per.toFixed(1):null),
+    cell('EPS(TTM)',has(o.eps)?(o.kr?Math.round(o.eps).toLocaleString('ko-KR'):o.eps.toFixed(2)):null),
+    cell('EPS(Fwd)',has(o.feps)?(o.kr?Math.round(o.feps).toLocaleString('ko-KR'):o.feps.toFixed(2)):null),
+    cell('PSR',has(o.psr)?o.psr.toFixed(2):null)];
+  if(![o.rg,o.og,o.per,o.eps,o.feps,o.psr].some(has)) return '';
   return cs.join('');
 }
 function putRowStats(row,o){
   injectRowStatCss();
   let box=row.querySelector('.wl-stats');
   if(!box){ box=document.createElement('div'); box.className='wl-stats'; const info=row.querySelector('.wl-info'); if(info) info.after(box); else return; }
-  const h=rowStatsHtml(o); if(!h){ box.remove(); return; } box.innerHTML=h; box.style.gridTemplateColumns='repeat('+(h.split('class="k"').length-1)+',minmax(56px,1fr))'; box.style.width=((h.split('class="k"').length-1)*62)+'px';
+  const h=rowStatsHtml(o); if(!h){ box.remove(); return; } box.innerHTML=h;
 }
 async function fillUsRowStats(tableId,set){
   if(window.innerWidth<1000) return;
@@ -3048,6 +3050,7 @@ function injectLevCss(){
   '.lv2 .lv2-gs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;align-items:stretch}'+
   '.lv2 .lv2-g{min-width:0;border:1px solid var(--line);border-radius:4px;background:var(--panel,#fff);padding:0;overflow:hidden;display:flex;flex-direction:column}.lv2 .lv2-g>.lv2-t{margin:0 9px 4px;width:calc(100% - 18px)}.lv2 .lv2-g>.lv2-tip{margin:8px 12px}'+
   '.lv2 .lv2-g.wide{grid-column:auto}'+
+  '.lv2 .lv2-t th,.lv2 .lv2-t td{display:table-cell!important}'+
   '.lv2 .lv2-t{width:100%;border-collapse:collapse}.lv2 .lv2-t th{text-align:left;font-size:12px;font-weight:700;padding:5px 4px 5px 0;border-top:1px solid var(--line);vertical-align:middle;color:var(--tx)}.lv2 .lv2-t tr:first-child th,.lv2 .lv2-t tr:first-child td{border-top:0}.lv2 .lv2-t th small{display:block;font-size:10.5px;font-weight:400;color:var(--tx2);line-height:1.3;margin-top:1px}.lv2 .lv2-bar{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:4px;overflow:hidden}.lv2 .lv2-bar b{display:block;height:100%;border-radius:2px;background:#0A6B48}.lv2 .lv2-bar.r b{background:#C0392B}.lv2 .lv2-bar.o b{background:#D98A00}.lv2 .lv2-bar.u b{background:#2F6FB8}.lv2 .lv2-t td{text-align:right;font-size:14px;font-weight:900;padding:5px 0 5px 6px;border-top:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:middle}'+
   '.lv2 .lv2-g h4{margin:0;padding:6px 9px;font-size:12.5px;font-weight:800;color:var(--tx);background:var(--panel2,#F6F8F7);border-bottom:1px solid var(--line);border-left:4px solid #0A6B48}.lv2 .lv2-g.c2 h4{border-left-color:#C0392B}.lv2 .lv2-g.c3 h4{border-left-color:#D98A00}.lv2 .lv2-g.c4 h4{border-left-color:#2F6FB8}'+
   '.lv2 .lv2-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:5px}'+
@@ -3413,8 +3416,8 @@ async function loadIpoListLive(onCached,opts){
   };
   try{
     let j;
-    /* 서버 캐시가 비어 있을 때만 첫 요청이 1분 가까이 걸리므로 넉넉히(80초) 기다린다. */
-    j=await once(80000);
+    /* 서버 캐시가 있으면 즉시 응답한다. 일반 조회는 30초, 강제 새로고침은 서버가 다시 집계하므로 90초까지 기다린다. */
+    j=await once(opts&&opts.force?90000:30000);
     try{ localStorage.setItem(LSK,JSON.stringify({updated:j.updated,items:j.items})); }catch(e){}
     return { updated: j.updated, grouped: buildIpoDataFromApi(j.items) };
   }catch(e){ console.warn('공모주(38.co.kr) 연동 실패:', e); return null; }
@@ -3576,12 +3579,13 @@ async function resolveDartCorpCodesByName(names){
 
 /* bsns_year의 사업보고서(reprt_code=11011, 사업보고서) 단일회사 전체 재무제표 중
    손익계산서 핵심 항목(매출액·영업이익·당기순이익)만 추출 */
-async function dartFinancialYear(corpCode, year){
+async function dartFinancialYear(corpCode, year, _retry){
   const url='https://opendart.fss.or.kr/api/fnlttSinglAcnt.json?corp_code='+corpCode+'&bsns_year='+year+'&reprt_code=11011';
   try{
     const j=await getJSON(url);
     if(!j || j.status!=='000' || !Array.isArray(j.list)){
       console.warn('DART 재무제표 실패('+corpCode+','+year+'):', j&&j.message);
+      if(!_retry&&(!j||(j.status!=='013'&&j.status!=='100'))){ await new Promise(r=>setTimeout(r,600)); return dartFinancialYear(corpCode,year,1); } // 일시 지연·제한 시 1회 재시도(013=조회 데이터 없음은 재시도하지 않음)
       return null;
     }
     // [버그 수정] 적자 기업은 계정명이 "당기순이익(손실)"·"영업손실" 등으로 오거나 금액이 "-1,234"/"△1,234"
@@ -6586,3 +6590,45 @@ function updateActionLine(){
 }
 window.updateActionLine=updateActionLine;
 setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
+
+
+/* 시장 한눈에 보기(모바일): 종목명이 타일 폭보다 길면 글자 크기를 줄여 한 줄로 맞춘다(최소 9px) */
+(function(){
+  function fit(){
+    if(!window.matchMedia||!matchMedia('(max-width:700px)').matches) return;
+    document.querySelectorAll('.pulse .hm div.tl>span').forEach(function(sp){
+      sp.style.removeProperty('font-size');
+      var fs=parseFloat(getComputedStyle(sp).fontSize)||12.5, n=0;
+      while(sp.scrollWidth>sp.clientWidth+0.5&&fs>10&&n++<20){ fs-=0.5; sp.style.setProperty('font-size',fs+'px','important'); }
+    });
+  }
+  var t=0, run=function(){ cancelAnimationFrame(t); t=requestAnimationFrame(fit); };
+  var watch=function(){
+    var p=document.querySelector('.pulse'); if(!p) return false;
+    new MutationObserver(run).observe(p,{childList:true,subtree:true}); run(); return true;
+  };
+  var go=function(){ if(!watch()){ var iv=setInterval(function(){ if(watch()) clearInterval(iv); },800); setTimeout(function(){clearInterval(iv)},30000); } };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+  window.addEventListener('resize',run);
+})();
+
+
+/* 모바일: 레버리지 ETF 종목명이 한 줄을 넘으면 글자 크기를 줄여 한 줄로 맞춘다(최소 10.5px) */
+(function(){
+  function fitNames(){
+    if(!window.matchMedia||!matchMedia('(max-width:700px)').matches) return;
+    document.querySelectorAll('#krlev-tbl .wl-name,#lev-tbl .wl-name').forEach(function(el){
+      el.style.removeProperty('font-size'); el.querySelectorAll('a').forEach(function(a){ a.style.removeProperty('font-size'); });
+      var fs=parseFloat(getComputedStyle(el).fontSize)||15, n=0;
+      while(el.scrollWidth>el.clientWidth+0.5&&fs>10.5&&n++<30){ fs-=0.5; el.style.setProperty('font-size',fs+'px','important'); el.querySelectorAll('a').forEach(function(a){ a.style.setProperty('font-size',fs+'px','important'); }); }
+    });
+  }
+  var t=0, run=function(){ cancelAnimationFrame(t); t=requestAnimationFrame(fitNames); };
+  var go=function(){
+    run(); [1500,4000,9000].forEach(function(ms){ setTimeout(run,ms); });
+    var mo=new MutationObserver(function(){ clearTimeout(go._t); go._t=setTimeout(run,250); });
+    ['krlev-tbl','lev-tbl'].forEach(function(id){ var e=document.getElementById(id); if(e) mo.observe(e,{childList:true,subtree:true,characterData:true}); });
+    window.addEventListener('resize',run);
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+})();

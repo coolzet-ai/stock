@@ -157,3 +157,36 @@
   function run(){ ['kr-state','kr-kimcomment'].forEach(function(id){ var e=document.getElementById(id); if(!e) return; fix(e); new MutationObserver(function(){fix(e)}).observe(e,{attributes:true,attributeFilter:['style']}); }); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
 })();
+
+/* KOSPI200 편입·편출 — 미국주식(지수 편입·편출)과 같은 구성: 기간 탭 옆에 편입+편출/편입/편출 구분 */
+(function(){
+  var host=document.getElementById('kridx-tbl'), per=document.querySelector('.tabs[data-group="kridx"]');
+  if(!host||!per||per.parentElement.classList.contains('tabrow')) return;
+  var wrap=document.createElement('div'); wrap.className='tabrow'; per.before(wrap); wrap.appendChild(per);
+  var sel2=document.createElement('div'); sel2.className='seg ixf ixio'; sel2.setAttribute('role','group'); sel2.setAttribute('aria-label','편입·편출 구분');
+  sel2.innerHTML='<button class="on" data-y="">편입+편출</button><button data-y="in">편입</button><button data-y="out">편출</button>';
+  wrap.appendChild(sel2);
+  var curT='', busy=false;
+  var apply=function(){
+    busy=true;
+    Array.prototype.forEach.call(host.children,function(g){
+      var lists=g.querySelectorAll('.wl-list'); if(!lists.length) return;
+      var ci=0,co=0;
+      lists.forEach(function(l){
+        var lb0=l.previousElementSibling, typ=(lb0&&/편출/.test(lb0.textContent||''))?'out':'in';
+        var n=l.querySelectorAll('.wl-row').length;
+        if(typ==='out') co+=n; else ci+=n;
+        var show=!curT||curT===typ; l.style.display=show?'':'none';
+        if(lb0&&lb0.className!=='wl-list') lb0.style.display=show?'':'none';
+        if(!show){ Array.prototype.forEach.call(l.children,function(c){ if(/^fin/.test(c.id||'')) c.style.display='none'; }); }
+      });
+      var shown=(!curT)?ci+co:(curT==='in'?ci:co); g.style.display=shown?'':'none';
+      var sm=g.querySelector('.mut'); if(sm&&curT) sm.textContent='· 편입 '+ci+' · 편출 '+co;
+    });
+    var emp=document.getElementById('kridx-empty'); if(emp) emp.remove();
+    if(curT&&!Array.prototype.some.call(host.children,function(g){return g.style.display!=='none'&&g.querySelector&&g.querySelector('.wl-list');})){ var d=document.createElement('div'); d.id='kridx-empty'; d.className='pi-note'; d.textContent='선택한 기간에 해당하는 편입·편출 종목이 없습니다.'; host.after(d); }
+    busy=false;
+  };
+  sel2.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; sel2.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);}); curT=b.dataset.y; apply(); });
+  new MutationObserver(function(){ if(!busy&&curT) apply(); }).observe(host,{childList:true});
+})();

@@ -1847,7 +1847,7 @@ const handler = {
             if (cached) data = JSON.parse(cached);
           } catch (e) {}
         }
-        if (data && !(data.deposit && data.deposit.length) && !(data.saving && data.saving.length)) data = null; // 예전에 저장된 빈 캐시는 무시하고 다시 집계
+        if (data && !(data.items && data.items.length)) data = null; // 비어 있는 캐시만 무시하고 다시 집계(ipo-v7: 예금·적금 검사가 잘못 섞여 매번 1분씩 재집계하던 문제 수정)
         // stale-while-revalidate: 캐시가 있으면 (오래됐어도) 즉시 응답하고, 신선하지 않으면(30분, 상세 누락 시 10분)
         // 응답 뒤에 백그라운드로 다시 계산한다. 캐시가 아예 없을 때만 직접 계산(약 1분)한다.
         if (data) {
