@@ -2777,9 +2777,9 @@ function renderUsFinancialRatiosClassic(it, techD, opt){
 function injectFinCss(){
   if(document.getElementById('fv2-css')) return;
   const st=document.createElement('style'); st.id='fv2-css';
-  st.textContent='.fv2{max-width:980px;margin:6px auto 4px;min-width:0}'+
+  st.textContent='.fv2{max-width:none;width:100%;margin:6px 0 4px;min-width:0}'+
   '.fv2 .fv2-t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--tx2);margin:0 0 6px}'+
-  '.fv2 .fv2-top{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}'+
+  '.fv2 .fv2-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px 12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}.fv2 .fv2-top .fv2-f{grid-column:1/-1;margin-top:2px;padding-top:8px;border-top:1px dashed var(--line)}'+
   '.fv2 .fv2-g{width:54px;height:54px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900}'+
   '.fv2 .fv2-gi b{display:block;font-size:15px;font-weight:900}.fv2 .fv2-gi small{display:block;font-size:12px;color:var(--tx2);margin-top:1px}'+
   '.fv2 .fv2-gi .l{display:block;font-size:12.5px;margin-top:3px;line-height:1.45}'+
@@ -2824,7 +2824,7 @@ function usFinCompact(it, techD, opt){
     const v=kimValuationVerdict(rg==null?null:rg*100, it.psr, techD, (function(){ const e=[]; if(pg0!=null) e.push({grp:'재무', txt:'PEG '+pg0.toFixed(2)+(pg0<0.9?' — 성장 대비 저평가':pg0<=1.1?' — 적정':' — 성장 대비 고평가'), pt:pg0<0.9?1:pg0<=1.1?0:-1}); if(fs.revision!=null) e.push({grp:'재무', txt:'애널리스트 이익 추정 '+(fs.revision>=75?'상향 추세':fs.revision<=40?'하향 추세':'보합'), pt:fs.revision>=75?1:fs.revision<=40?-1:0}); return e; })());
     const vc=v?({0:'#0A6B48',1:'#B7791F',2:'#D92D20'})[v.idx]:'var(--tx2)';
     top='<div class="fv2-top"><div class="fv2-g" style="background:'+G.c+'">'+G.g+'</div><div class="fv2-gi"><b>김군 등급 · 종합 '+Math.round(avg)+'점</b><small>'+G.m+'</small><span class="l">👍 <b style="display:inline;font-size:12.5px;color:#0A6B48">'+gl(best)+'</b> · ⚠ <b style="display:inline;font-size:12.5px;color:#B42318">'+gl(worst)+'</b></span></div>'+
-      (v?'<div class="fv2-v" title="재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.tech>=0?'+':'')+v.tech+'"><small>김군 판정</small><b style="color:'+vc+'">'+v.label+'</b><i>재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.hasTech?(v.tech>=0?'+':'')+v.tech:'—')+'</i></div>':'')+'</div>';
+      (v?'<div class="fv2-v" title="재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.tech>=0?'+':'')+v.tech+'"><small>김군 판정</small><b style="color:'+vc+'">'+v.label+'</b><i>재무 '+(v.fin>=0?'+':'')+v.fin+' · 기술 '+(v.hasTech?(v.tech>=0?'+':'')+v.tech:'—')+'</i></div>':'')+'@@FAC@@</div>';
     window.__fv2v=v;
   }
   const fac=keys.length?'<div class="fv2-row fv2-f">'+keys.map(k=>{const g=usGradeOf(fs[k]);return '<div class="fv2-c fv2-fc"><span class="gl" style="background:'+g.c+'">'+g.g+'</span><div><small>'+NM[k]+'</small><span>'+Math.round(fs[k])+'점</span></div></div>';}).join('')+'</div>':'';
@@ -2841,7 +2841,7 @@ function usFinCompact(it, techD, opt){
   let c1='', c2='', c3='';
   if(eps!=null||pe!=null) c1='<div class="fv2-c"><small>주가 = EPS × PER</small><b>'+mny(eps)+' × '+n2(pe,1)+'배</b><em>'+(px!=null?'= '+mny(px)+' · ':'')+(it.forwardEps!=null&&eps!=null?(it.forwardEps>eps?'선행 EPS가 더 높음(성장 기대)':'선행 EPS 정체'):'')+'</em></div>';
   if(pg.v!=null){ const v=pg.v, lv=v<0.9?'g':v<=1.1?'y':'r', pos=Math.max(2,Math.min(98,v/2*100));
-    c2='<div class="fv2-c"><small>PEG'+(pg.fwd?'(근사)':'')+'</small><b style="color:'+({g:'#0A6B48',y:'#8A5A00',r:'#B42318'})[lv]+'">'+v.toFixed(2)+' <span style="font-size:12px">'+(v<0.9?'저평가':v<=1.1?'적정':'고평가')+'</span></b><div class="fv2-bar" style="background:linear-gradient(90deg,#1fa463 0 45%,#f0b429 45% 55%,#e5332a 55% 100%)"><i style="position:absolute;left:'+pos+'%;width:3px;background:#111;transform:translateX(-50%)"></i></div></div>'; }
+    c2='<div class="fv2-c"><small>PEG'+(pg.fwd?'(근사)':'')+' · 현재 위치</small><b style="color:'+({g:'#0A6B48',y:'#8A5A00',r:'#B42318'})[lv]+'">'+v.toFixed(2)+' <span style="font-size:12px">'+(v<0.9?'저평가':v<=1.1?'적정':'고평가')+'</span></b><div style="position:relative;padding-bottom:16px"><div class="fv2-bar" style="height:9px;background:linear-gradient(90deg,#1fa463 0 45%,#f0b429 45% 55%,#e5332a 55% 100%)"></div><span style="position:absolute;left:'+pos+'%;top:9px;transform:translateX(-50%);font-size:13px;line-height:1;color:var(--tx)" aria-hidden="true">▲</span><span style="position:absolute;left:0;bottom:0;font-size:10.5px;color:var(--tx2)">0</span><span style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:10.5px;color:var(--tx2)">1 적정</span><span style="position:absolute;right:0;bottom:0;font-size:10.5px;color:var(--tx2)">2+</span></div></div>'; }
   if(roa!=null||roe!=null){ const mx=Math.max(Math.abs(roa||0),Math.abs(roe||0),0.01), br=(n,v,cl)=>v==null?'':'<div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:3px"><span style="width:30px">'+n+'</span><div class="fv2-bar" style="flex:1;margin:0"><i style="width:'+Math.max(2,Math.abs(v)/mx*100).toFixed(0)+'%;background:'+cl+'"></i></div><b style="font-size:12.5px;width:48px;text-align:right">'+pc(v)+'</b></div>';
     c3='<div class="fv2-c"><small>ROA vs ROE'+((roa>0&&roe!=null&&roe/roa>=3)?' · ⚠ 부채 영향':'')+'</small>'+br('ROA',roa,'var(--accent)')+br('ROE',roe,'var(--gold)')+'</div>'; }
   const val=(c1||c2||c3)?'<div class="fv2-row fv2-3">'+c1+c2+c3+'</div>':'';
@@ -2853,7 +2853,7 @@ function usFinCompact(it, techD, opt){
   const v=window.__fv2v; window.__fv2v=null;
   const rs=(v&&v.reasons||[]).map(r=>'<div><span>'+r.txt+'</span><b style="color:'+(r.pt>0?'var(--accent)':r.pt<0?'var(--up)':'var(--tx2)')+'">'+(r.pt>0?'+1':r.pt<0?'−1':'0')+'점</b></div>').join('');
   const more=rs?'<details><summary>📋 판정 근거 · 산식 보기</summary><div class="fv2-rs">'+rs+'</div><div style="padding:0 12px 10px">'+usVerdictFormulaHtml()+usGradeFormulaHtml()+'</div></details>':'';
-  return '<div class="fv2"><div class="fv2-t">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+top+fac+(opt.hideSix?'':met)+axH+val+dvH+more+
+  return '<div class="fv2"><div class="fv2-t">'+(opt.title||'재무비율 · 주가지표(Yahoo Finance 기준)')+'</div>'+(top?top.replace('@@FAC@@',fac):fac)+(opt.hideSix?'':met)+axH+val+dvH+more+
     '<p class="fv2-ft">'+(opt.foot||'※ 영업이익증가율은 Yahoo가 분기 이익 성장률로만 제공해 근사치입니다. 자체 계산 기준의 참고 자료이며 투자 권유가 아닙니다.')+'</p></div>';
 }
 function renderUsFinancialRatios(it, techD, opt){
@@ -3057,7 +3057,7 @@ function levPanelHtml(ticker, data, etfD, undD){
     const top3=hs.slice(0,3).reduce((x,y)=>x+y,0)*100, top10=hs.slice(0,10).reduce((x,y)=>x+y,0)*100, inf=(data&&data.info)||{};
     const lvl=top10>=60?'집중도 높음':top10>=40?'보통':'분산';
     const pe=inf.pe!=null&&inf.pe>0?(inf.pe<1?1/inf.pe:inf.pe).toFixed(1):'—', pb=inf.pb!=null&&inf.pb>0?(inf.pb<1?1/inf.pb:inf.pb).toFixed(1):'—';
-    g+='<section class="lv2-g wide"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></section>';
+    g+='<section class="lv2-g"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></section>';
     if(top10>=60) flag('상위 10종목 '+top10.toFixed(0)+'% 집중','w');
   }
   if(!fl.length) flag('특이 경고 없음','g');
@@ -3081,7 +3081,7 @@ function renderEtfHoldings(data){
   }
   const pct=v=>(v*100).toFixed(1)+'%';
   const COLS=['#0A6B48','#1F8A5F','#3FA37A','#66B896','#8CCBB0'];
-  let html='<div class="eh2" style="display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px">';
+  let html='<div class="eh2" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px">';
   if(data.holdings.length){
     const hs=data.holdings.slice(0,10), mx=Math.max.apply(null,hs.map(x=>x.pct||0))||1, sum=hs.reduce((a,x)=>a+(x.pct||0),0), top3=hs.slice(0,3).reduce((a,x)=>a+(x.pct||0),0);
     html+='<div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px"><b style="font-size:13px">주요 보유종목 TOP'+hs.length+'</b><span class="mut" style="font-size:12px">상위10 합계 <b style="color:var(--tx)">'+pct(sum)+'</b> · 상위3 <b style="color:var(--tx)">'+pct(top3)+'</b></span></div>'+
