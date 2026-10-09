@@ -1739,3 +1739,19 @@ html[data-theme="dark"] .ipo-asof #ipo-live-status em{color:#f2c14e}
   .pro .wrap>:is(#pro-brief,#mk-eve,#my-wl,#mk-acct,#mk-cmp,.grid,#pro-sector,.pro-row,#pro-cal,.pulse,.fold-all,.fold-h,#tickers,#social,#unicorn,#events){margin-top:14px!important;margin-bottom:0!important}
   .pro .wrap>#pro-brief{margin-top:20px!important}
 }
+
+/* v55 시장 한눈에 보기: 종목명 띠(고정 높이) + 가격·등락률 본문 분리 */
+.pro .pulse .hm div.tl{padding:0!important;justify-content:flex-start!important}
+.pro .pulse .hm div.tl>span{display:flex!important;align-items:center;height:30px!important;min-height:30px;padding:0 10px!important;background:rgba(0,0,0,.26);border-bottom:1px solid rgba(255,255,255,.22);overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important;box-sizing:border-box;font-size:14px!important;text-shadow:none}
+.pro .pulse .hm-k .hm div.tl>span{height:32px!important;min-height:32px;font-size:15px!important}
+.pro .pulse .hm div.tl small{flex:1;justify-content:center;gap:4px;padding:8px 10px 9px!important}
+.pro .pulse .hm div.tl small b:not(.hm-chg){font-size:17px!important;font-weight:800!important;line-height:1.15}
+.pro .pulse .hm div.tl small b.hm-chg{font-size:14px!important}
+.pro .pulse .hm div.tl{min-height:92px!important}
+@media(max-width:700px){
+  .pro .pulse .hm div.tl>span,.pro .pulse .hm-k .hm div.tl>span{height:28px!important;min-height:28px;padding:0 6px!important}
+  .pro .pulse .hm div.tl small,.pro .pulse .hm-k .hm div.tl small{padding:6px 6px 7px!important}
+  .pro .pulse .hm div.tl small b:not(.hm-chg),.pro .pulse .hm-k .hm div.tl small b:not(.hm-chg){font-size:15px!important}
+  .pro .pulse .hm div.tl small b.hm-chg,.pro .pulse .hm-k .hm div.tl small b.hm-chg{font-size:13px!important}
+  .pro .pulse .hm div.tl{min-height:80px!important}
+}

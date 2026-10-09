@@ -245,6 +245,7 @@ html[data-theme="dark"][data-theme="dark"] .ipo-tools button,html[data-theme="da
 html[data-theme="dark"][data-theme="dark"] .ipo-tools button.on{color:#e6f4ed}
 html[data-theme="dark"][data-theme="dark"] .ipo-fp>.hd span em,html[data-theme="dark"][data-theme="dark"] .ipo-why>summary,html[data-theme="dark"][data-theme="dark"] .ips-st b,html[data-theme="dark"][data-theme="dark"] .ipo-rk .g1 b{color:#94ccb1}
 html[data-theme="dark"][data-theme="dark"] .ipo-vd .vl b,html[data-theme="dark"][data-theme="dark"] .ipo-vd .sc{color:var(--vc,#94ccb1)}
+html[data-theme="dark"] .pro .pulse .hm div.tl>span{border-bottom:1px solid rgba(26,31,35,0.22)}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}
