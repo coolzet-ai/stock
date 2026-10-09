@@ -1598,7 +1598,7 @@ const TICKGROUPS={
   krcap2:{table:'krcap2-tbl', list:['012450.KS','034020.KS','055550.KS','006400.KS','329180.KS','000270.KS','034730.KS','068270.KS','066570.KS','086790.KS'], cur:'₩', fmt:fmtWon},
   krkq2:{table:'krkq2-tbl', list:['028300.KQ','000250.KQ','403870.KQ','319660.KQ','095340.KQ','440110.KQ','031980.KQ','084370.KQ','067310.KQ','131290.KQ'], cur:'₩', fmt:fmtWon},
   idxchg:{table:'idxchg-tbl', list:['ILMN','BE','TTD','BLDR','TAP','FERG','RDDT','EA','AVB','CRWV','MRVL','NBIS','ALAB','RKLB','TER','FLEX','POOL','CPB']},
-  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','HIBL','UDOW','TECL','BULZ','SOXL','WEBL','DFEN','FAS','LABU','KORU']},
+  lev: {table:'lev-tbl',  list:['TQQQ','UPRO','HIBL','UDOW','TECL','BULZ','SOXL','SMHU','FNGU','WEBL','DFEN','FAS','LABU','KORU','YINN','GDXU']},
   kridx:{table:'kridx-tbl', list:['267270.KS','000990.KS','483650.KS','456040.KS','006360.KS','004490.KS','114090.KS','005250.KS','082740.KS','007660.KS','034230.KS','062040.KS','064400.KS','307950.KS','002030.KS','010620.KS','012630.KS','489790.KS','145720.KS','039130.KS','003620.KS','002710.KS','010060.KS'], cur:'₩', fmt:fmtWon},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
   krlev:{table:'krlev-tbl', list:['122630.KS','243880.KS','494310.KS','0080Y0.KS','233740.KS','0193T0.KS','0193W0.KS'], cur:'₩', fmt:fmtWon},
@@ -2913,12 +2913,16 @@ const LEV_META={
   TECL:{u:'XLK', L:3, nm:'기술섹터 3배'},
   BULZ:{u:'QQQ', L:3, nm:'FANG+ 3배(ETN, 기초 대용 QQQ)'},
   SOXL:{u:'SOXX',L:3, nm:'반도체 3배'},
+  SMHU:{u:'SMH', L:3, nm:'반도체 3배(ETN, 기초 대용 SMH)'},
+  FNGU:{u:'QQQ', L:3, nm:'FANG+ 3배(ETN, 기초 대용 QQQ)'},
   WEBL:{u:'FDN', L:3, nm:'인터넷 3배'},
   DFEN:{u:'ITA', L:3, nm:'항공우주·방산 3배'},
   FAS:{u:'XLF', L:3, nm:'금융 3배'},
   LABU:{u:'XBI', L:3, nm:'바이오텍 3배'},
   HIBL:{u:'SPHB',L:3, nm:'S&P500 고베타 3배'},
   KORU:{u:'EWY', L:3, nm:'한국 3배'},
+  YINN:{u:'FXI', L:3, nm:'중국 3배(기초 대용 FXI)'},
+  GDXU:{u:'GDX', L:3, nm:'금광 3배(ETN, 기초 대용 GDX)'},
   '122630.KS':{u:'^KS200',L:2,nm:'코스피200 2배',kr:1},
   '243880.KS':{u:'139260.KS',L:2,nm:'코스피200 IT 2배(기초 대용 TIGER 200IT)',kr:1},
   '494310.KS':{u:'091160.KS',L:2,nm:'반도체 2배(기초 대용 KODEX 반도체)',kr:1},
@@ -6298,6 +6302,20 @@ async function loadEarnings(){
 }
 if(document.getElementById('cap-tbl')){
   setTimeout(loadEarnings,1200); setTimeout(loadCapNews,1800); setTimeout(loadDivs,2200);
+  /* 시총 TOP30: 실적·배당락·뉴스 표시 설정/해제 버튼 */
+  (function(){
+    const tb=document.getElementById('cap-tbl'); if(!tb) return;
+    const tabs=document.querySelector('.tabs[data-group="cap"]'); if(!tabs||document.getElementById('cap-chip-set')) return;
+    const K=[['er','📅 실적','er'],['dv','💰 배당락','dv'],['nw','📰 뉴스','nw']];
+    const get=k=>{ try{ return localStorage.getItem('mk_chip_'+k)!=='0'; }catch(e){ return true; } };
+    const bar=document.createElement('div'); bar.id='cap-chip-set'; bar.setAttribute('role','group'); bar.setAttribute('aria-label','시총 종목 표시 항목');
+    bar.innerHTML='<span class="ccs-l">표시</span>'+K.map(k=>'<button type="button" data-k="'+k[0]+'">'+k[1]+'</button>').join('');
+    tabs.after(bar);
+    const apply=()=>{ ['cap-tbl','cap2-tbl','cap3-tbl'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; K.forEach(k=>el.classList.toggle('hide-'+k[0],!get(k[0]))); });
+      K.forEach(k=>{ const b=bar.querySelector('[data-k="'+k[0]+'"]'); const on=get(k[0]); b.setAttribute('aria-pressed',String(on)); b.title=k[1].replace(/^\S+ /,'')+' 표시 '+(on?'켜짐 — 누르면 끔':'꺼짐 — 누르면 켬'); }); };
+    bar.addEventListener('click',e=>{ const b=e.target.closest('button[data-k]'); if(!b) return; const k=b.dataset.k; try{ localStorage.setItem('mk_chip_'+k,get(k)?'0':'1'); }catch(x){} apply(); });
+    apply(); setTimeout(apply,1500); setTimeout(apply,5000);
+  })();
   ['cap-tbl','cap2-tbl','cap3-tbl','tick-tbl','lev-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });
 }
 
