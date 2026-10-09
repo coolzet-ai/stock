@@ -739,6 +739,7 @@ body.pro{
 @media(min-width:701px){.acc-b{display:block!important}}
 
 /* v22 레버리지 연속 하락 하이라이트: 3연하=진한 주황, 4연하 이상=진한 보라 */
+.pro .wl-row.st2{background:#FFF7D6;box-shadow:inset 0 0 0 1px #E3C04A}.pro .wl-row.st2.m-x{background:#FFF7D6}
 .pro .wl-row.st3{background:#FFE9D6;box-shadow:inset 0 0 0 1px #F59E5B}
 .pro .wl-row.st4{background:#F3E4FF;box-shadow:inset 0 0 0 1px #B46BE8}
 .pro .wl-row.st3.m-x{background:#FFE9D6}.pro .wl-row.st4.m-x{background:#F3E4FF}
@@ -831,12 +832,10 @@ body.pro{
 #mk-toast.show{transform:translate(-50%,0)}
 #mk-toast button{flex:none;min-width:32px;min-height:32px;border:0;border-radius:4px;background:rgba(255,255,255,.16);color:#fff;font-size:14px;cursor:pointer}
 
-/* v29: PC(1100px↑)에서 종목 목록을 2단으로 — 스크롤 길이 절반 */
+/* v29: PC(1100px↑)에서 종목 목록을 2단으로 — 스크롤 길이 절반 (그리드: 펼침 패널은 전체 폭) */
 @media(min-width:1100px){
-  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats)){column-count:2;column-gap:24px}
-  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats))>.wl-row{break-inside:avoid}
-  .pro .wl-list>div[id^="fin"]{column-span:all}
-  .pro .wl-list>.my-empty{column-span:all}
+  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats)){display:grid;grid-template-columns:1fr 1fr;column-gap:24px;align-items:stretch}
+  .pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats))>div[id^="fin"],.pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats))>div[id^="etf-hold"],.pro .wl-list:not([id^="cap"]):not([id^="kr"]):not(:has(.wl-stats))>.my-empty{grid-column:1/-1}
 }
 
 /* v30 장 마감 후 선물 */
@@ -856,3 +855,19 @@ body.pro{
 @media(max-width:700px){.pro .fwd-mx{table-layout:fixed}.pro .fwd-mx th,.pro .fwd-mx td{padding:5px 1px;font-size:10.5px;letter-spacing:-.3px;white-space:nowrap}.pro .fwd-mx th:first-child,.pro .fwd-mx td:first-child{width:21%;white-space:normal;letter-spacing:0;font-size:11px;padding-left:2px}}
 /* v30: 공탐 성과 카드 — 긴 출처/기간 문구가 모바일에서 카드 폭을 밀어내지 않도록 줄바꿈 허용 */
 #pro-fwd{min-width:0}#pro-fwd h3{flex-wrap:wrap;gap:2px 8px}#pro-fwd h3>span{min-width:0}#pro-fwd .src-line,#pro-fwd .src-line span{white-space:normal;min-width:0}
+
+/* v31: 선물·현물 카드 — 가운데 정렬, 스파크라인은 오른쪽 */
+#pb-fut .pf-c{flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:8px 10px}
+#pb-fut .pf-t{display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px;min-width:0}
+#pb-fut .pf-c b{font-size:16px}
+#pb-fut .pf-sp{margin:0;flex:none;width:70px;height:34px}
+#pb-fut .pf-c>b,#pb-fut .pf-c>small{text-align:center}
+@media(max-width:560px){#pb-fut .pf-grid{grid-template-columns:1fr;gap:6px}#pb-fut .pf-c{padding:6px 10px;gap:16px}#pb-fut .pf-c b{font-size:15px}#pb-fut .pf-sp{width:96px;height:30px}}
+/* 열린 종목 행은 전체 폭(2단 그리드에서 빈칸 방지) */
+@media(min-width:1100px){.pro .wl-list>.wl-row:has(+ div[id^="etf-hold"]:not([style*="display: none"])),.pro .wl-list>.wl-row:has(+ div[id^="fin"]:not([style*="display: none"])){grid-column:1/-1}}
+/* v31: 녹색 배경 제목·소제목 글자 키움(시인성) */
+.pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{font-size:15.5px;font-weight:800;min-height:42px}
+.pro .card>h3:first-child .mut,.pro .card>.fg-hd:first-child .mut,.pro .pulse>h3:first-child small,.pro .card>h3:first-child small{font-size:12.5px;font-weight:500;color:#E3F4EA}
+#pro-brief .pb-hd b{font-size:16px}#pro-brief .pb-sub{font-size:12.5px;color:#E3F4EA}
+.pro .lv-hd{font-size:13.5px}.pro .lev-inv .lv-title,.lv2 .lv2-hd{font-size:15px}.lv2 .lv2-hd small{font-size:12.5px;color:#E3F4EA}
+@media(max-width:700px){.pro .card>h3:first-child,.pro .card>.fg-hd:first-child,.pro .pulse>h3:first-child{font-size:15px}.pro .card>h3:first-child .mut,.pro .card>.fg-hd:first-child .mut{font-size:12px}}

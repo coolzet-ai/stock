@@ -1591,7 +1591,7 @@ function renderUS(p){
 /* ---- 티커 시세: Yahoo Finance (그룹별: tick=QLD·USD·SCHD, cap=시가총액TOP10, lev=레버리지ETF) ---- */
 const fmtWon=v=>Math.round(v).toLocaleString('ko-KR');
 const TICKGROUPS={
-  tick:{table:'tick-tbl', list:['QLD','USD','ROM','SCHD','JEPQ','DRAM','RAM','GLDM','SLVP']},
+  tick:{table:'tick-tbl', list:['QLD','USD','ROM','SCHD','JEPQ','DRAM','RAM','GLDM','SLVP','SPMO']},
   cap: {table:'cap-tbl',  list:['NVDA','AAPL','GOOGL','MSFT','AMZN','TSM','SPCX','AVGO','META','TSLA']},
   cap2:{table:'cap2-tbl', list:['MU','BRK-B','AMD','LLY','JPM','WMT','V','XOM','INTC','JNJ']},
   cap3:{table:'cap3-tbl', list:['MA','ABBV','CSCO','BAC','AMAT','COST','CAT','CVX','UNH','LRCX']},
@@ -1810,7 +1810,7 @@ function injectTechBadgeCss(){
     '.tb-cold{background:rgba(26,111,168,.2);color:var(--down)}';
   document.head.appendChild(st);
 }
-/* 레버리지 ETF: 3일 이상 연속 하락 → "N연하", 연속 하락 구간 누적 하락률(종가 기준) 30% 초과 → "급락" */
+/* 레버리지 ETF: 2일 이상 연속 하락 → "N연하", 연속 하락 구간 누적 하락률(종가 기준) 30% 초과 → "급락" */
 function levDropBadges(d){
   if(!d||d.length<4) return '';
   let n=0,i=d.length-1;
@@ -1819,7 +1819,7 @@ function levDropBadges(d){
   const cum=(1-d[d.length-1]/d[i])*100;
   let h='';
   const st='color:#fff;';
-  if(n>=3) h+='<span class="tb tb-streak'+(n>=4?' s4':' s3')+'" style="'+st+'background:'+(n>=4?'#7E22CE':'#C2410C')+';box-shadow:0 0 0 2px '+(n>=4?'rgba(126,34,206,.28)':'rgba(194,65,12,.28)')+';font-weight:800" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
+  if(n>=2) h+='<span class="tb tb-streak'+(n>=4?' s4':n===3?' s3':' s2')+'" style="'+st+'background:'+(n>=4?'#7E22CE':n===3?'#C2410C':'#A16207')+';box-shadow:0 0 0 2px '+(n>=4?'rgba(126,34,206,.28)':n===3?'rgba(194,65,12,.28)':'rgba(161,98,7,.28)')+';font-weight:800" title="'+n+'거래일 연속 하락 (누적 −'+cum.toFixed(1)+'%)">'+n+'연하</span>';
   if(cum>30) h+='<span class="tb" style="'+st+'background:#dc2626" title="연속 하락 구간 종가 기준 누적 −'+cum.toFixed(1)+'% (30% 초과)">급락 −'+cum.toFixed(0)+'%</span>';
   return h;
 }
@@ -1832,7 +1832,7 @@ function renderTickBadges(row,d){
   if(!html){ if(box) box.remove(); return; }
   if(!box){ box=document.createElement('span'); box.className='wl-ind'; nm.appendChild(box); }
   box.innerHTML=html+(row.closest('#lev-tbl,#krlev-tbl')?levDropBadges(d):'');
-  if(row.closest('#lev-tbl,#krlev-tbl')){ const sn=levStreakN(d); row.classList.toggle('st3',sn===3); row.classList.toggle('st4',sn>=4); }
+  if(row.closest('#lev-tbl,#krlev-tbl')){ const sn=levStreakN(d); row.classList.toggle('st2',sn===2); row.classList.toggle('st3',sn===3); row.classList.toggle('st4',sn>=4); }
   // 티커명 앞 신호등
   let sg=nm.querySelector('.wl-sig');
   const sig=valuationSignal(d);
@@ -2901,13 +2901,86 @@ function levConcentrationHtml(data){
   return h;
 }
 const LEV_TICKERS=Object.keys(LEV_META);
+
+/* ===== 투자자 체크패널 v2 — 작은 타일 + 핵심 경고 칩으로 한눈에(박스 크기 축소) ===== */
+function injectLevCss(){
+  if(document.getElementById('lv2-css')) return;
+  const st=document.createElement('style'); st.id='lv2-css';
+  st.textContent='.lv2{margin:0 0 10px;min-width:0;max-width:100%}'+
+  '.lv2 .lv2-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:7px 12px;background:#0A6B48;color:#fff;border-radius:4px 4px 0 0;font-size:13.5px;font-weight:800}'+
+  '.lv2 .lv2-hd small{font-size:11.5px;font-weight:500;color:#CFE9DC}'+
+  '.lv2 .lv2-fl{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border:1px solid var(--line);border-top:0;background:var(--panel2,#F6F8F7)}'+
+  '.lv2 .lv2-fl span{font-size:12px;font-weight:800;padding:3px 9px;border-radius:12px;background:var(--panel,#fff);border:1px solid var(--line);white-space:nowrap}'+
+  '.lv2 .lv2-fl .w{border-color:#E0A33A;background:#FFF4DC;color:#7A4A00}.lv2 .lv2-fl .b{border-color:#E08585;background:#FDECEC;color:#9B1C1C}.lv2 .lv2-fl .g{border-color:#7DB89A;background:#E6F4EC;color:#0A5B3A}'+
+  '.lv2 .lv2-gs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}'+
+  '.lv2 .lv2-g{min-width:0;border:1px solid var(--line);border-radius:4px;background:var(--panel,#fff);padding:6px 8px 8px}'+
+  '.lv2 .lv2-g.wide{grid-column:1/-1}'+
+  '.lv2 .lv2-g h4{margin:0 0 5px;font-size:12px;font-weight:800;color:var(--tx2)}'+
+  '.lv2 .lv2-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:5px}'+
+  '.lv2 .lv2-k>div{min-width:0;padding:5px 7px;border-radius:4px;background:var(--panel2,#F6F8F7)}'+
+  '.lv2 .lv2-k small{display:block;font-size:10.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.lv2 .lv2-k b{display:block;font-size:15px;font-weight:900;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}'+
+  '.lv2 .lv2-tip{margin:8px 0 0;font-size:12px;line-height:1.55;color:var(--tx2)}'+
+  '.lv2 .lv2-ft{margin:6px 0 0;font-size:10.5px;color:var(--tx2);line-height:1.5}'+
+  '@media(max-width:700px){.lv2 .lv2-gs{grid-template-columns:minmax(0,1fr);gap:6px}.lv2 .lv2-k{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.lv2 .lv2-k>div{padding:4px 6px}.lv2 .lv2-k small{font-size:10px}.lv2 .lv2-k b{font-size:13.5px}.lv2 .lv2-hd{padding:6px 10px;font-size:14px}.lv2 .lv2-fl{padding:6px 8px;gap:4px}.lv2 .lv2-fl span{font-size:11.5px;padding:2px 8px;white-space:normal}}';
+  document.head.appendChild(st);
+}
+function levPanelHtml(ticker, data, etfD, undD){
+  const m=LEV_META[ticker]; if(!m) return '';
+  injectLevCss();
+  const info=(data&&data.info)||null, st=levStats(etfD, undD, m.L);
+  const f1=v=>v==null?'—':(v>=0?'+':'')+v.toFixed(1)+'%';
+  const colr=v=>v==null?'':v>=0?'color:var(--up)':'color:var(--down)';
+  const money=v=>v==null?'—':(v>=1e9?'$'+(v/1e9).toFixed(1)+'B':'$'+(v/1e6).toFixed(0)+'M');
+  const k=(l,v,tip,sty)=>'<div title="'+(tip||'').replace(/"/g,'&quot;')+'"><small>'+l+'</small><b style="'+(sty||'')+'">'+v+'</b></div>';
+  const fl=[]; const flag=(t,c)=>fl.push('<span class="'+c+'">'+t+'</span>');
+  let g='';
+  const exp=info&&info.expenseRatio, aum=info&&info.totalAssets;
+  if(!m.kr){
+    g+='<section class="lv2-g"><h4>① 비용 · 규모</h4><div class="lv2-k">'+
+      k('총보수(연)',exp!=null?(exp*100).toFixed(2)+'%':'—',exp!=null?'1억 보유 시 연 '+Math.round(exp*1e4).toLocaleString('ko-KR')+'만원':'',exp!=null&&exp>=0.01?'color:var(--up)':'')+
+      k('순자산',money(aum),aum!=null?(aum>=1e9?'규모 충분 · 청산 위험 낮음':aum>=2e8?'보통':'소형 · 상장폐지 위험 점검'):'')+
+      k('배당률',info&&info.yield!=null?(info.yield*100).toFixed(2)+'%':'—','레버리지는 배당이 작음')+
+      k('베타(3년)',info&&info.beta3y!=null?info.beta3y.toFixed(2):'—','시장 대비 민감도')+'</div></section>';
+    if(exp!=null&&exp>=0.01) flag('보수 '+(exp*100).toFixed(2)+'% 높음','w');
+    if(aum!=null&&aum<2e8) flag('소형 ETF · 청산 위험 점검','b');
+  }
+  if(st){
+    g+='<section class="lv2-g"><h4>② 위험 (최근 1년)</h4><div class="lv2-k">'+
+      k('변동성(연)',st.vol.toFixed(0)+'%','일간 수익률 표준편차×√252',st.vol>=80?'color:var(--up)':'')+
+      k('최대낙폭',st.mdd.toFixed(1)+'%','1년 내 고점→저점','color:var(--down)')+
+      k('고점 대비',st.fromPeak.toFixed(1)+'%',st.fromPeak<=-30?'깊은 조정 구간':st.fromPeak>=-5?'고점 부근':'',colr(st.fromPeak))+
+      k('최악의 하루',st.worstDay.toFixed(1)+'%','기초 −'+(100/m.L).toFixed(0)+'% 일간 하락 시 전손',st.worstDay<=-15?'color:var(--down)':'')+'</div></section>';
+    if(st.vol>=80) flag('변동성 '+st.vol.toFixed(0)+'% 매우 높음','b');
+    if(st.fromPeak<=-30) flag('고점 대비 '+st.fromPeak.toFixed(0)+'% 깊은 조정','w'); else if(st.fromPeak>=-5) flag('고점 부근 · 추격 주의','w');
+    g+='<section class="lv2-g"><h4>③ 레버리지 구조 · 복리 감쇠</h4><div class="lv2-k">'+
+      (st.undRet!=null?
+        k('기초 '+m.u,f1(st.undRet),'기초 자산 1년 수익률',colr(st.undRet))+k(m.L+'배 단순',f1(st.simple),'기초×'+m.L,colr(st.simple))+k('일일 '+m.L+'배',f1(st.ideal),'매일 리셋 복리 계산',colr(st.ideal))+k('실제 '+ticker,f1(st.actual),'운용보수·추적오차 포함',colr(st.actual))
+        :k('실제 '+ticker,f1(st.ret1y),'',colr(st.ret1y)))+
+      k('횡보 감쇠(연)','−'+st.decay.toFixed(1)+'%','변동성이 클수록 커짐 L(L−1)/2·σ²','color:var(--down)')+'</div></section>';
+    if(st.undRet!=null){ const gap=st.actual-st.simple; if(gap<-5) flag('단순 '+m.L+'배보다 '+f1(gap)+'p 낮음(복리 감쇠)','w'); }
+  }
+  const hs=(data&&data.holdings&&data.holdings.length)?data.holdings.map(x=>x.pct||0).sort((a,b)=>b-a):null;
+  if(hs){
+    const top3=hs.slice(0,3).reduce((x,y)=>x+y,0)*100, top10=hs.slice(0,10).reduce((x,y)=>x+y,0)*100, inf=(data&&data.info)||{};
+    const lvl=top10>=60?'집중도 높음':top10>=40?'보통':'분산';
+    const pe=inf.pe!=null&&inf.pe>0?(inf.pe<1?1/inf.pe:inf.pe).toFixed(1):'—', pb=inf.pb!=null&&inf.pb>0?(inf.pb<1?1/inf.pb:inf.pb).toFixed(1):'—';
+    g+='<section class="lv2-g wide"><h4>④ 구성 집중도 · 밸류에이션</h4><div class="lv2-k">'+k('상위 3종목',top3.toFixed(1)+'%','')+k('상위 10종목',top10.toFixed(1)+'%',lvl)+k('집중도',lvl,'상위 10종목 합 기준')+k('평균 PER',pe,'보유종목 평균')+k('평균 PBR',pb,'보유종목 평균')+'</div></section>';
+    if(top10>=60) flag('상위 10종목 '+top10.toFixed(0)+'% 집중','w');
+  }
+  if(!fl.length) flag('특이 경고 없음','g');
+  let tip='';
+  if(st&&st.undRet!=null){ const gap=st.actual-st.simple;
+    tip='<p class="lv2-tip">💡 기초가 1년간 '+f1(st.undRet)+'일 때 단순 '+m.L+'배는 '+f1(st.simple)+', 실제는 '+f1(st.actual)+'입니다(차이 '+f1(gap)+'p). '+(gap<0?'변동성이 큰 구간일수록 복리 감쇠로 장기 보유 수익이 단순 환산보다 낮아집니다.':'추세가 한 방향으로 이어진 구간에서는 복리 효과가 오히려 수익을 키울 수 있습니다.')+'</p>'; }
+  return '<div class="lv2" data-pro="1"><div class="lv2-hd">🧭 투자자 체크패널 — '+ticker+'<small>'+m.nm+' · 기초 '+m.u+'</small></div><div class="lv2-fl" aria-label="핵심 경고">'+fl.join('')+'</div><div class="lv2-gs">'+g+'</div>'+tip+
+    '<p class="lv2-ft">⚠ 레버리지 ETF는 장기 보유 시 복리 감쇠로 손실이 커질 수 있으며 원금 전액 손실도 가능합니다. Yahoo Finance 데이터와 자체 계산에 기반한 참고 자료로 투자 권유가 아닙니다.</p></div>';
+}
 async function renderLevPanel(ticker, data){
   const m=LEV_META[ticker]; if(!m) return '';
   let etfD=null, undD=null;
   try{ etfD=(typeof tickData!=='undefined'&&tickData[ticker])||await yclose(ticker,'1y'); }catch(e){}
   try{ if(LEV_UND_CACHE[m.u]===undefined) LEV_UND_CACHE[m.u]=await yclose(m.u,'1y'); undD=LEV_UND_CACHE[m.u]; }catch(e){}
-  return '<div class="lev-inv">'+levInvestorHtml(ticker,data&&data.info,etfD,undD)+levConcentrationHtml(data)+
-    '<div class="mut" style="font-size:10.5px;margin-bottom:12px">※ etfdb.com은 봇 차단으로 직접 연동이 불가해 Yahoo Finance 데이터와 자체 계산으로 구성했습니다. 참고용이며 투자 권유가 아닙니다.</div></div>';
+  return levPanelHtml(ticker,data,etfD,undD);
 }
 
 function renderEtfHoldings(data){

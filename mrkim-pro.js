@@ -504,7 +504,7 @@
       }catch(e){ return null; }
     };
     var futSpark=function(pts,col){
-      if(pts.length<3) return ''; var W=86,H=26,mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rg=(mx-mn)||1;
+      if(pts.length<3) return ''; var W=70,H=34,mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rg=(mx-mn)||1;
       var d=pts.map(function(v,i){ return (i/(pts.length-1)*W).toFixed(1)+','+(H-2-(v-mn)/rg*(H-4)).toFixed(1); }).join(' ');
       return '<svg class="pf-sp" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="정규장 마감 이후 선물 흐름"><polyline points="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round"/></svg>';
     };
@@ -525,7 +525,7 @@
           var fm0=function(v){ return v.toLocaleString('en-US',{maximumFractionDigits:2}); };
           box.innerHTML='<div class="pf-hd"><b>📈 정규장 진행 중 · 미국 3대 지수</b><span>전일 종가 대비 · 장중 5분 흐름</span></div><div class="pf-grid">'+
             SP.map(function(f,i){ var d=rs[i]; if(!d) return '<div class="pf-c"><small>'+f[1]+'</small><b>--</b></div>'; var up=d.pct>=0, col=up?UP:DN;
-              return '<div class="pf-c"><small>'+f[1]+'</small><b>'+fm0(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span>'+futSpark(d.pts,col)+'</div>'; }).join('')+
+              return '<div class="pf-c"><div class="pf-t"><small>'+f[1]+'</small><b>'+fm0(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span></div>'+futSpark(d.pts,col)+'</div>'; }).join('')+
             '</div><p class="pf-note">장중 시세는 약 15분 지연될 수 있습니다. 출처: Yahoo Finance</p>';
           box.hidden=false; box._open=true; futT=Date.now(); window.__futLine=null;
           var s1=rs[0]; if(s1) window.__spotLine='S&amp;P500 <em>'+(s1.pct>=0?'+':'')+s1.pct.toFixed(2)+'%</em>';
@@ -539,7 +539,7 @@
         box.innerHTML='<div class="pf-hd"><b>🌙 '+(wk?'주말':'정규장 마감 후')+' 선물 흐름</b><span>정규장 마감(미 동부 16:00) 대비 · 다음 개장 방향 참고용</span></div><div class="pf-grid">'+
           FUT.map(function(f,i){ var d=res[i]; if(!d) return '<div class="pf-c"><small>'+f[1]+'</small><b>--</b></div>';
             var up=d.pct>=0, col=up?UP:DN;
-            return '<div class="pf-c"><small>'+f[1]+'</small><b>'+fm(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span>'+futSpark(d.pts,col)+'</div>'; }).join('')+
+            return '<div class="pf-c"><div class="pf-t"><small>'+f[1]+'</small><b>'+fm(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span></div>'+futSpark(d.pts,col)+'</div>'; }).join('')+
           '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance</p>';
         box.hidden=false; box._open=false; futT=Date.now();
         var pl=document.getElementById('pb-line');
