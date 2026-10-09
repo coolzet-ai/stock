@@ -1585,3 +1585,43 @@ html[data-theme="dark"] .kr-sline{background:#16231c;border-bottom-color:#2c3d33
 .pro .pulse>h3:first-child{margin:0 -14px 14px!important;border-radius:3px 3px 0 0}
 @media(max-width:700px){.pro .pulse{margin-top:20px!important}.pro #pro-cal,.pro .pulse+*{margin-top:20px}}
 html[data-theme="dark"] .pro .pulse{background:var(--panel,#161b22);border-color:var(--line)}
+/* v50 요약 한 줄: 점 대신 칩 구분 */
+.pro #pro-brief .pb-line{display:flex!important;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.pro #pro-brief .pb-seg{display:inline-flex;align-items:baseline;gap:5px;padding:4px 11px;border-radius:999px;background:#fff;border:1px solid #CFE6DA;font-size:14px;font-weight:700;line-height:1.4;white-space:nowrap}
+.pro #pro-brief .pb-note{margin-left:auto;font-size:11.5px;color:#566074}
+html[data-theme="dark"] .pro #pro-brief .pb-seg{background:#1d2c24;border-color:#2c3d33}
+@media(max-width:700px){.pro #pro-brief .pb-seg{font-size:12.5px;padding:3px 9px;white-space:normal}}
+/* v50 KR 투자자/증시자금 카드: 헤더는 제목만(한 줄 고정), 탭은 본문 툴바로 */
+.pro .kr-hd1>h3{white-space:nowrap}
+.pro .kr-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.pro .kr-tools .tabs{margin:0!important}
+.pro .kr-tools .tabs button{min-height:36px}
+/* v50 내 계좌 수정 버튼 · 종목비교 표+곡선 */
+#mk-acct .ac-act{white-space:nowrap}
+#mk-acct .ac-act .ac-x{min-width:36px;padding:0 8px;margin-right:4px}
+#mk-acct .ac-dd{display:block;font-size:11px;font-weight:500;color:var(--tx2)}
+#mk-acct.ac-editing form{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+#mk-acct #ac-t[readonly]{background:var(--panel2);font-weight:800}
+#mk-acct #ac-ok{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:800}
+#mk-cmp .cm-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+#mk-cmp .cm-ch{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel)}
+#mk-cmp .cm-chh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+#mk-cmp .cm-rg{display:inline-flex;gap:4px}
+#mk-cmp .cm-rg button{min-height:32px;padding:0 10px;font-size:12px}
+#mk-cmp .cm-rg button.on{background:#111418;color:#fff;border-color:#111418}
+#mk-cmp .cm-svg{width:100%;height:auto;display:block}
+#mk-cmp .cm-gl{stroke:var(--line);stroke-width:1}#mk-cmp .cm-gl.z{stroke:var(--tx2);stroke-dasharray:3 3}
+#mk-cmp .cm-tx{fill:var(--tx2);font-size:11px}
+#mk-cmp .cm-ln{stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+#mk-cmp .cm-ln.cm-c0{stroke:#0b7a4b}#mk-cmp .cm-ln.cm-c1{stroke:#c2410c}#mk-cmp .cm-ln.cm-c2{stroke:#2563eb}
+#mk-cmp .cm-sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:baseline}
+#mk-cmp .cm-sw.cm-c0{background:#0b7a4b}#mk-cmp .cm-sw.cm-c1{background:#c2410c}#mk-cmp .cm-sw.cm-c2{background:#2563eb}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c0,html[data-theme="dark"] #mk-cmp .cm-sw.cm-c0{stroke:#4cc38a;background:#4cc38a}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c1,html[data-theme="dark"] #mk-cmp .cm-sw.cm-c1{stroke:#fb923c;background:#fb923c}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c2,html[data-theme="dark"] #mk-cmp .cm-sw.cm-c2{stroke:#60a5fa;background:#60a5fa}
+html[data-theme="dark"] #mk-cmp .cm-rg button.on{background:#e6efe9;color:#111418}
+#mk-cmp .cm-lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;margin-top:6px}
+#mk-cmp .cm-lg em{font-style:normal;font-weight:800}
+@media(max-width:900px){#mk-cmp .cm-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){#mk-acct .ac-t th:nth-child(1){width:30%}#mk-acct .ac-t th:nth-child(4){width:17%}#mk-acct .ac-t th:nth-child(5){width:19%}#mk-acct .ac-t th:nth-child(6){width:17%}#mk-acct .ac-t th:nth-child(9){width:17%}#mk-acct .ac-act .ac-x{display:inline-block;margin:0 2px 2px 0;min-width:30px}}
+#mk-cmp .cm-grid{margin-top:12px}

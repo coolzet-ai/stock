@@ -472,7 +472,7 @@
     var bar = document.createElement('div'); bar.id = 'pb-sticky'; bar.hidden = true; bar.setAttribute('role', 'status'); document.body.appendChild(bar);
     function upd() {
       var ln = $('#pb-line'); if (!ln) return;
-      var tx = (ln.textContent || '').replace(/·\s*참고용 요약이며.*$/, '').replace(/^오늘의 시장 상태:\s*/, '').trim();
+      var sg = ln.querySelectorAll('.pb-seg'); var tx = sg.length ? Array.prototype.map.call(sg, function (x) { return x.textContent.trim(); }).join(' · ') : (ln.textContent || '').trim();
       var hd = $('header'), top = hd ? hd.getBoundingClientRect().bottom : 0;
       var off = br.getBoundingClientRect().bottom < Math.max(top, 0) + 4;
       if (bar.textContent !== tx) bar.textContent = tx;

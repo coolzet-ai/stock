@@ -570,7 +570,7 @@
         if(isFinite(fv)){ var zz=fv<25?'극단적 공포':fv<45?'공포':fv<=55?'중립':fv<=75?'탐욕':'극단적 탐욕'; P.push('공포탐욕 '+Math.round(fv)+' <em>'+zz+'</em>'); }
         if(isFinite(vv)){ var vl=vv<15?'낮음':vv<20?'보통':vv<30?'높음':'매우 높음'; P.push('변동성 <em>'+vl+'</em> (VIX '+vv.toFixed(1)+')'); }
         var ev=(document.getElementById('pb-ev')||{}).textContent; if(ev&&ev!=='--'&&ev.indexOf('없음')<0){ var w=(document.getElementById('pb-ev2')||{}).textContent||''; var dm=w.match(/D[-+]?\d+/); P.push('다음 일정 <em>'+ev+(dm?' '+dm[0]:'')+'</em>'); }
-        if(usOpen()){ if(window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); } else if(window.__futLine&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?'오늘의 시장 상태: '+P.join(' · ')+' <span class="pb-note">· 참고용 요약이며 투자 권유가 아닙니다</span>':'시장 상태를 불러오는 중…';
+        if(usOpen()){ if(window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); } else if(window.__futLine&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…';
         if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } }
     };
     fillBrief(); fillFut(); setInterval(fillFut,60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });

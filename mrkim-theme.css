@@ -228,6 +228,14 @@ html[data-theme="dark"] .pro .p2p-card.is-s{background:linear-gradient(135deg,rg
 html[data-theme="dark"] .pro .p2p-yield small{color:#e2a19c}
 html[data-theme="dark"] .pro .p2p-yield b{color:#de9a96}
 html[data-theme="dark"] .pro .pulse{background:#101316}
+html[data-theme="dark"] .pro #pro-brief .pb-seg{background:#101316;border:1px solid #274937}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c0{stroke:#b3ecd4}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c1{stroke:#e8ae96}
+html[data-theme="dark"] #mk-cmp .cm-ln.cm-c2{stroke:#819edf}
+html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-ln.cm-c0,html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-sw.cm-c0{stroke:#94ccb1}
+html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-ln.cm-c1,html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-sw.cm-c1{background:#64472f}
+html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-ln.cm-c2,html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-sw.cm-c2{background:#293e57}
+html[data-theme="dark"][data-theme="dark"] #mk-cmp .cm-rg button.on{background:#18251c;color:#eaedf0}
 html[data-theme="dark"] header{background:rgba(16,19,22,0.92)}
 html[data-theme="dark"] .dial{background:conic-gradient(var(--g,#666) var(--p,0%),#322b1e 0)}
 html[data-theme="dark"] .sub-bar{background:linear-gradient(90deg,#5d2c2c 0%,#ff8a00 30%,#1c2737 50%,#596f34 70%,#22c55e 100%)}

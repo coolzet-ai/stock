@@ -20,9 +20,15 @@
     var k = sym + '|' + range, c = QC[k]; if (c && Date.now() - c.t < 60000) return c.v;
     try {
       var j = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=' + range + '&interval=1d');
-      var r = j.chart.result[0], cl = mkFillClose(r).filter(function (x) { return x != null; });
+      var r = j.chart.result[0], q = mkFillClose(r), T = r.timestamp || [], cl = [], ts = [];
+      q.forEach(function (x, i) { if (x != null) { cl.push(x); ts.push((T[i] || 0) * 1000); } });
       var px = (r.meta && r.meta.regularMarketPrice != null) ? r.meta.regularMarketPrice : cl[cl.length - 1];
-      var v = { px: px, cl: cl, prev: cl.length >= 2 ? cl[cl.length - 2] : null, meta: r.meta || {} };
+      /* 전일 종가: 현재가가 속한 거래일(뉴욕) 이전의 마지막 종가 — 장전·휴장·장중 모두 동일 기준 */
+      var ky = function (t) { return new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); };
+      var pk = r.meta && r.meta.regularMarketTime ? ky(r.meta.regularMarketTime * 1000) : (ts.length ? ky(ts[ts.length - 1]) : null), prev = null;
+      for (var ii = cl.length - 1; ii >= 0 && pk; ii--) { if (ts[ii] && ky(ts[ii]) < pk) { prev = cl[ii]; break; } }
+      if (prev == null) prev = cl.length >= 2 ? cl[cl.length - 2] : (r.meta && r.meta.previousClose != null ? r.meta.previousClose : null);
+      var v = { px: px, cl: cl, ts: ts, prev: prev, meta: r.meta || {} };
       QC[k] = { t: Date.now(), v: v }; return v;
     } catch (e) { return null; }
   }
@@ -72,18 +78,20 @@
     var my = $('#my-wl'); if (!my || $('#mk-acct')) return !!$('#mk-acct');
     acctBox = document.createElement('div'); acctBox.className = 'card'; acctBox.id = 'mk-acct'; acctBox.style.marginTop = '16px';
     acctBox.innerHTML = '<h3><span>💼 내 계좌 · 손익과 3배 비중</span><span class="mut" style="font-weight:400;font-size:11.5px">선택 입력 · 이 브라우저에만 저장</span></h3>' +
-      '<div id="ac-sum" class="ac-sum" role="status"></div><div class="scroll"><table class="ac-t"><thead><tr><th>종목</th><th>수량</th><th>평균단가($)</th><th class="n">현재가</th><th class="n">평가금액</th><th class="n">손익</th><th class="n">오늘</th><th class="n">비중</th><th></th></tr></thead><tbody id="ac-b"></tbody></table></div>' +
-      '<form class="ac-add" autocomplete="off"><input type="text" id="ac-t" maxlength="15" placeholder="티커 (예: TQQQ)" aria-label="보유 종목 티커"><input type="number" id="ac-q" min="0" step="any" placeholder="수량" aria-label="수량"><input type="number" id="ac-c" min="0" step="any" placeholder="평균단가($)" aria-label="평균단가"><button type="submit">＋ 추가</button></form>' +
+      '<div id="ac-sum" class="ac-sum" role="status"></div><div class="scroll"><table class="ac-t"><thead><tr><th>종목</th><th>수량</th><th>평균단가($)</th><th class="n">현재가</th><th class="n">평가금액</th><th class="n">손익</th><th class="n">오늘</th><th class="n">비중</th><th>수정·삭제</th></tr></thead><tbody id="ac-b"></tbody></table></div>' +
+      '<form class="ac-add" autocomplete="off"><input type="text" id="ac-t" maxlength="15" placeholder="티커 (예: TQQQ)" aria-label="보유 종목 티커"><input type="number" id="ac-q" min="0" step="any" placeholder="수량" aria-label="수량"><input type="number" id="ac-c" min="0" step="any" placeholder="평균단가($)" aria-label="평균단가"><button type="submit" id="ac-ok">＋ 추가</button><button type="button" id="ac-cancel" hidden>취소</button></form>' +
       '<label class="ac-cap">3배 ETF 비중 한도 <input type="number" id="ac-cap" min="1" max="100" step="1" aria-label="3배 ETF 비중 한도(%)"> %</label>' +
-      '<p class="mut" style="font-size:12px;margin:8px 0 0;line-height:1.6">달러 종목만 합계에 넣습니다(원화 종목 제외). 시세는 지연될 수 있으며 평가금액·손익은 참고용 계산입니다. 3배 ETF 비중은 보유 종목 중 3배 상품의 평가금액 비율입니다.</p>';
+      '<p class="mut" style="font-size:12px;margin:8px 0 0;line-height:1.6">달러 종목만 합계에 넣습니다(원화 종목 제외). 시세는 지연될 수 있으며 평가금액·손익은 참고용 계산입니다. 3배 ETF 비중은 보유 종목 중 3배 상품의 평가금액 비율입니다.<br>계산식: 손익률 = 현재가÷평균단가−1 · 오늘 = Σ(수량×현재가)÷Σ(수량×전일종가)−1 · 비중 = 종목 평가금액÷달러 종목 합계.</p>';
     my.after(acctBox); mfold(acctBox);
     $('#ac-cap', acctBox).value = levCap();
     acctBox.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault(); var t = $('#ac-t').value.trim().toUpperCase(), q = parseFloat($('#ac-q').value), c = parseFloat($('#ac-c').value);
       if (!RE.test(t) || !(q > 0)) return; var h = loadH(); if (Object.keys(h).length >= 30 && !h[t]) return;
-      h[t] = { q: q, c: isFinite(c) && c > 0 ? c : null }; saveH(h); $('#ac-t').value = ''; $('#ac-q').value = ''; $('#ac-c').value = ''; refresh(true);
+      h[t] = { q: q, c: isFinite(c) && c > 0 ? c : null }; saveH(h); endEdit(); refresh(true);
     });
-    acctBox.addEventListener('click', function (e) { var b = e.target.closest('button[data-del]'); if (!b) return; var h = loadH(); delete h[b.dataset.del]; saveH(h); refresh(true); });
+    var endEdit = function () { acctBox.classList.remove('ac-editing'); $('#ac-t').readOnly = false; $('#ac-ok').textContent = '＋ 추가'; $('#ac-cancel').hidden = true; $('#ac-t').value = ''; $('#ac-q').value = ''; $('#ac-c').value = ''; };
+    $('#ac-cancel', acctBox).addEventListener('click', endEdit);
+    acctBox.addEventListener('click', function (e) { var eb = e.target.closest('button[data-edit]'); if (eb) { var hh = loadH(), t0 = eb.dataset.edit, o = hh[t0]; if (!o) return; $('#ac-t').value = t0; $('#ac-t').readOnly = true; $('#ac-q').value = o.q; $('#ac-c').value = o.c != null ? o.c : ''; acctBox.classList.add('ac-editing'); $('#ac-ok').textContent = '✔ 수정 저장'; $('#ac-cancel').hidden = false; var f = acctBox.querySelector('form'); if (f.scrollIntoView) f.scrollIntoView({ block: 'center', behavior: 'smooth' }); $('#ac-q').focus(); return; } var b = e.target.closest('button[data-del]'); if (!b) return; var h = loadH(); delete h[b.dataset.del]; saveH(h); refresh(true); });
     $('#ac-cap', acctBox).addEventListener('change', function () { var v = parseFloat(this.value); if (isFinite(v) && v > 0 && v <= 100) store.set(CK, String(v)); refresh(false); });
     return true;
   }
@@ -101,14 +109,14 @@
     rows.forEach(function (r) { r.w = r.val != null && tot > 0 ? r.val / tot * 100 : null; r.pl = r.val != null && r.cost != null ? r.val - r.q * r.cost : null; r.plp = r.pl != null ? (r.px / r.cost - 1) * 100 : null; r.day = r.px != null && r.prev ? (r.px / r.prev - 1) * 100 : null; });
     rows.sort(function (a, b) { return (b.val || 0) - (a.val || 0); });
     tb.innerHTML = rows.map(function (r) {
-      return '<tr><td><b>' + esc(r.t) + '</b>' + (lv.indexOf(r.t) >= 0 ? ' <span class="ac-l" title="3배 레버리지 상품">3x</span>' : '') + '<small class="ac-sub">' + r.q + '주 · 평단 ' + (r.cost != null ? '$' + r.cost : '—') + '<br>오늘 <span class="' + cls(r.day) + '">' + fmtPct(r.day) + '</span> · 비중 ' + (r.w != null ? r.w.toFixed(0) + '%' : '—') + '</small></td><td>' + r.q + '</td><td>' + (r.cost != null ? r.cost : '—') + '</td><td class="n">' + (r.px != null ? '$' + r.px.toFixed(2) : '—') + '</td><td class="n">' + (r.val != null ? fmtUsd(r.val) : '<span class="na">' + (r.usd ? '—' : '합계 제외') + '</span>') + '</td><td class="n ' + cls(r.plp) + '">' + (r.pl != null ? '<span class="pl-a">' + fmtUsd(r.pl) + '</span> <span class="pl-p">(' + fmtPct(r.plp) + ')</span>' : '—') + '</td><td class="n ' + cls(r.day) + '">' + fmtPct(r.day) + '</td><td class="n">' + (r.w != null ? r.w.toFixed(1) + '%' : '—') + '</td><td><button type="button" class="ac-x" data-del="' + esc(r.t) + '" aria-label="' + esc(r.t) + ' 삭제">✕</button></td></tr>';
+      return '<tr><td><b>' + esc(r.t) + '</b>' + (lv.indexOf(r.t) >= 0 ? ' <span class="ac-l" title="3배 레버리지 상품">3x</span>' : '') + '<small class="ac-sub">' + r.q + '주 · 평단 ' + (r.cost != null ? '$' + r.cost : '—') + '<br>오늘 <span class="' + cls(r.day) + '">' + fmtPct(r.day) + '</span> · 비중 ' + (r.w != null ? r.w.toFixed(0) + '%' : '—') + '</small></td><td>' + r.q + '</td><td>' + (r.cost != null ? r.cost : '—') + '</td><td class="n">' + (r.px != null ? '$' + r.px.toFixed(2) : '—') + '</td><td class="n">' + (r.val != null ? fmtUsd(r.val) : '<span class="na">' + (r.usd ? '—' : '합계 제외') + '</span>') + '</td><td class="n ' + cls(r.plp) + '">' + (r.pl != null ? '<span class="pl-a">' + fmtUsd(r.pl) + '</span> <span class="pl-p">(' + fmtPct(r.plp) + ')</span>' : '—') + '</td><td class="n ' + cls(r.day) + '">' + fmtPct(r.day) + (r.prev != null && r.px != null && r.usd ? '<small class="ac-dd">' + fmtUsd(r.q * (r.px - r.prev)) + '</small>' : '') + '</td><td class="n">' + (r.w != null ? r.w.toFixed(1) + '%' : '—') + '</td><td class="ac-act"><button type="button" class="ac-x ac-ed" data-edit="' + esc(r.t) + '" aria-label="' + esc(r.t) + ' 수정" title="수정">✎</button><button type="button" class="ac-x" data-del="' + esc(r.t) + '" aria-label="' + esc(r.t) + ' 삭제">✕</button></td></tr>';
     }).join('');
     var dayPct = tot > 0 && totPrev > 0 ? (tot / totPrev - 1) * 100 : null, dayUsd = tot - totPrev, levPct = tot > 0 ? levV / tot * 100 : null, cap = levCap();
     var plAll = costOk && totCost > 0 ? tot - totCost : null;
     var alerts = [];
     if (levPct != null && levPct > cap) alerts.push('3배 ETF 비중 ' + levPct.toFixed(0) + '%가 한도 ' + cap + '%를 넘었습니다');
     rows.forEach(function (r) { if (r.day != null && r.day <= -7) alerts.push(r.t + ' 오늘 ' + r.day.toFixed(1) + '%'); });
-    sum.innerHTML = '<div><small>오늘 내 계좌</small><b class="' + cls(dayPct) + '">' + fmtPct(dayPct) + '</b><span>' + (tot > 0 ? fmtUsd(dayUsd) : '') + '</span></div><div><small>총 평가금액</small><b>' + (tot > 0 ? fmtUsd(tot) : '—') + '</b><span>' + (plAll != null ? '누적 ' + fmtUsd(plAll) : '단가 미입력 종목 있음') + '</span></div><div><small>3배 ETF 비중</small><b class="' + (levPct != null && levPct > cap ? 'down' : '') + '">' + (levPct != null ? levPct.toFixed(0) + '%' : '—') + '</b><span>한도 ' + cap + '%</span></div>' +
+    sum.innerHTML = '<div><small>오늘 내 계좌</small><b class="' + cls(dayPct) + '">' + fmtPct(dayPct) + '</b><span>' + (tot > 0 ? fmtUsd(dayUsd) : '') + '</span></div><div><small>총 평가금액</small><b>' + (tot > 0 ? fmtUsd(tot) : '—') + '</b><span>' + (plAll != null ? '<span title="매입금액 ' + fmtUsd(totCost) + '">누적 ' + fmtUsd(plAll) + '</span>' : '단가 미입력 종목 있음') + '</span></div><div><small>3배 ETF 비중</small><b class="' + (levPct != null && levPct > cap ? 'down' : '') + '">' + (levPct != null ? levPct.toFixed(0) + '%' : '—') + '</b><span>한도 ' + cap + '%</span></div>' +
       (alerts.length ? '<p class="ac-al" role="alert">⚠ ' + alerts.map(esc).join(' · ') + '</p>' : '');
     lastRows = rows; window.MK_ACCT = { dayPct: dayPct, dayUsd: dayUsd, tot: tot, levPct: levPct, cap: cap, alerts: alerts, rows: rows.map(function (r) { return { t: r.t, day: r.day, w: r.w }; }) };
     syncBriefCell();
@@ -191,10 +199,32 @@
     var row = function (l, f) { return '<tr><th scope="row">' + l + '</th>' + col.map(function (c) { return '<td class="n">' + (c.none ? '—' : f(c)) + '</td>'; }).join('') + '</tr>'; };
     var pcell = function (v) { return '<span class="' + cls(v) + '">' + fmtPct(v) + '</span>'; };
     var dd = function (v) { return v == null ? '<span class="na">미확인</span>' : v < 0 ? '지남' : 'D-' + (v === 0 ? 'day' : v); };
-    host.innerHTML = '<table class="cm-t"><thead><tr><th></th>' + col.map(function (c) { return '<th class="n">' + esc(c.t) + (c.none ? '<br><small class="na">조회 실패</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    var tbl = '<table class="cm-t"><thead><tr><th></th>' + col.map(function (c, i) { return '<th class="n"><i class="cm-sw cm-c' + i + '"></i>' + esc(c.t) + (c.none ? '<br><small class="na">조회 실패</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
       row('현재가', function (c) { return '$' + c.px.toFixed(2); }) + row('1일', function (c) { return pcell(c.d1); }) + row('1주', function (c) { return pcell(c.w); }) + row('1개월', function (c) { return pcell(c.m); }) + row('1년', function (c) { return pcell(c.y); }) + row('52주 고점 대비', function (c) { return pcell(c.hi); }) + row('다음 실적', function (c) { return dd(c.er); }) + row('배당락', function (c) { return dd(c.dv); }) +
-      '</tbody></table><p class="mut" style="font-size:12px;margin:8px 0 0">실적·배당락은 시총 상위·관심종목 조회 범위 안의 종목만 표시됩니다(그 밖은 “미확인”, 임의 값 없음). 기간 수익률은 일봉 종가 기준 근사입니다.</p>';
+      '</tbody></table>';
+    cmData = ts.map(function (t, i) { return cs[i] && cs[i].cl.length ? { t: t, cl: cs[i].cl, ts: cs[i].ts, i: i } : null; }).filter(Boolean);
+    host.innerHTML = '<div class="cm-grid"><div class="cm-tb">' + tbl + '</div><div class="cm-ch"><div class="cm-chh"><b>수익률 곡선</b><span class="cm-rg" role="group" aria-label="기간">' + [['1개월', 22], ['3개월', 63], ['6개월', 126], ['1년', 9999]].map(function (x) { return '<button type="button" data-rg="' + x[1] + '" class="' + (cmRg == x[1] ? 'on' : '') + '">' + x[0] + '</button>'; }).join('') + '</span></div><div id="cm-svg"></div></div></div>' +
+      '<p class="mut" style="font-size:12px;margin:8px 0 0">실적·배당락은 시총 상위·관심종목 조회 범위 안의 종목만 표시됩니다(그 밖은 “미확인”, 임의 값 없음). 기간 수익률은 일봉 종가 기준 근사입니다. 곡선은 선택 기간 시작일 대비 누적 수익률(%)입니다.</p>';
+    drawCmp();
   }
+  var cmData = [], cmRg = 9999;
+  function drawCmp() {
+    var host = $('#cm-svg'); if (!host) return;
+    if (!cmData.length) { host.innerHTML = '<p class="mut" style="font-size:12.5px">그릴 수 있는 시세가 없습니다.</p>'; return; }
+    var W = 420, H = 260, pl = 44, pr = 10, pt = 10, pb = 26;
+    var ser = cmData.map(function (d) { var n = Math.min(d.cl.length, cmRg + 1), c = d.cl.slice(-n), t = d.ts.slice(-n); return { t: d.t, i: d.i, y: c.map(function (x) { return (x / c[0] - 1) * 100; }), ts: t }; });
+    var lo = Infinity, hi = -Infinity; ser.forEach(function (s) { s.y.forEach(function (v) { if (v < lo) lo = v; if (v > hi) hi = v; }); });
+    lo = Math.min(lo, 0); hi = Math.max(hi, 0); var span = hi - lo || 1; lo -= span * .06; hi += span * .06;
+    var X = function (k, n) { return pl + (W - pl - pr) * (n <= 1 ? 0 : k / (n - 1)); }, Y = function (v) { return pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo)); };
+    var step = (function () { var raw = (hi - lo) / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; })();
+    var g = '', v0 = Math.ceil(lo / step) * step; for (var v = v0; v <= hi; v += step) { g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" class="cm-gl' + (Math.abs(v) < step / 100 ? ' z' : '') + '"/><text x="' + (pl - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end" class="cm-tx">' + (v > 0 ? '+' : '') + v.toFixed(0) + '%</text>'; }
+    var L0 = ser.reduce(function (a, s) { return s.ts.length > a.ts.length ? s : a; }, ser[0]), md = function (t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate(); };
+    var xl = '<text x="' + pl + '" y="' + (H - 7) + '" class="cm-tx">' + md(L0.ts[0]) + '</text><text x="' + (W - pr) + '" y="' + (H - 7) + '" text-anchor="end" class="cm-tx">' + md(L0.ts[L0.ts.length - 1]) + '</text>';
+    var ln = ser.map(function (s) { var n = s.y.length, off = L0.ts.length - n; return '<polyline class="cm-ln cm-c' + s.i + '" fill="none" points="' + s.y.map(function (v, k) { return X(k + off, L0.ts.length).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>'; }).join('');
+    var lg = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i class="cm-sw cm-c' + s.i + '"></i><b>' + esc(s.t) + '</b> <em class="' + cls(e) + '">' + fmtPct(e) + '</em></span>'; }).join('');
+    host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="종목별 누적 수익률 곡선" class="cm-svg">' + g + xl + ln + '</svg><div class="cm-lg">' + lg + '</div>';
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest('.cm-rg button'); if (!b) return; cmRg = +b.dataset.rg; $$('.cm-rg button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawCmp(); });
 
   /* ───────── 구동 ───────── */
   var tries = 0;

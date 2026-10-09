@@ -91,7 +91,7 @@
       var ks=Q['^KS11']; if(ks){ document.getElementById('pb-ks').textContent=fmt(ks.p,2); var e2=document.getElementById('pb-ks2'); e2.innerHTML='<span style="color:'+(ks.pct>=0?'#B42318':'#1D4ED8')+'">'+sgn(ks)+'</span>'; P.push('코스피 <em>'+(ks.pct>=0?'+':'')+fmt(ks.pct,2)+'%</em>'); }
       var fx=Q['KRW=X']; if(fx){ document.getElementById('pb-fx').textContent=fmt(fx.p,1)+'원'; var e3=document.getElementById('pb-fx2'); e3.innerHTML='<span style="color:'+(fx.pct>=0?'#B42318':'#1D4ED8')+'">'+sgn(fx)+'</span>'; P.push('원/달러 <em>'+fmt(fx.p,0)+'원</em>'); }
       var ne=nextEv(); if(ne){ document.getElementById('pb-ev').textContent=ne.t; document.getElementById('pb-ev2').textContent=ne.dd+' · '+ne.when; P.push('다음 일정 <em>'+ne.t+' '+ne.dd+'</em>'); }
-      var pl=document.getElementById('pb-line'); if(pl){ var nh=P.length?'오늘의 시장 상태: '+P.join(' · ')+' <span class="pb-note">· 참고용 요약이며 투자 권유가 아닙니다</span>':'시장 상태를 불러오는 중…'; if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } } };
+      var pl=document.getElementById('pb-line'); if(pl){ var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…'; if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } } };
     fillBrief(); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); var t=a.getAttribute('data-go'), el;
       if(t.indexOf('h:')===0){ var k=t.slice(2); el=[].slice.call(document.querySelectorAll('h2.fold-h')).find(function(h){ return (h.textContent||'').replace(/\s+/g,' ').trim().indexOf(k)===0; }); if(el&&el._set) el._set(true); } else el=document.querySelector(t);
