@@ -225,3 +225,25 @@ html body.pro.stock-v2 input[type="checkbox"]{width:18px!important;min-width:18p
  html body.pro.stock-v2 #my-wl .wl-row>.wl-actions>.my-del svg{width:14px!important;height:14px!important;min-width:14px!important;flex:0 0 14px!important}
  html body.pro.stock-v2 #my-wl .wl-row.m-x>.wl-actions>:not(.my-del){min-height:36px!important;height:36px!important;padding:6px 9px!important;font-size:12px!important;line-height:1.2!important}
 }
+/* v60: one disclosure control style, without changing event handlers. */
+html body.pro.stock-v2 :is(.stock-disclosure-button,.fold-btn,.m-fold-btn,.fold-all button,.ev-tg,.cal-more-btn,.ev-more-btn,.lead-pc){height:36px!important;min-height:36px!important;min-width:80px!important;padding:6px 12px!important;box-sizing:border-box!important;border:1px solid var(--line)!important;border-radius:8px!important;background:var(--panel2)!important;color:var(--accent)!important;font-family:'Noto Sans KR',system-ui,sans-serif!important;font-size:12px!important;font-weight:700!important;line-height:1.3!important;white-space:nowrap!important;align-items:center!important;justify-content:center!important;gap:6px!important;box-shadow:none!important;cursor:pointer}
+html body.pro.stock-v2 :is(.stock-disclosure-button,.fold-btn,.m-fold-btn,.fold-all button,.ev-tg,.cal-more-btn,.ev-more-btn,.lead-pc) em{font:inherit!important;color:inherit!important;font-style:normal!important}
+html body.pro.stock-v2 :is(.stock-disclosure-button,.fold-btn,.m-fold-btn,.fold-all button,.ev-tg,.cal-more-btn,.ev-more-btn,.lead-pc):is(:hover,:focus-visible){background:#075c3b!important;color:#fff!important;border-color:#075c3b!important}
+html body.pro.stock-v2 :is(.fold-h,.m-fold>h3):hover :is(.fold-btn,.m-fold-btn){background:#075c3b!important;color:#fff!important;border-color:#075c3b!important}
+html body.pro.stock-v2 .fold-h:hover .fold-btn *,html body.pro.stock-v2 .m-fold>h3:hover .m-fold-btn *{background:transparent!important;color:inherit!important}
+html body.pro.stock-v2 details:not(.stock-nav-group)>summary{position:relative;list-style:none!important;display:block;min-height:36px!important;padding:8px 40px 8px 12px!important;box-sizing:border-box;border:1px solid var(--line)!important;border-radius:8px!important;background:var(--panel2)!important;color:var(--tx)!important;font-family:'Noto Sans KR',system-ui,sans-serif;font-size:12px!important;font-weight:700!important;line-height:1.5!important;cursor:pointer}
+html body.pro.stock-v2 details:not(.stock-nav-group)>summary::-webkit-details-marker{display:none}
+html body.pro.stock-v2 details:not(.stock-nav-group)>summary::after{content:'＋';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--accent)}
+html body.pro.stock-v2 details[open]:not(.stock-nav-group)>summary::after{content:'−'}
+html body.pro.stock-v2 details:not(.stock-nav-group)>summary:is(:hover,:focus-visible){background:#075c3b!important;color:#fff!important;border-color:#075c3b!important}
+html body.pro.stock-v2 details:not(.stock-nav-group)>summary:is(:hover,:focus-visible)::after{color:#fff}
+@media(max-width:700px){html body.pro.stock-v2 :is(.stock-disclosure-button,.fold-btn,.m-fold-btn,.fold-all button,.ev-tg,.cal-more-btn,.ev-more-btn,.lead-pc){height:40px!important;min-height:40px!important;padding:8px 10px!important}html body.pro.stock-v2 details:not(.stock-nav-group)>summary{min-height:40px!important}}
+/* v61: market session and actual g/w/r data states are independent. */
+html body.pro.stock-v2 :is(.ps-mk.c){background:#edf0f3!important;color:#475569!important;border:1px solid #a7b0bd!important}
+html body.pro.stock-v2 :is(.ps-mk.o,.ps-net.g){background:#e0f5e8!important;color:#075c3b!important;border:1px solid #70b991!important}
+html body.pro.stock-v2 :is(.ps-mk.p,.ps-net.w){background:#fff1d6!important;color:#8a4800!important;border:1px solid #d9a340!important}
+html body.pro.stock-v2 .ps-net.r{background:#ffe4e4!important;color:#a51b1b!important;border:1px solid #d77c7c!important}
+html body.pro.stock-v2 :is(.ps-mk,.ps-net){display:inline-flex;align-items:center;gap:4px;padding:4px 9px!important;border-radius:7px!important;font-weight:700!important;white-space:nowrap}
+html body.pro.stock-v2 .ps-mk::before{content:'●';font-size:9px}
+html body.pro.stock-v2 :is(.m-fold h3 button,.fold-all button,.my-more){display:inline-flex!important;height:36px!important;min-height:36px!important;min-width:80px!important;padding:6px 12px!important;border:1px solid var(--line)!important;border-radius:8px!important;background:var(--panel2)!important;color:var(--accent)!important;font:700 12px/1.3 'Noto Sans KR',system-ui,sans-serif!important;white-space:nowrap!important;align-items:center!important;justify-content:center!important;box-shadow:none!important}
+@media(max-width:700px){html body.pro.stock-v2 :is(.m-fold h3 button,.fold-all button,.my-more){height:40px!important;min-height:40px!important}}
