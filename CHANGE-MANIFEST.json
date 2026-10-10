@@ -2,7 +2,7 @@
   {
     "file": "US-STOCK-UPDATE.md",
     "status": "added",
-    "sha256": "d13c5d2f86497bf88265979374d1d429897addc237e270109b683d89f9ecaf35"
+    "sha256": "45d904e282b15d4e154a179c2a6b346e762adeefd3b48a89473d9c04643664e9"
   },
   {
     "file": "deployment/cloudflare-pages/README.md",
@@ -72,7 +72,7 @@
   {
     "file": "stock-common-v2.js",
     "status": "added",
-    "sha256": "912ea919458c813e12708ff30336e9462174a4ded36b3d2192e0d16e1659f02c"
+    "sha256": "5123d43fc9f470d8bba020a727e9fcd5f0ca70fdb932e9d964580f17db42ee93"
   },
   {
     "file": "stock-dashboard-v2.js",
@@ -157,7 +157,7 @@
   {
     "file": "stock-refine-v47.css",
     "status": "added",
-    "sha256": "375d6d3b6fb744578ebedc3b2390a51ad48b7383e193206aaca644532f45a57b"
+    "sha256": "dcc449b06d048083b0ed1622874430192c559f6357d4a8a74d4927a59395ba83"
   },
   {
     "file": "stock-security.js",
@@ -167,7 +167,7 @@
   {
     "file": "stock-sw.js",
     "status": "added",
-    "sha256": "591a2f09623b2d91cb926803250df2433b23c05acfb35ad2736490a6013203c8"
+    "sha256": "77aab81c2d991050b3ce9725770cb97fb51d1bc6d6a8bb118e6f88145e61e8fd"
   },
   {
     "file": "stock-tools-v46.css",
@@ -192,12 +192,17 @@
   {
     "file": "stock.html",
     "status": "modified",
-    "sha256": "77780c3141ab821f37eeef1ad3aaf2f0afe803d78966a19954a823ed369e7568"
+    "sha256": "9df2ec4e5403536745e3f9ddab6f6c6eb6a6c85adf411598b3ed7249b6818a5f"
   },
   {
     "file": "tests/baseline.json",
     "status": "added",
     "sha256": "558eca5bc474bd6060ffde34a8287b3515cf138ea6f0c465747d7c30fb4fcdad"
+  },
+  {
+    "file": "tests/events-v50-results.json",
+    "status": "added",
+    "sha256": "ab7f542cdc8002847b06644f68eab571685b50ea8361ab48ce8ec2d64d225942"
   },
   {
     "file": "tests/layout-results.json",
@@ -208,6 +213,11 @@
     "file": "tests/protection-v48-results.json",
     "status": "added",
     "sha256": "78f1a56d6e78c41673468a11a1c3ff9bbb4576a2ff879073feefd3ad06e8b6c1"
+  },
+  {
+    "file": "tests/stock-events-v50.cjs",
+    "status": "added",
+    "sha256": "696ac9dc17ebd4d529d124dc724400c81588f2a13e36adc7cb624d83c7d002ba"
   },
   {
     "file": "tests/stock-layout.cjs",

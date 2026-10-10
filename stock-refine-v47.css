@@ -42,3 +42,22 @@ body.stock-v2 .stock-privacy button{min-height:44px;padding:8px 12px;border:1px 
 }
 
 body.stock-v2 .stock-account-save{display:flex;align-items:center;gap:8px;min-height:44px;font-size:13px;line-height:1.6}body.stock-v2 .stock-account-save input{width:20px;height:20px;flex:0 0 20px}
+
+/* v50: stable event badges and accessible display controls on US stocks. */
+html body.pro.stock-v2 #cap-chip-set{flex-wrap:nowrap!important;min-width:0;max-width:100%;box-sizing:border-box}
+html body.pro.stock-v2 #cap-chip-set button{flex:0 0 auto;min-width:80px;min-height:44px;white-space:nowrap!important;word-break:keep-all;padding:8px 6px!important}
+html body.pro.stock-v2 .wl-info>.wl-tc{display:flex;flex-wrap:nowrap;align-items:center;gap:4px;max-width:100%;min-width:0;margin-top:4px;overflow-x:auto;scrollbar-width:thin}
+html body.pro.stock-v2 .wl-info>.wl-tc>a{flex:0 0 auto;white-space:nowrap!important;line-height:1.4}
+html body.pro.stock-v2 :is(.hide-er.hide-dv) .wl-tc,
+html body.pro.stock-v2 .hide-er .wl-tc:not(:has(.dv-b)),
+html body.pro.stock-v2 .hide-dv .wl-tc:not(:has(.er-b)){display:none!important}
+@media(max-width:700px){
+ html body.pro.stock-v2 #cap-chip-set button{min-width:0;flex:1 1 0}
+ html body.pro.stock-v2 .cap-ctl{align-items:stretch;gap:8px}
+ html body.pro.stock-v2 .cap-ctl>#cap-chip-set{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%!important;gap:6px!important}
+ html body.pro.stock-v2 :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-info{min-width:0!important}
+ html body.pro.stock-v2 .wl-info>.wl-tc{font-size:11.5px}
+ html body.pro.stock-v2 .wl-info>.wl-tc>:is(.er-b,.dv-b){font-size:11.5px!important;padding:3px 6px}
+}
+/* The buttons already meet the touch target; remove overlapping legacy hit areas. */
+html body.pro.stock-v2 #cap-chip-set button::after{content:none!important}

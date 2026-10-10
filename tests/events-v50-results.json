@@ -1,0 +1,170 @@
+[
+  {
+    "width": 320,
+    "status": "passed",
+    "buttons": [
+      {
+        "y": 478.234375,
+        "h": 44,
+        "w": 88.65625,
+        "sw": 89,
+        "cw": 89,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.234375,
+        "h": 44,
+        "w": 88.671875,
+        "sw": 89,
+        "cw": 89,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.234375,
+        "h": 44,
+        "w": 88.65625,
+        "sw": 89,
+        "cw": 89,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      }
+    ],
+    "overflow": false,
+    "tagBadges": 0,
+    "badges": 36
+  },
+  {
+    "width": 360,
+    "status": "passed",
+    "buttons": [
+      {
+        "y": 477.9375,
+        "h": 44,
+        "w": 102,
+        "sw": 102,
+        "cw": 102,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 477.9375,
+        "h": 44,
+        "w": 102,
+        "sw": 102,
+        "cw": 102,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 477.9375,
+        "h": 44,
+        "w": 102,
+        "sw": 102,
+        "cw": 102,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      }
+    ],
+    "overflow": false,
+    "tagBadges": 0,
+    "badges": 36
+  },
+  {
+    "width": 390,
+    "status": "passed",
+    "buttons": [
+      {
+        "y": 478.34375,
+        "h": 44,
+        "w": 112,
+        "sw": 112,
+        "cw": 112,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.34375,
+        "h": 44,
+        "w": 112,
+        "sw": 112,
+        "cw": 112,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.34375,
+        "h": 44,
+        "w": 112,
+        "sw": 112,
+        "cw": 112,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      }
+    ],
+    "overflow": false,
+    "tagBadges": 0,
+    "badges": 36
+  },
+  {
+    "width": 1440,
+    "status": "passed",
+    "buttons": [
+      {
+        "y": 478.296875,
+        "h": 44,
+        "w": 80,
+        "sw": 80,
+        "cw": 80,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.296875,
+        "h": 44,
+        "w": 80,
+        "sw": 80,
+        "cw": 80,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      },
+      {
+        "y": 478.296875,
+        "h": 44,
+        "w": 80,
+        "sw": 80,
+        "cw": 80,
+        "font": "12px",
+        "padding": "8px 6px",
+        "wrap": "nowrap",
+        "overflow": false
+      }
+    ],
+    "overflow": false,
+    "tagBadges": 0,
+    "badges": 36
+  }
+]
