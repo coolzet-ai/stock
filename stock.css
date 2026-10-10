@@ -3300,6 +3300,21 @@ html body.pro.stock-v2 .stock-market-details .stock-ticker-track{white-space:now
  html body.pro.stock-v2 #us-card .fg-top>div:last-child{flex:1 0 100%!important;width:100%}
 }
 
+/* v73: reserve identical spark and quote columns regardless of price text length. */
+@media(min-width:701px){
+ html body.pro.stock-v2 #tick-tbl .wl-row{display:grid!important;grid-template-columns:5px minmax(0,1fr) 72px 190px 34px!important;align-items:center!important;gap:10px!important}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-bar{grid-column:1;width:5px!important}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-info{grid-column:2;min-width:0!important}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-spark{grid-column:3;display:block!important;width:72px!important;height:28px!important;margin:0!important;justify-self:center}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-spark svg{width:72px!important;height:28px!important;display:block}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-quote{grid-column:4;width:190px!important;min-width:0!important;max-width:none!important;text-align:right!important}
+ html body.pro.stock-v2 #tick-tbl .wl-row>.wl-actions{grid-column:5;width:34px!important;min-width:0!important;margin:0!important}
+}
+@media(max-width:700px){
+ html body.pro.stock-v2 #tick-tbl .wl-row.m-x>.wl-spark{order:8!important;flex:1 0 100%!important;width:100%!important;margin:4px 0!important}
+ html body.pro.stock-v2 #tick-tbl .wl-row.m-x>.wl-spark svg{width:100%!important;height:34px!important}
+}
+
 /* Source: stock-protection-v48.css */
 body.stock-content-protected{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body.stock-content-protected :is(input,textarea,[contenteditable]){-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
