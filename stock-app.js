@@ -302,7 +302,7 @@ function bars(pre,arr,labels,tickEvery){
     el.appendChild(it);
   });
   const tr=document.getElementById(pre+'-trend');
-  if(tr) tr.innerHTML=trendSVG(arr);
+  if(tr){tr.innerHTML=trendSVG(arr);if(pre==='us'&&arr.length){const meta=document.createElement('div');meta.className='stock-trend-labels';[labels&&labels[0]||'기간 시작',labels&&labels[labels.length-1]||'최근', '최근 '+Number(arr[arr.length-1]).toFixed(1)+'점'].forEach(text=>{const span=document.createElement('span');span.textContent=text;meta.appendChild(span);});tr.appendChild(meta);}}
   const lb=document.getElementById(pre+'-bars-labels');
   if(lb){
     if(labels&&labels.length){
@@ -8816,7 +8816,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
  ['pb-state','pb-line','pb-fut'].forEach(function(id){var e=document.getElementById(id);if(e)more.appendChild(e);});
  brief.appendChild(more);
  var desktop=window.matchMedia('(min-width:701px)');
- function syncDesktop(){document.querySelectorAll('.stock-market-details,.stock-insights-details').forEach(function(d){d.open=desktop.matches;});}
+ function syncDesktop(){document.querySelectorAll('.stock-insights-details').forEach(function(d){d.open=desktop.matches;});}
  desktop.addEventListener('change',syncDesktop);setTimeout(syncDesktop,0);
  var toc=document.getElementById('pro-toc');if(toc){brief.after(toc);var search=toc.querySelector('.pt-s');if(search&&search.firstChild&&search.firstChild.nodeType===3){search.firstChild.textContent='';var icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','stock-search-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15 15 6 6" stroke="currentColor" stroke-width="2"/>';search.prepend(icon);}}
  // Keep personal tools available below the primary market analytics.
@@ -9001,6 +9001,24 @@ setTimeout(draw,5000);setInterval(draw,20000);
  'use strict';
  var status=document.querySelector('.stock-status'),retry=status&&status.querySelector('button'),all=document.querySelector('.fold-all');
  if(status&&retry&&all){var actions=document.createElement('div');actions.className='stock-status-actions';actions.setAttribute('role','group');actions.setAttribute('aria-label','화면 관리');status.appendChild(actions);actions.append(retry,all);}
+})();
+
+;
+/* Source: stock-final-v72.js */
+(function(){
+ 'use strict';
+ var market=document.querySelector('.stock-market-details'),core=document.querySelector('.stock-core-indices');if(core)core.remove();
+ var tools=document.querySelector('.stock-tools-hub'),guide=document.getElementById('guide');
+ var section=document.createElement('section');section.className='stock-bottom-tools';var wrap=document.createElement('div');wrap.className='wrap';section.appendChild(wrap);
+ if(market){market.open=false;var title=market.querySelector('summary');if(title)title.textContent='시세 보기 · 주요 지수·환율';wrap.appendChild(market);}
+ if(tools){var disclosure=document.createElement('details');disclosure.className='stock-bottom-personal';var title=document.createElement('summary');title.textContent='내 투자 도구';disclosure.append(title,tools);wrap.appendChild(disclosure);}
+ if(guide)guide.before(section);else(document.querySelector('main')||document.body).appendChild(section);
+ // The layout script's queued desktop initializer must not reopen bottom disclosures.
+ setTimeout(function(){if(market)market.open=false;},0);
+ var cnn=document.getElementById('pro-cnn'),h=cnn&&cnn.querySelector('h3');if(h){var label=document.createElement('span');label.className='stock-cnn-title';[].slice.call(h.childNodes).forEach(function(n){if(n.nodeType===3)label.appendChild(n);});h.prepend(label);}
+ document.querySelectorAll('.stock-status-actions button').forEach(function(b){var text=b.textContent;var icon=b.dataset.o==='0'?'⊟':b.dataset.o==='1'?'⊞':'↻';b.dataset.mobileIcon=icon;b.setAttribute('aria-label',text);b.title=text;var label=document.createElement('span');label.className='stock-action-label';label.textContent=text;b.replaceChildren(label);});
+ function compactStatus(){var mk=document.getElementById('ps-mk'),net=document.getElementById('ps-net');if(mk)mk.dataset.short=/휴장/.test(mk.textContent)?'휴장':/정규장/.test(mk.textContent)?'장중':/프리/.test(mk.textContent)?'장전':/애프터/.test(mk.textContent)?'장후':'마감';if(net)net.dataset.short=/정상/.test(net.textContent)?'정상':/누락|일부/.test(net.textContent)?'일부 누락':/오류|실패/.test(net.textContent)?'오류':'확인 중';}
+ compactStatus();['ps-mk','ps-net'].forEach(function(id){var el=document.getElementById(id);if(el)new MutationObserver(compactStatus).observe(el,{childList:true,characterData:true,subtree:true});});
 })();
 
 ;
