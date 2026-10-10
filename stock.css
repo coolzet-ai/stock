@@ -3314,6 +3314,29 @@ html body.pro.stock-v2 .stock-market-details .stock-ticker-track{white-space:now
  html body.pro.stock-v2 #tick-tbl .wl-row.m-x>.wl-spark{order:8!important;flex:1 0 100%!important;width:100%!important;margin:4px 0!important}
  html body.pro.stock-v2 #tick-tbl .wl-row.m-x>.wl-spark svg{width:100%!important;height:34px!important}
 }
+/* v74: after-hours prices follow the same bold price convention. */
+html body.pro.stock-v2 .wl-ext .e-l,html body.pro.stock-v2 .x-c small{font-weight:800!important;font-variant-numeric:tabular-nums!important}
+/* v75: grid gauge sizing must use the column's full width, not a second percentage. */
+html body.pro.stock-v2 #us-card .fg-top{display:grid!important;grid-template-columns:minmax(230px,280px) minmax(0,1fr)!important;gap:16px!important;align-items:center!important}
+html body.pro.stock-v2 #us-card .stock-gauge{width:100%!important;max-width:280px!important;min-width:0!important;justify-self:center;flex:none!important}
+html body.pro.stock-v2 #pro-cnn.card.m-fold{padding:0!important}
+html body.pro.stock-v2 #pro-cnn.card.m-fold>h3{padding:14px 16px!important;min-height:64px!important;margin:0!important;border-bottom:1px solid var(--line)}
+html body.pro.stock-v2 #pro-cnn.card.m-fold.m-open>:not(h3){margin-left:16px!important;margin-right:16px!important;box-sizing:border-box}
+html body.pro.stock-v2 #pro-cnn.card.m-fold.m-open>table{width:calc(100% - 32px)!important}
+html body.pro.stock-v2 #pro-cnn.card.m-fold.m-open>:last-child{margin-bottom:16px!important}
+html body.pro.stock-v2 .pro-row:has(>#pro-int):not(:has(>.m-fold:not(.m-open))){align-items:stretch!important}
+html body.pro.stock-v2 .pro-row:has(>#pro-int):not(:has(>.m-fold:not(.m-open)))>:is(#pro-int,#pro-fwd){align-self:stretch!important}
+html body.pro.stock-v2 #pro-brief>.stock-market-details{margin:12px 0 0!important}
+html body.pro.stock-v2 #mk-acct .ac-t{min-width:0!important;width:100%!important;table-layout:fixed!important}
+html body.pro.stock-v2 #mk-acct .ac-t :is(th,td){white-space:normal!important;overflow-wrap:anywhere;padding:8px 5px!important;font-size:12px!important;width:auto!important}
+html body.pro.stock-v2 #mk-acct .ac-t th{font-weight:800!important;color:var(--tx)!important;background:var(--panel2)}
+html body.pro.stock-v2 #mk-acct .ac-t :is(th,td):first-child{width:12%!important}
+html body.pro.stock-v2 #mk-acct .ac-t :is(th,td):nth-child(6){width:16%!important}
+html body.pro.stock-v2 #mk-acct .ac-t :is(th,td):last-child{width:10%!important}
+html body.pro.stock-v2 #mk-acct .ac-act{white-space:normal!important}
+html body.pro.stock-v2 .ac-chart-legend{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;font-size:12px;font-weight:700}
+html body.pro.stock-v2 .ac-chart-legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px}
+@media(max-width:700px){html body.pro.stock-v2 #us-card .fg-top{grid-template-columns:minmax(0,1fr)!important}html body.pro.stock-v2 #us-card .stock-gauge{width:280px!important;max-width:100%!important}html body.pro.stock-v2 #pro-cnn.card.m-fold>h3{min-height:64px!important}html body.pro.stock-v2 #mk-acct .ac-t tr:has(td:not([colspan])) td{width:auto!important}}
 
 /* Source: stock-protection-v48.css */
 body.stock-content-protected{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}

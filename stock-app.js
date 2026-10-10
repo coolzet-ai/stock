@@ -8657,7 +8657,26 @@ setTimeout(draw,5000);setInterval(draw,20000);
 
   var acCurveSerial=0,acMonths=12,acSignature='';
   function buildAccountCurve(){if(!acctBox||$('#ac-curve'))return;var box=document.createElement('section');box.id='ac-curve';box.innerHTML='<h4>현재 보유 수량 기준 과거 수익률</h4><div class="ac-periods" role="group" aria-label="계좌 곡선 기간">'+PERIODS.map(function(p){return '<button type="button" data-months="'+p[1]+'" aria-pressed="'+(p[1]===acMonths)+'">'+p[0]+'</button>';}).join('')+'</div><div id="ac-curve-result" role="status">기간을 누르면 곡선을 조회합니다.</div><p class="mut">현재 수량을 과거에도 동일하게 보유했다고 가정한 가격 수익률입니다. 실제 매매·입출금·배당·환율은 반영하지 않습니다. 모든 보유 종목의 공통 시세 구간만 계산합니다.</p>';acctBox.appendChild(box);box.addEventListener('click',function(e){var b=e.target.closest('[data-months]');if(!b)return;acMonths=+b.dataset.months;box.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});drawAccountCurve();});}
-  async function drawAccountCurve(){var id=++acCurveSerial,hold=loadH(),keys=Object.keys(hold),host=$('#ac-curve-result');if(!host)return;host.textContent='시세를 불러오는 중…';if(!keys.length){host.textContent='보유 종목을 먼저 입력해 주세요.';return;}if(keys.some(function(t){return /\.(KS|KQ)$/.test(t);})){host.textContent='달러 종목으로만 구성된 계좌에서 조회할 수 있습니다.';return;}var data=await Promise.all(keys.map(function(t){return chart(t,acMonths>12?'10y':'1y');}));if(id!==acCurveSerial)return;if(data.some(function(d){return !d||d.cl.length<2;})){host.textContent='일부 보유 종목의 시세 조회에 실패했습니다. 기간 버튼을 눌러 다시 조회해 주세요.';return;}var points=window.MK_RETURNS.portfolio(data.map(function(d,i){return {cl:d.cl,ts:d.ts,q:hold[keys[i]].q};}),acMonths);if(points.length<2){host.textContent='공통 시세 구간이 부족합니다.';return;}var lo=Math.min(0,Math.min.apply(null,points.map(function(p){return p.y;}))),hi=Math.max(0,Math.max.apply(null,points.map(function(p){return p.y;}))),span=hi-lo||1;lo-=span*.08;hi+=span*.08;var X=function(t){return 60+640*(t-points[0].t)/(points[points.length-1].t-points[0].t);},Y=function(v){return 16+224*(1-(v-lo)/(hi-lo));},last=points[points.length-1];var date=function(t){return new Date(t).toLocaleDateString('ko-KR',{timeZone:'America/New_York'});};host.innerHTML='<div class="ac-curve-meta"><b class="'+cls(last.y)+'">'+fmtPct(last.y)+'</b><span>'+esc(date(points[0].t))+' ~ '+esc(date(last.t))+' · '+keys.length+'종목</span></div><svg class="ac-curve-svg" viewBox="0 0 720 278" role="img" aria-label="현재 보유 수량 기준 과거 가격 수익률"><line x1="60" x2="700" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="var(--line)"/><text x="4" y="24" fill="var(--tx2)">'+hi.toFixed(1)+'%</text><text x="4" y="240" fill="var(--tx2)">'+lo.toFixed(1)+'%</text><polyline fill="none" stroke="var(--accent)" stroke-width="2" points="'+points.map(function(p){return X(p.t).toFixed(1)+','+Y(p.y).toFixed(1);}).join(' ')+'"/></svg>';}
+  async function drawAccountCurve(){
+    var id=++acCurveSerial,hold=loadH(),keys=Object.keys(hold),host=$('#ac-curve-result');if(!host)return;host.textContent='시세를 불러오는 중…';
+    if(!keys.length){host.textContent='보유 종목을 먼저 입력해 주세요.';return;}
+    if(keys.some(function(t){return /\.(KS|KQ)$/.test(t);})){host.textContent='달러 종목으로만 구성된 계좌에서 조회할 수 있습니다.';return;}
+    var range=acMonths>12?'10y':'1y',results=await Promise.all([Promise.all(keys.map(function(t){return chart(t,range);})),chart('QQQ',range)]),data=results[0],benchmark=results[1];if(id!==acCurveSerial)return;
+    if(data.some(function(d){return !d||d.cl.length<2;})){host.textContent='일부 보유 종목의 시세 조회에 실패했습니다. 기간 버튼을 눌러 다시 조회해 주세요.';return;}
+    var points=window.MK_RETURNS.portfolio(data.map(function(d,i){return {cl:d.cl,ts:d.ts,q:hold[keys[i]].q};}),acMonths),bench=[];
+    if(benchmark){var lookup=new Map();benchmark.ts.forEach(function(t,i){if(benchmark.cl[i]>0)lookup.set(t,benchmark.cl[i]);});var common=points.filter(function(p){return lookup.has(p.t);});if(common.length>1){var base=1+common[0].y/100,b0=lookup.get(common[0].t);points=common.map(function(p){return {t:p.t,y:((1+p.y/100)/base-1)*100};});bench=common.map(function(p){return {t:p.t,y:(lookup.get(p.t)/b0-1)*100};});}}
+    if(points.length<2){host.textContent='공통 시세 구간이 부족합니다.';return;}
+    var all=points.concat(bench),lo=Math.min(0,Math.min.apply(null,all.map(function(p){return p.y;}))),hi=Math.max(0,Math.max.apply(null,all.map(function(p){return p.y;}))),span=hi-lo||1;lo-=span*.08;hi+=span*.08;
+    var start=points[0].t,end=points[points.length-1].t,X=function(t){return 66+638*(t-start)/(end-start);},Y=function(v){return 20+220*(1-(v-lo)/(hi-lo));},date=function(t){return new Date(t).toLocaleDateString('ko-KR',{timeZone:'America/New_York',year:'2-digit',month:'2-digit',day:'2-digit'});};
+    var svg='<svg class="ac-curve-svg" viewBox="0 0 740 300" role="img" aria-label="현재 보유 수량과 QQQ의 가격 수익률 비교: 가로축 날짜, 세로축 수익률 퍼센트">';
+    for(var i=0;i<=4;i++){var v=lo+(hi-lo)*i/4,y=Y(v);svg+='<line x1="66" x2="704" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="60" y="'+(y+4)+'" text-anchor="end" fill="var(--tx2)" font-size="11">'+v.toFixed(1)+'%</text>';}
+    svg+='<line x1="66" x2="704" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="var(--tx2)" stroke-dasharray="3 3"/>';
+    for(var j=0;j<3;j++){var t=start+(end-start)*j/2;svg+='<text x="'+X(t)+'" y="263" text-anchor="'+(j===0?'start':j===2?'end':'middle')+'" fill="var(--tx2)" font-size="11">'+esc(date(t))+'</text>';}
+    svg+='<text x="66" y="12" fill="var(--tx2)" font-size="11">수익률 (%)</text><text x="385" y="291" text-anchor="middle" fill="var(--tx2)" font-size="11">날짜</text>';
+    function line(arr,color,dash){return '<polyline fill="none" stroke="'+color+'" stroke-width="2.3" '+(dash?'stroke-dasharray="6 3"':'')+' points="'+arr.map(function(p){return X(p.t).toFixed(1)+','+Y(p.y).toFixed(1);}).join(' ')+'"/>';}
+    svg+=line(points,'var(--accent)',false)+(bench.length?line(bench,'#2563eb',true):'')+'</svg>';
+    host.innerHTML='<div class="ac-curve-meta"><b class="'+cls(points[points.length-1].y)+'">'+fmtPct(points[points.length-1].y)+'</b><span>'+esc(date(start))+' ~ '+esc(date(end))+' · '+keys.length+'종목</span></div><div class="ac-chart-legend"><span><i style="background:var(--accent)"></i>현재 보유 수량</span><span><i style="background:#2563eb"></i>QQQ (점선) '+(bench.length?fmtPct(bench[bench.length-1].y):'조회 불가')+'</span></div>'+svg+(bench.length?'':'<p class="mut">QQQ 공통 시세가 없어 비교선은 표시하지 않았습니다.</p>');
+  }
   /* ───────── 퇴근 후 5분 체크리스트 ───────── */
   var eve;
   function buildEve() {
@@ -9020,5 +9039,9 @@ setTimeout(draw,5000);setInterval(draw,20000);
  function compactStatus(){var mk=document.getElementById('ps-mk'),net=document.getElementById('ps-net');if(mk)mk.dataset.short=/휴장/.test(mk.textContent)?'휴장':/정규장/.test(mk.textContent)?'장중':/프리/.test(mk.textContent)?'장전':/애프터/.test(mk.textContent)?'장후':'마감';if(net)net.dataset.short=/정상/.test(net.textContent)?'정상':/누락|일부/.test(net.textContent)?'일부 누락':/오류|실패/.test(net.textContent)?'오류':'확인 중';}
  compactStatus();['ps-mk','ps-net'].forEach(function(id){var el=document.getElementById(id);if(el)new MutationObserver(compactStatus).observe(el,{childList:true,characterData:true,subtree:true});});
 })();
+
+;
+/* Source: stock-final-v75.js */
+(function(){var market=document.querySelector('.stock-market-details'),brief=document.getElementById('pro-brief');if(market&&brief){brief.appendChild(market);market.open=false;var title=market.querySelector('summary');if(title)title.textContent='주요 지수·환율 시세 보기';}})();
 
 ;
