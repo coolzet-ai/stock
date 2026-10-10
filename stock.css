@@ -3337,6 +3337,22 @@ html body.pro.stock-v2 #mk-acct .ac-act{white-space:normal!important}
 html body.pro.stock-v2 .ac-chart-legend{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;font-size:12px;font-weight:700}
 html body.pro.stock-v2 .ac-chart-legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px}
 @media(max-width:700px){html body.pro.stock-v2 #us-card .fg-top{grid-template-columns:minmax(0,1fr)!important}html body.pro.stock-v2 #us-card .stock-gauge{width:280px!important;max-width:100%!important}html body.pro.stock-v2 #pro-cnn.card.m-fold>h3{min-height:64px!important}html body.pro.stock-v2 #mk-acct .ac-t tr:has(td:not([colspan])) td{width:auto!important}}
+/* v76: compact badges and exactly equal mobile buttons share one status rail. */
+html body.pro.stock-v2 .stock-status-rail{display:flex;align-items:center;flex-wrap:wrap;gap:10px;width:100%}
+html body.pro.stock-v2 #pro-cnn :is(#us-src,#us-sub-note){margin-left:16px!important;margin-right:16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important;line-height:1.6!important}
+html body.pro.stock-v2 #pro-cnn #us-sub-note{padding:10px!important;border-radius:8px}
+@media(max-width:700px){
+ html body.pro.stock-v2 .stock-status{padding:10px!important;gap:8px!important}
+ html body.pro.stock-v2 .stock-status-rail{flex-wrap:nowrap!important;gap:6px!important}
+ html body.pro.stock-v2 .stock-status-rail .stock-live-badges{display:flex!important;flex:0 1 auto!important;min-width:0!important;gap:4px!important;flex-wrap:nowrap!important}
+ html body.pro.stock-v2 .stock-live-badges :is(.ps-mk,.ps-net){font-size:0!important;padding:4px 6px!important;gap:3px!important}
+ html body.pro.stock-v2 .stock-live-badges :is(.ps-mk,.ps-net)::after{content:attr(data-short);font-size:10px;font-weight:750}
+ html body.pro.stock-v2 .stock-status-rail .stock-status-actions{display:flex!important;flex:0 0 auto!important;width:auto!important;margin:0 0 0 auto!important;gap:4px!important;order:0!important}
+ html body.pro.stock-v2 .stock-status-rail .fold-all{display:flex!important;flex:0 0 auto!important;width:auto!important;gap:4px!important}
+ html body.pro.stock-v2 .stock-status-rail .stock-status-actions button{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 30px!important;width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important;padding:0!important;margin:0!important;border-radius:7px!important}
+ html body.pro.stock-v2 .stock-status-rail .stock-status-actions button::before{font-size:18px!important}
+ html body.pro.stock-v2 .stock-status>p{order:1!important}
+}
 
 /* Source: stock-protection-v48.css */
 body.stock-content-protected{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
