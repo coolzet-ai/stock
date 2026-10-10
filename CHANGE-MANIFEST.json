@@ -2,7 +2,32 @@
   {
     "file": "US-STOCK-UPDATE.md",
     "status": "added",
-    "sha256": "160601052dc477a3634fd217427c2a566136cefbf87becd25e740bab06d4b6c5"
+    "sha256": "e722ab55f3b406c1ce5eb857ae3f26df1ac9d263185f2420c03ea31b8ce647e6"
+  },
+  {
+    "file": "previews/preview-dark-pc.png",
+    "status": "added",
+    "sha256": "987e96ef896271a451dd320addf365f2c407873cb363d25e508509f86a7ae777"
+  },
+  {
+    "file": "previews/preview-mobile.png",
+    "status": "added",
+    "sha256": "7c683a00cf27284ebc88f86372e40d9ae5d7ad8e7d8ad0b315159862c8225d69"
+  },
+  {
+    "file": "previews/preview-pc.png",
+    "status": "added",
+    "sha256": "663b3cc82f645b9ecf491fe06a155aa30e3102b6a6a619638161f57edb675ab1"
+  },
+  {
+    "file": "previews/preview-small-mobile.png",
+    "status": "added",
+    "sha256": "5968be499a48671a933867a4ce3eba0a79618853a4e51836b3b884fcf87eb41b"
+  },
+  {
+    "file": "previews/preview-tablet.png",
+    "status": "added",
+    "sha256": "0fdb83281cb41594e492ba276eb2c2481ab75fd384527f482f6103dad505ead3"
   },
   {
     "file": "stock-bootstrap.js",
@@ -35,6 +60,16 @@
     "sha256": "298a82d9c551fb17886314a079dd8e9fe72e437598673465c3e82558c9bf0e99"
   },
   {
+    "file": "stock-layout-v3.css",
+    "status": "added",
+    "sha256": "886b93710876d7c32fa92988099fdfb76aa06ca0ec96c95b19fc07e5af674cd0"
+  },
+  {
+    "file": "stock-layout-v3.js",
+    "status": "added",
+    "sha256": "1e1b61b2ae60d743d1105141019ac24d84be5c44a30ecb7c380ea1fa750c00fa"
+  },
+  {
     "file": "stock-security.js",
     "status": "added",
     "sha256": "df38124a23c4db10f43338f9d7733eb4c02e8e9fc85b011f0b001b42244a6dfc"
@@ -42,7 +77,7 @@
   {
     "file": "stock-sw.js",
     "status": "added",
-    "sha256": "54b66815415c47754b7ed0d2867225bfd2f39f15ec1e60e6a35c06d890c0370c"
+    "sha256": "2a6f87d116df1b07424862c8c5b47ade232ac09c5488c977474c792d5a04a9e5"
   },
   {
     "file": "stock-ux-v2.js",
@@ -52,12 +87,22 @@
   {
     "file": "stock.html",
     "status": "modified",
-    "sha256": "7b7edd1c2256eee6400a30395105ebf3e651492a878d66517129b5886b55b380"
+    "sha256": "07aca3b0656e8b83774ccff76beae8708a095a6f805db753dee50a9bb0225408"
   },
   {
     "file": "tests/baseline.json",
     "status": "added",
     "sha256": "558eca5bc474bd6060ffde34a8287b3515cf138ea6f0c465747d7c30fb4fcdad"
+  },
+  {
+    "file": "tests/layout-results.json",
+    "status": "added",
+    "sha256": "261386a03bd7a6eb764d212564d5e1ce3ef095053c4d499e2555b3c2875c135f"
+  },
+  {
+    "file": "tests/stock-layout.cjs",
+    "status": "added",
+    "sha256": "cb19ee49b96e0d57c28506785ebfa076d3c54cea7f6a4cd3e7f28a0f0090b932"
   },
   {
     "file": "tests/stock-security.cjs",

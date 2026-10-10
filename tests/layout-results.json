@@ -1,0 +1,93 @@
+[
+  {
+    "name": "pc",
+    "width": 1440,
+    "scroll": 1440,
+    "columns": [
+      "292.5px",
+      "292.5px",
+      "292.5px",
+      "292.5px"
+    ],
+    "header": "rgba(0, 0, 0, 0)",
+    "gauge": true,
+    "cardCount": 4,
+    "personalBelow": true,
+    "duplicateIds": [],
+    "pageErrors": 0,
+    "checks": "passed",
+    "screenshotMode": "offline; original fallback values only"
+  },
+  {
+    "name": "mobile",
+    "width": 390,
+    "scroll": 390,
+    "columns": [
+      "158px",
+      "158px"
+    ],
+    "header": "rgba(0, 0, 0, 0)",
+    "gauge": true,
+    "cardCount": 4,
+    "personalBelow": true,
+    "duplicateIds": [],
+    "pageErrors": 0,
+    "checks": "passed",
+    "screenshotMode": "offline; original fallback values only"
+  },
+  {
+    "name": "small-mobile",
+    "width": 360,
+    "scroll": 360,
+    "columns": [
+      "143px",
+      "143px"
+    ],
+    "header": "rgba(0, 0, 0, 0)",
+    "gauge": true,
+    "cardCount": 4,
+    "personalBelow": true,
+    "duplicateIds": [],
+    "pageErrors": 0,
+    "checks": "passed",
+    "screenshotMode": "offline; original fallback values only"
+  },
+  {
+    "name": "tablet",
+    "width": 768,
+    "scroll": 768,
+    "columns": [
+      "164.5px",
+      "164.5px",
+      "164.5px",
+      "164.5px"
+    ],
+    "header": "rgba(0, 0, 0, 0)",
+    "gauge": true,
+    "cardCount": 4,
+    "personalBelow": true,
+    "duplicateIds": [],
+    "pageErrors": 0,
+    "checks": "passed",
+    "screenshotMode": "offline; original fallback values only"
+  },
+  {
+    "name": "dark-pc",
+    "width": 1440,
+    "scroll": 1440,
+    "columns": [
+      "292.5px",
+      "292.5px",
+      "292.5px",
+      "292.5px"
+    ],
+    "header": "rgba(0, 0, 0, 0)",
+    "gauge": true,
+    "cardCount": 4,
+    "personalBelow": true,
+    "duplicateIds": [],
+    "pageErrors": 0,
+    "checks": "passed",
+    "screenshotMode": "offline; original fallback values only"
+  }
+]

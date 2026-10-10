@@ -1,6 +1,6 @@
 /* Public US dashboard assets only; never cache API, credentials, other pages. */
-const CACHE='mk-stock-public-v42';
-const STATIC=new Set(['stock.html','stock-bootstrap.js','stock-security.js','stock-design-v2.css','stock-dashboard-v2.js','stock-extra.js','stock-gate-legacy.js','stock-ux-v2.js','stock-common-v2.js','mrkim-pro.min.js','mrkim-pro.css','mrkim-theme.css','stock-page.js','stock-fin.js','stock-etf.js','stock-fold.js','stock-pulse.js','stock-mobile.js','stock-asof.js','stock-sort.js','mrkim-invest.js']);
+const CACHE='mk-stock-public-v43';
+const STATIC=new Set(['stock.html','stock-layout-v3.js','stock-layout-v3.css','stock-bootstrap.js','stock-security.js','stock-design-v2.css','stock-dashboard-v2.js','stock-extra.js','stock-gate-legacy.js','stock-ux-v2.js','stock-common-v2.js','mrkim-pro.min.js','mrkim-pro.css','mrkim-theme.css','stock-page.js','stock-fin.js','stock-etf.js','stock-fold.js','stock-pulse.js','stock-mobile.js','stock-asof.js','stock-sort.js','mrkim-invest.js']);
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('mk-stock-public-')&&k!==CACHE)).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
