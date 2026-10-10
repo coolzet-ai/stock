@@ -1,0 +1,23 @@
+[
+  {
+    "width": 1440,
+    "checks": "passed",
+    "inlineScriptBlocked": true,
+    "inputPasteAllowed": true,
+    "bodyCopyBlocked": true
+  },
+  {
+    "width": 390,
+    "checks": "passed",
+    "inlineScriptBlocked": true,
+    "inputPasteAllowed": true,
+    "bodyCopyBlocked": true
+  },
+  {
+    "width": 360,
+    "checks": "passed",
+    "inlineScriptBlocked": true,
+    "inputPasteAllowed": true,
+    "bodyCopyBlocked": true
+  }
+]

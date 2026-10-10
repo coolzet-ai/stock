@@ -46,7 +46,7 @@
   syncGauge();new MutationObserver(syncGauge).observe(source,{childList:true,subtree:true,characterData:true});
  }
  
- var icons=['<path d="m3 10 9-7 9 7v10h-6v-7H9v7H3z"/>','<path d="M4 20V10h4v10m4 0V4h4v16m4 0v-7h-1"/>','<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>','<path d="m3 8 9-5 9 5M4 9h16M5 10v8m7-8v8m7-8v8M3 21h18"/>','<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'];
+ var icons=['<path d="M4 20V10h4v10m4 0V4h4v16m4 0v-7h-1"/>','<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>','<path d="M4 6h15v14H4zM4 6V4h13v2m-3 6h7v5h-7z"/>','<path d="M4 5h16v16H4zM4 10h16M8 3v4m8-4v4"/>','<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'];
  document.querySelectorAll('#mk-tabbar .ti').forEach(function(el,i){el.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[i]+'</svg>';});
  // Native disclosures must open when a direct anchor targets a contained tool.
  document.addEventListener('click',function(e){var a=e.target.closest('a[href^="#"]');if(!a)return;var id=a.getAttribute('href').slice(1),el=id&&document.getElementById(id);if(el){for(var p=el.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;}},true);

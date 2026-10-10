@@ -1,0 +1,1 @@
+이 파일은 Cloudflare Pages 프로젝트의 실제 출력 디렉터리에 _headers로 복사하는 예시입니다. 현재 GitHub Pages 배포에서는 작동하지 않습니다. 실제 경로가 /stock.html인 경우 /stock/stock.html 규칙을 /stock.html로 변경하세요. JSON-LD 내용이 변경되면 CSP 해시도 재생성해야 합니다. HTML·JSON-LD는 CDN에서 변환하지 마세요. Worker/API 인증 및 응답 헤더는 별도 서버 설정입니다. 기존 Worker를 이 파일로 대체하지 마세요.

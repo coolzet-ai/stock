@@ -1,0 +1,6 @@
+/stock/stock.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-Oh15i0iQyugJ1jf6DC+X7n5+m3NvUDziT4TbVuIF6HI='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev; media-src 'none'; frame-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  X-Frame-Options: DENY

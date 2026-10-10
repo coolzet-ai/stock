@@ -1,0 +1,5 @@
+{
+  "checks": 9,
+  "status": "passed",
+  "mode": "mocked upstream and rate-limit bindings; not production integration"
+}

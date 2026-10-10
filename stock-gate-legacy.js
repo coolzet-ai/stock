@@ -113,7 +113,7 @@
   }
   /* ===== 미국주식·한국주식(기본 화면): 암호 없이 보여주되 '상세보기'나 다른 메뉴 이동 시에만 팝업 ===== */
   var detailOk=false; try{ detailOk=sessionStorage.getItem('mk_detail')===page; }catch(e){}
-  var DETAIL_SEL='.wl-info,.wl-spark,[onclick*="toggle"],[onclick*="Detail"],[onclick*="detail"]';
+  var DETAIL_SEL='.wl-info,.wl-spark,[data-stock-click*="toggle"],[data-stock-click*="Detail"],[data-stock-click*="detail"]';
   function isDetail(el){
     if(el.closest(DETAIL_SEL)) return true;
     if(el.closest('.fold-h:not(.open)')||el.closest('.fold-all button[data-o="1"]')) return true; /* 제목 우측 펼치기·모두 펼치기 */

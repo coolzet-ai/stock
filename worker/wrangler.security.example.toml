@@ -1,0 +1,18 @@
+# Existing config fragment only: retain your Worker name/account/KR_KV/Cron.
+# Set your existing main to worker-v49.mjs in the same directory.
+# namespace IDs below are examples; choose unused IDs within your account.
+compatibility_date = "2026-10-10"
+
+[[ratelimits]]
+name = "PUBLIC_RATE_LIMITER"
+namespace_id = "49001"
+[ratelimits.simple]
+limit = 600
+period = 60
+
+[[ratelimits]]
+name = "DIRECT_RATE_LIMITER"
+namespace_id = "49002"
+[ratelimits.simple]
+limit = 60
+period = 60

@@ -393,7 +393,7 @@ function relPaint(elId){
     const off=!!hidden[s.key];
     return '<label class="rel-chip" data-bi="'+bi+'" style="display:inline-flex;align-items:center;gap:5px;margin:0 14px 8px 0;font-size:13px;cursor:pointer;'+
         'color:'+(off?'var(--tx2)':'var(--tx)')+';opacity:'+(off?'.5':'1')+'">'+
-      '<input type="checkbox" '+(off?'':'checked')+' onchange="relToggle(\''+elId+'\','+bi+',this.checked)" style="margin:0;accent-color:'+s.color+'">'+
+      '<input type="checkbox" '+(off?'':'checked')+' data-stock-change="relToggle(\''+elId+'\','+bi+',this.checked)" style="margin:0;accent-color:'+s.color+'">'+
       '<i style="width:12px;height:3px;border-radius:2px;background:'+s.color+';display:inline-block"></i>'+
       '<span>'+s.label+'</span></label>';
   }).join('');
@@ -901,7 +901,7 @@ function renderKrMarketDeposit(rows){
   const lampTop='<div class="kr-sum"><p class="kr-sline"><b>핵심 요약</b> 최근 3개월 · '+(_l1?'고객예탁금 <em style="color:'+_l1.lv.c+'">'+_l1.lv.t+'</em>':'')+(_l1&&_l2?' · ':'')+(_l2?'신용잔고 <em style="color:'+_l2.lv.c+'">'+_l2.lv.t+'</em>':'')+'</p><div class="kr-sg kr-sg2">'+lampBox('고객예탁금','customerDeposit')+lampBox('신용잔고','creditLoan')+'</div></div>';
   el.innerHTML=lampTop+'<div class="mut" style="font-size:11.5px;margin-bottom:10px">'+fmtKrDate(last.bizdate)+' 기준 · 최근 '+KR_PERIOD_LABEL[krDepositPeriod]+' 추이 · 단위 억원(1만억=1조) · 세로축=금액, 가로축=날짜 · 신호등은 최근 3개월 변화 기준</div>'+
     '<div style="'+grid+'">'+card('고객예탁금','customerDeposit','customerDepositDiff',true)+card('신용잔고','creditLoan','creditLoanDiff',true)+'</div>'+
-    '<div style="margin-top:14px"><button type="button" onclick="toggleKrFundDetail()" style="cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700">'+
+    '<div style="margin-top:14px"><button type="button" data-stock-click="toggleKrFundDetail()" style="cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700">'+
       '펀드상세보기 '+(krFundOpen?'▲':'▼')+'</button> <span class="mut" style="font-size:11.5px">주식형·혼합형·채권형 펀드</span></div>'+
     (krFundOpen?'<div style="'+grid+';margin-top:12px">'+card('주식형펀드','stockFund','stockFundDiff',false)+card('혼합형펀드','mixedFund','mixedFundDiff',false)+card('채권형펀드','bondFund','bondFundDiff',false)+'</div>':'');
 }
@@ -1699,14 +1699,14 @@ function moreRowsHtml(g){
   if(g==='cap2'||g==='cap3') return (g==='cap3'?US_MORE3:US_MORE).map((r,i)=>{
     const t=r[0], q=encodeURIComponent('$'+t+' from:trendspider');
     return '<div class="wl-row" data-t="'+t+'"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">'+((g==='cap3'?21:11)+i)+'위 · '+r[1]+'</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener">'+t+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
-      act('<a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener" title="Finviz에서 '+t+' 상세 지표 보기">+</a><a href="https://x.com/search?q='+q+'&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 '+t+' 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/'+t+'/news/" target="_blank" rel="noopener" class="news-link" title="'+t+' 관련 최신 뉴스 보기">N</a><button type="button" class="fin-btn" onclick="toggleUsFinancials(\''+t+'\')" title="재무비율·주가지표(Yahoo Finance)">재무</button>')+'</div>'+
+      act('<a href="https://finviz.com/quote.ashx?t='+t+'" target="_blank" rel="noopener" title="Finviz에서 '+t+' 상세 지표 보기">+</a><a href="https://x.com/search?q='+q+'&f=live" target="_blank" rel="noopener" class="ts-link" title="X에서 TrendSpider의 '+t+' 관련 게시물 검색">X</a><a href="https://finance.yahoo.com/quote/'+t+'/news/" target="_blank" rel="noopener" class="news-link" title="'+t+' 관련 최신 뉴스 보기">N</a><button type="button" class="fin-btn" data-stock-click="toggleUsFinancials(\''+t+'\')" title="재무비율·주가지표(Yahoo Finance)">재무</button>')+'</div>'+
       '<div id="fin-'+t+'" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>';
   }).join('');
   const arr=g==='krcap2'?KRCAP_MORE:KRKQ_MORE;
   return arr.map((r,i)=>{
     const c=r[0], rank=g==='krcap2'?11+i:11+i;
-    return '<div class="wl-row" data-t="'+c+'.'+r[1]+'"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials(\''+c+'\',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">'+rank+'위 · '+c+'</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/'+c+'" target="_blank" rel="noopener" title="'+r[2]+' IR 페이지 (IRGO)">'+r[2]+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
-      act('<a href="https://finance.naver.com/item/main.naver?code='+c+'" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/'+c+'.'+r[1]+'/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials(\''+c+'\')" style="color:#facc15" title="손익계산서(최근 5년 + 올해 예상, DART 전자공시)">재무</a>')+'</div>'+
+    return '<div class="wl-row" data-t="'+c+'.'+r[1]+'"><div class="wl-bar"></div><div class="wl-info" data-stock-click="toggleFinancials(\''+c+'\',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">'+rank+'위 · '+c+'</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/'+c+'" target="_blank" rel="noopener" title="'+r[2]+' IR 페이지 (IRGO)">'+r[2]+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
+      act('<a href="https://finance.naver.com/item/main.naver?code='+c+'" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/'+c+'.'+r[1]+'/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="#" data-stock-click="toggleFinancials(\''+c+'\')" style="color:#facc15" title="손익계산서(최근 5년 + 올해 예상, DART 전자공시)">재무</a>')+'</div>'+
       '<div id="fin-'+c+'" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>';
   }).join('');
 }
@@ -2268,7 +2268,7 @@ async function loadCardTop(){
     box.innerHTML='<div class="cg-list">'+d.items.map(x=>
       '<a class="cg-item" href="'+esc(cardUrl(x))+'" target="_blank" rel="noopener" title="'+esc(x.name)+' 카드 안내 페이지로 이동">'+
       '<b class="cg-rk'+(x.rank<=3?' top':'')+'">'+esc(x.rank)+'</b>'+
-      '<span class="cg-img">'+(x.img?'<img src="'+esc(imgUrl(x.img))+'" alt="'+esc(x.name)+' 카드 이미지" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">':'')+'<i aria-hidden="true">'+esc(String(x.corp||x.name||'').slice(0,2))+'</i></span>'+
+      '<span class="cg-img">'+(x.img?'<img src="'+esc(imgUrl(x.img))+'" alt="'+esc(x.name)+' 카드 이미지" loading="lazy" referrerpolicy="no-referrer" data-stock-error="this.parentNode.classList.add(\'noimg\');this.remove()">':'')+'<i aria-hidden="true">'+esc(String(x.corp||x.name||'').slice(0,2))+'</i></span>'+
       '<span class="cg-tx"><span class="cg-nm">'+esc(x.name)+'</span>'+
       '<span class="cg-sub">'+esc(x.corp)+(x.annualFee?' · 연회비 '+esc(x.annualFee):'')+'</span></span>'+
       '<span class="cg-go" aria-hidden="true">›</span></a>').join('')+'</div>'+(d.items.length>3?'<button type="button" class="cg-more" aria-expanded="false">상세보기 ▾ · 나머지 '+(d.items.length-3)+'개</button>':'');
@@ -2324,7 +2324,7 @@ function renderFinEvents(data){
     let html=top.length?top.map(rowHtml).join(''):'<tr><td class="mut" colspan="3">★★★ 이벤트가 없습니다'+(rest.length?' — 아래 상세보기에서 나머지 '+rest.length+'건을 확인하세요':'')+'</td></tr>';
     if(rest.length){
       const id='fin-more-'+cat;
-      html+='<tr><td colspan="3" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
+      html+='<tr><td colspan="3" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" data-stock-click="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
         rest.map(ev=>rowHtml(ev).replace('<tr style="','<tr class="'+id+'" style="display:none;')).join('');
     }
     tb.innerHTML=html;
@@ -3264,8 +3264,8 @@ function renderFinSavingsTable(listId, list){
   let moreBtn='';
   if(capped.length>3){
     moreBtn=finSavingsExpanded
-      ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">접기</button>'
-      : '<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="toggleFinSavingsExpand()">금리 Top3 외 '+(capped.length-3)+'개 자세히 보기</button>';
+      ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" data-stock-click="toggleFinSavingsExpand()">접기</button>'
+      : '<button class="btn ghost sm" style="width:100%;margin-top:8px" data-stock-click="toggleFinSavingsExpand()">금리 Top3 외 '+(capped.length-3)+'개 자세히 보기</button>';
   }
   el.innerHTML=rowsHtml+moreBtn;
 }

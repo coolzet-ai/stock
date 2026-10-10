@@ -256,13 +256,13 @@
   /* ───────── 모바일 하단 탭바 · PC 우측 패널 · 마지막 섹션 복귀 배너 · 도입문 한 줄 ───────── */
   (function () {
     var toc = $('#pro-toc'); if (!toc) return;
-    var goTo = function (name) { var a = $$('a', toc).filter(function (x) { return x.textContent.trim().indexOf(name) === 0; })[0]; if (a) a.click(); return !!a; };
+    var goTo = function (name) { if(name==='@watch'||name==='@account'){var b=document.querySelector('.stock-tools-links [data-tool="'+(name==='@watch'?'my-wl':'mk-acct')+'"]');if(b)b.click();return !!b;}  var a = $$('a', toc).filter(function (x) { return x.textContent.trim().indexOf(name) === 0; })[0]; if (a) a.click(); return !!a; };
     /* 탭바 */
     var generic = !$$('a', toc).some(function (a) { return /^요약/.test(a.textContent.trim()); });
     var GT = $$('a', toc).slice(0, 3).map(function (a, i) { var full = a.textContent.trim().replace('…', ''); return [['①', '②', '③'][i], Array.from(full).slice(0, 6).join(''), full]; });
     var TABS = generic ? GT.concat([['⋯', '더보기', '']]) : KR ? [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⋯', '더보기', '']] : [['📊', '요약', '요약'], ['⭐', '관심', '관심종목'], ['🏛', '시총', '시총'], ['⚡', '레버리지', '레버리지'], ['⋯', '더보기', '']];
     /* 모든 페이지 동일 구성: 홈 · 섹션 3개 · 더보기(전체 섹션 + 사이트 메뉴) */
-    TABS = [['🏠', '홈', '@home']].concat(TABS.filter(function (t) { return t[2]; }).slice(0, 3), [['⋯', '더보기', '']]);
+    TABS = [['📊','요약','요약'],['⭐','내 관심','@watch'],['▣','계좌','@account'],['▦','일정','일정'],['⋯','더보기','']];
     var bar = document.createElement('nav'); bar.id = 'mk-tabbar'; bar.setAttribute('aria-label', '빠른 이동');
     bar.innerHTML = TABS.map(function (t, i) { return '<button type="button" data-i="' + i + '"' + (t[2] ? '' : ' aria-haspopup="dialog" aria-expanded="false"') + '><span class="ti" aria-hidden="true">' + t[0] + '</span><span class="tl">' + t[1] + '</span></button>'; }).join('');
     document.body.appendChild(bar);

@@ -25,9 +25,17 @@ const {chromium}=require('playwright'),fs=require('fs'),assert=require('assert')
   assert.equal(await page.locator('#unicorn .stock-company-details').count(),4);
   assert.equal(await page.locator('#unicorn .stock-company-details[open]').count(),0);
   assert.equal(await page.locator('#unicorn .uc-grid').first().evaluate(e=>getComputedStyle(e).display),'block');
-  // All three visible shortcuts open both disclosure layers in one click.
+  // Clipboard-style input and IME preserve cursor/active composition.
+  await page.locator('.stock-tools-links [data-tool="my-wl"]').click();
+  const typing=await page.locator('#my-wl .my-add input').evaluate(e=>{e.value='brk-b';e.setSelectionRange(3,3);e.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertFromPaste'}));const paste=[e.value,e.selectionStart];e.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));e.value='nvda';e.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));const during=e.value;e.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));return {paste,during,after:e.value};});assert.deepEqual(typing,{paste:['BRK-B',3],during:'nvda',after:'NVDA'});
+  // All three shortcuts reveal exactly the selected tool.
+  await page.locator('.stock-tools-links [data-tool="my-wl"]').click();
+  await page.locator('#my-wl .my-add input').fill('brk-b');assert.equal(await page.locator('#my-wl .my-add input').inputValue(),'BRK-B');
+  await page.locator('#my-wl .my-add input').fill('');
   for(const [tool,field] of [['my-wl','.my-add input'],['mk-acct','#ac-t'],['mk-cmp','.cm-f input']]){
    await page.locator('.stock-tools-links [data-tool="'+tool+'"]').click();assert(await page.locator('#'+tool+' '+field).first().isVisible(),'Shortcut must reveal input');assert.equal(await page.locator('.stock-personal-details').evaluate(e=>e.open),true);
+   assert.equal(await page.locator('.stock-personal-details>#'+tool).evaluate(e=>e.hidden),false);for(const other of ['my-wl','mk-acct','mk-cmp'].filter(x=>x!==tool))assert(await page.locator('#'+other).evaluate(e=>e.hidden));
+   await page.locator('#'+tool+' '+field).first().fill('nvda');assert.equal(await page.locator('#'+tool+' '+field).first().inputValue(),'NVDA');await page.locator('#'+tool+' '+field).first().fill('');
    await page.waitForTimeout(50);assert.equal(await page.locator('.stock-personal-details>summary').textContent(),'투자 도구 접기');
    if(width<=700)assert(await page.locator('#'+tool).evaluate(e=>!e.classList.contains('m-fold')||e.classList.contains('m-open')),'Selected mobile tool must be expanded: '+tool);
    const bounds=await page.locator('#'+tool+' '+field).first().evaluate(e=>{let r=e.getBoundingClientRect();return r.width>40&&r.height>=44&&r.height<=46&&r.left>=0&&r.right<=innerWidth;});assert(bounds,'Tool input must fit viewport');
@@ -42,17 +50,17 @@ const {chromium}=require('playwright'),fs=require('fs'),assert=require('assert')
   if(width>=1000){
    const geometry=await page.evaluate(()=>{let rows=[...document.querySelectorAll('#cap-tbl>.wl-row')];let h=document.querySelector('#cap-tbl').closest('.fold-body').previousElementSibling;h._set(true);rows.forEach((r,i)=>{putRowStats(r,{rg:i?null:105.9,og:127.8,per:29,eps:i?1.1:7.91,feps:15.91,psr:18.27});r.querySelector('.wl-quote').style.width=i%2?'120px':'198px';});let all=rows.map(r=>[...r.querySelectorAll('.wl-stats>div')].map(e=>e.getBoundingClientRect().x));let overflow=document.documentElement.scrollWidth>innerWidth;h._set(false);rows.forEach(r=>{r.querySelector('.wl-stats').remove();r.querySelector('.wl-quote').style.removeProperty('width');});return {all,overflow};});assert(!geometry.overflow,'Metric rows overflow');assert(geometry.all.every(r=>r.every((x,i)=>Math.abs(x-geometry.all[0][i])<1)),'Metric column positions differ');
   }
-  if(width<=700){await page.evaluate(()=>{document.querySelector('.stock-personal-details').open=true;document.querySelector('#my-wl').classList.add('m-open');});assert(await page.locator('#my-wl .my-del').first().isVisible(),'Delete must be visible without expanding a ticker row');assert(await page.locator('#my-wl .my-del svg').first().isVisible());assert(await page.locator('#my-wl .my-del').first().evaluate(e=>{let a=e.getBoundingClientRect(),b=e.closest('.wl-row').getBoundingClientRect();return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom;}),'Delete must fit inside the visible row');await page.evaluate(()=>document.querySelector('.stock-personal-details').open=false);}
+  if(width<=700){await page.locator('.stock-tools-links [data-tool="my-wl"]').click();await page.evaluate(()=>{document.querySelector('.stock-personal-details').open=true;document.querySelector('#my-wl').classList.add('m-open');});assert(await page.locator('#my-wl .my-del').first().isVisible(),'Delete must be visible without expanding a ticker row');assert(await page.locator('#my-wl .my-del svg').first().isVisible());assert(await page.locator('#my-wl .my-del').first().evaluate(e=>{let a=e.getBoundingClientRect(),b=e.closest('.wl-row').getBoundingClientRect();return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom;}),'Delete must fit inside the visible row');await page.evaluate(()=>document.querySelector('.stock-personal-details').open=false);}
   // Seed a stored test ticker; exercise the real renderer and delete repaint offline.
   assert.equal(await page.locator('#my-wl .ts-link').first().textContent(),'X 검색');assert.equal(await page.locator('#my-wl .my-del').first().textContent(),'삭제');
-  await page.locator('#my-wl .my-del').first().evaluate(e=>e.click());await page.waitForTimeout(80);assert.equal(await page.locator('#my-wl .my-del').count(),0);
+  await page.locator('#my-wl .my-del').first().evaluate(e=>e.click());await page.waitForTimeout(80);assert.equal(await page.locator('#my-wl .my-del').count(),0);await page.locator('.stock-tools-links [data-tool="my-wl"]').click();await page.locator('.stock-undo').click();assert.equal(await page.locator('#my-wl .my-del').count(),1);
   // Gauge follows data updates, treats missing/out-of-range values as missing.
   const original=await page.locator('#us-val').textContent();
-  for(const [n,wanted] of [['52','52'],['--','—'],['140','—']]){await page.evaluate(v=>document.getElementById('us-val').textContent=v,n);await page.waitForTimeout(80);assert.equal(await page.locator('.sg-value').textContent(),wanted);}
-  await page.evaluate(v=>document.getElementById('us-val').textContent=v,original);await page.waitForTimeout(80);
+  for(const [n,wanted] of [['52','52'],['--','—'],['140','—']]){await page.evaluate(v=>document.getElementById('us-val').textContent=v,n);await page.waitForTimeout(80);assert.equal(await page.locator('.sg-value').textContent(),wanted);assert((await page.locator('#pb-fg').textContent()).startsWith(wanted),'Summary and gauge disagree');}
+  await page.evaluate(v=>document.getElementById('us-val').textContent=v,original);await page.waitForTimeout(4200);
   if(name==='mobile'){
    await page.click('#nav-toggle');assert.equal(await page.locator('#nav-toggle').getAttribute('aria-expanded'),'true');await page.click('#nav-toggle');
-   await page.locator('.stock-personal-details>summary').click();if(!(await page.locator('#ac-t').isVisible()))await page.locator('#mk-acct .m-fold-btn').click();assert(await page.locator('#ac-t').isVisible());await page.locator('.stock-personal-details>summary').click();
+   await page.locator('.stock-tools-links [data-tool="mk-acct"]').click();assert(await page.locator('#ac-t').isVisible());await page.locator('.stock-personal-details>summary').click();
    await page.locator('.stock-market-details>summary').click();assert(await page.locator('#pro-tick').isVisible());await page.locator('.stock-market-details>summary').click();
    await page.locator('.fold-h').first().click();assert.equal(await page.locator('#mk-gate').count(),1);await page.locator('#mk-gate-cl').click();
   }
