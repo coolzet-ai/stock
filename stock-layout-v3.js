@@ -17,6 +17,9 @@
  var more=details('stock-brief-details','시장 요약·선물 흐름 보기');
  ['pb-state','pb-line','pb-fut'].forEach(function(id){var e=document.getElementById(id);if(e)more.appendChild(e);});
  brief.appendChild(more);
+ var desktop=window.matchMedia('(min-width:701px)');
+ function syncDesktop(){document.querySelectorAll('.stock-market-details,.stock-insights-details').forEach(function(d){d.open=desktop.matches;});}
+ desktop.addEventListener('change',syncDesktop);setTimeout(syncDesktop,0);
  var toc=document.getElementById('pro-toc');if(toc){brief.after(toc);var search=toc.querySelector('.pt-s');if(search&&search.firstChild&&search.firstChild.nodeType===3){search.firstChild.textContent='';var icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','stock-search-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15 15 6 6" stroke="currentColor" stroke-width="2"/>';search.prepend(icon);}}
  // Keep personal tools available below the primary market analytics.
  var personal=details('stock-personal-details','관심종목·계좌·종목 비교 도구');

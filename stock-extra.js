@@ -325,9 +325,9 @@
       side.innerHTML = '<b class="sd-h">바로가기</b><ul>' + items + '</ul>' + (cal ? '<b class="sd-h">오늘·다가오는 일정</b><ul class="sd-ev">' + cal + '</ul>' : '');
     }
     side.addEventListener('click', function (e) { var b = e.target.closest('button[data-n]'); if (b) { var a = $$('a', toc)[+b.dataset.n]; if (a) a.click(); } });
-    var sdn = 0; var sdt = setInterval(function () { if (++sdn > 8) clearInterval(sdt); if (window.innerWidth >= 1840) sideFill(); }, 2000);
-    window.addEventListener('resize', function () { if (window.innerWidth >= 1840 && !side.children.length) sideFill(); });
-    if (window.innerWidth >= 1840) setTimeout(sideFill, 600);
+    var sdn = 0; var sdt = setInterval(function () { if (++sdn > 8) clearInterval(sdt); if (window.innerWidth >= 1500) sideFill(); }, 2000);
+    window.addEventListener('resize', function () { if (window.innerWidth >= 1500 && !side.children.length) sideFill(); });
+    if (window.innerWidth >= 1500) setTimeout(sideFill, 600);
     /* PC 도입문 한 줄(더보기로 펼침) */
     var lead = $('.pg-lead');
     if (lead && window.innerWidth > 700) {
