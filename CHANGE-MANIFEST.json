@@ -2,32 +2,32 @@
   {
     "file": "US-STOCK-UPDATE.md",
     "status": "added",
-    "sha256": "e722ab55f3b406c1ce5eb857ae3f26df1ac9d263185f2420c03ea31b8ce647e6"
+    "sha256": "c54366d1064fbeef22bfe62604b03156ffaca626a8cf9815d1d5026aa16b38be"
   },
   {
     "file": "previews/preview-dark-pc.png",
     "status": "added",
-    "sha256": "987e96ef896271a451dd320addf365f2c407873cb363d25e508509f86a7ae777"
+    "sha256": "cc808860b7d8af2d2dd42268b4b06c5ebe464eac97ada072d5fc8d9bf6e9b806"
   },
   {
     "file": "previews/preview-mobile.png",
     "status": "added",
-    "sha256": "7c683a00cf27284ebc88f86372e40d9ae5d7ad8e7d8ad0b315159862c8225d69"
+    "sha256": "46447760296f59e32d46613c0a1c635ec0ac89c0c12aa3486571c72aeb873bdd"
   },
   {
     "file": "previews/preview-pc.png",
     "status": "added",
-    "sha256": "663b3cc82f645b9ecf491fe06a155aa30e3102b6a6a619638161f57edb675ab1"
+    "sha256": "218bdc5ddcd4f2ae6bc66985869d51ac8b82021d8652205ba23dc8fec5044380"
   },
   {
     "file": "previews/preview-small-mobile.png",
     "status": "added",
-    "sha256": "5968be499a48671a933867a4ce3eba0a79618853a4e51836b3b884fcf87eb41b"
+    "sha256": "0d9f92a71070b61120785f85ec4c76239d8dcab0943ea8f92788d00a2aacc219"
   },
   {
     "file": "previews/preview-tablet.png",
     "status": "added",
-    "sha256": "0fdb83281cb41594e492ba276eb2c2481ab75fd384527f482f6103dad505ead3"
+    "sha256": "3afbfb8927f4303be3c9956412f249db29f3dbe2d9036c04f7006a961297ba74"
   },
   {
     "file": "stock-bootstrap.js",
@@ -55,6 +55,16 @@
     "sha256": "ad9f6e8b5759b092e573be2ad340a2b269f588126dbc88433ffff1a08363bf0a"
   },
   {
+    "file": "stock-fixes-v44.css",
+    "status": "added",
+    "sha256": "41d052eed3f0dd9c6170217d72a191773b0a1c531e7025a614d081b7f52df0eb"
+  },
+  {
+    "file": "stock-fixes-v44.js",
+    "status": "added",
+    "sha256": "79ad864428b7ff66018033c23b4d3feaa2ab71d13937e9fa6e7b0eb22f4b27f8"
+  },
+  {
     "file": "stock-gate-legacy.js",
     "status": "added",
     "sha256": "298a82d9c551fb17886314a079dd8e9fe72e437598673465c3e82558c9bf0e99"
@@ -77,7 +87,7 @@
   {
     "file": "stock-sw.js",
     "status": "added",
-    "sha256": "2a6f87d116df1b07424862c8c5b47ade232ac09c5488c977474c792d5a04a9e5"
+    "sha256": "37d0b2de60b99b105566a3af1e6b253460979f3c28e7f12abc2f874cf1db629d"
   },
   {
     "file": "stock-ux-v2.js",
@@ -87,7 +97,7 @@
   {
     "file": "stock.html",
     "status": "modified",
-    "sha256": "07aca3b0656e8b83774ccff76beae8708a095a6f805db753dee50a9bb0225408"
+    "sha256": "9fae00d29f7f528957cf6c4ac65dc895610f2e1fa78604763e7f9cc0f50d8733"
   },
   {
     "file": "tests/baseline.json",
@@ -102,7 +112,7 @@
   {
     "file": "tests/stock-layout.cjs",
     "status": "added",
-    "sha256": "cb19ee49b96e0d57c28506785ebfa076d3c54cea7f6a4cd3e7f28a0f0090b932"
+    "sha256": "bddaf8a50a1a3f1b303f9f6dc15563c52062d54a6b9f6048035e9d7d62a47fb8"
   },
   {
     "file": "tests/stock-security.cjs",

@@ -7,9 +7,27 @@ const {chromium}=require('playwright'),fs=require('fs'),assert=require('assert')
   const context=await browser.newContext({viewport:{width,height},colorScheme:scheme,serviceWorkers:'block'});const page=await context.newPage();let errors=[];page.on('pageerror',e=>errors.push(e.message));
   const font=process.env.STOCK_KOREAN_FONT?fs.readFileSync(process.env.STOCK_KOREAN_FONT).toString('base64'):'';let emoji='';
   await page.route('**/*',r=>{let u=new URL(r.request().url());if(font&&u.hostname==='fonts.googleapis.com')return r.fulfill({contentType:'text/css',body:'@font-face{font-family:"Noto Sans KR";font-weight:100 900;src:url(data:font/ttf;base64,'+font+')}'+(emoji?'@font-face{font-family:"Noto Color Emoji";src:url(data:font/ttf;base64,'+emoji+')}':'')+'body,body :is(button,input,select,summary,a){font-family:"Noto Sans KR","Noto Color Emoji",sans-serif!important;}'});return u.protocol==='file:'?r.continue():r.abort();});
+  await context.addInitScript(()=>localStorage.setItem('mk_my_tickers',JSON.stringify(['AAPL'])));
   await page.goto(require('url').pathToFileURL(path.resolve('stock.html')).href,{waitUntil:'domcontentloaded'});await page.waitForTimeout(5500);await page.evaluate(()=>document.fonts.ready);
   const baseline=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,columns:getComputedStyle(document.querySelector('.pb-grid')).gridTemplateColumns.split(' '),header:getComputedStyle(document.querySelector('.pb-hd')).backgroundColor,gauge:!!document.querySelector('.stock-gauge'),cardCount:document.querySelectorAll('.pb-grid .pb-c').length,personalBelow:document.querySelector('.stock-personal-details').getBoundingClientRect().top>document.querySelector('#us-card').getBoundingClientRect().top,duplicateIds:[...document.querySelectorAll('[id]')].map(e=>e.id).filter(Boolean).filter((s,i,a)=>a.indexOf(s)!==i)}));
   assert.equal(baseline.width,baseline.scroll,'Horizontal overflow');assert.equal(baseline.columns.length,width<=700?2:4);assert(baseline.columns.every(x=>Math.abs(parseFloat(x)-parseFloat(baseline.columns[0]))<1));assert(baseline.gauge&&baseline.personalBelow);assert.equal(baseline.header,'rgba(0, 0, 0, 0)');assert(await page.locator('#us-sub').isVisible(),'CNN indicators should remain visible on mobile');assert.deepEqual(baseline.duplicateIds,[]);assert.deepEqual(errors,[]);
+  // Interaction regressions: white text always has a green hover background.
+  if(width>700){await page.locator('#pro-toc a').first().hover();await page.waitForTimeout(400);assert.equal(await page.locator('#pro-toc a').first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(0, 117, 74)');}
+  await page.locator('.fold-h').first().hover();await page.waitForTimeout(400);assert.equal(await page.locator('.fold-h').first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(0, 117, 74)');
+  await page.locator('#us-card .tabs button').first().hover();await page.waitForTimeout(400);assert.equal(await page.locator('#us-card .tabs button').first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(0, 117, 74)');
+  assert.equal(await page.locator('.stock-trend-details').evaluate(e=>e.open),width>700);
+  if(width<=700){
+   await page.locator('.stock-trend-details>summary').click();assert(await page.locator('#us-trend').isVisible());await page.locator('.stock-trend-details>summary').click();
+   assert.equal(await page.locator('#us-sub .sb-val').first().evaluate(e=>getComputedStyle(e).display),'none');
+   assert.equal(await page.locator('#us-sub td.num b').first().evaluate(e=>getComputedStyle(e).display),'block');
+   const overlaps=await page.evaluate(()=>[...document.querySelectorAll('#us-sub tr')].some(r=>{let b=r.querySelector('.sub-bar'),n=r.querySelector('td.num b');if(!b||!n)return false;let x=b.getBoundingClientRect(),y=n.getBoundingClientRect();return x.left<y.right&&y.left<x.right&&x.top<y.bottom&&y.top<x.bottom;}));assert(!overlaps,'CNN value overlaps bar');
+  }
+  assert.equal(await page.locator('#unicorn .stock-company-details').count(),4);
+  assert.equal(await page.locator('#unicorn .stock-company-details[open]').count(),0);
+  assert.equal(await page.locator('#unicorn .uc-grid').first().evaluate(e=>getComputedStyle(e).display),'block');
+  // Seed a stored test ticker; exercise the real renderer and delete repaint offline.
+  assert.equal(await page.locator('#my-wl .ts-link').first().textContent(),'X 검색');assert.equal(await page.locator('#my-wl .my-del').first().textContent(),'삭제');
+  await page.locator('#my-wl .my-del').first().evaluate(e=>e.click());await page.waitForTimeout(80);assert.equal(await page.locator('#my-wl .my-del').count(),0);
   // Gauge follows data updates, treats missing/out-of-range values as missing.
   const original=await page.locator('#us-val').textContent();
   for(const [n,wanted] of [['52','52'],['--','—'],['140','—']]){await page.evaluate(v=>document.getElementById('us-val').textContent=v,n);await page.waitForTimeout(80);assert.equal(await page.locator('.sg-value').textContent(),wanted);}
