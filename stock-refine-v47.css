@@ -192,3 +192,36 @@ html body.pro.stock-v2 #stock-update-footer #stamp-top{display:block!important;m
 html body.pro.stock-v2 #stock-update-history{width:min(760px,100%);font-size:13px}
 html body.pro.stock-v2 #stock-update-history>summary{cursor:pointer;display:inline-block;padding:10px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--tx);min-height:44px;box-sizing:border-box}
 html body.pro.stock-v2 #stock-update-history ol{text-align:left;margin:12px 0;padding-left:24px;line-height:1.8}html body.pro.stock-v2 #stock-update-history li{padding:6px 0;border-bottom:1px solid var(--line)}
+/* v58: market badges, seamless rightward ticker, unified quotes. */
+html body.pro.stock-v2 .stock-status{display:flex;flex-wrap:wrap;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+html body.pro.stock-v2 .stock-live-badges{display:flex;flex-wrap:wrap;align-items:center;gap:6px;flex:1 1 auto}
+html body.pro.stock-v2 .stock-live-badges>span{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--tx)}
+html body.pro.stock-v2 .stock-status>p{flex:1 1 100%;order:2;font-size:12px}
+html body.pro.stock-v2 .stock-live-badges .ps-net.ok{background:#e4f5eb;color:#075c3b;border-color:#9cd4b6}
+html body.pro.stock-v2 .stock-ticker-track{animation:stock-ticker-right-full 48s linear infinite!important;flex:0 0 auto;will-change:transform}
+.stock-ticker-sequence{display:flex;flex:0 0 auto;white-space:nowrap}
+@keyframes stock-ticker-right-full{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+html body.pro.stock-v2 #pro-tick:is(:hover,:focus-within) .stock-ticker-track{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){html body.pro.stock-v2 .stock-ticker-track{animation:none!important}.stock-ticker-sequence[aria-hidden]{display:none}}
+html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c{border:2px solid #a5cbbc!important;box-shadow:0 2px 8px #075c3b0d}
+html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c:is(:hover,:focus-visible){border-color:#075c3b!important;box-shadow:0 0 0 3px #16865c30}
+html body.pro.stock-v2 :is(#tick-tbl,#cap-tbl,#cap2-tbl,#cap3-tbl,#lev-tbl,#idxchg-tbl) .wl-row .wl-quote :is(.px.wl-price,.ch.wl-pct){font-size:16px!important;font-family:'Noto Sans KR',system-ui,sans-serif!important;font-weight:800!important;line-height:1.5!important;letter-spacing:0!important}
+html body.pro.stock-v2 :is(#tick-tbl,#cap-tbl,#cap2-tbl,#cap3-tbl,#lev-tbl,#idxchg-tbl) .wl-quote :is(.wl-price,.wl-pct)>*{font-size:inherit!important;font-weight:inherit!important}
+html body.pro.stock-v2 #pro-cal.m-fold:not(.m-open)>*:not(h3){display:none!important}
+html body.pro.stock-v2 #pro-cal .m-fold-btn{display:inline-flex!important}
+@media(min-width:701px){html body.pro.stock-v2 .pulse.m-fold:not(.m-open)>*:not(h3){display:none!important}html body.pro.stock-v2 .pulse .m-fold-btn{display:inline-flex!important}}
+@media(max-width:700px){html body.pro.stock-v2 :is(#tick-tbl,#cap-tbl,#cap2-tbl,#cap3-tbl,#lev-tbl,#idxchg-tbl) .wl-row .wl-quote :is(.px.wl-price,.ch.wl-pct){font-size:15px!important}}
+
+/* v59: compact native checkboxes and watchlist actions. */
+html body.pro.stock-v2 #mk-acct .stock-account-save{display:flex!important;align-items:flex-start!important;justify-content:flex-start!important;gap:8px!important;width:100%;min-height:36px;padding:8px 0;line-height:1.5;box-sizing:border-box}
+html body.pro.stock-v2 #mk-acct .stock-account-save input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;flex:0 0 18px!important;width:18px!important;min-width:18px!important;max-width:18px!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding:0!important;margin:2px 0 0!important;border-radius:3px;accent-color:#075c3b}
+html body.pro.stock-v2 #mk-acct .stock-account-save>span{display:block;flex:0 1 auto;min-width:0;font-size:13px;line-height:1.5;text-align:left;word-break:keep-all}
+html body.pro.stock-v2 #mk-acct .stock-account-save small{display:block;margin:2px 0 0;font-size:12px;color:var(--tx2);line-height:1.5}
+html body.pro.stock-v2 input[type="checkbox"]{width:18px!important;min-width:18px!important;max-width:18px!important;min-height:18px!important;height:18px!important;max-height:18px!important;flex:0 0 18px!important;padding:0!important;accent-color:#075c3b}
+@media(max-width:700px){
+ html body.pro.stock-v2 #my-wl .wl-row{padding-top:10px!important;padding-bottom:10px!important;row-gap:6px!important;min-height:0!important}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions{gap:6px!important;padding:0!important;margin:0!important;min-height:0!important;align-items:center!important;flex-wrap:wrap!important}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions>.my-del{min-width:64px!important;max-width:80px!important;width:auto!important;min-height:36px!important;height:36px!important;padding:6px 9px!important;font-size:12px!important;line-height:1!important;gap:4px!important;border-radius:7px!important;box-sizing:border-box}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions>.my-del svg{width:14px!important;height:14px!important;min-width:14px!important;flex:0 0 14px!important}
+ html body.pro.stock-v2 #my-wl .wl-row.m-x>.wl-actions>:not(.my-del){min-height:36px!important;height:36px!important;padding:6px 9px!important;font-size:12px!important;line-height:1.2!important}
+}

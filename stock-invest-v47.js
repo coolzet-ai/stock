@@ -84,7 +84,7 @@
       '<p class="mut" style="font-size:12px;margin:8px 0 0;line-height:1.6">달러 종목만 합계에 넣습니다(원화 종목 제외). 시세는 지연될 수 있으며 평가금액·손익은 참고용 계산입니다. 3배 ETF 비중은 보유 종목 중 3배 상품의 평가금액 비율입니다.<br>계산식: 손익률 = 현재가÷평균단가−1 · 오늘 = Σ(수량×현재가)÷Σ(수량×전일종가)−1 · 비중 = 종목 평가금액÷달러 종목 합계.</p>';
     my.after(acctBox); mfold(acctBox);
     var retained=localStorage.getItem(HK);if(retained&&localStorage.getItem('stock_account_persist')===null)localStorage.setItem('stock_account_persist','1');
-    var preference=document.createElement('label');preference.className='stock-account-save';var remember=document.createElement('input');remember.type='checkbox';remember.checked=localStorage.getItem('stock_account_persist')==='1';preference.appendChild(remember);preference.appendChild(document.createTextNode(' 이 기기에 계좌 정보 계속 저장 (해제하면 현재 탭에서만 유지)'));acctBox.appendChild(preference);
+    var preference=document.createElement('label');preference.className='stock-account-save';var remember=document.createElement('input');remember.type='checkbox';remember.checked=localStorage.getItem('stock_account_persist')==='1';preference.appendChild(remember);var saveText=document.createElement('span');saveText.textContent='이 기기에 계좌 정보 계속 저장';var saveHint=document.createElement('small');saveHint.textContent='해제하면 현재 탭에서만 유지';saveText.appendChild(saveHint);preference.appendChild(saveText);acctBox.appendChild(preference);
     remember.addEventListener('change',function(){var holdings=loadH();localStorage.setItem('stock_account_persist',remember.checked?'1':'0');localStorage.removeItem(HK);sessionStorage.removeItem(HK);saveH(holdings);});
     $('#ac-cap', acctBox).value = levCap();
     acctBox.querySelector('form').addEventListener('submit', function (e) {
