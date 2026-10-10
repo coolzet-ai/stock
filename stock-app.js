@@ -8996,3 +8996,11 @@ setTimeout(draw,5000);setInterval(draw,20000);
 })();
 
 ;
+/* Source: stock-final-v70.js */
+(function(){
+ 'use strict';
+ var status=document.querySelector('.stock-status'),retry=status&&status.querySelector('button'),all=document.querySelector('.fold-all');
+ if(status&&retry&&all){var actions=document.createElement('div');actions.className='stock-status-actions';actions.setAttribute('role','group');actions.setAttribute('aria-label','화면 관리');status.appendChild(actions);actions.append(retry,all);}
+})();
+
+;
