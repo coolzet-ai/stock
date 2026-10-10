@@ -39,18 +39,18 @@
     const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; const up=a.filter(x=>x[1]>0).length, dn=a.filter(x=>x[1]<0).length; return '<span class="mv"><span class="mv-l">상승 '+up+' · 하락 '+dn+'</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
     const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
     refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
-    const SK=(KR?'mk_fk_':'mk_f_')+(key||title); const set=open=>{ try{ localStorage.setItem(SK,open?'1':'0'); }catch(e){} box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; btn.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
-    let init=false; try{ init=localStorage.getItem(SK)==='1'; }catch(e){}
+    const SK=(KR?'mk_fk_':'mk_f_')+(key||title); const set=open=>{  box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; btn.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
+    let init=false;
     set(init);
     const tg=e=>{ if(e.target.closest('a')) return; set(box.style.display==='none'); };
     h2.addEventListener('click',tg);
-    h2._set=set;
+    h2._set=function(open){if(open&&window.MK_REQUEST_DETAIL)window.MK_REQUEST_DETAIL(function(){set(true);});else set(open);};
   }
   document.querySelectorAll('#stock > .wrap > h2, #unicorn > .wrap > h2, #events > .wrap > h2, #kr-stock > .wrap > h2').forEach(fold);
   const all=[...document.querySelectorAll('h2.fold-h')];
-  if(all[0]){ const bar=document.createElement('div'); bar.className='fold-all'; bar.innerHTML='<button type="button" data-o="1">모두 펼치기 ➕</button><button type="button" data-o="0">모두 접기 ➖</button>'; all[0].before(bar); bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; all.forEach(h=>h._set(b.dataset.o==='1')); }); }
+  if(all[0]){ const bar=document.createElement('div'); bar.className='fold-all'; bar.innerHTML='<button type="button" data-o="0">모두 접기 ➖</button><button type="button" data-o="1">모두 펼치기 ➕</button>'; var brief=document.getElementById('pro-brief');if(brief)brief.before(bar);else all[0].before(bar); bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; all.forEach(h=>h._set(b.dataset.o==='1'));if(b.dataset.o==='0'){document.querySelectorAll('details[open]:not(.stock-nav-group)').forEach(d=>d.open=false);document.querySelectorAll('.m-fold.m-open').forEach(c=>{var btn=c.querySelector('.m-fold-btn');if(btn)btn.click();});} }); }
   const openByHash=()=>{ const h=location.hash&&document.querySelector(location.hash); if(h&&h._set) h._set(true); };
-  openByHash(); window.addEventListener('hashchange',openByHash);
+  window.addEventListener('hashchange',openByHash);
   /* 지연 로딩: 섹션을 처음 펼칠 때(또는 저장된 상태가 '펼침'일 때) 해당 데이터를 불러온다 */
   (KR?[]:[['주요 지수 ETF',()=>{ loadIdxRelUS(); loadUSCorr(); }],['지수 편입',()=>loadTickGroup('idxchg')],['유니콘',()=>loadUnicornNews()]]).forEach(([k,fn])=>{
     let done=false; const run=()=>{ if(done) return; done=true; try{ fn(); }catch(e){ console.warn('지연 로딩 실패',k,e); } };

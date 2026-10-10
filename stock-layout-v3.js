@@ -2,12 +2,13 @@
 (function(){
  'use strict';
  var wrap=document.querySelector('#stock > .wrap'),brief=document.getElementById('pro-brief');
- if(!wrap||!brief)return;
+ if(!wrap||!brief)return;var foldAll=document.querySelector('.fold-all');if(foldAll)brief.before(foldAll);
  function details(className,title){var d=document.createElement('details');d.className=className;var s=document.createElement('summary');s.textContent=title;d.appendChild(s);return d;}
  // Keep the live ticker available on demand; avoid an extra sticky toolbar.
  var market=details('stock-market-details','주요 지수·환율 시세 보기');
  var ticker=document.getElementById('pro-tick');if(ticker)market.appendChild(ticker);
- var status=document.getElementById('pro-status');if(status)market.appendChild(status);
+ var status=document.getElementById('pro-status');if(status){status.hidden=true;market.appendChild(status);}
+ if(ticker){var live=ticker.querySelector('.pt-live');if(live)live.textContent='● 주요 시세';var track=document.createElement('div');track.className='stock-ticker-track';while(ticker.firstChild)track.appendChild(ticker.firstChild);ticker.appendChild(track);}
  var state=document.querySelector('.stock-status');if(state)state.after(market);else brief.before(market);
  var session=document.createElement('span');session.className='stock-session';session.setAttribute('aria-label','미국 시장 상태');
  var head=brief.querySelector('.pb-hd');if(head)head.appendChild(session);
@@ -18,7 +19,7 @@
  ['pb-state','pb-line','pb-fut'].forEach(function(id){var e=document.getElementById(id);if(e)more.appendChild(e);});
  brief.appendChild(more);
  var desktop=window.matchMedia('(min-width:701px)');
- function syncDesktop(){document.querySelectorAll('.stock-market-details,.stock-insights-details').forEach(function(d){d.open=desktop.matches;});}
+ function syncDesktop(){document.querySelectorAll('.stock-market-details,.stock-insights-details').forEach(function(d){d.open=false;});}
  desktop.addEventListener('change',syncDesktop);setTimeout(syncDesktop,0);
  var toc=document.getElementById('pro-toc');if(toc){brief.after(toc);var search=toc.querySelector('.pt-s');if(search&&search.firstChild&&search.firstChild.nodeType===3){search.firstChild.textContent='';var icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','stock-search-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15 15 6 6" stroke="currentColor" stroke-width="2"/>';search.prepend(icon);}}
  // Keep personal tools available below the primary market analytics.

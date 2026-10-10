@@ -78,12 +78,12 @@
         tg = document.createElement('button'); tg.type = 'button'; tg.id = 'hd-set'; tg.setAttribute('aria-expanded', 'false'); tg.setAttribute('aria-controls', 'hd-pop'); tg.innerHTML = '<span aria-hidden="true">⚙</span> <span class="lb">설정</span>'; tg.setAttribute('aria-label', '설정 열기');
         pop = document.createElement('div'); pop.id = 'hd-pop'; pop.hidden = true; pop.setAttribute('role', 'group'); pop.setAttribute('aria-label', '화면 설정');
         pop.innerHTML = ROWS.map(function (r) { return '<div class="hp-r" data-for="' + r[0] + '"><span class="hp-l">' + r[1] + '</span></div>'; }).join('') + '<a class="hp-gift" href="#" target="_blank" rel="noopener">🎁 네이버포인트 선물하기 (coolzet)</a>';
-        host.appendChild(tg); host.appendChild(pop);
+        var adminBadge=document.createElement('span');adminBadge.id='stock-admin-indicator';adminBadge.textContent='🛡 관리자 모드';function syncAdmin(){var on=false;try{on=localStorage.getItem('mk_gate_off')==='1';}catch(e){}adminBadge.hidden=!on;}syncAdmin();setInterval(syncAdmin,1500);host.appendChild(adminBadge);host.appendChild(tg); host.appendChild(pop);
         anchor.parentNode.insertBefore(host, anchor);
         var g = $('#naver-gift-link'); if (g) $('.hp-gift', pop).href = g.href;
-        tg.addEventListener('click', function (e) { e.stopPropagation(); var o = pop.hidden; pop.hidden = !o; tg.setAttribute('aria-expanded', String(o)); if (o) { var f = $('button', pop); } });
-        document.addEventListener('click', function (e) { if (!pop.hidden && !host.contains(e.target)) { pop.hidden = true; tg.setAttribute('aria-expanded', 'false'); } });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { pop.hidden = true; tg.setAttribute('aria-expanded', 'false'); tg.focus(); } });
+        tg.addEventListener('click', function (e) { e.stopPropagation(); var o = pop.hidden; pop.hidden = !o; tg.setAttribute('aria-expanded', String(o));document.body.classList.toggle('stock-settings-open',o); if (o) { var f = $('button', pop); } });
+        document.addEventListener('click', function (e) { if (!pop.hidden && !host.contains(e.target)) { pop.hidden = true;document.body.classList.remove('stock-settings-open'); tg.setAttribute('aria-expanded', 'false'); } });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { pop.hidden = true;document.body.classList.remove('stock-settings-open'); tg.setAttribute('aria-expanded', 'false'); tg.focus(); } });
       }
       return true;
     }
@@ -91,7 +91,7 @@
       if (!build()) return;
       ROWS.forEach(function (r) { var b = document.getElementById(r[0]), row = $('.hp-r[data-for="' + r[0] + '"]', pop); if (b && row && b.parentNode !== row) row.appendChild(b); });
       var st = document.getElementById('stamp-top');
-      if (st && pop && !pop.contains(st)) { var ur = document.createElement('div'); ur.className = 'hp-upd'; ur.appendChild(st); pop.insertBefore(ur, $('.hp-gift', pop)); }
+      if(st){var foot=document.querySelector('footer');var update=document.getElementById('stock-update-footer');if(foot&&!update){update=document.createElement('div');update.id='stock-update-footer';foot.appendChild(update);}if(update&&st.parentNode!==update)update.prepend(st);}
       var g2 = document.getElementById('naver-gift-link'), hg = pop && $('.hp-gift', pop); if (g2 && hg) hg.href = g2.href;
     }
     mv(); [300, 900, 2500, 5000].forEach(function (t) { setTimeout(mv, t); });
@@ -483,4 +483,18 @@
     }
     window.addEventListener('scroll', upd, { passive: true }); setInterval(upd, 2000);
   })();
+})();
+
+/* Administrator-only local update history UI. */
+(function(){
+ var footer=document.querySelector('footer');if(!footer)return;
+ var area=document.getElementById('stock-update-footer');if(!area){area=document.createElement('div');area.id='stock-update-footer';footer.appendChild(area);}
+ var log=document.createElement('details');log.id='stock-update-history';log.hidden=true;
+ var summary=document.createElement('summary');summary.textContent='업데이트 이력 세부보기';log.appendChild(summary);
+ var entries=[['v57','설정 절약모드 가림 수정 · 업데이트 최하단 중앙 배치 · 관리자 이력 메뉴'],['v56','방문 중 펼침 유지 · 암호 확인 · 계좌 요약 조건부 표시 · 상단 상태/시세 애니메이션'],['v55','모바일 종가·등락률 15px 및 소제목 간격 12px 통일'],['v54','롤오버·메뉴 통일 · 히트맵 표현 · PC 바로가기 개선'],['v53','PC 요약 한 줄 · 카드 정렬 · 소셜 탭 · 선물 링크'],['v52','모바일 요약 3+2 배치 · 이벤트 표시 버튼 보완'],['v51','가격 잘림 · CNN 점수/막대 · 하단 겹침 수정'],['v50','실적·배당 모바일 배치 및 표시 설정 유지'],['v49','Worker Secret 분리 · 관리자 인증 · 프록시/요청 제한'],['v48','본문 복사 제한 · 출처/워터마크 · CSP 강화']];
+ var list=document.createElement('ol');entries.forEach(function(e){var item=document.createElement('li');var date=document.createElement('b');date.textContent='2026.10.10 · '+e[0]+' — ';item.append(date,document.createTextNode(e[1]));list.appendChild(item);});log.appendChild(list);area.appendChild(log);
+ function admin(){try{return localStorage.getItem('mk_gate_off')==='1';}catch(e){return false;}}
+ function sync(){log.hidden=!admin();if(log.hidden)log.open=false;}
+ summary.addEventListener('click',function(e){if(!admin()){e.preventDefault();log.open=false;log.hidden=true;}});
+ sync();setInterval(sync,1500);window.addEventListener('storage',sync);
 })();

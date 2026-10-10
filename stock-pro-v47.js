@@ -420,8 +420,8 @@
       card.dataset.mf='1'; card.classList.add('m-fold');
       var b=document.createElement('button'); b.type='button'; b.className='m-fold-btn'; b.innerHTML='<em>펼치기</em> ➕';
       h.appendChild(b);
-      var sk='mk_m_'+(card.id||key||'x'); var setO=function(o){ card.classList.toggle('m-open',o); b.innerHTML=o?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; try{ localStorage.setItem(sk,o?'1':'0'); }catch(e){} };
-      try{ if(localStorage.getItem(sk)==='1') setO(true); }catch(e){}
+      var sk='mk_m_'+(card.id||key||'x'); var setO=function(o){ card.classList.toggle('m-open',o); b.innerHTML=o?'<em>접기</em> ➖':'<em>펼치기</em> ➕';  };
+      setO(false);
       var tg=function(){ setO(!card.classList.contains('m-open')); };
       h.addEventListener('click',function(e){ if(e.target.closest('a')) return; tg(); });
     }
@@ -484,7 +484,6 @@
     br.innerHTML='<div class="pb-hd"><b>오늘의 시장 요약</b><span class="pb-sub">핵심 지표를 한눈에 · 각 칸을 누르면 상세로 이동</span></div><p class="pb-line" id="pb-line">시장 상태를 불러오는 중…</p><div class="pb-grid">'+
       '<a class="pb-c" href="#pro-kc" data-go="kc"><small>공포탐욕</small><b id="pb-fg">--</b><span id="pb-fg2"></span></a>'+
       '<a class="pb-c" href="#pro-int" data-go="int"><small>변동성(VIX)</small><b id="pb-vx">--</b><span id="pb-vx2"></span></a>'+
-      '<a class="pb-c" id="pb-acct" href="#mk-acct"><small>오늘 내 계좌</small><b>—</b><span>계좌 입력 후 표시</span></a>'+
       '<a class="pb-c" href="#pro-cal" data-go="cal"><small>다음 주요 일정</small><b id="pb-ev">--</b><span id="pb-ev2"></span></a>'+
       '<a class="pb-c" href="#pro-sector" data-go="sec"><small>섹터 강세 · 약세</small><b id="pb-sc">--</b><span id="pb-sc2"></span></a></div></div><div id="pb-fut" hidden></div>';
     var stl=document.createElement('div'); stl.id='pb-state'; stl.setAttribute('role','status'); br.querySelector('.pb-hd').after(stl);

@@ -15,7 +15,7 @@
     var b=document.createElement('div'); b.id='mk-admin-bar';
     b.style.cssText='margin:18px 0 0;padding:10px 14px;border:2px solid #7c3aed;border-radius:12px;background:rgba(124,58,237,.10);color:#6d28d9;font-size:13px;font-weight:800;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;text-align:center';
     b.innerHTML='<span>🛠 관리자 모드 · 암호 잠금이 해제된 기기입니다</span><button type="button" style="border:1.5px solid #7c3aed;background:transparent;color:inherit;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer">관리자 모드 해제</button>';
-    b.querySelector('button').onclick=function(){ try{localStorage.removeItem('mk_gate_off');}catch(e){} b.remove(); };
+    b.querySelector('button').onclick=function(){ try{localStorage.removeItem('mk_gate_off');}catch(e){} b.remove();location.reload(); };
     var f=document.querySelector('footer .wrap')||document.querySelector('footer')||document.body;
     f.appendChild(b);
   }
@@ -112,10 +112,13 @@
     return;
   }
   /* ===== 미국주식·한국주식(기본 화면): 암호 없이 보여주되 '상세보기'나 다른 메뉴 이동 시에만 팝업 ===== */
-  var detailOk=false; try{ detailOk=sessionStorage.getItem('mk_detail')===page; }catch(e){}
+  var detailOk=false;
+  window.MK_REQUEST_DETAIL=function(done){var admin=false;try{admin=localStorage.getItem('mk_gate_off')==='1';}catch(e){}if(detailOk||admin){done();return;}build({modal:true,msg:'펼치려면 암호를 입력해 주세요',onOk:function(){detailOk=true;done();}});};
   var DETAIL_SEL='.wl-info,.wl-spark,[data-stock-click*="toggle"],[data-stock-click*="Detail"],[data-stock-click*="detail"]';
   function isDetail(el){
     if(el.closest(DETAIL_SEL)) return true;
+    if(el.closest('.m-fold:not(.m-open)>h3')) return true;
+    if(el.closest('details:not([open])>summary')&&!el.closest('.stock-nav-group')) return true;
     if(el.closest('.fold-h:not(.open)')||el.closest('.fold-all button[data-o="1"]')) return true; /* 제목 우측 펼치기·모두 펼치기 */
     var b=el.closest('button,a,summary,[role="button"]');
     return !!(b && /상세/.test(b.textContent||'') && !b.closest('#mk-gate'));
@@ -149,7 +152,7 @@
       var link=t.closest('a[href]'); if(link && /^https?:/i.test(link.href) && new URL(link.href).origin!==location.origin) return; /* 외부 링크는 그대로 */
       e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation();
       build({modal:true,msg:'상세보기는 암호가 필요합니다',onOk:function(){
-        detailOk=true; try{sessionStorage.setItem('mk_detail',page);}catch(x){}
+        detailOk=true;
         setTimeout(function(){ try{ t.click(); }catch(x){} },30);
       }});
     }

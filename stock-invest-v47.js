@@ -127,7 +127,7 @@
   /* 요약 카드에 '내 계좌' 칸(모바일은 맨 앞) */
   function syncBriefCell() {
     var g = $('#pro-brief .pb-grid'); if (!g) return; var a = window.MK_ACCT, c = $('#pb-acct');
-    if (!a || a.dayPct == null) { if (c) c.innerHTML='<small>오늘 내 계좌</small><b>—</b><span>계좌 입력 후 표시</span>'; return; }
+    if (!a || a.dayPct == null) { if(c)c.remove();g.classList.remove('has-acct'); return; }
     if (!c) { c = document.createElement('a'); c.id = 'pb-acct'; c.className = 'pb-c'; c.href = '#mk-acct'; c.addEventListener('click', function (e) { e.preventDefault(); var t = $$('#pro-toc a').filter(function (x) { return x.textContent.indexOf('관심') === 0; })[0]; if (t) t.click(); setTimeout(function () { var el = $('#mk-acct'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 400); }); g.appendChild(c); }
     c.innerHTML = '<small>오늘 내 계좌</small><b class="' + cls(a.dayPct) + '">' + fmtPct(a.dayPct) + '</b><span>' + (a.levPct != null ? '3배 비중 ' + a.levPct.toFixed(0) + '%' : '') + (a.alerts.length ? ' · ⚠' + a.alerts.length : '') + '</span>';
     g.classList.add('has-acct');

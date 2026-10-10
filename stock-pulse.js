@@ -25,7 +25,7 @@ function draw(){
   let all=[].concat(q('cap-tbl'),q('tick-tbl'),q('lev-tbl'));
  if(!all.length)return;
  let p=document.querySelector('.pulse');
- if(!p){p=document.createElement('div');p.className='pulse';const bar=document.querySelector('.fold-all');bar.before(p);p.classList.add('m-fold');try{if(localStorage.getItem('mk_m_pulse')==='1')p.classList.add('m-open')}catch(x){}p.addEventListener('click',e=>{const h=e.target.closest('h3');if(h&&p.contains(h)&&!e.target.closest('a')){const o=!p.classList.contains('m-open');p.classList.toggle('m-open',o);try{localStorage.setItem('mk_m_pulse',o?'1':'0')}catch(x){}draw();return}const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;draw()}})}
+ if(!p){p=document.createElement('div');p.className='pulse';const bar=document.querySelector('.fold-all');bar.before(p);p.classList.add('m-fold');p.addEventListener('click',e=>{const h=e.target.closest('h3');if(h&&p.contains(h)&&!e.target.closest('a')){const o=!p.classList.contains('m-open');p.classList.toggle('m-open',o);draw();return}const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;draw()}})}
  const KEY=['TQQQ','SOXL','TECL','QLD','USD','SCHD'];
  const kb=(ti,ks)=>{const a=ks.map(k=>all.find(x=>x.t===k)).filter(Boolean);return a.length?'<div class="hm-k"><h4>'+ti+' <small>'+ks.join(' · ')+'</small></h4><div class="hm">'+a.map(x=>'<div class="tl" style="--c:'+col(x.v)+'"><span>★ '+x.t+'</span><small style="background:'+col(x.v)+'">'+price(x.px)+'<b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b>'+ex(x.t)+'</small></div>').join('')+'</div></div>':''};
  const rows=(mode==='up'||mode==='dn')?(MOV[mode]||[]):mode==='cap'?q('cap-tbl'):mode==='tick'?q('tick-tbl'):q('lev-tbl');const g5=(mode==='cap'||mode==='up'||mode==='dn');
