@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('mk_theme'),c=localStorage.getItem('mk_cv');if(t==='dark'||(t!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.setAttribute('data-theme','dark');if(c==='us')d.setAttribute('data-cv','us');window.MK_CV={us:c==='us'}}catch(e){window.MK_CV={us:false}}})()</script>
+
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https:; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<script src="stock-bootstrap.js?v=42"></script>
+<script src="stock-security.js?v=42"></script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -351,7 +353,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 .hm-kw{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.hm-kw .hm-k{flex:1 1 320px;margin-bottom:0;min-width:0}
 #stock{padding-top:18px!important}#stock>.wrap>.sec-h{margin-bottom:0}#stock>.wrap>.sec-h .sub{margin-bottom:10px}
 @media(max-width:700px){#stock{padding-top:12px!important}}
-</style><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=09442417"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe"><script defer src="mrkim-gate.js?v=94a3dc8b"></script>
+</style><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="mrkim-pro.css?v=09442417"><link rel="stylesheet" href="mrkim-theme.css?v=1399affe"><script defer src="stock-gate-legacy.js?v=42"></script>
 <style>
 /* 시장 한눈에 보기: 티커명 영역 높이 고정(글자 크기가 달라도 가격 블록 시작 위치 동일) · 등락 화살표 */
 .pulse .hm div.tl>span{display:flex;align-items:center;height:38px;padding-top:0;padding-bottom:0;line-height:1.2;box-sizing:border-box}
@@ -363,8 +365,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 /* 탭이 많아지면 줄바꿈 */
 .pulse .hm-t{flex-wrap:wrap!important;row-gap:6px}
 </style>
+<link rel="stylesheet" href="stock-design-v2.css?v=42">
 </head>
-<body class="pro">
+<body class="pro stock-v2">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
 <noscript><div style="padding:14px 20px;background:#FEF3F2;color:#B42318;font-size:14px">이 페이지는 시세·지표를 자바스크립트로 불러옵니다. 브라우저에서 자바스크립트를 켜 주세요. 아래 '지표 읽는 법' 안내는 자바스크립트 없이도 볼 수 있습니다.</div></noscript>
 
@@ -396,8 +399,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <main id="main" tabindex="-1">
 <section id="stock">
   <div class="wrap">
+    <div class="stock-eyebrow">MR.KIM SIGNAL <span>미국 시장 리서치</span></div>
     <h1 class="pg-h1">미국주식 시장 대시보드 <small>공포탐욕지수 · VIX · 섹터 · 경제일정</small></h1>
-    <p class="pg-lead">CNN 공포탐욕지수와 7개 세부지표, VIX 기간구조, 섹터 히트맵, 주요 경제지표 일정, 레버리지 ETF·시가총액 TOP10·지수 편입·편출 종목을 한 화면에서 확인하는 참고용 시장 대시보드입니다. 시세는 무료 공개 데이터를 사용하므로 지연·오류가 있을 수 있습니다.</p>
+    <p class="pg-lead">시장 심리부터 관심종목까지, 오늘 확인할 정보를 한곳에서 살펴보세요. 공개 데이터는 지연되거나 누락될 수 있습니다.</p>
     <p id="static-fg" class="static-fg"><!--FG-STATIC-->CNN 공포탐욕지수는 0(극단적 공포)~100(극단적 탐욕)으로 표시되며, 최신 값은 아래 대시보드에서 실시간으로 갱신됩니다.<!--/FG-STATIC--></p>
     <div class="grid">
       <div class="card" id="us-card">
@@ -767,13 +771,13 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       <span class="dl">각 데이터의 저작권과 이용 권리는 해당 제공처에 있으며, 본 사이트는 제공처와 제휴·후원 관계가 없고 공식 서비스가 아닙니다.</span>
       <span class="dl">데이터는 최대 15~20분 이상 지연되거나 누락·오류가 있을 수 있고, 화면 상단 '데이터 상태'와 카드별 갱신 시각으로 확인할 수 있습니다. 장애 시에는 마지막으로 불러온 값이 남아 있을 수 있습니다.</span>
       <span class="dl">'김군 판정'·'등급'은 공개된 단순 규칙(산식 보기 참고)에 따른 분류이며 전문가의 평가·투자자문이 아닙니다. 게시된 자료를 무단 복제·재배포하지 마세요.</span>
-      <span class="dl">이용 통계: 개인 식별 정보 없이 섹션 펼침·탭 클릭 횟수만 하루 단위로 합산합니다. 브라우저의 '추적 금지(Do Not Track)' 설정을 켜면 집계하지 않습니다.</span>
+      <span class="dl">이용 통계는 기본적으로 전송하지 않습니다. 이 브라우저에 저장한 설정·보유 정보는 공유 기기에서 다른 이용자에게 노출될 수 있습니다.</span>
     </div>
     <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
   </div>
 </footer>
 
-<script defer src="mrkim-common.min.js?v=dd26bc55"></script>
+<script defer src="stock-common-v2.js?v=42"></script>
 <script defer src="mrkim-pro.min.js?v=43c2f41f"></script>
 <script defer src="stock-page.js?v=ece9162e"></script>
 <script defer src="stock-fin.js?v=e8bfc40c"></script>
@@ -782,10 +786,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 <script defer src="stock-fold.js?v=f46fb660"></script>
 <script defer src="stock-pulse.js?v=d52a2b42"></script>
 <script defer src="stock-mobile.js?v=181f1920"></script>
-<script defer src="stock-ux.js?v=ee54fa7a"></script>
+<script defer src="stock-ux-v2.js?v=42"></script>
 <script defer src="stock-asof.js?v=e2fd5216"></script>
 <script defer src="stock-sort.js?v=6c3f0096"></script>
-<script defer src="mrkim-extra.js?v=ce63c7de"></script>
+<script defer src="stock-extra.js?v=42"></script>
 <script defer src="mrkim-invest.js?v=4c7dada6"></script>
+<script defer src="stock-dashboard-v2.js?v=42"></script>
 </body>
 </html>
