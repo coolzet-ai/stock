@@ -1,0 +1,39 @@
+/* Stable columns on the US page, including asynchronous data updates. */
+html body.pro.stock-v2 h2.fold-h,
+html body.pro.stock-v2 h2.fold-h.open{display:grid!important;grid-template-columns:minmax(0,38%) minmax(0,1fr) 84px;align-items:center;gap:10px!important;transform:none!important;padding:14px 16px!important}
+html body.pro.stock-v2 h2.fold-h .fold-t{grid-column:1;min-width:0}
+html body.pro.stock-v2 h2.fold-h .fold-sum{grid-column:2;order:0!important;min-width:0;padding:0!important;margin:0!important;text-align:left;line-height:1.5;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+html body.pro.stock-v2 h2.fold-h .fold-btn{grid-column:3;order:0!important;justify-self:end;width:84px;box-sizing:border-box;margin:0!important;white-space:nowrap}
+html body.pro.stock-v2 h2.fold-h .fold-sum .mv{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+html body.pro.stock-v2 h2.fold-h .fold-sum .mv>span{line-height:1.5;white-space:nowrap}
+@media(max-width:900px){
+ html body.pro.stock-v2 h2.fold-h,html body.pro.stock-v2 h2.fold-h.open{grid-template-columns:minmax(0,1fr) 84px;gap:8px!important}
+ html body.pro.stock-v2 h2.fold-h .fold-btn{grid-column:2;grid-row:1}
+ html body.pro.stock-v2 h2.fold-h .fold-sum{grid-column:1/-1;grid-row:2;white-space:normal!important;overflow:visible;overflow-wrap:anywhere}
+ html body.pro.stock-v2 h2.fold-h .fold-sum .mv{flex-wrap:wrap}
+}
+@media(min-width:1000px){
+ html body.pro.stock-v2 .wl-list:has(.wl-stats){display:block!important}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row{display:grid!important;position:relative;grid-template-columns:minmax(160px,1fr) minmax(310px,418px) 64px 160px 64px;column-gap:8px!important;align-items:center;padding:10px 12px 10px 20px!important;box-sizing:border-box}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-bar{position:absolute;left:8px;top:8px;bottom:8px;width:4px!important;height:auto!important}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-info{grid-column:1;grid-row:1;min-width:0}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-stats{grid-column:2;grid-row:1;display:grid!important;width:100%!important;grid-template-columns:1.2fr 1.35fr .85fr 1.1fr 1.1fr .85fr!important;padding:0!important;gap:4px!important}
+ html body.pro.stock-v2 .wl-stats>:empty{min-height:35px}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-spark{grid-column:3;grid-row:1;width:64px!important;margin:0!important}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-quote{grid-column:4;grid-row:1;width:160px!important;min-width:0!important;box-sizing:border-box}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats)>.wl-row>.wl-actions{grid-column:5;grid-row:1;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}
+ html body.pro.stock-v2 .wl-list:has(.wl-stats) .wl-52w .hm-ext{white-space:normal}
+}
+/* A mobile collapsed row still exposes a clear, real delete action. */
+@media(max-width:700px){
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions{display:flex!important;flex:1 0 100%!important;order:9;justify-content:flex-end;flex-direction:row!important;padding:4px 0!important;border:0;gap:8px!important}
+ html body.pro.stock-v2 #my-wl .wl-row:not(.m-x)>.wl-actions>:not(.my-del){display:none!important}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions>.my-del{display:inline-flex!important;min-height:44px!important;min-width:72px!important;flex:0 0 auto!important}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions>.my-del svg{display:block!important;width:16px!important;height:16px!important}
+}
+@media(max-width:700px){
+ html body.pro.stock-v2 #my-wl .wl-row{display:flex!important;flex-wrap:wrap!important;align-items:center;box-sizing:border-box}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-info{flex:1 1 90px!important;min-width:0}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-quote{flex:0 0 auto!important;min-width:86px;max-width:50%}
+ html body.pro.stock-v2 #my-wl .wl-row>.wl-actions{min-width:0!important;margin:0!important;box-sizing:border-box}
+}

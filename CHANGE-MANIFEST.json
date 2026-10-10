@@ -2,32 +2,42 @@
   {
     "file": "US-STOCK-UPDATE.md",
     "status": "added",
-    "sha256": "c54366d1064fbeef22bfe62604b03156ffaca626a8cf9815d1d5026aa16b38be"
+    "sha256": "84799e9352d26e7425cecc3bc3edb18a385609e11e27d5e093a4e6ad111a66ed"
+  },
+  {
+    "file": "previews/preview-compact-pc.png",
+    "status": "added",
+    "sha256": "278eb7ca74b8bfe4f27dc215ba7f5dec221a5254351617ff9a11cdd4298673af"
   },
   {
     "file": "previews/preview-dark-pc.png",
     "status": "added",
-    "sha256": "cc808860b7d8af2d2dd42268b4b06c5ebe464eac97ada072d5fc8d9bf6e9b806"
+    "sha256": "8e973da6c8ac6b440874bc1ff320995cf63a4c2a7563989e53c3417da97a523c"
   },
   {
     "file": "previews/preview-mobile.png",
     "status": "added",
-    "sha256": "46447760296f59e32d46613c0a1c635ec0ac89c0c12aa3486571c72aeb873bdd"
+    "sha256": "7da2a0e751815b0599ec4d91097ec4e808c2fcad9d1412c17201e5031d79deaa"
   },
   {
     "file": "previews/preview-pc.png",
     "status": "added",
-    "sha256": "218bdc5ddcd4f2ae6bc66985869d51ac8b82021d8652205ba23dc8fec5044380"
+    "sha256": "c49748280ae34ed163484b57538cfa4a4d4e26cd1978f4578ff1f2a5f43348ac"
   },
   {
     "file": "previews/preview-small-mobile.png",
     "status": "added",
-    "sha256": "0d9f92a71070b61120785f85ec4c76239d8dcab0943ea8f92788d00a2aacc219"
+    "sha256": "a77820bf9a6c6455d922d3798eea474e632f405a249e4d603b00d5081657cf2d"
   },
   {
     "file": "previews/preview-tablet.png",
     "status": "added",
-    "sha256": "3afbfb8927f4303be3c9956412f249db29f3dbe2d9036c04f7006a961297ba74"
+    "sha256": "599927c24fd35f71a1f748bb346c13f70714c75d2d49a61684c72d1a8d739eac"
+  },
+  {
+    "file": "stock-alignment-v45.css",
+    "status": "added",
+    "sha256": "c7c943af57dd4e34e00263e2951334de17517cdc6d688790ee2d1b26de926569"
   },
   {
     "file": "stock-bootstrap.js",
@@ -65,6 +75,16 @@
     "sha256": "79ad864428b7ff66018033c23b4d3feaa2ab71d13937e9fa6e7b0eb22f4b27f8"
   },
   {
+    "file": "stock-fold-v45.js",
+    "status": "added",
+    "sha256": "383493ead7e163b44354ccbea2ba7be8b1e90e83c8930a70062d1318f23e94a2"
+  },
+  {
+    "file": "stock-fold-v46.js",
+    "status": "added",
+    "sha256": "2a7e6607a229498b256548db6a4924efa5066465a29aa49c10914ddc246c196f"
+  },
+  {
     "file": "stock-gate-legacy.js",
     "status": "added",
     "sha256": "298a82d9c551fb17886314a079dd8e9fe72e437598673465c3e82558c9bf0e99"
@@ -87,7 +107,17 @@
   {
     "file": "stock-sw.js",
     "status": "added",
-    "sha256": "37d0b2de60b99b105566a3af1e6b253460979f3c28e7f12abc2f874cf1db629d"
+    "sha256": "d105c90b97e9a9fbec77b0766845a9bdb0d2bf66cc98c5b7c048e73b44703793"
+  },
+  {
+    "file": "stock-tools-v46.css",
+    "status": "added",
+    "sha256": "3d1e6acf137bc8610bcbd711c7cc6eefd5f8e49d97c26f58e0c2f93ddeb3469c"
+  },
+  {
+    "file": "stock-tools-v46.js",
+    "status": "added",
+    "sha256": "7f52a3d7919afbf778cef03bad829764a0da8ab974b5b69b260932f187e1d65f"
   },
   {
     "file": "stock-ux-v2.js",
@@ -97,7 +127,7 @@
   {
     "file": "stock.html",
     "status": "modified",
-    "sha256": "9fae00d29f7f528957cf6c4ac65dc895610f2e1fa78604763e7f9cc0f50d8733"
+    "sha256": "227aed6ab6370509da878dbcece0cca116a5e25b91bb86b529bdd6c8ba001f23"
   },
   {
     "file": "tests/baseline.json",
@@ -107,12 +137,12 @@
   {
     "file": "tests/layout-results.json",
     "status": "added",
-    "sha256": "261386a03bd7a6eb764d212564d5e1ce3ef095053c4d499e2555b3c2875c135f"
+    "sha256": "6fb483a45be2989f2051345b8678bec0f305932ae4dc37b3582460cd3a943e07"
   },
   {
     "file": "tests/stock-layout.cjs",
     "status": "added",
-    "sha256": "bddaf8a50a1a3f1b303f9f6dc15563c52062d54a6b9f6048035e9d7d62a47fb8"
+    "sha256": "39ebd43a68954fb12936ea826f06ab646d40d2370ab9c71425fd83a97cd64807"
   },
   {
     "file": "tests/stock-security.cjs",
