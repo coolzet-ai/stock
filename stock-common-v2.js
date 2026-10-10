@@ -6307,6 +6307,7 @@ function earnDays(ts){
 function applyEarnBadges(){
   if(!EARN_DATA&&!NEWS_DATA&&!DIV_DATA) return;
   injectEarnCss();
+  const enabled=k=>typeof window.MK_CHIP_ENABLED==='function'?window.MK_CHIP_ENABLED(k):true;
   const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fd=(ts)=>new Date(ts*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',month:'long',day:'numeric'});
   document.querySelectorAll('#cap-tbl .wl-row,#cap2-tbl .wl-row,#cap3-tbl .wl-row,#tick-tbl .wl-row,#lev-tbl .wl-row').forEach(row=>{
@@ -6315,7 +6316,7 @@ function applyEarnBadges(){
     /* 이름 옆 칩: 실적 D-day(시총 종목) + 배당락일·배당률 */
     let tc='';
     const e=isCap&&EARN_DATA&&EARN_DATA[t];
-    if(e&&e.ts){
+    if(enabled('er')&&e&&e.ts){
       const d=earnDays(e.ts);
       if(d>=-3){
         const rng=e.ts2&&e.ts2!==e.ts?' ~ '+fd(e.ts2):'';
@@ -6325,7 +6326,7 @@ function applyEarnBadges(){
       }
     }
     const dv=DIV_DATA&&DIV_DATA[t];
-    if(dv&&dv.ex){
+    if(enabled('dv')&&dv&&dv.ex){
       const d=earnDays(dv.ex);
       if(d>=0){
         const tip='배당락일 '+fd(dv.ex)+' (미국 현지 기준)'+(dv.pay?' · 지급일 '+fd(dv.pay):'')+' · 누르면 Yahoo 배당 이력으로 이동';
@@ -6341,18 +6342,19 @@ function applyEarnBadges(){
     }
     /* 뉴스 칩은 이름 아래 */
     let html='';
-    const n=isCap&&NEWS_DATA&&NEWS_DATA[t];
+    const n=enabled('nw')&&isCap&&NEWS_DATA&&NEWS_DATA[t];
     if(n&&n.url&&n.title){
       const ic=n.dir==='up'?'📈':n.dir==='down'?'📉':'🗞';
       const when=n.pubDate?new Date(n.pubDate).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
       html+='<a class="er-n '+(['up','down'].includes(n.dir)?n.dir:'')+'" href="'+stockSafeURL(n.url)+'" target="_blank" rel="noopener nofollow" title="'+esc(n.title)+' — '+esc(n.source)+(when?' · '+when:'')+' (최근 2일 · 급등락·실적·규제 키워드 기사 · 누르면 원문 기사로 이동)">'+ic+' <span>'+esc(n.title)+'</span><em>'+esc(n.source)+'</em></a>';
     }
-    if(!html&&isCap&&NEWS_DATA){ /* 자동 수집 기사가 없으면 뉴스 검색 링크로 대체(누르면 최신 기사 목록 열림) */
+    if(enabled('nw')&&!html&&isCap&&NEWS_DATA){ /* 자동 수집 기사가 없으면 뉴스 검색 링크로 대체(누르면 최신 기사 목록 열림) */
       html='<a class="er-n ns" href="https://news.google.com/search?q='+encodeURIComponent(t+' 주가 when:2d')+'&hl=ko&gl=KR&ceid=KR:ko" target="_blank" rel="noopener nofollow" title="'+esc(t)+' 최신 뉴스 검색(Google 뉴스) — 자동 수집된 기사가 아직 없습니다">🗞 <span>'+esc(t)+' 최신 뉴스 검색 ↗</span></a>';
     }
     let box=info.querySelector('.wl-er');
     if(!html){ if(box) box.remove(); return; }
-    if(!box){ box=document.createElement('div'); box.className='wl-er'; const nm=info.querySelector('.wl-name'); if(nm&&nm.nextSibling) info.insertBefore(box,nm.nextSibling); else info.appendChild(box); }
+    if(!box){ box=document.createElement('div'); box.className='wl-er'; }
+    if(info.lastElementChild!==box) info.appendChild(box);
     if(box.innerHTML!==html) box.innerHTML=html;
   });
   try{ updateActionLine(); }catch(e){}
@@ -6397,15 +6399,16 @@ if(document.getElementById('cap-tbl')){
     const K=[['er','📅 실적'],['dv','💰 배당락'],['nw','📰 뉴스']];
     const state={}; K.forEach(k=>{ try{ state[k[0]]=localStorage.getItem('mk_chip_'+k[0])!=='0'; }catch(e){ state[k[0]]=true; } });
     const get=k=>state[k];
+    window.MK_CHIP_ENABLED=get;
     if(!document.getElementById('cap-chip-css')){ const st=document.createElement('style'); st.id='cap-chip-css';
       st.textContent=':is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl).hide-er .er-b,:is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl).hide-dv .dv-b,:is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl).hide-nw .er-n{display:none!important}#cap-chip-set{display:flex!important;align-items:center;gap:6px;margin:0 0 8px}#cap-chip-set button{cursor:pointer}';
       document.head.appendChild(st); }
-    const bar=document.createElement('div'); bar.id='cap-chip-set'; bar.className='tabs'; bar.setAttribute('data-group','capchip'); bar.setAttribute('role','group'); bar.setAttribute('aria-label','시총 종목 표시 항목 설정');
+    const bar=document.createElement('div'); bar.id='cap-chip-set'; bar.className='stock-chip-controls'; bar.setAttribute('role','group'); bar.setAttribute('aria-label','시총 종목 표시 항목 설정');
     bar.innerHTML=K.map(k=>'<button type="button" data-k="'+k[0]+'">'+k[1]+'</button>').join('');
     tabs.after(bar);
     const apply=()=>{ ['cap-tbl','cap2-tbl','cap3-tbl','tick-tbl','lev-tbl'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; K.forEach(k=>el.classList.toggle('hide-'+k[0],!get(k[0]))); });
-      K.forEach(k=>{ const b=bar.querySelector('[data-k="'+k[0]+'"]'); const on=get(k[0]); b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); b.title=k[1].replace(/^\S+ /,'')+' 표시 '+(on?'켜짐 — 누르면 끔':'꺼짐 — 누르면 켬'); }); };
-    bar.addEventListener('click',e=>{ const b=e.target.closest('button[data-k]'); if(!b) return; e.stopPropagation(); const k=b.dataset.k; if(!Object.prototype.hasOwnProperty.call(state,k)) return; state[k]=!state[k]; try{ localStorage.setItem('mk_chip_'+k,state[k]?'1':'0'); }catch(x){} apply(); });
+      K.forEach(k=>{ const b=bar.querySelector('[data-k="'+k[0]+'"]'); const on=get(k[0]); b.classList.toggle('on',on); b.textContent=(on?'☑ ':'☐ ')+k[1]; b.setAttribute('aria-pressed',String(on)); b.title=k[1].replace(/^\S+ /,'')+' 표시 '+(on?'켜짐 — 누르면 끔':'꺼짐 — 누르면 켬'); }); };
+    bar.addEventListener('click',e=>{ const b=e.target.closest('button[data-k]'); if(!b) return; e.stopPropagation(); const k=b.dataset.k; if(!Object.prototype.hasOwnProperty.call(state,k)) return; state[k]=!state[k]; try{ localStorage.setItem('mk_chip_'+k,state[k]?'1':'0'); }catch(x){} apply(); applyEarnBadges(); });
     apply(); setTimeout(apply,1500); setTimeout(apply,5000);
   })();
   ['cap-tbl','cap2-tbl','cap3-tbl','tick-tbl','lev-tbl'].forEach(id=>{ const el=document.getElementById(id); if(el&&window.MutationObserver){ let tm; new MutationObserver(()=>{ clearTimeout(tm); tm=setTimeout(applyEarnBadges,200); }).observe(el,{childList:true,subtree:false}); } });

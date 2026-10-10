@@ -61,3 +61,77 @@ html body.pro.stock-v2 .hide-dv .wl-tc:not(:has(.er-b)){display:none!important}
 }
 /* The buttons already meet the touch target; remove overlapping legacy hit areas. */
 html body.pro.stock-v2 #cap-chip-set button::after{content:none!important}
+
+/* v51: separate prices, scores, and controls without clipping. */
+html body.pro.stock-v2 #us-sub .sb-val{display:none!important}
+html body.pro.stock-v2 #us-sub td.num b{display:block!important;font-size:13px!important;line-height:1.5;letter-spacing:0;font-variant-numeric:tabular-nums}
+html body.pro.stock-v2 #us-sub td.num br{display:none!important}
+html body.pro.stock-v2 #us-sub td.num{min-width:76px;width:86px;padding:8px 5px!important;white-space:nowrap}
+html body.pro.stock-v2 #us-sub .sub-bar{min-width:0;margin:5px 0}
+html body.pro.stock-v2 .pulse .hm div.tl small{width:100%;min-width:0;box-sizing:border-box;letter-spacing:0!important;line-height:1.5!important;row-gap:4px!important}
+html body.pro.stock-v2 .pulse .hm div.tl .hm-price{display:block;width:100%;min-width:0;white-space:normal;line-height:1.5!important;letter-spacing:0!important}
+html body.pro.stock-v2 .pulse .hm div.tl .hm-price>span{display:block!important;padding:0!important;white-space:nowrap;line-height:1.5!important;letter-spacing:0!important;font-size:15px!important}
+html body.pro.stock-v2 .pulse .hm div.tl .hm-price>.hm-krw{font-size:11px!important;font-weight:500;opacity:.9}
+html body.pro.stock-v2 .pulse .hm div.tl .hm-ext{display:block;position:static;font-family:system-ui,sans-serif;font-size:12px!important;font-weight:600;letter-spacing:0!important;line-height:1.6!important;white-space:nowrap;margin:0;min-height:19px}
+@media(max-width:700px){
+ html body.pro.stock-v2 .pulse .hm-k .hm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 5px 0;gap:4px}
+ html body.pro.stock-v2 .pulse .hm div.tl small{padding:6px 4px 7px!important}
+ html body.pro.stock-v2 .pulse .hm div.tl .hm-price>span{font-size:14px!important}
+ html body.pro.stock-v2 .pulse .hm div.tl .hm-price>.hm-krw{font-size:10px!important}
+ html body.pro.stock-v2 .pulse .hm-k .hm div.tl>span{font-size:12px!important;padding:0 4px!important;justify-content:center}
+ html body.pro.stock-v2 .pulse .hm div.tl small b.hm-chg{font-size:12px!important;padding:1px 4px!important}
+ html body.pro.stock-v2 .pulse .hm div.tl .hm-ext{font-size:11px!important}
+}
+html body.pro.stock-v2 #us-sub td:has(.sub-bar){width:24%;padding:8px 6px!important;vertical-align:middle}
+
+/* v52: compact summary rows, independent controls, uncut events. */
+html body.pro.stock-v2 #cap-chip-set button{border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--tx2);font:inherit;font-size:12px;cursor:pointer}
+html body.pro.stock-v2 #cap-chip-set button[aria-pressed="true"]{background:#075c3b;color:#fff;border-color:#075c3b;font-weight:800}
+html body.pro.stock-v2 #cap-chip-set button[aria-pressed="false"]{background:var(--panel);color:var(--tx2)}
+html body.pro.stock-v2 .wl-info>.wl-tc{flex-wrap:wrap!important;overflow:visible!important;gap:6px!important}
+html body.pro.stock-v2 .wl-info>.wl-tc>:is(.er-b,.dv-b){max-width:100%;box-sizing:border-box;white-space:normal!important;overflow-wrap:anywhere;line-height:1.5;font-weight:800;border-radius:6px}
+html body.pro.stock-v2 .wl-info>.wl-er{margin-top:6px;clear:both}
+html body.pro.stock-v2 .wl-quote .wl-price,html body.pro.stock-v2 .wl-quote .wl-pct{width:100%;box-sizing:border-box;text-align:right!important;font-variant-numeric:tabular-nums}
+html body.pro.stock-v2 .pulse .hm-k .hm div.tl small{align-items:center!important;text-align:center!important}
+html body.pro.stock-v2 .pulse .hm-k .hm div.tl .hm-chg{align-self:center!important}
+html body.pro.stock-v2 #pro-brief .pb-grid{gap:10px!important}
+html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c{min-height:90px;gap:4px;padding:10px!important;box-sizing:border-box}
+@media(max-width:700px){
+ html body.pro.stock-v2 #pro-brief{padding:10px!important}
+ html body.pro.stock-v2 #pro-brief .pb-grid,html body.pro.stock-v2 #pro-brief .pb-grid.has-acct{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:6px!important}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c{grid-column:span 2;min-height:86px!important;padding:8px 6px!important;gap:3px!important;order:0;border-radius:8px}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c:has(#pb-ev),html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c:has(#pb-sc){grid-column:span 3;order:1;min-height:76px!important}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c b,html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c:first-child b{font-size:17px!important;letter-spacing:0;line-height:1.35}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c small{font-size:10px;line-height:1.4}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c>span{font-size:10px!important;line-height:1.4}
+ html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c #pb-ev,html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c #pb-sc{font-size:13px!important}
+ html body.pro.stock-v2 .pulse{padding:10px!important}
+ html body.pro.stock-v2 .pulse .hm,html body.pro.stock-v2 .pulse .hm-k .hm{gap:6px!important}
+ html body.pro.stock-v2 .pulse .hm-kw{gap:6px!important}
+ html body.pro.stock-v2 .wl-info>.wl-tc{gap:4px!important}
+ html body.pro.stock-v2 .wl-info>.wl-tc>:is(.er-b,.dv-b){font-size:11px!important;padding:3px 6px!important}
+}
+/* v53: consistent rows and floating actions across desktop/tablet/mobile. */
+@media(min-width:701px){
+ html body.pro.stock-v2 #pro-brief .pb-grid,html body.pro.stock-v2 #pro-brief .pb-grid.has-acct{grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:stretch!important}
+ html body.pro.stock-v2 .grid:has(>#us-card),html body.pro.stock-v2 #unicorn .grid{align-items:stretch!important}
+ html body.pro.stock-v2 .grid:has(>#us-card)>.card,html body.pro.stock-v2 #unicorn .grid>.card{height:auto!important;margin-top:0!important;box-sizing:border-box}
+}
+html body.pro.stock-v2 #pro-brief .pb-grid>.pb-c{align-self:stretch!important;height:auto!important;margin:0!important}
+html body.pro.stock-v2 .wl-quote :is(.wl-price,.wl-pct){font-family:'Noto Sans KR',system-ui,sans-serif!important;font-weight:800!important;letter-spacing:0!important;line-height:1.5!important}
+html body.pro.stock-v2 #cap-chip-set button[aria-pressed="false"]{background:var(--panel)!important;color:var(--tx2)!important;border-color:var(--line)!important;box-shadow:none!important}
+html body.pro.stock-v2 #cap-chip-set button[aria-pressed="true"]{background:#075c3b!important;color:#fff!important;border-color:#075c3b!important}
+html body.pro.stock-v2 #us-social .fg-hd{flex-wrap:wrap!important;gap:8px!important}
+html body.pro.stock-v2 #us-social .tabs[data-group="soc"]{display:flex!important;flex-wrap:nowrap!important;width:max-content!important;max-width:100%!important;gap:4px!important;box-sizing:border-box;overflow-x:auto}
+html body.pro.stock-v2 #us-social .tabs[data-group="soc"] button{flex:0 0 auto!important;white-space:nowrap!important;font-size:12px!important;padding:8px!important;min-height:44px}
+html body.pro.stock-v2 #pro-top{bottom:calc(var(--stock-tabs-height,0px) + var(--stock-stamp-height,38px) + 20px + env(safe-area-inset-bottom))!important;right:16px!important;z-index:110!important;min-height:44px;transform:none!important}
+html body.pro.stock-v2 #pro-top.on{opacity:1!important;pointer-events:auto!important}
+html body.pro.stock-v2 #stock-gift{position:fixed;right:16px;bottom:calc(var(--stock-tabs-height,0px) + var(--stock-stamp-height,38px) + 76px + env(safe-area-inset-bottom));z-index:110;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border:1px solid var(--line);border-radius:50%;background:var(--panel);box-shadow:0 3px 12px #0002;text-decoration:none;font-size:24px}
+@media print{html body.pro.stock-v2 #stock-gift{display:none!important}}
+@media(min-width:701px){
+ html body.pro.stock-v2 #pro-toc{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:nowrap!important}
+ html body.pro.stock-v2 #pro-toc .stock-nav-group{flex:0 1 auto!important}
+ html body.pro.stock-v2 #pro-toc>*,html body.pro.stock-v2 #pro-toc>a{margin:0!important;min-height:44px;box-sizing:border-box}
+ html body.pro.stock-v2 #pro-toc .stock-nav-group>summary{display:flex;align-items:center;justify-content:center;min-width:108px;min-height:44px;box-sizing:border-box}
+}
+html body.pro.stock-v2 .wl-quote :is(.wl-price,.wl-pct)>*{font-family:inherit!important}

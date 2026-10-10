@@ -8,3 +8,10 @@ body.pro.stock-v2 .stock-protection-notice{position:fixed;left:50%;bottom:70px;t
 body.pro.stock-v2{padding-bottom:48px}
 @media(max-width:700px){body.pro.stock-v2 .stock-source-stamp{bottom:calc(62px + env(safe-area-inset-bottom));font-size:10px;padding:4px 8px;gap:0 6px}body.pro.stock-v2 .stock-source-stamp span{display:block;width:100%}body.pro.stock-v2 .stock-protection-notice{bottom:calc(120px + env(safe-area-inset-bottom))}body.pro.stock-v2{padding-bottom:calc(120px + env(safe-area-inset-bottom))!important}}
 @media print{body.pro.stock-v2 .stock-source-stamp{position:static}body.pro.stock-v2 .stock-capture-watermark{opacity:.1}body.pro.stock-v2 .stock-protection-notice{display:none!important}}
+
+/* Measure both fixed bars so browser zoom and wrapped attribution stay clear. */
+html body.pro.stock-v2 .stock-source-stamp{bottom:var(--stock-tabs-height,0px)!important;box-sizing:border-box}
+html body.pro.stock-v2 #pro-top{bottom:calc(var(--stock-tabs-height,0px) + var(--stock-stamp-height,38px) + 20px + env(safe-area-inset-bottom))!important;min-height:44px;z-index:110}
+html body.pro.stock-v2{padding-bottom:calc(var(--stock-tabs-height,0px) + var(--stock-stamp-height,38px) + 24px)!important}
+html body.pro.stock-v2 .stock-protection-notice{bottom:calc(var(--stock-tabs-height,0px) + var(--stock-stamp-height,38px) + 64px)!important}
+@media print{html body.pro.stock-v2 .stock-source-stamp{position:static!important}html body.pro.stock-v2 #pro-top{display:none!important}}

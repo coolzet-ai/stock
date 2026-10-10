@@ -11,6 +11,17 @@
  var stamp=document.createElement('aside');stamp.className='stock-source-stamp';stamp.setAttribute('aria-label','출처 및 권리 안내');
  var source=document.createElement('a');source.href='https://coolzet-ai.github.io/stock/stock.html';source.textContent='출처: Mr.Kim Signal · coolzet-ai.github.io/stock';
  var rights=document.createElement('span');rights.textContent='© Mr.Kim Signal 구성·해설 · 데이터 권리: 각 제공처';stamp.append(source,rights);document.body.appendChild(stamp);
+ function measureBottom(){
+  var tabs=document.getElementById('mk-tabbar'), rect=tabs&&tabs.getBoundingClientRect();
+  var tabHeight=tabs&&getComputedStyle(tabs).display!=='none'?rect.height:0;
+  document.documentElement.style.setProperty('--stock-tabs-height',tabHeight+'px');
+  document.documentElement.style.setProperty('--stock-stamp-height',stamp.getBoundingClientRect().height+'px');
+ }
+ if(window.ResizeObserver){var ro=new ResizeObserver(measureBottom);ro.observe(stamp);var tabs=document.getElementById('mk-tabbar');if(tabs)ro.observe(tabs);}
+ window.addEventListener('resize',measureBottom);if(window.visualViewport){window.visualViewport.addEventListener('resize',measureBottom);window.visualViewport.addEventListener('scroll',measureBottom);}if(document.fonts)document.fonts.ready.then(measureBottom);measureBottom();
+
+ var originalGift=document.getElementById('naver-gift-link');
+ if(originalGift){var gift=document.createElement('a');gift.id='stock-gift';gift.href=originalGift.href;gift.target='_blank';gift.rel='noopener noreferrer';gift.setAttribute('aria-label','네이버페이 포인트 선물하기');gift.title='네이버페이 포인트 선물하기';gift.textContent='🎁';document.body.appendChild(gift);}
  var mark=document.createElement('div');mark.className='stock-capture-watermark';mark.setAttribute('aria-hidden','true');document.body.appendChild(mark);
  document.querySelectorAll('img').forEach(function(img){img.draggable=false;});
 })();

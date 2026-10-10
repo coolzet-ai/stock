@@ -2,7 +2,7 @@
   {
     "file": "US-STOCK-UPDATE.md",
     "status": "added",
-    "sha256": "45d904e282b15d4e154a179c2a6b346e762adeefd3b48a89473d9c04643664e9"
+    "sha256": "3924934539e9ff5245de847e67bcacbe13e0c5b0ca832ac2991271f5cf3f39c7"
   },
   {
     "file": "deployment/cloudflare-pages/README.md",
@@ -147,17 +147,17 @@
   {
     "file": "stock-protection-v48.css",
     "status": "added",
-    "sha256": "2957840d1af9ae4da4ef60779e9f9b4e0beaa52dd769a9a8da3c05490c858532"
+    "sha256": "87a9038152b7473a4aae527fc662b811a1799b4a85997ea1e723682e76a2d8ee"
   },
   {
     "file": "stock-protection-v48.js",
     "status": "added",
-    "sha256": "8e822f7cf26acdcbee92b86dd7fcc16f07e9315e97c1535bcaec9d981b4861c0"
+    "sha256": "e1e9c5ae24322fc7af87d80b04c6836ca20d0848a0ca5e70cd97478a37183954"
   },
   {
     "file": "stock-refine-v47.css",
     "status": "added",
-    "sha256": "dcc449b06d048083b0ed1622874430192c559f6357d4a8a74d4927a59395ba83"
+    "sha256": "228f546105878e3cd5c3b69c17efaf7de010697e4acadf56829bb77a45d701ba"
   },
   {
     "file": "stock-security.js",
@@ -167,7 +167,7 @@
   {
     "file": "stock-sw.js",
     "status": "added",
-    "sha256": "77aab81c2d991050b3ce9725770cb97fb51d1bc6d6a8bb118e6f88145e61e8fd"
+    "sha256": "35db5bff20aa50ce2e95fb07044c39604b600fe7e118f4940ecb6b872b489a4a"
   },
   {
     "file": "stock-tools-v46.css",
@@ -192,7 +192,7 @@
   {
     "file": "stock.html",
     "status": "modified",
-    "sha256": "9df2ec4e5403536745e3f9ddab6f6c6eb6a6c85adf411598b3ed7249b6818a5f"
+    "sha256": "3c23f9743dc1f8a008252d6259b5ef4694d378520cabe25b35f7a1e6b142676c"
   },
   {
     "file": "tests/baseline.json",
@@ -263,5 +263,45 @@
     "file": "worker/wrangler.security.example.toml",
     "status": "added",
     "sha256": "361118099023b8280174cc9f742400311d22d8b8c22e4ef8672d4d03e9a17e41"
+  },
+  {
+    "file": "stock-pulse.js",
+    "status": "added",
+    "sha256": "e3583458521dd1c2111a385b906bf91cdc77f77a46d14569576d2f4ba14f15c1"
+  },
+  {
+    "file": "tests/stock-screen-v51.cjs",
+    "status": "added",
+    "sha256": "27b2b65821fc17ec3d6edc920df3c121e497e048d6f261708deafc520bf034c2"
+  },
+  {
+    "file": "tests/screen-v51-results.json",
+    "status": "added",
+    "sha256": "7c6cc17b184c728dcf8cd7b77f80d7664c76b66b551f25b0bf4fc2c1356190c4"
+  },
+  {
+    "version": "v52",
+    "files": [
+      "stock.html",
+      "stock-common-v2.js",
+      "stock-pro-v47.js",
+      "stock-invest-v47.js",
+      "stock-refine-v47.css",
+      "stock-sw.js"
+    ],
+    "worker_redeploy": false
+  },
+  {
+    "version": "v53",
+    "files": [
+      "stock.html",
+      "stock-common-v2.js",
+      "stock-refine-v47.css",
+      "stock-protection-v48.css",
+      "stock-protection-v48.js",
+      "stock-sw.js"
+    ],
+    "worker_redeploy": false,
+    "validation": "syntax and archive; browser unavailable"
   }
 ]
