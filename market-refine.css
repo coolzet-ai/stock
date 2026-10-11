@@ -1,0 +1,75 @@
+/* v92: current market-card refinements, scoped to the nine requested pages. */
+html body.pro.refine-v92 #us-card .fg-top,html body.pro.kr.refine-v92 .v92-fg-top{display:grid!important;grid-template-columns:minmax(230px,1fr) minmax(0,1fr)!important;align-items:center!important;gap:12px!important;margin:8px 0!important;padding:0!important;min-height:0!important}
+html body.pro.refine-v92 #us-card .stock-gauge,html body.pro.kr.refine-v92 #kr-card .stock-gauge{max-width:280px!important;width:100%!important;margin:0 auto!important;min-width:0!important;flex:none!important}
+html body.pro.refine-v92 :is(#us-trend,#kr-trend){height:auto!important;min-height:0!important;margin:0!important;padding:0!important;max-width:100%;line-height:1.5}
+html body.pro.refine-v92 :is(#us-trend,#kr-trend)>svg{display:block!important;width:100%!important;height:auto!important;margin:0!important}
+html body.pro.refine-v92 .stock-trend-labels{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11px!important;line-height:1.5;margin:2px 0 0!important;color:var(--tx2)}
+html body.pro.refine-v92 .v92-trend-title{font-size:12px;margin:0 0 6px}
+html body.pro.refine-v92 .v92-trend-empty{padding:12px!important;margin:0!important;font-size:12px;color:var(--tx2);border:1px dashed var(--line);border-radius:8px}
+html body.pro.refine-v92 .v92-current{display:block;font-size:16px;margin:6px 0}
+html body.pro.kr.refine-v92 .v92-fg-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+html body.pro.kr.refine-v92 #kr-card .v92-fg-header h3{font-size:17px!important;margin:0!important;font-weight:800}
+html body.pro.kr.refine-v92 .v92-kr-periods{margin:0!important;display:flex;gap:4px}
+html body.pro.kr.refine-v92 .v92-kr-periods button{min-height:32px;padding:6px 8px;font-size:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--tx2);font-weight:700}
+html body.pro.kr.refine-v92 .v92-kr-periods button.on{background:#075c3b;color:#fff;border-color:#075c3b}
+html body.pro.kr.refine-v92 .grid:has(#kr-investor-trend){align-items:start!important;gap:20px!important}
+html body.pro.kr.refine-v92 .grid:has(#kr-investor-trend)>.card{align-self:start!important;min-width:0;box-sizing:border-box}
+html body.pro.kr.refine-v92 .grid:has(#kr-investor-trend) .kr-hd1{min-height:36px!important;margin:0 0 12px!important;align-items:center!important}
+html body.pro.kr.refine-v92 .grid:has(#kr-investor-trend) .kr-tools{display:flex!important;flex-wrap:wrap;gap:8px;align-content:start;align-items:start;min-height:74px!important;margin:0 0 12px!important;padding:0!important}
+html body.pro.kr.refine-v92 :is(#kr-investor-trend,#kr-market-deposit){margin:0!important;padding:0!important}
+html body.pro.kr.refine-v92 .v92-detail-panel{grid-column:1/-1;min-width:0!important;max-width:100%!important;box-sizing:border-box;overflow:hidden!important}
+html body.pro.kr.refine-v92 .v92-detail-panel :is(.fin-cols,.lv2-grid){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;min-width:0!important}
+html body.pro.kr.refine-v92 .v92-detail-panel .scroll{overflow-x:auto!important;max-width:100%!important;min-width:0;overscroll-behavior-x:contain}
+html body.pro.kr.refine-v92 .v92-detail-panel table{table-layout:auto!important;min-width:440px!important;width:100%!important;border-collapse:collapse}
+html body.pro.kr.refine-v92 .v92-detail-panel table.v92-wide-detail{min-width:700px!important}
+html body.pro.kr.refine-v92 .v92-detail-panel :is(th,td){width:auto!important;padding:8px!important;line-height:1.6!important;white-space:normal!important;overflow-wrap:anywhere;vertical-align:top!important;font-size:12px!important}
+html body.pro.kr.refine-v92 .v92-detail-panel table.lv2-t{table-layout:fixed!important;min-width:0!important}
+html body.pro.kr.refine-v92 .v92-detail-panel table.lv2-t :is(th,td):first-child{width:46%!important}
+html body.pro.kr.refine-v92 .wl-row{gap:18px!important;grid-template-columns:4px minmax(0,1fr) 112px 132px 70px!important}
+html body.pro.kr.refine-v92 .wl-actions{padding-left:12px!important;border-left:1px solid var(--line)!important;gap:6px!important;align-items:center!important}
+html body.pro.refine-v92 .v92-page-head{display:flex!important;align-items:center!important;justify-content:space-between;flex-wrap:wrap;gap:12px!important;max-width:1232px;box-sizing:border-box;margin:0 auto!important}
+html body.pro.refine-v92 .v92-page-head h1{margin:0!important;flex:1 1 auto!important;min-width:0}
+html body.pro.refine-v92 .v92-page-head .v86-eyebrow{flex:1 0 100%;margin:0!important}
+html body.pro.refine-v92 .v92-page-head .v90-actions{margin:0 0 0 auto!important;align-self:center;order:2;gap:6px}
+html body.pro.refine-v92 #pro-status:empty{display:none!important}
+html body.pro.refine-v92.v92-other #pro-toc{display:none!important}
+html body.pro.refine-v92 .v92-crypto-gauge .fg-hd{display:flex!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;min-height:36px;margin:0 0 12px!important;padding:0!important}
+html body.pro.refine-v92 .v92-crypto-gauge .fg-hd h3{margin:0!important;padding:0!important;font-size:17px!important;line-height:1.5!important;background:transparent!important;border:0!important;color:var(--tx)!important}
+html body.pro.refine-v92 .v92-crypto-gauge #cf-per{display:none!important}
+html body.pro.refine-v92 .v92-crypto-gauge .fg-hd .tabs{margin:0!important}
+html body.pro.refine-v92 .v92-global-trend .market-fold-h{margin:0 0 12px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html body.pro.refine-v92 .v92-global-trend .market-fold-body:not([hidden]){padding-top:0!important}
+html body.pro.refine-v92 .v92-global-trend .market-fold-body>p:first-child{margin:0 0 12px!important}
+html body.pro.refine-v92.v92-crypto :is(h2.fold-h,.market-fold-h,.scard-h):is(:hover,:focus-within){border-color:var(--line)!important;border-left-color:var(--accent)!important;box-shadow:none!important;outline:none!important;transform:none!important;background:var(--panel)!important;color:var(--tx)!important}
+html body.pro.refine-v92.v92-crypto :is(h2.fold-h,.market-fold-h,.scard-h):hover :is(.fold-t,.market-fold-title){color:var(--tx)!important}
+html body.pro.refine-v92 :is(#stock-update-history,.cross-update-log){display:none!important}
+html body.pro.refine-v92 :is(#v92-update-history,#v92-usage){max-width:1100px;margin:12px auto;border:1px solid var(--line);border-radius:10px;padding:12px 16px;background:var(--panel);text-align:left}
+html body.pro.refine-v92 :is(#v92-update-history,#v92-usage)[hidden]{display:none!important}
+html body.pro.refine-v92 :is(#v92-update-history,#v92-usage)>summary{font-size:14px;font-weight:800;cursor:pointer;list-style:none;color:var(--accent)}
+html body.pro.refine-v92 .v92-update-date{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+html body.pro.refine-v92 .v92-update-date>summary{font-weight:800;cursor:pointer}
+html body.pro.refine-v92 #v92-update-history table{width:100%;table-layout:fixed;margin-top:10px;border-collapse:collapse}
+html body.pro.refine-v92 #v92-update-history :is(th,td){padding:8px;line-height:1.7;text-align:left;overflow-wrap:anywhere;font-size:12px;border-bottom:1px solid var(--line)}
+html body.pro.refine-v92 #v92-update-history :is(th,td):first-child{width:60px}
+html body.pro.refine-v92 #v92-update-history :is(th,td):nth-child(2){width:25%}
+html body.pro.refine-v92 #v92-usage form{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0}
+html body.pro.refine-v92 #v92-usage input{max-width:100%;min-height:36px}
+html body.pro.refine-v92 #v92-usage button{min-height:36px;background:#075c3b;color:white;border:0;border-radius:6px;padding:6px 14px}
+@media(max-width:700px){
+html body.pro.refine-v92 #us-card .fg-top,html body.pro.kr.refine-v92 .v92-fg-top{grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+html body.pro.refine-v92 .v92-trend-area{width:100%;max-width:320px;margin:auto}
+html body.pro.refine-v92 #us-trend{max-width:320px;margin:auto!important}
+html body.pro.kr.refine-v92 .grid:has(#kr-investor-trend) .kr-tools{min-height:0!important}
+html body.pro.kr.refine-v92 .v92-detail-panel :is(.fin-cols,.lv2-grid){grid-template-columns:minmax(0,1fr)!important}
+html body.pro.kr.refine-v92 .wl-row{grid-template-columns:4px minmax(0,1fr) 108px!important;gap:8px!important}
+html body.pro.kr.refine-v92 .wl-actions{border-left:0!important;padding:4px 0 0!important;gap:8px!important}
+html body.pro.refine-v92 .v92-page-head{padding:16px 12px 8px!important;gap:8px!important;flex-wrap:nowrap!important}
+html body.pro.refine-v92 .v92-page-head h1{font-size:23px!important;flex:1 1 auto!important}
+html body.pro.refine-v92 .v92-page-head .v86-eyebrow{display:none!important}
+html body.pro.refine-v92 .v92-page-head .v90-actions{flex:none!important}
+html body.pro.refine-v92 .v92-page-head .v90-actions button{width:28px!important;height:28px!important;min-width:28px!important;padding:0!important}
+html body.pro.refine-v92 #v92-update-history table,html body.pro.refine-v92 #v92-update-history tbody,html body.pro.refine-v92 #v92-update-history tr{display:block;width:100%}
+html body.pro.refine-v92 #v92-update-history thead{display:none}
+html body.pro.refine-v92 #v92-update-history td{display:block;width:100%!important;padding:4px 0}
+html body.pro.refine-v92 #v92-update-history td::before{content:attr(data-label)' · ';font-weight:800;color:var(--tx2)}
+}
