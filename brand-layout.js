@@ -47,3 +47,21 @@ function commit(next){try{localStorage.setItem(key,JSON.stringify(next));favorit
 function decorate(){host.querySelectorAll('a.p2p-card').forEach(function(card){if(card.parentElement.classList.contains('v100-product-wrap'))return;var url=card.href,name=card.querySelector('.p2p-tl')?.textContent.trim()||card.querySelector('.p2p-hd')?.textContent.trim()||'P2P 상품';var wrap=d.createElement('div');wrap.className='v100-product-wrap';card.before(wrap);wrap.append(card);var b=d.createElement('button');b.type='button';b.dataset.favoriteUrl=url;b.className='v100-save';b.onclick=function(){if(favorites.some(function(x){return x.url===url;})){commit(favorites.filter(function(x){return x.url!==url;}));return;}if(favorites.length>=30){message.textContent='관심상품은 최대 30개까지 저장할 수 있습니다.';return;}commit(favorites.concat({url:url,name:name,savedAt:Date.now()}));};wrap.append(b);});render();}
 var pending=false;new MutationObserver(function(records){if(!records.some(function(r){return Array.from(r.addedNodes).some(function(n){return n.nodeType===1;});}))return;if(pending)return;pending=true;setTimeout(function(){pending=false;decorate();},100);}).observe(host,{childList:true,subtree:true});decorate();window.addEventListener('storage',function(e){if(e.key===key){try{var rows=JSON.parse(e.newValue||'[]');if(Array.isArray(rows))favorites=rows.filter(function(x){return x&&typeof x.url==='string'&&/^https?:\/\//.test(x.url)&&typeof x.name==='string';}).slice(0,30);render();}catch(error){}}});}}
 var log=d.querySelector('#v92-update-history ul');if(log){var li=d.createElement('li');li.textContent='v100 · 모바일 제목·버튼·홈 2/3열, 공모주 추천·환율 표, P2P 관심상품 저장, 전략 여백 개선';log.prepend(li);}}
+;(function(){try{
+var d=document;
+function tagFab(){
+  var mq=window.matchMedia&&matchMedia('(max-width:700px)');
+  if(mq&&!mq.matches)return;
+  var els=d.body?d.body.querySelectorAll('a,button,div'):[];
+  for(var i=0;i<els.length;i++){var el=els[i];
+    if(el.id==='pro-top'||el.id==='mk-tabbar'||el.id==='mk-pos'||el.closest('#hd-pop,#mk-tabbar,#mk-gate,header'))continue;
+    if(el.classList.contains('v101-fab-gift'))continue;
+    var hit=(el.tagName==='A'&&/pay\.naver\.com\/point-gift/.test(el.getAttribute('href')||''))||/선물|🎁|💌/.test((el.textContent||'').slice(0,12))&&el.children.length<3;
+    if(!hit)continue;
+    var cs=getComputedStyle(el);
+    if(cs.position==='fixed'){el.classList.add('v101-fab-gift');}
+  }
+}
+[600,2000,5000].forEach(function(t){setTimeout(tagFab,t);});
+window.addEventListener('resize',function(){clearTimeout(tagFab._t);tagFab._t=setTimeout(tagFab,300);});
+}catch(e){}})();

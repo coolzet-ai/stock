@@ -412,7 +412,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     var o=document.createElement('div'); o.id='mk-gate'; if(opt.modal) o.className='modal';
     o.innerHTML='<style>#mk-gate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:#f4f6f5;color:#1b1f1d;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}'+
       '#mk-gate .bx{width:100%;max-width:340px;background:#fff;border:1px solid #dfe5e1;border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.12)}'+
-      '#mk-gate h1{font-size:18px;margin:0 0 4px;font-weight:900}#mk-gate p{font-size:12.5px;opacity:.7;margin:0 0 16px}'+
+      '#mk-gate .gt{font-size:18px;margin:0 0 4px;font-weight:900}#mk-gate p{font-size:12.5px;opacity:.7;margin:0 0 16px}'+
       '#mk-gate input{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cfd8d3;border-radius:10px;font-size:16px;text-align:center;margin-bottom:10px}'+
       '#mk-gate button{width:100%;padding:12px;border:0;border-radius:10px;background:#00754a;color:#fff;font-size:15px;font-weight:800;cursor:pointer}'+
       '#mk-gate .gd{margin:-4px 0 14px;padding:12px;border-radius:10px;background:rgba(0,117,74,.10);border:1px solid rgba(0,117,74,.3);font-size:12.5px;line-height:1.6}'+
@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
       ':root[data-theme="dark"] #mk-gate{background:#0f1311!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate .bx{background:#171d1a!important;border-color:#2a332e!important;color:#eef2ef!important}:root[data-theme="dark"] #mk-gate h1,:root[data-theme="dark"] #mk-gate p,:root[data-theme="dark"] #mk-gate .gd{color:#eef2ef!important}:root[data-theme="dark"] #mk-gate input{background:#0f1311!important;color:#eef2ef!important;border-color:#2f3a34!important}'+
       '#mk-gate.modal{background:rgba(0,0,0,.55)!important;backdrop-filter:blur(2px)}:root[data-theme] #mk-gate.modal{background:rgba(0,0,0,.55)!important}#mk-gate .cl{display:none;margin-top:10px;background:transparent!important;color:inherit!important;border:1px solid rgba(128,128,128,.4)!important;font-weight:700!important;font-size:13px!important;padding:9px!important}#mk-gate.modal .cl{display:block}#mk-gate .ms{display:none;font-size:12px;margin:-6px 0 12px;font-weight:700;color:#00754a}#mk-gate.modal .ms{display:block}'+
       '</style>'+
-      '<form class="bx" autocomplete="off"><h1>🔒 Mr.Kim Signal</h1><p>'+(opt.modal?(opt.msg||'계속하려면 암호를 입력해 주세요'):'이 페이지에 들어가려면 암호를 입력해 주세요')+'</p>'+
+      '<form class="bx" autocomplete="off"><div class="gt" role="heading" aria-level="2">🔒 Mr.Kim Signal</div><p>'+(opt.modal?(opt.msg||'계속하려면 암호를 입력해 주세요'):'이 페이지에 들어가려면 암호를 입력해 주세요')+'</p>'+
       '<div class="gd">💌 <b>네이버포인트를 선물</b>하시고<br><b>쪽지</b>를 보내면 암호를 알려드립니다.<a class="id" id="mk-gate-gift" href="https://pay.naver.com/point-gift/send?rUrl=https%3A%2F%2Fpoint.pay.naver.com%2Fpointshistory%2Flist%3Fcategory%3Dall&inflowType=NPAY&sessionId=8l9jju8aocn" target="_blank" rel="noopener"><i>네이버포인트 선물 ID</i><b>coolzet</b><em>눌러서 바로 선물하기 ›</em></a></div>'+
       '<input type="password" id="mk-gate-pw" placeholder="암호" autocomplete="current-password" autofocus>'+
       '<button type="submit">확인</button><button type="button" class="cl" id="mk-gate-cl">닫기</button><div class="er" id="mk-gate-er"></div></form>';
@@ -539,18 +539,18 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
     bar.appendChild(btn); bar.appendChild(box);
     btn.onclick=async function(){
       if(box.style.display==='block'){ box.style.display='none'; return; }
-      var key=''; try{ key=localStorage.getItem('mk_stats_key')||''; }catch(e){}
+      var key=''; try{ key=sessionStorage.getItem('mk_stats_key')||''; }catch(e){}
       box.style.display='block';
       if(!key){
         box.innerHTML='<label>통계 키(Worker 변수 STATS_KEY) <input type="password" autocomplete="off" style="padding:4px 8px;border:1px solid #7c3aed;border-radius:6px;margin:0 6px"></label><button type="button" style="padding:4px 10px;border-radius:6px;border:1px solid #7c3aed;background:#fff;cursor:pointer">확인</button>';
-        box.querySelector('button').onclick=function(){ var v=box.querySelector('input').value.trim(); if(!v) return; try{localStorage.setItem('mk_stats_key',v);}catch(e){} box.style.display='none'; btn.onclick(); };
+        box.querySelector('button').onclick=function(){ var v=box.querySelector('input').value.trim(); if(!v) return; try{sessionStorage.setItem('mk_stats_key',v);}catch(e){} box.style.display='none'; btn.onclick(); };
         return;
       }
       box.textContent='불러오는 중…';
       try{
         var hr=await fetch(W+'health',{cache:'no-store'}).then(function(r){return r.json();});
-        var er=await fetch(W+'ev-stats?days=7&key='+encodeURIComponent(key),{cache:'no-store'});
-        if(er.status===403){ try{localStorage.removeItem('mk_stats_key');}catch(e){} box.textContent='통계 키가 맞지 않습니다. 다시 눌러 입력해 주세요.'; return; }
+        var er=await fetch(W+'ev-stats?days=7',{cache:'no-store',headers:{'X-Stats-Key':key}});
+        if(er.status===403){ try{sessionStorage.removeItem('mk_stats_key');}catch(e){} box.textContent='통계 키가 맞지 않습니다. 다시 눌러 입력해 주세요.'; return; }
         var ev=await er.json(), days=Object.keys(ev).sort().reverse();
         var h='<b>Worker 상태(마지막 재시작 이후)</b> · 요청 '+esc(hr.total)+' · 출처차단 '+esc(hr.blockedOrigin)+' · 속도제한 '+esc(hr.limited)+' · 5xx '+esc(hr.err5xx)+' · 가동 '+esc(hr.uptimeMin)+'분<br>';
         h+='<b>최근 7일 방문(개인정보 없는 집계)</b><br>'+(days.length?days.map(function(d){ var o=ev[d]||{},pp=Object.keys(o.p||{}).sort(function(a,b){return o.p[b]-o.p[a];}).slice(0,3).map(function(k){return esc(k)+' '+o.p[k];}).join(', '); return esc(d)+' · '+esc(o.v||0)+'회 · '+pp; }).join('<br>'):'아직 기록이 없습니다.');
@@ -2747,7 +2747,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="mrkim-detail.css?v=88">
 <link rel="stylesheet" href="kr-standard.css?v=91">
 <link rel="stylesheet" href="market-refine.css?v=92">
-<link rel="stylesheet" href="brand-layout.css?v=100">
+<link rel="stylesheet" href="brand-layout.css?v=101">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -10818,6 +10818,6 @@ async function toggleKrLev(t,ev){
 <script src="mrkim-detail.js?v=88"></script>
 <script src="kr-standard.js?v=91"></script>
 <script defer src="market-refine.js?v=92"></script>
-<script defer src="brand-layout.js?v=100"></script>
+<script defer src="brand-layout.js?v=101"></script>
 </body>
 </html>
