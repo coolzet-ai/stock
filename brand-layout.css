@@ -96,9 +96,9 @@ html body.pro.v93-stock #pro-brief .stock-market-details>summary{display:none!im
 
 /* v104 — 미국·한국·가상화폐: 머리줄 녹색 채움 강조 */
 html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto){--v104-g:#00754A}
-html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock) #pro-brief>.pb-hd{background:var(--v104-g)!important;color:#fff!important;border-radius:12px!important;padding:10px 16px!important;border:0!important;margin-bottom:12px!important}
-html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock) #pro-brief>.pb-hd :is(b,span,small){color:#fff!important}
-html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock) #pro-brief>.pb-hd .pb-sub{opacity:.85}
+html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-brief>.pb-hd{background:var(--v104-g)!important;color:#fff!important;border-radius:12px!important;padding:10px 16px!important;border:0!important;margin-bottom:12px!important}
+html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-brief>.pb-hd :is(b,span,small){color:#fff!important}
+html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-brief>.pb-hd .pb-sub{opacity:.85}
 html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) .pulse>h3:first-child{background:var(--v104-g)!important;color:#fff!important;border-radius:12px!important;border:0!important;padding:10px 16px!important;margin:0 0 12px!important;min-height:44px!important;box-sizing:border-box}
 html body.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) .pulse>h3:first-child :is(span,small,em,b,button){color:#fff!important;background:transparent!important;border-color:transparent!important}
 html body.pro.pro.pro.v93-stock .stock-bottom-personal>summary,
@@ -201,3 +201,51 @@ html body.pro #mk-resume .rs-x{min-width:36px;padding:0}
  html body.pro:not(.stock-v2) #mk-side li button:is(:hover,:focus-visible){background:#075c3b!important;color:#fff!important}
  html body.pro:not(.stock-v2) #mk-side .sd-ev,html body.pro:not(.stock-v2) #mk-side .sd-h:nth-of-type(2){display:none}
 }
+
+/* v105 — 하단 메뉴(모바일): 떠 있는 둥근 바 + 위로 열리는 2열 팝업 */
+@media(max-width:700px){
+html body.pro #mk-tabbar.v105-bb{display:flex!important;position:fixed!important;left:10px!important;right:10px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;height:62px!important;padding:0 6px!important;border:1px solid #e0e5e9!important;border-radius:22px!important;background:rgba(255,255,255,.97)!important;box-shadow:0 8px 28px rgba(15,40,30,.18)!important;backdrop-filter:blur(12px);z-index:90;box-sizing:border-box;align-items:stretch}
+html body.pro #mk-tabbar.v105-bb button{flex:1;min-width:0;position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0!important;border-left:0!important;background:none!important;color:#5b6772!important;font:inherit;cursor:pointer;min-height:44px;padding:4px 0}
+html body.pro #mk-tabbar.v105-bb button .ti{display:block;width:24px;height:24px;font-size:0;line-height:0}
+html body.pro #mk-tabbar.v105-bb button .ti svg{width:24px;height:24px;display:block}
+html body.pro #mk-tabbar.v105-bb button .tl{font-size:12px;font-weight:700;color:inherit!important}
+html body.pro #mk-tabbar.v105-bb button.on{color:#00754A!important}
+html body.pro #mk-tabbar.v105-bb button.on::after{content:'';position:absolute;left:28%;right:28%;bottom:4px;height:3px;border-radius:3px;background:#00754A}
+html body.pro #mk-bb-pop{position:fixed;left:10px;right:10px;bottom:84px;z-index:91;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:8px;border:1px solid #e0e5e9;border-radius:20px;background:#fff;box-shadow:0 10px 32px rgba(15,40,30,.2);max-height:55vh;overflow:auto;box-sizing:border-box}
+html body.pro #mk-bb-pop[hidden]{display:none}
+html body.pro #mk-bb-pop button{display:flex;align-items:center;min-height:56px;padding:0 16px;border:0;border-radius:12px;background:none;color:#1c2933;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer}
+html body.pro #mk-bb-pop button:active,html body.pro #mk-bb-pop button:hover{background:#eef6f2;color:#00754A}
+html body.pro #mk-bb-pop .v105-empty{grid-column:1/-1;margin:12px;font-size:13px;color:#5b6772}
+}
+@media(min-width:701px){html body.pro #mk-bb-pop{display:none!important}}
+/* v105 — ☰ 를 Mr.Kim 옆(로고 왼쪽)으로 */
+@media(max-width:700px){
+html body.brand-v93 header .wrap.nav{display:flex!important;align-items:center;justify-content:flex-start!important;gap:4px}
+html body.brand-v93 header .nav-toggle{order:-1!important;margin:0 4px 0 -6px!important;padding:6px 8px!important;border:0!important;background:transparent!important;font-size:24px!important;line-height:1;color:#1c2933!important;box-shadow:none!important;min-width:40px;min-height:40px}
+html body.brand-v93 header .wrap.nav>div:last-child{margin-left:auto!important}
+}
+
+/* v105 — 가상화폐: 오늘의 시장 요약 · 바로가기 · 시장 한눈에 보기 */
+html body.pro.v93-crypto .v105-hm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+html body.pro.v93-crypto .v105-tl{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border:1px solid;border-radius:10px;text-align:center;min-width:0}
+html body.pro.v93-crypto .v105-tl span{font-size:13px;font-weight:700;color:#1c2933;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+html body.pro.v93-crypto .v105-tl b{font-size:16px;font-weight:800;color:#111418}
+html body.pro.v93-crypto .v105-tl small{font-size:12.5px;font-weight:700}
+html body.pro.v93-crypto #cr-pulse{margin:12px 0!important;padding:0 0 14px!important}
+html body.pro.v93-crypto #cr-pulse>h3{cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin:0 0 12px!important}
+html body.pro.v93-crypto #cr-pulse .v105-pulse-body{padding:0 14px}
+html body.pro.v93-crypto #cr-pulse .breadth{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px}
+html body.pro.v93-crypto #cr-pulse .bl{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:4px}
+html body.pro.v93-crypto #cr-toc.v105-toc{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0;padding:0}
+html body.pro.v93-crypto #cr-toc.v105-toc a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 6px;border:1px solid #e0e5e9;border-radius:10px;background:#fff;color:#1c2933;font-size:13.5px;font-weight:800;text-decoration:none;text-align:center}
+html body.pro.v93-crypto #cr-toc.v105-toc a:hover{border-color:#00754A;color:#00754A}
+@media(max-width:700px){html body.pro.v93-crypto .v105-hm{grid-template-columns:repeat(2,minmax(0,1fr))}html body.pro.v93-crypto #cr-toc.v105-toc{display:none}}
+@media(max-width:430px){
+html body.brand-v93 header .nav-toggle{min-width:34px!important;padding:6px 4px!important;margin:0 0 0 -8px!important;font-size:22px!important}
+html body.brand-v93 header .logo{font-size:18px!important}
+html body.brand-v93 header .v93-beta{margin-left:5px!important;padding:2px 5px!important}
+html body.brand-v93 header .wrap.nav{gap:2px!important}
+}
+@media(max-width:380px){html body.brand-v93 header .v93-beta{display:none!important}}
+@media(max-width:700px){html body.pro .cross-floating,html body.pro .stock-floating-actions,html body.pro #pro-top,html body.pro #stock-gift{z-index:80!important}
+html body.pro #mk-bb-pop{z-index:95!important}html body.pro #mk-tabbar.v105-bb{z-index:92!important}}
