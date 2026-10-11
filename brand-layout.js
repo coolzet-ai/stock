@@ -105,3 +105,46 @@ function run(){flags();statusCompact()}
 [500,1500,3500].forEach(function(t){setTimeout(run,t)});
 setTimeout(foldsOpenDefault,1800);
 }catch(e){}})();
+
+/* v104 — 공모주·금융상품 페이지 배치 정리 */
+(function(){try{
+var d=document,p=location.pathname.split('/').pop().replace('.html','');
+function ipoFix(){
+ var btn=d.getElementById('ipo-refresh'),acts=d.querySelector('.v90-actions');
+ if(btn&&acts&&btn.parentElement!==acts){
+  var reload=acts.querySelector('[data-other-action="reload"]');
+  btn.textContent='↻ 공모주 새로고침';btn.classList.add('v104-ipo-rf');
+  if(reload)reload.after(btn);else acts.prepend(btn);
+ }
+ var row=d.querySelector('.ipo-asof');
+ if(row&&!row.querySelector('button,#ipo-live-status'))row.remove();
+ else if(row&&!row.querySelector('button'))row.style.setProperty('display','none','important');
+ var tabs=d.getElementById('ipo-month-tabs'),first=d.querySelector('#ipo .card, main section .card');
+ var sub=d.querySelector('#ipo .pg-sub');
+ if(tabs){var anchor=sub||null;
+  if(anchor&&anchor.nextElementSibling!==tabs){anchor.after(tabs);}
+  else if(!anchor&&first&&first.previousElementSibling!==tabs){first.before(tabs);}
+  tabs.classList.add('v104-top-tabs');}
+}
+function finFix(){
+ var st=d.getElementById('fin-events-status'),h=st&&st.parentElement&&st.parentElement.querySelector('h3.market-fold-h');
+ if(st&&h&&st.parentElement!==h){var t=h.querySelector('.market-fold-title');(t?t:h.firstChild).after(st);st.classList.add('v104-inline-status');st.removeAttribute('style');}
+ if(st)st.title=st.textContent;
+}
+function run(){if(p==='ipo')ipoFix();if(p==='finprod')finFix();}
+if(p==='ipo'||p==='finprod'){[300,1200,2800,5000].forEach(function(t){setTimeout(run,t)});
+ if(window.MutationObserver){var m=d.querySelector('main');if(m){var q;new MutationObserver(function(){clearTimeout(q);q=setTimeout(run,300)}).observe(m,{childList:true,subtree:true})}}}
+}catch(e){}})();
+
+/* v104 — "마지막으로 보던 곳 · 이어보기" 배너를 모든 페이지에서 미국주식과 같은 자리(본문 최상단)로 */
+(function(){try{
+var d=document;
+function place(){
+ var r=d.getElementById('mk-resume');if(!r)return;
+ var brief=d.getElementById('pro-brief'),t=brief;
+ if(!t){var w=d.querySelector('main section .wrap, main .wrap');t=w&&Array.prototype.find.call(w.children,function(c){return c!==r&&c.tagName!=='STYLE'&&!/^H[12]$/.test(c.tagName)&&c.getBoundingClientRect().height>0;});}
+ if(t&&r.nextElementSibling!==t&&t.parentNode)t.parentNode.insertBefore(r,t);
+}
+[300,1200,2800,5000,8000].forEach(function(t){setTimeout(place,t)});
+if(window.MutationObserver){var q;new MutationObserver(function(){clearTimeout(q);q=setTimeout(place,250)}).observe(d.body,{childList:true,subtree:true})}
+}catch(e){}})();
