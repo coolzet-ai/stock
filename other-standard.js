@@ -7,7 +7,7 @@
  function setAll(open){
   main.querySelectorAll('h2.fold-h,.market-fold-h').forEach(function(h){if(typeof h._set==='function')h._set(open);});
   main.querySelectorAll('.cross-fold').forEach(function(c){c.classList.toggle('cross-open',open);c.classList.toggle('m-open',open);var b=c.querySelector('.m-fold-btn');if(b){b.setAttribute('aria-expanded',String(open));b.textContent=open?'접기 −':'펼치기 ＋';}});
-  main.querySelectorAll('.scard [data-sc]').forEach(function(b){var c=document.getElementById(b.dataset.sc);if(c&&c.classList.contains('open')!==open)b.click();});
+  main.querySelectorAll('.scard [data-sc]').forEach(function(b){var c=document.getElementById(b.dataset.sc);if(!c)return;c.classList.toggle('open',open);b.setAttribute('aria-expanded',String(open));b.textContent=open?'접기 −':'펼치기 ＋';});
   main.querySelectorAll('.ipo-detail').forEach(function(d){d.classList.toggle('open',open);var card=d.closest('.ipo-card'),b=card&&card.querySelector('.v90-ipo-fold');if(b){b.setAttribute('aria-expanded',String(open));b.textContent=open?'접기 −':'펼치기 ＋';}});
   main.querySelectorAll('details').forEach(function(d){if(!d.closest('#pro-toc,.v86-menu,.market-nav'))d.open=open;});
  }
