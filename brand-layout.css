@@ -62,3 +62,27 @@ html body.pro #pro-brief .pb-delta{color:#fff!important;opacity:1!important}
 html body.pro :is(.mut,small.mut){color:var(--tx2,#5b6660)}
 .v101-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media(max-width:700px){html body.pro{overflow-x:clip}html body.pro #pro-brief,html body.pro #pro-brief :is(.pb-c,.pb-grid){max-width:100%;box-sizing:border-box;min-width:0}}
+
+/* v102 — P0·P1 (미국주식 중심) : 글자·터치영역·첫 화면·탭바 그룹 */
+@media(max-width:700px){
+html body.pro.v93-stock :is(.fold-sum,.ps-n,.ps-t,.mut,.hp-l,.cal-note,.stock-insights-details p){font-size:13px!important;line-height:1.55}
+html body.pro.v93-stock .v102-hide-m{display:none!important}
+html body.pro.v93-stock #pro-status{padding:6px 8px!important}
+html body.pro.v93-stock #pro-status .ps-n{display:none!important}
+}
+@media(max-width:700px),(pointer:coarse){
+html body.pro.v93-stock :is(.stock-disclosure-button,#ps-rf,.cross-status-actions button,.v87-status-actions button){position:relative}
+html body.pro.v93-stock :is(.stock-disclosure-button,#ps-rf,.cross-status-actions button,.v87-status-actions button)::before{content:"";position:absolute;inset:-7px 0}
+html body.pro.v93-stock :is(.v95-help,.v94-usage-button){min-height:44px}
+html body.pro.v93-stock footer a{display:inline-block;padding:13px 4px}
+}
+html body.pro.v93-stock .v102-flag{display:inline-block;white-space:nowrap;margin-left:6px;font-size:.85em;vertical-align:baseline}
+html body.pro.v93-stock .fold-t{overflow-wrap:anywhere}
+@media(max-width:700px){
+html body.pro.v93-stock #mk-tabbar button[data-i="1"],html body.pro.v93-stock #mk-tabbar button[data-i="3"]{border-left:1px solid var(--line,#dce5df)}
+html body.pro.v93-stock #mk-tabbar button[data-i="1"] .tl,html body.pro.v93-stock #mk-tabbar button[data-i="2"] .tl{color:var(--accent,#16745d)}
+}
+@media(min-width:1025px){
+html body.pro.v93-stock .grid2,html body.pro.v93-stock .grid-2,html body.pro.v93-stock .g2{align-items:stretch!important}
+html body.pro.v93-stock :is(.grid2,.grid-2,.g2)>.card{height:100%;box-sizing:border-box}
+}
