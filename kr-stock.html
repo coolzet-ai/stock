@@ -2745,6 +2745,7 @@ html[data-theme="dark"] .scard-h .no{color:#4ADE9C}
 html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!important}
 </style>
 <link rel="stylesheet" href="mrkim-detail.css?v=88">
+<link rel="stylesheet" href="kr-standard.css?v=89">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -2792,7 +2793,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
       </div>
       <div class="card">
         <h3>7개 세부지표 (CNN 방식 설계)</h3>
-        <table><tbody id="kr-sub"></tbody></table>
+        <div id="kr-sub" role="list" aria-label="한국 공포탐욕 7개 세부지표"></div>
         <div class="sub-note" id="kr-sub-note"></div>
         <p class="mut" style="margin-top:10px;font-size:12px">⚠ 1번은 Yahoo KOSPI, 4·5번은 KRX Open API(파생상품), 6·7번은 한국은행 ECOS로 계산됩니다. 4번은 KOSPI200 지수옵션(정규월물+위클리) 콜/풋 거래량 기준입니다. 2·3번(주가 강도·주가 폭)은 코스피·코스닥 전종목 배치 집계가 필요해 별도 아키텍처(Worker 자동실행) 작업 중입니다.</p>
       </div>
@@ -7395,11 +7396,11 @@ function renderKRSub(momentumScore, ecos, krx, breadth){
   ];
   const _pend=rows.filter(r=>r[2]==null);
   el.innerHTML=rows.map(([num,n,v])=>{
-    if(v==null) return '<tr><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px"><div class="sub-bar" style="opacity:.25"></div></td><td class="num" style="white-space:nowrap;line-height:1.5"><b class="mut">--</b><br><span class="tag t-l">미수신</span></td></tr>';
-    const [t,c]=label(v);
-    const xv=Math.max(9,Math.min(91,v));
-    return '<tr class="sb-done"><td class="sub-lab" style="white-space:nowrap">'+krLab(num,n)+'</td><td style="width:24%;min-width:48px">'+subBarCell(v)+'<span class="sb-val" style="left:'+xv.toFixed(1)+'%">'+v.toFixed(1)+'</span></td>'+
-      '<td class="num" style="white-space:nowrap;line-height:1.5"><b>'+v.toFixed(1)+'</b><br>'+zoneTag(t)+'</td></tr>';
+    const valid=v!=null && Number.isFinite(Number(v));
+    const score=valid?Math.max(0,Math.min(100,Number(v))):null;
+    const state=valid?label(score)[0]:'미수신';
+    const meter=valid?'<div class="kr-indicator-meter" role="progressbar" aria-label="'+String(n).replace(/<[^>]*>/g,'')+' 환산점수" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+score.toFixed(1)+'"><i style="left:'+score.toFixed(1)+'%"></i></div>':'<div class="kr-indicator-meter missing" aria-label="데이터 미수신"></div>';
+    return '<div class="kr-indicator" role="listitem"><div class="kr-indicator-name">'+krLab(num,n)+'</div>'+meter+'<div class="kr-indicator-result"><b>'+ (valid?score.toFixed(1):'—') +'</b>'+(valid?zoneTag(state):'<span class="tag t-l">미수신</span>')+'</div></div>';
   }).join('');
   const kn=document.getElementById('kr-sub-note');
   if(kn) kn.innerHTML='<details><summary style="cursor:pointer;font-weight:800;color:var(--accent)">지표 설명 자세히 보기</summary><div style="margin-top:6px">'+['1','2','3','4','5','6','7'].map(k=>SUB_NUM[+k-1]+' '+KR_SUBDESC[k]).join('<br>')+'<br><span style="opacity:.8">막대: 왼쪽 극단적 공포(0) ~ 오른쪽 극단적 탐욕(100) · 검은 표시가 현재 점수</span></div></details>';
@@ -10812,5 +10813,6 @@ async function toggleKrLev(t,ev){
 })();
 </script>
 <script src="mrkim-detail.js?v=88"></script>
+<script src="kr-standard.js?v=89"></script>
 </body>
 </html>
