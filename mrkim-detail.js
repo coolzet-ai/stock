@@ -220,3 +220,29 @@ if(/^(bond|crypto|finprod|ipo|p2p|fx|trade)\.html$/.test(location.pathname.split
  }
  repair();var timer;new MutationObserver(function(){clearTimeout(timer);timer=setTimeout(repair,100);}).observe(main,{childList:true,subtree:true});
 })();
+
+(function(){
+ 'use strict';var page=location.pathname.split('/').pop(),main=document.querySelector('main');if(!main)return;
+ if(page==='stock.html'){
+  var outer=document.querySelector('.stock-bottom-personal'),inner=document.querySelector('.stock-personal-details');
+  if(outer&&inner){function sync(){if(outer.open){inner.open=true;var hub=outer.querySelector('.stock-tools-links');if(hub&&!hub.querySelector('[aria-current]')){var first=hub.querySelector('button');if(first)first.click();}}}outer.addEventListener('toggle',sync);sync();}
+  return;
+ }
+ if(page!=='kr-stock.html')return;document.body.classList.add('kr-v88');
+ function applyAll(open){
+  main.querySelectorAll('h2.fold-h').forEach(function(h){if(typeof h._set==='function')h._set(open);});
+  main.querySelectorAll('.cross-fold').forEach(function(card){card.classList.toggle('cross-open',open);card.classList.toggle('m-open',open);var b=card.querySelector('h3 .m-fold-btn');if(b){b.innerHTML=open?'<em>접기</em> −':'<em>펼치기</em> ＋';b.setAttribute('aria-expanded',String(open));}});
+  main.querySelectorAll('details').forEach(function(d){if(!d.closest('#pro-toc'))d.open=open;});
+ }
+ function requestAll(open){if(open&&window.MK_REQUEST_DETAIL)window.MK_REQUEST_DETAIL(function(){applyAll(true);});else applyAll(open);}
+ window.MK_KR_FOLD_ALL=requestAll;
+ function install(){
+  var status=document.getElementById('pro-status');if(!status)return;var actions=status.querySelector('.v87-status-actions');if(!actions){actions=document.createElement('div');actions.className='v87-status-actions';status.append(actions);}
+  var specs=[['reload','다시 불러오기','↻'],['close','모두 접기','−'],['open','모두 펼치기','＋']];
+  specs.forEach(function(s){var b=actions.querySelector('[data-kr-action="'+s[0]+'"]');if(!b){b=document.createElement('button');b.type='button';b.dataset.krAction=s[0];b.dataset.mobileIcon=s[2];b.setAttribute('aria-label',s[1]);b.title=s[1];var label=document.createElement('span');label.className='v87-button-label';label.textContent=s[1];b.append(label);b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(s[0]==='reload')location.reload();else requestAll(s[0]==='open');});actions.append(b);}});
+  Array.from(status.querySelectorAll('button')).forEach(function(b){if(b.dataset.krAction||!(/모두 접기|모두 펼치기|다시 불러오기|새로고침/.test(b.textContent+' '+b.getAttribute('aria-label'))))return;b.remove();});
+  var brief=document.getElementById('pro-brief'),toc=document.getElementById('pro-toc');if(brief&&toc&&brief.nextElementSibling!==toc)brief.after(toc);
+  if(toc){['검색','요약','시장지표','종목분석','내 투자','일정'].forEach(function(text){var node=Array.from(toc.children).find(function(n){var s=n.tagName==='DETAILS'?n.querySelector('summary'):n;return s&&s.textContent.trim().replace(/\s+/g,' ').includes(text);});if(node)toc.append(node);});}
+ }
+ install();var pending;new MutationObserver(function(records){if(records.every(function(r){return r.target.closest&&r.target.closest('#pro-toc');}))return;clearTimeout(pending);pending=setTimeout(install,100);}).observe(main,{childList:true,subtree:true});
+})();
