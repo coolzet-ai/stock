@@ -31,3 +31,11 @@
  }
  repair();var timer;new MutationObserver(function(records){if(records.every(function(r){return r.target.closest&&r.target.closest('#pro-toc');}))return;clearTimeout(timer);timer=setTimeout(repair,150);}).observe(main,{childList:true,subtree:true});
 })();
+(function(){
+ 'use strict';if(!/\/kr-stock\.html$/.test(location.pathname))return;
+ function permit(fn){if(window.MK_REQUEST_DETAIL)window.MK_REQUEST_DETAIL(fn);else fn();}
+ var indicator=document.getElementById('kr-indicator-card');if(indicator){indicator.classList.add('cross-open','m-open');var b=indicator.querySelector('.m-fold-btn');if(b){b.innerHTML='<em>접기</em> −';b.setAttribute('aria-expanded','true');}var grid=indicator.closest('.grid');if(grid)grid.classList.add('kr-sentiment-grid');}
+ var tools=document.getElementById('unified-tools');if(tools)tools.classList.add('kr-tools-standard');
+ var guide=document.getElementById('guide'),head=document.getElementById('guide-h');
+ if(guide&&head&&!head.querySelector('.kr-help-button')){guide.classList.add('kr-guide-standard');var button=document.createElement('button');button.type='button';button.className='kr-help-button';button.textContent='Help ⓘ';button.setAttribute('aria-label','지표 읽는 법 · 용어 설명 펼치기');button.setAttribute('aria-expanded','false');head.append(button);var dl=guide.querySelector('.gl-list');if(dl){dl.id='kr-glossary-list';button.setAttribute('aria-controls',dl.id);}function isOpen(){return head.classList.contains('open');}function sync(){button.setAttribute('aria-expanded',String(isOpen()));}button.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var open=!isOpen(),run=function(){if(typeof head._set==='function')head._set(open);else{head.classList.toggle('open',open);if(dl)dl.hidden=!open;}sync();};if(open)permit(run);else run();});new MutationObserver(sync).observe(head,{attributes:true,attributeFilter:['class']});sync();}
+})();

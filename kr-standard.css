@@ -146,3 +146,58 @@ html body.pro.kr.kr-standard #unified-tools,html body.pro.kr.kr-standard #guide{
 @media(prefers-reduced-motion:reduce){html body.pro.kr.kr-standard *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 html[data-theme="dark"] body.pro.kr.kr-standard #pro-brief .pb-c{border-color:#3e6e5c!important}
 html[data-theme="dark"] body.pro.kr.kr-standard #pro-status .ps-mk{background:#26313b!important;color:#d0d7e1!important}
+/* v91: match the current US interaction, tool hub and market tiles. */
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3,#kr-indicator-card>h3){transition:background .18s,border-color .18s,box-shadow .18s!important}
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3):is(:hover,:focus-within){background:var(--panel2)!important;border-color:var(--accent)!important;box-shadow:0 0 0 1px var(--accent)!important;transform:none!important;color:var(--tx)!important}
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3):is(:hover,:focus-within) :is(.fold-t,.market-fold-title){color:var(--tx)!important;background:transparent!important}
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3):is(:hover,:focus-within) :is(.fold-sum,small){color:var(--tx2)!important;background:transparent!important}
+html body.pro.kr.kr-standard :is(.fold-btn,.m-fold-btn,.kr-help-button){transition:background .18s,color .18s,box-shadow .18s!important;cursor:pointer}
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3,#kr-indicator-card>h3):hover :is(.fold-btn,.m-fold-btn),html body.pro.kr.kr-standard :is(.fold-btn,.m-fold-btn,.kr-help-button):is(:hover,:focus-visible){background:#075c3b!important;color:#fff!important;border-color:#075c3b!important;box-shadow:0 0 0 3px #16865c20!important}
+html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3,#kr-indicator-card>h3):hover :is(.fold-btn,.m-fold-btn) *{color:inherit!important;background:transparent!important}
+html body.pro.kr.kr-standard #pro-brief .pb-c:hover *{color:var(--tx)!important;background:transparent!important}
+html body.pro.kr.kr-standard #kr-stock>.wrap>.kr-sentiment-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;gap:20px!important}
+html body.pro.kr.kr-standard .kr-sentiment-grid :is(#kr-card,#kr-indicator-card){height:auto!important;align-self:stretch!important;margin:0!important}
+html body.pro.kr.kr-standard .kr-sentiment-grid #kr-card{display:flex!important;flex-direction:column!important}
+html body.pro.kr.kr-standard #kr-card .gauge,html body.pro.kr.kr-standard #kr-card .fg-top{flex:1 1 auto!important;align-items:center!important;justify-content:center!important}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard{display:block!important;width:calc(100% - 48px)!important;max-width:1232px!important;min-width:0!important;margin:20px auto!important;padding:0!important;border:0!important;background:transparent!important;box-sizing:border-box}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard>summary{display:flex!important;align-items:center;justify-content:space-between;min-height:48px;padding:12px 14px!important;border:1px solid var(--line)!important;border-left:3px solid var(--accent)!important;border-radius:10px;background:var(--panel)!important;color:var(--tx)!important;font-size:20px!important;font-weight:800!important;list-style:none}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard>summary::after{content:'＋';color:var(--accent);font-size:20px}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard[open]>summary::after{content:'−'}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard>summary:is(:hover,:focus-visible){background:var(--panel2)!important;color:var(--tx)!important;box-shadow:0 0 0 1px var(--accent)}
+html body.pro.kr.kr-standard #unified-tools .kr-tools-hub{margin:12px 0!important;width:100%!important;max-width:100%!important;padding:20px!important;border:1px solid var(--line);border-radius:14px;box-sizing:border-box;background:var(--panel)}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-heading h2{margin:0!important;font-size:22px!important;font-weight:800!important;border:0!important;padding:0!important;background:transparent!important}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-heading span{font-size:12px;color:var(--tx2)}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:16px 0!important}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-links>button{min-height:44px!important;font-size:16px!important;font-weight:800!important;border-radius:9px!important;padding:10px!important}
+html body.pro.kr.kr-standard #unified-tools section[data-panel]{margin:0!important;width:100%!important;box-sizing:border-box}
+html body.pro.kr.kr-standard #unified-tools form{display:flex!important;align-items:end;gap:10px;flex-wrap:wrap}
+html body.pro.kr.kr-standard #unified-tools form label{flex:1 1 180px;min-width:0;display:flex;flex-direction:column;gap:6px;font-size:14px!important}
+html body.pro.kr.kr-standard #unified-tools form :is(input,select){width:100%!important;max-width:100%!important;box-sizing:border-box;min-height:40px;font-size:15px!important}
+html body.pro.kr.kr-standard #unified-tools .ut-row :is(b,strong){font-size:18px!important;font-weight:800!important}
+html body.pro.kr.kr-standard .pulse .hm{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important;min-width:0}
+html body.pro.kr.kr-standard .pulse .hm div.tl{grid-column:auto!important;grid-row:auto!important;min-width:0!important;min-height:120px!important;display:flex!important;flex-direction:column!important;border-radius:9px!important;overflow:hidden;transition:transform .18s,box-shadow .18s!important}
+html body.pro.kr.kr-standard .pulse .hm div.tl>span{display:flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;height:auto!important;padding:6px!important;font-size:13px!important;font-weight:800!important;line-height:1.4!important;text-align:center;white-space:normal!important;overflow-wrap:anywhere}
+html body.pro.kr.kr-standard .pulse .hm div.tl small{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;gap:4px!important;padding:8px!important;flex:1}
+html body.pro.kr.kr-standard .pulse .hm div.tl small b{font-size:16px!important;font-weight:800!important;line-height:1.4!important;white-space:nowrap}
+html body.pro.kr.kr-standard .pulse .hm div.tl:is(:hover,:focus-within){transform:translateY(-2px)!important;box-shadow:0 0 0 2px var(--accent),0 4px 10px #0002}
+html body.pro.kr.kr-standard #guide.kr-guide-standard{width:100%!important;margin:20px auto!important;box-sizing:border-box}
+html body.pro.kr.kr-standard #guide-h .fold-btn{display:none!important}
+html body.pro.kr.kr-standard .kr-help-button{margin-left:auto!important;flex:none;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--accent);min-height:34px;padding:6px 12px;font:700 13px/1.5 system-ui,sans-serif}
+html body.pro.kr.kr-standard #guide .gl-list{margin:16px 0 0!important;padding:16px!important;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+html body.pro.kr.kr-standard #guide .gl-list dt{font-size:15px!important;font-weight:800!important;margin:12px 0 4px!important;color:var(--tx)!important}
+html body.pro.kr.kr-standard #guide .gl-list dt:first-child{margin-top:0!important}
+html body.pro.kr.kr-standard #guide .gl-list dd{font-size:13px!important;line-height:1.8!important;color:var(--tx2)!important;margin:0!important;padding:0!important}
+@media(max-width:700px){
+html body.pro.kr.kr-standard #kr-stock>.wrap>.kr-sentiment-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+html body.pro.kr.kr-standard #unified-tools.kr-tools-standard{width:calc(100% - 24px)!important;margin:12px auto!important}
+html body.pro.kr.kr-standard #unified-tools .kr-tools-hub{padding:12px!important}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-heading h2{font-size:20px!important}
+html body.pro.kr.kr-standard #unified-tools .stock-tools-links>button{font-size:14px!important;padding:8px 4px!important}
+html body.pro.kr.kr-standard #unified-tools .ut-row :is(b,strong){font-size:16px!important}
+html body.pro.kr.kr-standard .pulse .hm{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.pro.kr.kr-standard .pulse .hm div.tl small b{font-size:14px!important}
+html body.pro.kr.kr-standard .pulse .hm div.tl>span{font-size:12px!important}
+html body.pro.kr.kr-standard #guide.kr-guide-standard{margin:12px auto!important}
+}
+@media(prefers-reduced-motion:reduce){html body.pro.kr.kr-standard .pulse .hm div.tl,html body.pro.kr.kr-standard :is(h2.fold-h,.pulse>h3,.fold-btn,.m-fold-btn){transition:none!important;transform:none!important}}
