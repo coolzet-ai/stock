@@ -2438,10 +2438,12 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
     return;
   }
   /* ===== 미국주식·한국주식(기본 화면): 암호 없이 보여주되 '상세보기'나 다른 메뉴 이동 시에만 팝업 ===== */
-  var detailOk=false; try{ detailOk=sessionStorage.getItem('mk_detail')===page; }catch(e){}
+  var detailOk=false;
+  window.MK_REQUEST_DETAIL=function(done){var admin=false;try{admin=localStorage.getItem('mk_gate_off')==='1';}catch(e){}if(detailOk||admin){done();return;}build({modal:true,msg:'펼치려면 암호를 입력해 주세요',onOk:function(){detailOk=true;done();}});};
   var DETAIL_SEL='.wl-info,.wl-spark,[onclick*="toggle"],[onclick*="Detail"],[onclick*="detail"]';
   function isDetail(el){
     if(el.closest(DETAIL_SEL)) return true;
+    if(el.closest('.cross-fold:not(.cross-open)>h3,.cross-restricted:not([open])>summary')) return true;
     if(el.closest('.fold-h:not(.open)')||el.closest('.fold-all button[data-o="1"]')) return true; /* 제목 우측 펼치기·모두 펼치기 */
     var b=el.closest('button,a,summary,[role="button"]');
     return !!(b && /상세/.test(b.textContent||'') && !b.closest('#mk-gate'));
@@ -2546,7 +2548,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
   setTimeout(run,1500); setTimeout(run,4000);
 })();
 </script>
-<link rel="stylesheet" href="mrkim-pages.css?v=84">
+<link rel="stylesheet" href="mrkim-detail.css?v=85">
 </head>
 <body class="pro lite">
 
@@ -6756,14 +6758,16 @@ function renderFinancialsPanel(fin3y, ratios, headNote, footNote){
     (footNote?'<p class="mut" style="font-size:11px;margin-top:8px">'+footNote+'</p>':'')+'</div></div>';
 }
 
-async function loadKrxIndicators(){
+async function loadKrxIndicators(onProgress){
   const result={};
+  const bounded=p=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('KRX 응답 지연')),18000);Promise.resolve(p).then(v=>{clearTimeout(timer);resolve(v);},e=>{clearTimeout(timer);reject(e);});});
   /* 5. 시장 변동성(VKOSPI): idx/drvprod_dd_trd(파생상품지수 시세정보) — IDX_CLSS='옵션지수',
      IDX_NM='코스피 200 변동성지수' 행이 VKOSPI (2026-09-28 직접 검증, CLSPRC_IDX=42.98 형태로 확인).
      '변동성매칭 양매도지수'/'변동성추세 추종 양매도지수' 등 이름에 '변동성'이 들어간 다른 지수와
      혼동되지 않도록 정확한 지수명으로 매칭한다. */
+  await Promise.all([ (async()=>{
   try{
-    const idxRows=await krxJSONRecent('idx/drvprod_dd_trd', 10);
+    const idxRows=await bounded(krxJSONRecent('idx/drvprod_dd_trd', 10));
     if(idxRows){
       const row=idxRows.find(r=>{
         const name=pick(r,['IDX_NM','IDX_IND_NM','ISU_NM','IDX_NM_KOR'])||'';
@@ -6786,6 +6790,8 @@ async function loadKrxIndicators(){
     }
   }catch(e){ console.warn('VKOSPI 계산 실패:', e); }
 
+  if(onProgress) onProgress(Object.assign({},result));
+  })(),(async()=>{
   /* 4. 풋/콜 비율: opt_bydd_trd(옵션 일별매매정보(주식옵션외)) — KOSPI200 지수옵션 기준으로 교체.
      [2026-09-28] 기존엔 개별주식옵션(eqsop_bydd_trd) 합산이라 CNN 원본(지수옵션) 방식과
      달랐는데, opt_bydd_trd 카테고리 승인 후 실데이터로 확인해보니 PROD_NM 필드에
@@ -6795,7 +6801,7 @@ async function loadKrxIndicators(){
      (정규월물만 쓰면 0.68~0.94로 더 들쭉날쭉, 위클리 포함 시 0.76~0.79로 안정).
      RGHT_TP_NM='CALL'|'PUT'(영문 대문자), ACC_TRDVOL=거래량. */
   try{
-    const optRows=await krxJSONRecent('drv/opt_bydd_trd', 10);
+    const optRows=await bounded(krxJSONRecent('drv/opt_bydd_trd', 10));
     if(optRows && optRows.length){
       let callVol=0, putVol=0;
       optRows.forEach(r=>{
@@ -6818,6 +6824,8 @@ async function loadKrxIndicators(){
     }
   }catch(e){ console.warn('풋/콜 비율 계산 실패:', e); }
 
+  if(onProgress) onProgress(Object.assign({},result));
+  })()]);
   return result;
 }
 
@@ -6853,7 +6861,7 @@ async function loadKR(){
   const bg=(p, assign)=>p.then(v=>{ assign(v); renderKR(lastKrMomentumData, ecosData, krxData, breadthData); })
                         .catch(e=>{ console.warn('한국 공포탐욕 세부지표 로딩 실패:', e); });
   const ecosP=bg(loadEcosIndicators(), v=>ecosData=v);
-  const krxP=bg(loadKrxIndicators(), v=>krxData=v);
+  const krxP=bg(loadKrxIndicators(v=>{krxData=v;renderKR(lastKrMomentumData,ecosData,krxData,breadthData);}), v=>krxData=v);
   /* breadth: KV(2번 52주 신고가/신저가 · Cron 집계 필요)와 직접계산(3번 상승/하락 거래대금 ·
      즉시 가능)을 합친다. KV가 아직 비어있어도(Cron 미설정) 3번은 이 direct 호출만으로 채워진다. */
   const breadthP=bg(Promise.all([loadKrBreadth(), loadKrBreadthDirect()]).then(([kv, direct])=>{
@@ -9844,6 +9852,6 @@ loadP2pOpenSoon();
   })();
 })();
 </script>
-<script src="mrkim-pages.js?v=84"></script>
+<script src="mrkim-detail.js?v=85"></script>
 </body>
 </html>
