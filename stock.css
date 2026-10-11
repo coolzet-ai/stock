@@ -3379,7 +3379,7 @@ html body.pro.stock-v2 :is(#pro-int,#pro-fwd,#pro-cal).m-fold>h3>.m-fold-btn{pos
 /* v81: inset the score explanation even while CNN indicators are collapsed. */
 html body.pro.stock-v2 #pro-cnn.card.m-fold>.stock-score-caption{margin:10px 16px 12px!important;padding:0!important;width:calc(100% - 32px)!important;max-width:calc(100% - 32px)!important;box-sizing:border-box!important;line-height:1.65!important;overflow-wrap:break-word!important;}
 
-/* v82: selected market-cap event badges remain visible in compact mobile rows. */
+/* v86: selected market-cap event badges remain visible in compact mobile rows. */
 @media(max-width:700px){
  html body.pro.stock-v2 :is(#cap-tbl,#cap2-tbl,#cap3-tbl):not(.hide-er.hide-dv) .wl-row:not(.m-x) .wl-info>.wl-tc:has(.er-b,.dv-b){display:flex!important;flex-wrap:wrap!important;gap:4px!important;max-width:100%!important;overflow:visible!important;margin-top:5px!important;}
  html body.pro.stock-v2 :is(#cap-tbl,#cap2-tbl,#cap3-tbl) .wl-info>.wl-tc>:is(.er-b,.dv-b){font-size:10.5px!important;line-height:1.4!important;padding:3px 6px!important;white-space:normal!important;word-break:keep-all!important;overflow-wrap:break-word!important;max-width:100%!important;}

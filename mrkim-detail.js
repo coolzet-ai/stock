@@ -1,3 +1,4 @@
+if(!/(^|\/)stock\.html$/.test(location.pathname)){
 if(/^(mrkim-signal|kr-stock)\.html$/.test(location.pathname.split("/").pop())){
 (function(){
  'use strict';
@@ -153,4 +154,40 @@ if(/^(bond|crypto|finprod|ipo|p2p|fx|trade)\.html$/.test(location.pathname.split
  function investment(){permit(function(){hub.open=true;hub.scrollIntoView({behavior:'smooth',block:'start'});watch();});}
  var toc=$('#pro-toc');if(toc){var btn=document.createElement('button');btn.type='button';btn.className='unified-invest-link';btn.textContent='내 투자';btn.onclick=investment;toc.appendChild(btn);}document.addEventListener('click',function(e){var b=e.target.closest('#mk-tabbar button');if(b&&/내 투자|내투자/.test(b.textContent)){e.preventDefault();e.stopImmediatePropagation();investment();}},true);
  hub.addEventListener('toggle',function(){if(hub.open)watch();});window.addEventListener('storage',function(){if(hub.open){watch();account();}});
+})();
+
+}
+(function(){
+ 'use strict';
+ var body=document.body,main=document.querySelector('main');if(!main)return;
+ body.classList.add('design-v86');var page=location.pathname.split('/').pop().replace('.html','');
+ var labels={'stock':'미국주식 시장 대시보드','kr-stock':'한국주식 시장 대시보드',crypto:'가상화폐 시장 대시보드',bond:'채권 시장 대시보드',finprod:'금융상품',ipo:'공모주',p2p:'P2P',fx:'환율 시장 대시보드',trade:'매매김군', 'mrkim-signal':'Mr.Kim Signal'};
+ var descriptions={crypto:'시장 심리와 주요 코인 가격을 한눈에 확인하세요.',bond:'등급별 금리·만기·채권 수익률을 비교하세요.',finprod:'금리·가입 기간·상품 조건을 비교하세요.',ipo:'청약 일정·공모가·상장 진행 상태를 확인하세요.',p2p:'수익률·기간·상환 방식과 상품 상태를 확인하세요.',fx:'주요 통화의 환율과 최근 흐름을 확인하세요.',trade:'전략 입력과 성과를 단계별로 확인하세요.','kr-stock':'시장 심리·투자자 동향·주요 일정을 한눈에 확인하세요.'};
+ if(page!=='stock'&&page!=='mrkim-signal'){
+  var head=document.createElement('div');head.className='v86-page-head';var eyebrow=document.createElement('p');eyebrow.className='v86-eyebrow';eyebrow.textContent='MR.KIM SIGNAL';var title=document.createElement('h1');title.textContent=labels[page]||document.title;var description=document.createElement('p');description.textContent=descriptions[page]||'';head.append(eyebrow,title,description);main.prepend(head);
+  var old=document.querySelector('#'+page+' > .wrap > .sec-h, #'+page+' > .wrap > h1, main .hero h1');if(old)old.hidden=true;
+  var status=document.getElementById('pro-status');if(status)head.after(status);
+  var toc=document.getElementById('pro-toc');var brief=document.getElementById('pro-brief');if(toc)(brief||status||head).after(toc);
+ }
+ var ps=document.getElementById('pro-status');if(ps&&!ps.querySelector('[aria-label="다시 불러오기"]')){var actions=ps.querySelector('.cross-status-actions,.cross-fold-all,.fold-all');if(!actions){actions=document.createElement('div');actions.className='cross-status-actions';ps.append(actions);}var retry=document.createElement('button');retry.type='button';retry.setAttribute('aria-label','다시 불러오기');retry.title='다시 불러오기';retry.dataset.mobileIcon='↻';retry.innerHTML='<span class="cross-action-label">다시 불러오기</span>';retry.onclick=function(){location.reload();};actions.prepend(retry);}
+ if(page==='kr-stock'){
+  var repeated=document.querySelector('#pro-brief .pb-line');if(repeated)repeated.hidden=true;
+  var originalTitle=document.querySelector('#kr-stock .pg-title, #kr-stock .pg-h1');if(originalTitle){originalTitle.hidden=true;var intro=originalTitle.nextElementSibling;if(intro&&intro.matches('.sub,.pg-lead'))intro.hidden=true;}
+  var guide=document.getElementById('guide');if(guide&&!guide.querySelector('details')){var d=document.createElement('details'),s=document.createElement('summary');s.textContent='지표 읽는 법 · Help';d.append(s);Array.from(guide.children).forEach(function(n){if(n.id==='guide-h')n.hidden=true;else d.append(n);});guide.append(d);}
+  var gauge=document.querySelector('#kr-card .stock-gauge');if(gauge){gauge.href='#guide';gauge.removeAttribute('target');gauge.addEventListener('click',function(){var d=document.querySelector('#guide details');if(d)d.open=true;});}
+ }
+ var cryptoGauge=document.querySelector('#cr-top .stock-gauge');if(cryptoGauge)cryptoGauge.href='https://alternative.me/crypto/fear-and-greed-index/';
+ // A single shell groups existing links without replacing their event handlers.
+ var toc=document.getElementById('pro-toc');if(toc&&page!=='stock'){
+  toc.classList.add('v86-toc');var links=Array.from(toc.children),groups={market:[],analysis:[],calendar:[]};
+  links.forEach(function(n){var t=n.textContent.trim();if(/검색|요약|내 투자/.test(t))return;groups[/일정|이벤트|청약/.test(t)?'calendar':/TOP|레버리지|종목|수익률|편입|편출|전략|코인/.test(t)?'analysis':'market'].push(n);});
+  [['market','시장지표'],['analysis','종목분석'],['calendar','일정']].forEach(function(pair){if(!groups[pair[0]].length)return;var d=document.createElement('details'),s=document.createElement('summary'),box=document.createElement('div');s.textContent=pair[1];box.className='v86-menu';d.append(s,box);toc.append(d);groups[pair[0]].forEach(function(n){box.append(n);n.addEventListener('click',function(){d.open=false;});});});
+ }
+ if(page==='mrkim-signal'){
+  var hero=document.querySelector('.hero .wrap');if(hero){var p=hero.querySelector('.hero-p');if(p)p.textContent='시장별 핵심 지표와 내 투자 도구를 확인하세요.';var links=hero.querySelector('.cross-market-links');if(!links){links=document.createElement('nav');links.className='cross-market-links';hero.append(links);}links.replaceChildren();[['stock','미국주식','공포탐욕 · VIX · 섹터'],['kr-stock','한국주식','공포탐욕 · 수급 · 일정'],['crypto','가상화폐','시장 심리 · 주요 코인'],['bond','채권','금리 · 만기 · 수익률'],['finprod','금융상품','금리 · 가입 조건'],['ipo','공모주','청약 · 상장 일정'],['p2p','P2P','수익률 · 상환 조건'],['fx','환율','통화별 환율 · 흐름'],['trade','매매김군','전략 · 성과 비교']].forEach(function(x){var a=document.createElement('a'),b=document.createElement('b'),small=document.createElement('small');a.href=x[0]+'.html';b.textContent=x[1];small.textContent=x[2];a.append(b,small);links.append(a);});}
+ }
+ // Label responsive financial tables using the actual column names, never guessed units.
+ function labelTables(){main.querySelectorAll('table').forEach(function(t){var heads=Array.from(t.querySelectorAll('thead th'));if(!heads.length)return;if(/^(bond|finprod|p2p|ipo|fx)$/.test(page)&&heads.length>4&&!t.closest('.unified-tools'))t.classList.add('v86-wide-table');Array.from(t.tBodies).forEach(function(tb){Array.from(tb.rows).forEach(function(r){Array.from(r.cells).forEach(function(c,i){if(heads[i])c.dataset.label=heads[i].textContent.trim();});});});});}
+ labelTables();var pending;new MutationObserver(function(){clearTimeout(pending);pending=setTimeout(labelTables,100);}).observe(main,{subtree:true,childList:true});
+ var footer=document.querySelector('footer');if(footer){var log=footer.querySelector('.cross-update-log');if(log){var entry=document.createElement('p');entry.textContent='2026-10-11 · 전체 페이지 표준화: 상단 순서, 메뉴 그룹, 카드·수치·접기 버튼, 모바일 간격, 출처 링크, 메인 진입 통일.';log.prepend(entry);}}
 })();
