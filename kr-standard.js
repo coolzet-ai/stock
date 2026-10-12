@@ -26,7 +26,6 @@
   }
   if(sub){var sc=sub.closest('.card');sc.id='kr-indicator-card';var h=sc.querySelector('h3'),label=h&&h.querySelector('span:not(.m-fold-btn span)');text(label,'한국 공포탐욕 7개 세부지표');var foot=sc.querySelector('p.mut');text(foot,'코스피·KRX 파생상품·한국은행 지표를 0~100점으로 환산합니다. 미수신 항목은 점수 계산에서 제외하며, 산식과 출처는 아래 설명에서 확인하세요.');}
   var tools=document.getElementById('unified-tools'),help=document.getElementById('guide');if(tools&&help&&tools.nextElementSibling!==help)tools.after(help);
-  var resume=document.getElementById('mk-resume');if(resume&&help&&resume.previousElementSibling!==help)help.after(resume);
   main.querySelectorAll('.wl-row').forEach(function(row){var spark=row.querySelector('.wl-spark');if(spark)spark.setAttribute('aria-label','최근 가격 흐름');});
  }
  repair();var timer;new MutationObserver(function(records){if(records.every(function(r){return r.target.closest&&r.target.closest('#pro-toc');}))return;clearTimeout(timer);timer=setTimeout(repair,150);}).observe(main,{childList:true,subtree:true});
