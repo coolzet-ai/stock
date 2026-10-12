@@ -401,3 +401,18 @@ html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dt:not(
 html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dd,
 html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dd,
 html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dd{margin:0!important;padding:0 12px 12px!important;color:#344054!important;font-size:13px!important;line-height:1.7!important}
+
+/* v114: 상단 메뉴(미국주식·한국주식·가상화폐) — 모든 페이지에서 헤더 정중앙 고정 + 시인성 강화(PC) */
+@media(min-width:1000px){
+  html body.pro.pro.pro header .wrap.nav>#nav-menu{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;gap:4px}
+}
+html body.pro.pro.pro header #nav-menu a{font-size:14px!important;font-weight:800!important;color:#1c2933!important;letter-spacing:-.2px}
+html body.pro.pro.pro header #nav-menu a:hover{color:#0e6b4c!important;background:#f2f8f5!important}
+html body.pro.pro.pro header #nav-menu a.on-page{color:#0b6b4a!important;background:#e3f2ea!important;box-shadow:inset 0 -3px 0 #16795a!important}
+
+/* v114: 내 투자 도구 위 — 미국주식 가로선 제거, 세 페이지 모두 위 여백 20px · 아래 12px로 통일 */
+html body.pro.pro.pro.pro section.stock-bottom-tools{border-top:0!important;padding:0!important;margin:0!important}
+html body.pro.pro.pro.pro .stock-bottom-personal{margin:20px 0 12px!important}
+@media(min-width:701px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:52px}}
+@media(max-width:700px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:46px}}
+html body.pro.pro.pro.pro.v93-crypto main>section#crypto{padding-bottom:0!important}
