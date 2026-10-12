@@ -214,7 +214,20 @@
     }
     if (ok) setTimeout(window.__mkBootDone, 300);
   }
-  function run() { guideCrypto(); flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); bootReady(); }
+  /* ── 가상화폐 "주요 코인 가격" 접이식 제목: 다른 접이식 박스처럼 제목 · 가운데 요약 · 버튼 3칸 ── */
+  function coinFold() {
+    if (PAGE !== 'crypto') return;
+    $$('h2.market-fold-h').forEach(function (h) {
+      var t = h.querySelector('.market-fold-title'); if (!t || h.querySelector('.fold-sum') || !/^주요 코인 가격/.test(t.textContent.trim())) return;
+      t.textContent = '주요 코인 가격';
+      var sm = d.createElement('span'); sm.className = 'fold-sum'; sm.textContent = 'BTC · ETH · SOL · XRP';
+      var bt = h.querySelector('button'); h.insertBefore(sm, bt || null); h.classList.add('mk-fold-like');
+    });
+  }
+  /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
+  function run() {
+    [coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
+  }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });

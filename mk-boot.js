@@ -7,4 +7,14 @@
   var f = function () { if (done) return; done = true; d.classList.remove('mk-boot'); };
   window.__mkBootDone = f;
   setTimeout(f, 6000);
+  /* 가상화폐: 새로고침·모두 접기/펼치기 버튼(.v90-actions)이 상태 카드 밖에 생기면 즉시 카드 안으로 옮긴다
+     (ui-fixes-v106.js 가 늦게 실행되거나 오류가 나도 버튼이 카드 밖에 남지 않도록) */
+  if (/\/crypto(\.html)?$/.test(location.pathname)) {
+    var fix = function () {
+      var st = document.getElementById('pro-status'), a = document.querySelector('.v90-actions');
+      if (st && a && !st.contains(a)) { a.classList.add('mk-status-actions'); st.appendChild(a); }
+    };
+    try { new MutationObserver(fix).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+    setTimeout(function () { try { fix(); } catch (e) {} }, 0);
+  }
 })();

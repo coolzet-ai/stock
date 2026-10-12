@@ -440,3 +440,13 @@ html body.pro.pro.pro.pro.pro.v93-crypto main>section#crypto>.wrap{padding-top:0
   html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(.v86-page-head,#pro-status){margin-left:24px!important;margin-right:24px!important;max-width:none!important;width:auto!important;box-sizing:border-box}
   html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{padding-left:0!important;padding-right:0!important}
 }
+
+/* v117: 접이식 박스 제목 줄(PC) — 한국주식·가상화폐도 미국주식과 같은 3칸(제목 38% · 가운데 요약 · 버튼 84px)으로, 가운데 요약이 …로 잘리지 않게 */
+@media(min-width:701px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like){display:grid!important;grid-template-columns:minmax(0,38%) minmax(0,1fr) 84px!important;align-items:center;gap:10px}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like) .fold-sum{display:block!important;width:auto!important;max-width:none!important;min-width:0;text-align:center!important;font-size:12px!important;font-weight:600!important;color:var(--tx2)!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like) :is(.fold-btn,.market-fold-btn){width:84px;justify-self:end;margin:0!important}
+  html body.pro.pro.pro.pro.v93-crypto h2.market-fold-h.mk-fold-like .market-fold-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+/* 제목 블록 미세 통일 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{letter-spacing:.3px}
