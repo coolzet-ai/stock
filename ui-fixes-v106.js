@@ -165,7 +165,22 @@
     });
   }
 
-  function run() { dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); }
+  /* ── 가상화폐: 상대수익률·소셜 언급 카드 안쪽의 2중 접기를 풀어 한 번에 보이게(미국주식과 동일) ── */
+  function flatten() {
+    ['cry-rel-card', 'soc-sent', 'soc-rank'].forEach(function (id) {
+      var e = d.getElementById(id), card = e && e.closest('.card');
+      var body = card && card.querySelector('.market-fold-body'), h = card && card.querySelector('.market-fold-h');
+      if (!body || !h) return;
+      var hd = card.querySelector(':scope>.fg-hd'), holder = h.closest('.market-card-header'), anchor = hd || h;
+      Array.prototype.slice.call(body.childNodes).forEach(function (k) { anchor.parentNode.insertBefore(k, anchor.nextSibling); anchor = k; });
+      body.remove();
+      var b = h.querySelector('.market-fold-btn'); if (b) b.remove();
+      h.classList.remove('market-fold-h'); h.removeAttribute('id');
+      if (holder && holder.parentNode) { var rest = Array.prototype.slice.call(holder.childNodes).filter(function (n) { return n !== h && n !== body; }); holder.replaceWith.apply(holder, [h].concat(rest)); }
+      card.classList.add('mk-flat');
+    });
+  }
+  function run() { flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });
 })();

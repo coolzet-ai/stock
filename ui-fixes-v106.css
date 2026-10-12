@@ -292,3 +292,35 @@ html body.pro.pro.pro .hero .cross-market-links>a>b .v87-market-badge{display:in
 html body.pro.pro.pro .hero .cross-market-links>a>b .v87-market-badge svg{width:30px!important;height:22px!important;border:1px solid var(--line);border-radius:4px;display:block!important}
 /* KR/가상화폐 상태 카드의 마지막 갱신 라벨 */
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t .lbl{display:inline!important;margin-right:4px}
+
+/* ── v111: 가상화폐 헤더(로고·설정) 위치를 미국/한국주식과 동일하게(최대 1280px 중앙) ── */
+html body.pro.pro.pro.v93-crypto header .wrap.nav{max-width:1280px!important;margin-left:auto!important;margin-right:auto!important}
+/* 오늘의 시장 요약: 섹션 윗줄 제거 + 요약 카드 좌측선·여백을 3개 페이지 동일하게 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(section#kr-stock,section#crypto){border-top:0!important}
+@media(min-width:701px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief{border-left:4px solid #27835d!important;margin:12px 0 0!important}
+}
+/* 펼친 카드 안쪽 구조(가상화폐 상대수익률·소셜): 제목 좌측, 기간 탭 우측 */
+.card.mk-flat>.fg-hd{display:flex!important;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card.mk-flat>.fg-hd>h3{margin:0!important}
+.card.mk-flat>:is(#soc-sent,#soc-rank,#cry-rel-chart){margin-top:12px}
+
+/* 경제지표·핵심 일정 카드: 가운데 요약 위치/굵기를 다른 접이식 카드(.fold-h)와 동일하게 */
+@media(min-width:701px){
+  html body.pro.pro.pro.pro #pro-cal>h3{grid-template-columns:minmax(0,38%) minmax(0,1fr) 84px!important;gap:10px!important;font-size:17px!important}
+  html body.pro.pro.pro.pro #pro-cal>h3>span:first-child{font-size:17px!important;font-weight:750!important}
+  html body.pro.pro.pro.pro #pro-cal>h3>span.mut{font-size:12px!important;font-weight:600!important;text-align:center!important}
+  html body.pro.pro.pro.v93-crypto #pro-brief .pb-c,html body.pro.pro.pro.v93-kr-stock #pro-brief .pb-c{padding:10px!important}
+}
+
+/* 상대수익률·소셜 카드: 제목 줄을 미국주식과 같은 평면형(좌측 띠·배경 없음)으로 */
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card,.card.mk-flat){padding:20px!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card,.card.mk-flat)>.fg-hd:first-child{margin:0 0 12px!important;padding:0!important;min-height:0!important;background:transparent!important;border:0!important;border-radius:0!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card,.card.mk-flat)>.fg-hd:first-child h3,
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .card.mk-flat>h3:first-child{font-size:16px!important;font-weight:700!important;color:var(--tx)!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .card.mk-flat>h3:first-child{margin:0 0 12px!important;padding:0!important;min-height:0!important;background:transparent!important;border:0!important}
+@media(min-width:701px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card)>.fg-hd:first-child .tabs{border:1px solid var(--line)!important;background:#fff!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card)>.fg-hd:first-child .tabs button{color:var(--tx2)!important;border-right:0!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card)>.fg-hd:first-child .tabs button.on{background:var(--accent)!important;color:#fff!important}
+}
