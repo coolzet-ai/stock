@@ -364,3 +364,73 @@ html body.pro.pro.pro.brand-v93.refine-v97 :is(#guide.v95-guide,.v95-guide)>h2{m
 }
 html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:36px!important;height:36px!important}
 @media(max-width:700px){html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:34px!important;height:34px!important}}
+
+/* v113: 종목 목록(PC) — 가격·등락률 칸(160px)이 격자 칸(132px)보다 넓어 세로선(액션 열)과 겹치던 문제 */
+@media(min-width:701px){
+  html body.pro.pro.pro.pro .wl-list .wl-row>.wl-quote{width:auto!important;min-width:0!important;max-width:100%;box-sizing:border-box;padding-right:8px!important}
+}
+/* 투자자 체크패널: ①②③ 한 줄(3칸) · ④는 아래 전체 폭, 값이 표 가장자리에 붙지 않게 여백 */
+html body.pro.pro.pro.pro .lv2 .lv2-gs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.pro.pro.pro.pro .lv2 .lv2-g.c4{grid-column:1/-1!important}
+@media(max-width:700px){html body.pro.pro.pro.pro .lv2 .lv2-gs{grid-template-columns:minmax(0,1fr)!important}}
+html body.pro.pro.pro.pro .lv2 .lv2-g>.lv2-t{margin:0 12px 4px!important;width:calc(100% - 24px)!important}
+html body.pro.pro.pro.pro .lv2 .lv2-t td{padding-right:4px!important}
+html body.pro.pro.pro.pro .lv2 .lv2-g>.lv2-t{table-layout:fixed!important}
+html body.pro.pro.pro.pro .lv2 .lv2-t th{width:56%!important;overflow-wrap:anywhere}
+html body.pro.pro.pro.pro .lv2 .lv2-t td{width:44%!important;padding-right:6px!important;text-align:right;overflow:hidden}
+html body.pro.pro.pro.pro .lv2 .lv2-t td *{max-width:100%;box-sizing:border-box}
+html body.pro.pro.pro.pro #kr-stock .lv2 .lv2-g>table.lv2-t{width:calc(100% - 24px)!important;margin:0 12px 4px!important;table-layout:fixed!important}
+
+/* v113: 태블릿 폭(701~1279px)에서 미국주식·가상화폐 지표 읽는 법 박스가 화면 끝까지 늘어나던 문제 → 한국주식과 같은 24px 여백 */
+@media(min-width:701px) and (max-width:1279px){
+  html body.pro.pro.pro.brand-v93.refine-v97:is(.v93-stock,.v93-crypto) :is(#guide.v95-guide,.v95-guide){margin-left:24px!important;margin-right:24px!important}
+}
+/* 가상화폐 하단 푸터 폭 — 한국/미국주식과 같은 1280px */
+html body.pro.pro.pro.v93-crypto footer>.wrap{max-width:1280px!important;margin-left:auto!important;margin-right:auto!important}
+
+/* v113: 지표 읽는 법 본문 — 3개 페이지 모두 미국주식과 같은 용어 목록 디자인(초록 제목 · 구분선 · 13px 본문) */
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list{margin:14px 0 0!important;padding:0!important;border:1px solid #d5dcd8!important;border-radius:6px!important;background:#fff!important;font-size:13px!important;line-height:1.7!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dt,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dt,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dt{margin:0!important;padding:10px 12px 4px!important;border:0!important;background:none!important;color:#00754a!important;font-size:14px!important;font-weight:800!important;line-height:21px!important;text-indent:0!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dt:not(:first-child),
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dt:not(:first-child),
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dt:not(:first-child){border-top:1px solid #e1e4e8!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dd,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dd,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dd{margin:0!important;padding:0 12px 12px!important;color:#344054!important;font-size:13px!important;line-height:1.7!important}
+
+/* v114: 상단 메뉴(미국주식·한국주식·가상화폐) — 모든 페이지에서 헤더 정중앙 고정 + 시인성 강화(PC) */
+@media(min-width:1000px){
+  html body.pro.pro.pro header .wrap.nav>#nav-menu{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;gap:4px}
+}
+html body.pro.pro.pro header #nav-menu a{font-size:14px!important;font-weight:800!important;color:#1c2933!important;letter-spacing:-.2px}
+html body.pro.pro.pro header #nav-menu a:hover{color:#0e6b4c!important;background:#f2f8f5!important}
+html body.pro.pro.pro header #nav-menu a.on-page{color:#0b6b4a!important;background:#e3f2ea!important;box-shadow:inset 0 -3px 0 #16795a!important}
+
+/* v114: 내 투자 도구 위 — 미국주식 가로선 제거, 세 페이지 모두 위 여백 20px · 아래 12px로 통일 */
+html body.pro.pro.pro.pro section.stock-bottom-tools{border-top:0!important;padding:0!important;margin:0!important}
+html body.pro.pro.pro.pro .stock-bottom-personal{margin:20px 0 12px!important}
+@media(min-width:701px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:52px}}
+@media(max-width:700px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:46px}}
+html body.pro.pro.pro.pro.v93-crypto main>section#crypto{padding-bottom:0!important}
+
+/* v115: 한국주식·가상화폐 대시보드 표현을 미국주식과 통일(기본 글자 14px · 접이식 제목 17px/750 · 요약 카드 수치 · 모바일 요약 카드 좌측 띠·간격) */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto){font-size:14px!important;line-height:1.6}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h{font-size:17px!important;font-weight:750!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h .fold-t{font-size:16px!important;font-weight:750!important;line-height:1.4}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c>b{font-size:26px!important}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h{font-size:17px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h .fold-t{font-size:15px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c>b{font-size:22px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief{border-left:4px solid #27835d!important;margin:12px 0 0!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c{padding:8px 6px!important}
+}
+/* 상태 카드 ↔ 오늘의 시장 요약 간격: 미국주식과 같은 12px */
+html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status{margin-bottom:0!important}
+html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>section:is(#kr-stock,#crypto){padding-top:0!important}
+html body.pro.pro.pro.pro.brand-v93.refine-v99.v93-crypto main>section#crypto{padding-top:0!important}
+html body.pro.pro.pro.pro.pro.v93-crypto main>section#crypto>.wrap{padding-top:0!important}
