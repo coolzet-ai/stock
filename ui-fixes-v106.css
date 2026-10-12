@@ -455,3 +455,54 @@ html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{
 @media(max-width:700px){
   html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{margin-left:0!important;margin-right:0!important;padding-left:12px!important;padding-right:12px!important;box-sizing:border-box!important;width:auto!important;max-width:none!important}
 }
+
+/* ═══════ v120 — 최종 제안 전체 적용 ═══════ */
+
+/* ① 폴드 펼침(640~999px): 햄버거 대신 상단 탭을 그대로 보여 준다 */
+@media(min-width:640px) and (max-width:999px){
+  html body.pro.pro.pro header .wrap.nav>#nav-toggle{display:none!important}
+  html body.pro.pro.pro header .wrap.nav>#nav-menu{display:flex!important;position:static!important;transform:none!important;margin:0 auto!important;gap:2px;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;width:auto!important;max-height:none!important;flex-direction:row!important;overflow:visible!important}
+  html body.pro.pro.pro header #nav-menu li{display:block!important}
+  html body.pro.pro.pro header #nav-menu a{padding:0 10px!important;font-size:13.5px!important}
+}
+
+/* ② 터치 영역 44px — 터치 기기·좁은 화면의 작은 버튼/탭/링크 */
+@media(hover:none),(max-width:900px){
+  html body.pro.pro.pro :is(#pro-status button,.pb-hd button,#mk-live-sw,.tabs button,.fg-hd .tabs button,.kt-retry,.pf-retry,.src-line button,.ev-more-btn,.v95-help,.m-fold-btn,.fold-btn,.market-fold-btn,.lg-t,#pro-toc a,#cr-toc a,.pt-s,.unified-invest-link,.stock-ticker-toggle){min-height:44px}
+  html body.pro.pro.pro :is(.tabs button,.fg-hd .tabs button){min-width:44px}
+  html body.pro.pro.pro header .logo{min-height:44px;display:inline-flex;align-items:center}
+  html body.pro.pro.pro :is(.kr-toolbar,.unified-tools) summary{min-height:44px}
+}
+@media(max-width:700px){
+  html body.pro.pro.pro #pro-status .v87-status-actions button:first-child,html body.pro.pro.pro #pro-status .v90-actions button:first-child,html body.pro.pro.pro #pro-status .stock-status-actions>button:first-child{min-width:44px;min-height:44px}
+}
+
+/* ③ 실시간 숫자 변동 — 값이 바뀔 때 0.3초 색 번쩍임(상승=빨강·하락=파랑, 한국식) */
+@keyframes mk-flash-up{0%{background:rgba(217,45,32,.28)}100%{background:rgba(217,45,32,0)}}
+@keyframes mk-flash-dn{0%{background:rgba(37,99,235,.26)}100%{background:rgba(37,99,235,0)}}
+.mk-fl-up{animation:mk-flash-up .9s ease-out;border-radius:4px}
+.mk-fl-dn{animation:mk-flash-dn .9s ease-out;border-radius:4px}
+
+/* ④ 스켈레톤 — 값이 오기 전 "--" 대신 회색 막대가 은은하게 깜빡임 */
+@keyframes mk-shimmer{0%{background-position:-120px 0}100%{background-position:240px 0}}
+.mk-skel{display:inline-block!important;min-width:3.4em;color:transparent!important;-webkit-text-fill-color:transparent;border-radius:6px;background:linear-gradient(90deg,#e6ebe8 0,#f3f6f4 40px,#e6ebe8 80px) 0 0/240px 100%,#e6ebe8;animation:mk-shimmer 1.2s linear infinite;user-select:none}
+.mk-skel *{visibility:hidden}
+
+/* ⑤ 카드 3단계 위계 — 페이지 카드(1단)·내부 카드(2단)·칩/타일(3단)의 모서리와 그림자를 하나로 */
+html body.pro.pro.pro :is(#pro-status,.stock-status,#pro-brief,h2.fold-h,h2.market-fold-h,.pulse,.v95-guide,.stock-bottom-personal,#unified-tools){box-shadow:0 1px 2px rgba(16,24,40,.05)}
+html body.pro.pro.pro :is(.card,.v95-guide){border-radius:14px}
+
+/* ⑥ 펼침/접힘 — 내용이 0.25초 동안 아래에서 4px 올라오며 나타남 */
+@keyframes mk-fold-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h2.fold-h+.fold-body,.market-fold-body:not([hidden]),.v105-pulse-body:not([hidden]),details[open]>:not(summary),.m-fold.m-open>:not(h3){animation:mk-fold-in .25s ease-out both}
+
+/* ⑦ 통합 오류·재시도 모양 */
+html body.pro.pro.pro :is(.src-line.fail,.pf-note,.kt-c.na){border-radius:8px}
+html body.pro.pro.pro :is(.pf-retry,.kt-retry,.src-line.fail button,.mk-retry){font:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border:1px solid #8fbaa7;border-radius:8px;background:#edf8f2;color:#27684f;cursor:pointer}
+
+/* ⑧ 목차 현재 위치 표시 */
+html body.pro.pro.pro :is(#pro-toc,#cr-toc) a.mk-spy{background:#e3f2ea!important;color:#0b6b4a!important;box-shadow:inset 0 -2px 0 #16795a}
+
+@media(prefers-reduced-motion:reduce){
+  .mk-fl-up,.mk-fl-dn,.mk-skel,h2.fold-h+.fold-body,.market-fold-body,.v105-pulse-body,details[open]>:not(summary),.m-fold.m-open>:not(h3){animation:none!important}
+}

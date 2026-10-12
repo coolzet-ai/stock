@@ -224,9 +224,68 @@
       var bt = h.querySelector('button'); h.insertBefore(sm, bt || null); h.classList.add('mk-fold-like');
     });
   }
+  /* ── 실시간 숫자 변동 번쩍임 + 값 도착 전 스켈레톤 ── */
+  var NUM_SEL = '.wl-price,.wl-pct,#pro-tick .pt b,#pro-tick .pt i,.pb-c>b,.pb-c>span,.pf-t b,.pf-t>span,.kt-c b,.kt-d,.px,.ch';
+  var SKEL_RE = /^(--|—|-- --|-)$/;
+  function numOf(t) { var m = String(t).replace(/[,\s]/g, '').replace(/−/g, '-').match(/-?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : NaN; }
+  function touchNum(el) {
+    var t = (el.textContent || '').trim();
+    if (el._mkTxt === t) return;
+    var old = el._mkTxt; el._mkTxt = t;
+    var sk = SKEL_RE.test(t) && !el.querySelector('*') && !el.closest('.kt-c.na') && performance.now() < 15000;
+    if (sk !== el.classList.contains('mk-skel')) el.classList.toggle('mk-skel', sk);
+    if (sk || old == null || SKEL_RE.test(old)) return;
+    var a = numOf(old), b = numOf(t); if (!isFinite(a) || !isFinite(b) || a === b) return;
+    var cls = b > a ? 'mk-fl-up' : 'mk-fl-dn';
+    el.classList.remove('mk-fl-up', 'mk-fl-dn'); void el.offsetWidth; el.classList.add(cls);
+    clearTimeout(el._mkT); el._mkT = setTimeout(function () { el.classList.remove('mk-fl-up', 'mk-fl-dn'); }, 1000);
+  }
+  /* 15초가 지나도 값이 없으면(= 오류) 스켈레톤을 걷고 원래 표시('--')를 보여 준다 */
+  setTimeout(function () { $$('.mk-skel').forEach(function (e) { e.classList.remove('mk-skel'); }); }, 15200);
+  var numQ = [], numRaf = 0;
+  function numFlush() { numRaf = 0; var q = numQ; numQ = []; q.forEach(function (e) { if (e.isConnected) { try { touchNum(e); } catch (x) {} } }); }
+  function numScan() { $$(NUM_SEL).forEach(touchNum); }
+  try {
+    new MutationObserver(function (recs) {
+      for (var i = 0; i < recs.length; i++) {
+        var t = recs[i].target; var el = t.nodeType === 3 ? t.parentElement : t; if (!el || !el.closest) continue;
+        var hit = el.closest(NUM_SEL); if (hit && numQ.indexOf(hit) < 0) numQ.push(hit);
+      }
+      if (numQ.length && !numRaf) numRaf = requestAnimationFrame(numFlush);
+    }).observe(d.body || d.documentElement, { childList: true, characterData: true, subtree: true });
+  } catch (e) {}
+
+  /* ── 목차 현재 위치 표시(스크롤 스파이) ── */
+  var SPY = {
+    'stock': [['#pro-brief'], ['#us-card'], ['#pro-sector'], ['#pro-int'], ['#pro-cal'], ['h:주요 지수 ETF'], ['h:김군 관심종목'], ['h:시가총액'], ['h:레버리지'], ['h:소셜 언급'], ['h:유니콘'], ['h:주요 이벤트'], ['h:지수 편입']],
+    'kr-stock': [['#pro-brief'], ['#kr-card'], ['h:투자자별'], ['h:코스피·코스닥'], ['h:시가총액 TOP10 (코스피)'], ['h:시가총액 TOP10 (코스닥)'], ['h:레버리지'], ['h:주요 이벤트'], ['h:KOSPI200']]
+  };
+  function spyTarget(sel) {
+    if (!sel) return null;
+    if (sel.indexOf('h:') === 0) { var k = sel.slice(2); return $$('h2.fold-h').filter(function (h) { return (h.textContent || '').replace(/\s+/g, ' ').trim().indexOf(k) === 0; })[0] || null; }
+    return d.querySelector(sel);
+  }
+  var spyRaf = 0;
+  function spyUpdate() {
+    spyRaf = 0;
+    var toc = d.getElementById('pro-toc') || d.getElementById('cr-toc'); if (!toc) return;
+    var links = $$('a', toc), hh = (d.querySelector('header') || {}).offsetHeight || 0, line = hh + (toc.offsetHeight || 0) + 40, best = -1;
+    links.forEach(function (a, i) {
+      var sel = (a.getAttribute('href') || '').length > 1 && a.getAttribute('href').charAt(0) === '#' ? a.getAttribute('href') : (SPY[PAGE] && SPY[PAGE][i] ? SPY[PAGE][i][0] : null);
+      var t = spyTarget(sel); if (t && t.getBoundingClientRect().top <= line) best = i;
+    });
+    links.forEach(function (a, i) { a.classList.toggle('mk-spy', i === best); });
+  }
+  window.addEventListener('scroll', function () { if (!spyRaf) spyRaf = requestAnimationFrame(spyUpdate); }, { passive: true });
+
+  /* ── 이어보기 배너: 한 세션에 한 번만 ── */
+  function resumeOnce() {
+    var r = d.getElementById('mk-resume'); if (!r || r._seen) return; r._seen = 1;
+    try { if (sessionStorage.getItem('mk_resume_seen') === '1') r.remove(); else sessionStorage.setItem('mk_resume_seen', '1'); } catch (e) {}
+  }
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
-    [coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
+    [coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
