@@ -729,7 +729,7 @@ body.pro{
 .pro .fold-h:hover .fold-btn{background:#fff!important;color:#00754A!important;border-color:#fff!important;font-weight:700}
 .pro .fold-h:active{transform:translateY(0)}
 .pro details>summary{transition:color .15s}
-.pro details>summary:hover{color:#fff!important;background:var(--accent);border-radius:3px;padding:3px 8px;margin-left:-8px}
+.pro details>summary:hover{color:#fff!important;background:var(--accent);border-radius:3px}
 
 /* ═════ v6 : 종목 재무 패널 — 김군 판정 패턴 ═════ */
 .pro [id^="finx"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"],.pro [id^="fin-"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"]{background:#00754A!important;color:#fff!important;border-bottom:0;font-size:12.5px!important;padding:8px 14px}

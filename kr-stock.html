@@ -1017,7 +1017,7 @@ body.pro{
 .pro .fold-h:hover .fold-btn{background:#fff!important;color:#00754A!important;border-color:#fff!important;font-weight:700}
 .pro .fold-h:active{transform:translateY(0)}
 .pro details>summary{transition:color .15s}
-.pro details>summary:hover{color:#fff!important;background:var(--accent);border-radius:3px;padding:3px 8px;margin-left:-8px}
+.pro details>summary:hover{color:#fff!important;background:var(--accent);border-radius:3px}
 
 /* ═════ v6 : 종목 재무 패널 — 김군 판정 패턴 ═════ */
 .pro [id^="finx"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"],.pro [id^="fin-"] div[style*="border-radius:12px"]>div:first-child[style*="font-weight:900"]{background:#00754A!important;color:#fff!important;border-bottom:0;font-size:12.5px!important;padding:8px 14px}
@@ -2744,10 +2744,11 @@ html[data-theme="dark"] .pro .nav ul a.on-page{box-shadow:inset 0 -2px 0 #4ADE9C
 html[data-theme="dark"] .scard-h .no{color:#4ADE9C}
 html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!important}
 </style>
-<link rel="stylesheet" href="mrkim-detail.css?v=88">
-<link rel="stylesheet" href="kr-standard.css?v=91">
-<link rel="stylesheet" href="market-refine.css?v=92">
-<link rel="stylesheet" href="brand-layout.css?v=105">
+<link rel="stylesheet" href="mrkim-detail.css?v=3eecc8fc">
+<link rel="stylesheet" href="kr-standard.css?v=23133c9e">
+<link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
+<link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=aa96788a">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -3066,8 +3067,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
       <span class="dl">'한국 공포탐욕지수'와 '김군 판정'은 공개된 단순 규칙(산식 보기 참고)에 따른 자체 분류이며 전문가의 평가·투자자문이 아닙니다. 게시된 자료를 무단 복제·재배포하지 마세요.</span>
       <span class="dl">이용 통계: 개인 식별 정보 없이 섹션 펼침·탭 클릭 횟수만 하루 단위로 합산합니다. 브라우저의 '추적 금지(Do Not Track)' 설정을 켜면 집계하지 않습니다.</span>
     </div>
-    <p style="margin-top:16px">© 2026 Mr.Kim Signal. All rights reserved.</p>
-  </div>
+      </div>
 </footer>
 
 <script >/* 방문자 화면에는 개발용 진단 문구를 숨기고, 관리자 모드(mk_gate_off)에서만 대괄호로 덧붙인다 */
@@ -6163,6 +6163,12 @@ function levPanelHtml(ticker, data, etfD, undD){
       k('베타(3년)',info&&info.beta3y!=null?info.beta3y.toFixed(2):'—','시장 대비 민감도')+'</tbody></table></section>';
     if(exp!=null&&exp>=0.01) flag('보수 '+(exp*100).toFixed(2)+'% 높음','w');
     if(aum!=null&&aum<2e8) flag('소형 ETF · 청산 위험 점검','b');
+  } else {
+    const code=String(ticker).replace(/\.K[SQ]$/,'');
+    g+='<section class="lv2-g c1"><h4>① 비용 · 규모</h4><table class="lv2-t"><tbody>'+
+      k('총보수(연)','—','국내 ETF는 Yahoo에 보수 정보가 없습니다')+
+      k('순자산','—','운용사·네이버 증권에서 확인')+'</tbody></table>'+
+      '<p class="lv2-tip"><a href="https://finance.naver.com/item/main.naver?code='+code+'" target="_blank" rel="noopener">네이버 증권에서 총보수·순자산 보기 →</a></p></section>';
   }
   if(st){
     g+='<section class="lv2-g c2"><h4>② 위험 (최근 1년)</h4><table class="lv2-t"><tbody>'+
@@ -7344,7 +7350,7 @@ function renderKR(d, ecos, krx, breadth){
   if(valEl) valEl.textContent=Math.round(gaugeScore);
   if(stateEl){ stateEl.textContent=t; stateEl.style.color=c; }
   if(dialEl){ dialEl.style.setProperty('--p',gaugeScore+'%'); dialEl.style.setProperty('--g',c); }
-  if(noteEl){ const cg=d.chg!=null?('코스피 전일 대비 '+(d.chg>=0?'▲ ':'▼ ')+Math.abs(d.chg).toFixed(2)+'%<br>'):''; noteEl.innerHTML=cg+(composite?('7개 지표 중 '+composite.count+'/7 반영 평균'):'125일 이평 이격도 기준'); }
+  if(noteEl){ const cg=d.chg!=null?('<span class="kn">코스피 전일 대비 '+(d.chg>=0?'▲ ':'▼ ')+Math.abs(d.chg).toFixed(2)+'%</span><span class="kn-s">·</span>'):''; noteEl.innerHTML=cg+'<span class="kn">'+(composite?('7개 지표 중 '+composite.count+'/7 반영 평균'):'125일 이평 이격도 기준')+'</span>'; }
   if(detailEl) detailEl.textContent='코스피 '+d.last.toFixed(1)+' · 125일 이동평균 '+d.ma125.toFixed(1)+
       ' · 이격도 '+(d.ratio*100>=0?'+':'')+(d.ratio*100).toFixed(1)+'%'+
       (composite?' · 모멘텀 단독점수 '+Math.round(d.score):'');
@@ -10808,10 +10814,12 @@ async function toggleKrLev(t,ev){
   })();
 })();
 </script>
-<script src="kr-tools.js?v=93"></script>
-<script src="mrkim-detail.js?v=89"></script>
-<script src="kr-standard.js?v=91"></script>
-<script defer src="market-refine.js?v=92"></script>
-<script defer src="brand-layout.js?v=105"></script>
+<script src="kr-tools.js?v=8258c1db"></script>
+<script src="mrkim-detail.js?v=446c8c63"></script>
+<script src="kr-standard.js?v=cde7fa74"></script>
+<script defer src="market-refine.js?v=44f2afb9"></script>
+<script defer src="brand-layout.js?v=2e2346e1"></script>
+<script defer src="ui-fixes-v106.js?v=daa3dc5d"></script>
+<script defer src="kr-trend.js?v=f67af5e7"></script>
 </body>
 </html>

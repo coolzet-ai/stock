@@ -1,0 +1,183 @@
+/* ui-fixes-v106 — 모바일·PC 목록 깨짐 / 정렬 / 중복 요소 정리 (brand-layout.css 다음에 로드)
+   1) 한국주식·가상화폐 목록: mrkim-detail.css(2열)와 kr-standard.css(3열)의 모바일 그리드 충돌로 종목명 열이 4px가 되던 문제
+   2) 지수 해석 바 좌우 여백, 롤오버 좌측 쏠림, 시장 한눈에 보기 가운데 정렬, 지표 읽는 법 박스 폭, 업데이트 이력 제거 */
+
+/* ── 1) 목록 행: 이름 | 시세 2열 + 아래 줄에 스파크라인·링크 ── */
+@media(max-width:700px){
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row{
+    display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;grid-auto-rows:auto!important;
+    gap:4px 10px!important;align-items:start!important;min-height:0!important;padding:10px 12px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-bar{display:none!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-info{grid-column:1!important;grid-row:1!important;min-width:0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{grid-column:2!important;grid-row:1!important;justify-self:end;min-width:84px!important;align-items:flex-end!important;text-align:right}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-spark{grid-column:1!important;grid-row:2!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;align-self:center}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-spark svg{height:26px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-actions{grid-column:2!important;grid-row:2!important;justify-self:end;align-self:center;justify-content:flex-end!important;flex-direction:row!important;gap:12px!important;padding:0!important;margin:0!important;border:0!important;min-width:84px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-info{overflow:visible!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-ind{flex:1 0 100%!important;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:2px 0 0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:100%}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-tag{white-space:normal!important;line-height:1.35!important}
+}
+
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;row-gap:3px}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
+}
+
+/* ── 2) 한국주식 "지수 해석·관련 일정 보기" 바: 좌우 여백 복구 ── */
+html body.pro.pro.pro.kr.kr-standard #kr-card .stock-insights-details>summary{padding:8px 16px!important}
+/* 전일 대비 · 지표 반영 수: 한 줄 */
+html body.pro.pro.pro #kr-card #kr-note .kn{display:inline-block;white-space:nowrap}
+html body.pro.pro.pro #kr-card #kr-note .kn-s{color:var(--tx2);margin:0 4px}
+@media(max-width:380px){html body.pro.pro.pro #kr-card #kr-note{font-size:11.5px!important}}
+
+/* ── 3) 시장 한눈에 보기: 타일 가운데 정렬, 상승·보합·하락 간격, 범례 ── */
+html body.pro.pro.pro .pulse .hm div.tl small,
+html body.pro.pro.pro .pulse .hm.hm-g5 div.tl small{align-items:center!important;text-align:center}
+html body.pro.pro.pro .pulse .hm div.tl small b.hm-chg{align-self:center!important}
+html body.pro.pro.pro .pulse .bl{display:flex!important;justify-content:space-between;align-items:center;gap:10px;flex-wrap:nowrap}
+html body.pro.pro.pro .pulse .bl span{white-space:nowrap}
+html body.pro.pro.pro .pulse .hm-l{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;margin:12px 0 4px!important;flex-wrap:nowrap}
+html body.pro.pro.pro .pulse .hm-l i{width:28px!important;height:10px!important}
+/* 미국 섹터 히트맵: 마지막 줄 가운데 정렬 + 같은 범례 */
+html body.pro.pro.pro #pro-sector .shm{display:flex!important;flex-wrap:wrap;justify-content:center;gap:3px!important}
+html body.pro.pro.pro #pro-sector .shm a{flex:0 0 calc(16.666% - 3px)!important;min-width:0}
+@media(max-width:700px){html body.pro.pro.pro #pro-sector .shm a{flex:0 0 calc(33.333% - 3px)!important;height:64px!important}}
+html body.pro.pro.pro #pro-sector .hm-l{display:flex;gap:6px;align-items:center;justify-content:center;font-size:11px;color:var(--tx2);margin:12px 0 4px;font-family:'JetBrains Mono',monospace}
+html body.pro.pro.pro #pro-sector .hm-l i{width:28px;height:10px;border-radius:1px;display:block}
+
+/* ── 4) 롤오버 시 좌측 쏠림 방지(전역 details>summary:hover 가 padding·margin-left 를 바꾸던 것) ── */
+html body.pro.pro.pro details>summary:hover{margin-left:0!important}
+html body.pro.pro.pro :is(#unified-tools,.stock-bottom-personal)>summary:hover{margin-left:0!important}
+
+/* ── 5) 지표 읽는 법 박스: 카드와 같은 폭·여백, 더 작게 ── */
+html body.pro.pro.pro .v95-guide{padding:10px 16px!important;margin:16px auto!important}
+html body.pro.pro.pro .v95-guide>h2{min-height:32px!important}
+@media(max-width:700px){html body.pro.pro.pro:is(.v93-stock,.v93-crypto) .v95-guide{margin:12px 12px!important;padding:8px 12px!important}}
+
+/* ── 6) 업데이트 이력 제거 ── */
+#v92-update-history,#stock-update-history,.cross-update-log{display:none!important}
+
+/* ── 7) 미국주식 상태 칩 중복: 상단 상태 줄에 있는 시장·데이터 칩과 새로고침은 요약 카드 안에서 숨김 ── */
+html body.pro.pro.pro.v93-stock .stock-status~* #pro-status :is(#ps-mk,#ps-net,.cross-status-actions),
+html body.pro.pro.pro.v93-stock #pro-brief #pro-status :is(#ps-mk,#ps-net,.cross-status-actions){display:none!important}
+
+/* ── 8) 한국주식 시장 추세(kr-trend.js) ── */
+#kr-mkt-trend{margin:12px 0 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2,#F6F8F7)}
+#kr-mkt-trend .kt-hd{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-bottom:10px}
+#kr-mkt-trend .kt-hd b{font-size:14px;font-weight:800;color:var(--tx)}
+#kr-mkt-trend .kt-hd span{font-size:12px;color:var(--tx2)}
+#kr-mkt-trend .kt-time{margin-left:auto;font-style:normal;font-size:11.5px;color:var(--tx2)}
+#kr-mkt-trend .kt-retry{font:inherit;font-size:12px;font-weight:700;padding:3px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--accent);cursor:pointer}
+#kr-mkt-trend .kt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#kr-mkt-trend .kt-c{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 6px;border:1px solid var(--line);border-radius:10px;background:var(--panel,#fff);min-width:0}
+#kr-mkt-trend .kt-c small{font-size:12px;font-weight:700;color:var(--tx2)}
+#kr-mkt-trend .kt-c>b{font-size:17px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--tx);white-space:nowrap}
+#kr-mkt-trend .kt-d{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+#kr-mkt-trend .kt-d em{font-style:normal;font-weight:500;font-size:10.5px;color:var(--tx2);margin-left:4px}
+#kr-mkt-trend .kt-s{width:100%;height:34px;margin:2px 0}
+#kr-mkt-trend .kt-s svg{display:block;width:100%;height:100%}
+#kr-mkt-trend .kt-m{font-size:11.5px;font-weight:600;color:var(--tx2);font-variant-numeric:tabular-nums}
+#kr-mkt-trend .up,#kr-mkt-trend .kt-c.up .kt-s{color:var(--up)}
+#kr-mkt-trend .down,#kr-mkt-trend .kt-c.down .kt-s{color:var(--down)}
+#kr-mkt-trend .flat{color:var(--tx2)}
+#kr-mkt-trend .kt-c.na{justify-content:center;min-height:96px;color:var(--tx2);font-size:12px}
+@media(max-width:380px){#kr-mkt-trend .kt-c>b{font-size:15px}#kr-mkt-trend .kt-d em{display:none}}
+
+/* ── 9) 미국주식 경제지표·핵심 일정 제목줄: 다른 접이식 카드(시장 내부지표 등)와 같은 위치 ── */
+html body.pro.pro.pro #pro-cal>h3{padding:12px 14px!important}
+@media(max-width:700px){html body.pro.pro.pro #pro-cal>h3>span.mut{display:none!important}}
+
+/* ── 10) CNN 7개 지표 설명 표: 모바일에서 카드형으로 ── */
+@media(max-width:560px){
+  .subdesc-tbl,.subdesc-tbl tbody{display:block;width:100%}
+  .subdesc-tbl thead{display:none}
+  .subdesc-tbl tr{display:grid;grid-template-columns:30px minmax(0,1fr);gap:3px 10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+  .subdesc-tbl tr:last-child{border-bottom:0}
+  .subdesc-tbl td{display:block;padding:0!important;border:0!important;text-align:left!important;font-size:13px!important;line-height:1.5}
+  .subdesc-tbl td.sd-no{grid-row:1/4;grid-column:1}
+  .subdesc-tbl td:not(.sd-no){grid-column:2}
+  .subdesc-tbl td.sd-nm b{font-size:14px!important}
+  .subdesc-tbl td[data-label]:not(.sd-no):not(.sd-nm)::before{content:attr(data-label);display:inline-block;min-width:3.8em;margin-right:6px;font-size:11.5px;font-weight:700;color:var(--tx2)}
+}
+
+/* ── 11) 투자자 체크패널(.lv2): 라벨·값 간격, 값 강조 ── */
+html body.pro.pro.pro .lv2 .lv2-t th{background:transparent!important;width:auto}
+html body.pro.pro.pro .lv2 .lv2-t td{width:1%;padding-left:12px;padding-right:10px}
+html body.pro.pro.pro .lv2 .lv2-g .lv2-tip a{color:var(--accent);font-weight:700;text-decoration:underline}
+
+/* ── 12) 메인 페이지: 시장 카드 3개 + 더보기 ── */
+html body.pro.pro.pro .hero .cross-market-links{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;width:100%;max-width:100%}
+html body.pro.pro.pro .hero .cross-market-links>a{display:flex!important;flex-direction:column!important;gap:4px;min-height:132px;min-width:0;padding:18px 18px 14px!important;box-sizing:border-box}
+html body.pro.pro.pro .hero .cross-market-links>a>b{font-size:20px!important}
+html body.pro.pro.pro .hero .cross-market-links>a>small{font-size:13px!important}
+html body.pro.pro.pro .hero .cross-market-links>a .mk-live{margin-top:auto;font-style:normal;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx2);padding-top:8px}
+html body.pro.pro.pro .hero .cross-market-links>a .mk-live.up{color:var(--up)}
+html body.pro.pro.pro .hero .cross-market-links>a .mk-live.down{color:var(--down)}
+@media(max-width:700px){
+  html body.pro.pro.pro .hero .cross-market-links{grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+  html body.pro.pro.pro .hero .cross-market-links>a{min-height:0;padding:14px 16px!important}
+  html body.pro.pro.pro .hero .cross-market-links>a .mk-live{padding-top:4px}
+}
+html body.pro.pro.pro .hero .cross-more{margin:14px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--panel,#fff);padding:0;text-align:left}
+html body.pro.pro.pro .hero .cross-more>summary{cursor:pointer;padding:12px 16px;font-weight:700;font-size:14px;color:var(--tx2);list-style:none}
+html body.pro.pro.pro .hero .cross-more>summary::-webkit-details-marker{display:none}
+html body.pro.pro.pro .hero .cross-more>summary::after{content:'＋';float:right;color:var(--accent)}
+html body.pro.pro.pro .hero .cross-more[open]>summary::after{content:'−'}
+html body.pro.pro.pro .hero .cross-more nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px;padding:0 16px 10px}
+html body.pro.pro.pro .hero .cross-more nav a{padding:10px 0;font-size:13.5px;color:var(--tx);text-decoration:none;border-bottom:1px solid var(--line)}
+html body.pro.pro.pro .hero .cross-more nav a:hover{color:var(--accent)}
+
+/* ── 13) 보정: CNN 설명 카드 폭, 지표 읽는 법 박스 높이 ── */
+@media(max-width:560px){.subdesc-tbl td{width:auto!important;max-width:none!important;white-space:normal!important}.subdesc-tbl td.sd-nm b{white-space:normal}}
+html body.pro.pro.pro .v95-guide>h2 :is(button,a,summary,.help-btn,[class*=help]){padding:5px 12px!important;min-height:32px!important;font-size:12.5px!important;line-height:1.2!important}
+html body.pro.pro.pro .v95-guide>h2{font-size:16px!important}
+
+/* ═══ v107 ═══ 신호등 뒤 종목명 줄바꿈 방지 · 52주 위치 막대 · 로딩 표시 · 티커 가장자리 · 잠금 표시 ═══ */
+
+/* 1) 한국주식·가상화폐 목록: 🟡/🔴/🟢 신호등과 종목명은 같은 줄에 두고, 이름이 길면 이름 칸 안에서만 줄바꿈 */
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{
+  display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;column-gap:6px;row-gap:3px;overflow:visible!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-sig{flex:0 0 auto!important;width:auto!important;margin:.12em 0 0!important;line-height:1.2}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{flex:1 1 0!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
+
+/* 2) 52주 범위 막대: 폭이 0이라 점(●)만 보이던 것을 라벨 + 막대로 표시 */
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty){
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;justify-content:flex-end;gap:6px;align-self:stretch;width:auto;margin-top:7px;font-size:10.5px;line-height:1;color:var(--tx2)}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty)::before{content:'52주';font-weight:700;letter-spacing:-.2px}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w>div{flex:0 0 60px;width:60px!important;max-width:60px!important;margin:0!important}
+@media(max-width:700px){
+  html body.pro.pro.pro :is(#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row:not(.m-x) .wl-quote .wl-52w{display:none}
+}
+
+/* 3) 시세를 기다리는 행: 깜빡이는 자리표시(스켈레톤) — 값이 없을 때는 흐린 대시 */
+@keyframes mk-shim{0%{background-position:100% 0}100%{background-position:-100% 0}}
+html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct){
+  color:transparent!important;border-radius:4px;min-width:60px;min-height:1.1em;user-select:none;
+  background:linear-gradient(90deg,var(--line) 25%,var(--panel2,#F6F8F7) 40%,var(--line) 60%)!important;background-size:300% 100%;animation:mk-shim 1.4s ease-in-out infinite}
+html body.pro.pro.pro .wl-row :is(.wl-price,.wl-pct).na{color:var(--tx2)!important;opacity:.55}
+@media(prefers-reduced-motion:reduce){html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct){animation:none}}
+
+/* 4) 시세 띠: 양끝이 글자 중간에서 잘려 보이지 않도록 가장자리를 흐리게 */
+html body.pro.pro.pro #pro-tick{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+
+/* 5) 암호가 필요한 펼치기 버튼 표시 */
+.mk-locked::before{content:'🔒';margin-right:5px;font-size:.9em}
+/* 버튼형(Help)은 폭이 늘어 줄바꿈되지 않도록 모서리 배지로 */
+html body.pro.pro.pro #guide>h2 .mk-locked{position:relative}
+html body.pro.pro.pro #guide>h2 .mk-locked::before{position:absolute;top:-8px;right:-6px;margin:0;padding:2px;font-size:12px;line-height:1;background:var(--panel,#fff);border-radius:50%;box-shadow:0 0 0 1px var(--line)}
+
+/* 6) 모바일: 긴 레버리지 종목명도 신호등 뒤에서 한 줄로 들어가도록 글자 크기·자간을 화면 폭에 맞춤(그래도 넘치면 이름 칸 안에서만 줄바꿈) */
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{
+    font-size:clamp(12px,3.3vw,13.5px)!important;letter-spacing:-.4px}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{min-width:76px!important}
+}
+
+/* 7) 320px 화면: 상대수익률 범례 칩이 화면 밖으로 나가던 것을 줄바꿈 */
+html body.pro.pro.pro :has(>.rel-chip){flex-wrap:wrap!important;min-width:0}
+html body.pro.pro.pro .rel-chip{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+html body.pro.pro.pro .rel-chip{min-width:0}
+html body.pro.pro.pro .rel-chip>span{white-space:normal!important;min-width:0;overflow-wrap:anywhere}
