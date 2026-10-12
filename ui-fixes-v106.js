@@ -43,7 +43,10 @@
       fetch(PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + cfg[0] + '?range=5d&interval=1d'), ctl ? { signal: ctl.signal } : {})
         .then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
           clearTimeout(to);
-          var m = j.chart.result[0].meta, last = m.regularMarketPrice, prev = m.chartPreviousClose != null ? m.chartPreviousClose : m.previousClose;
+          var r0 = j.chart.result[0], m = r0.meta, last = m.regularMarketPrice;
+          /* 전일 종가: range=5d 의 chartPreviousClose 는 '5일 전' 종가라 쓰면 안 된다(예전에 코스피가 -8%대로 잘못 표시) */
+          var cl = ((r0.indicators && r0.indicators.quote && r0.indicators.quote[0] && r0.indicators.quote[0].close) || []).filter(function (x) { return x != null && isFinite(x); });
+          var prev = m.regularMarketPreviousClose != null ? m.regularMarketPreviousClose : (cl.length ? (Math.abs(last / cl[cl.length - 1] - 1) < 1e-6 ? cl[cl.length - 2] : cl[cl.length - 1]) : null);
           if (last == null || !prev) throw 0;
           var v = (last / prev - 1) * 100;
           em.className = 'mk-live ' + (v > 0 ? 'up' : v < 0 ? 'down' : 'flat');
@@ -284,9 +287,14 @@
     var r = d.getElementById('mk-resume'); if (!r || r._seen) return; r._seen = 1;
     try { if (sessionStorage.getItem('mk_resume_seen') === '1') r.remove(); else sessionStorage.setItem('mk_resume_seen', '1'); } catch (e) {}
   }
+  /* ── 메인 페이지: 지표 읽는 법·다른 메뉴 더보기 삭제 ── */
+  function homeClean() {
+    if (PAGE !== 'mrkim-signal') return;
+    $$('.v95-guide,details.cross-more').forEach(function (e) { e.remove(); });
+  }
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
-    [coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
+    [homeClean, coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
