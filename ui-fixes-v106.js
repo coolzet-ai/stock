@@ -315,15 +315,81 @@
     var PERIODS = [['1개월', 1], ['3개월', 3], ['6개월', 6], ['1년', 12], ['3년', 36], ['5년', 60], ['10년', 120]];
     var lab = sel.closest('label'); if (lab) lab.hidden = true;
     sel.value = '12'; btn.textContent = '비교';
-    var h3 = form.closest('section').querySelector('h3'); if (h3 && !h3.querySelector('.cm-note')) h3.insertAdjacentHTML('beforeend', ' <span class="cm-note">최대 3개 · 시세 기준 계산</span>');
-    var rg = d.createElement('div'); rg.className = 'cm-rg2'; rg.setAttribute('role', 'group'); rg.setAttribute('aria-label', '기간');
-    rg.innerHTML = '<b>기간</b>' + PERIODS.map(function (x) { return '<button type="button" data-m="' + x[1] + '"' + (x[1] === 12 ? ' class="on"' : '') + '>' + x[0] + '</button>'; }).join('');
-    form.after(rg);
-    rg.addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-m]'); if (!b) return;
-      sel.value = b.dataset.m; $$('button', rg).forEach(function (x) { x.classList.toggle('on', x === b); });
-      if (form.requestSubmit) form.requestSubmit(); else btn.click();
-    });
+    var sec = form.closest('section'), h3 = sec.querySelector('h3');
+    if (h3) { h3.textContent = '🔍 종목 비교 '; h3.insertAdjacentHTML('beforeend', '<span class="cm-note">최대 3개 · 시세 기준 계산</span>'); }
+    var old = sec.querySelector('.ut-compare-chart'); if (old) old.hidden = true;
+    var out = d.createElement('div'); out.className = 'ucm-r'; form.after(out);
+    var COL = ['#16865c', '#4386db', '#d5872a'], NAMES = { 'BTC-USD': '비트코인', 'ETH-USD': '이더리움', 'SOL-USD': '솔라나', 'XRP-USD': '리플', 'BNB-USD': '바이낸스코인', 'DOGE-USD': '도지코인', 'ADA-USD': '에이다' };
+    var data = [], months = 12, serial = 0;
+    var esc = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var msg = function (t) { var m = d.querySelector('#unified-tools .ut-message'); if (m) m.textContent = t || ''; };
+    var fp = function (v) { return v == null ? '<span class="na">—</span>' : '<span class="' + (v > 0 ? 'up' : v < 0 ? 'dn' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(2) + '%</span>'; };
+    var cut = function (end, m) { var x = new Date(end), day = x.getUTCDate(); x.setUTCDate(1); x.setUTCMonth(x.getUTCMonth() - m); x.setUTCDate(Math.min(day, new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth() + 1, 0)).getUTCDate())); return +x; };
+    var ymd = function (t) { var x = new Date(t); return x.getUTCFullYear() + '.' + (x.getUTCMonth() + 1) + '.' + x.getUTCDate(); };
+    var hangul = function (x) { return /[가-힣]/.test(x); };
+    var saved = function () { try { return JSON.parse(localStorage.getItem('mk_kr_symbol_names') || '{}') || {}; } catch (e) { return {}; } };
+    var price = function (c, v) { if (c.cur === 'KRW') return '₩' + Math.round(v).toLocaleString('ko-KR'); var pre = c.cur === 'USD' ? '$' : ''; return pre + (v < 1 ? v.toFixed(4) : v < 100 ? v.toFixed(2) : v.toLocaleString('en-US', { maximumFractionDigits: 2 })); };
+    function at(pts, t) { var r = null; for (var i = 0; i < pts.length; i++) { if (pts[i].t <= t) r = pts[i]; else break; } return r; }
+    function metrics(c) {
+      var pts = c.pts, last = pts[pts.length - 1], px = c.px || last.v, end = last.t, D = 86400000;
+      var pc = function (b) { return b && b.v ? (px / b.v - 1) * 100 : null; };
+      var yr = pts.filter(function (p) { return p.t >= cut(end, 12); }), hi = yr.length ? Math.max.apply(null, yr.map(function (p) { return p.v; })) : null;
+      var prev = c.prev || (pts.length > 1 ? pts[pts.length - 2].v : null);
+      return { px: px, d1: prev ? (px / prev - 1) * 100 : null, w: pc(at(pts, end - 7 * D)), m: pc(at(pts, cut(end, 1))), y: pts[0].t <= cut(end, 12) ? pc(at(pts, cut(end, 12))) : null, hi: hi ? (px / hi - 1) * 100 : null };
+    }
+    function draw() {
+      var host = out.querySelector('.ucm-svg'), lg = out.querySelector('.ucm-lg'); if (!host) return;
+      var end = Math.max.apply(null, data.map(function (c) { return c.pts[c.pts.length - 1].t; })), start = cut(end, months);
+      var ser = data.map(function (c, i) { var p = c.pts.filter(function (x) { return x.t >= start && x.t <= end; }); return p.length > 1 ? { n: c.name, i: i, t: p.map(function (x) { return x.t; }), y: p.map(function (x) { return (x.v / p[0].v - 1) * 100; }) } : null; }).filter(Boolean);
+      if (!ser.length) { host.innerHTML = '<p class="mut">선택 기간에 표시할 시세가 없습니다.</p>'; lg.innerHTML = ''; return; }
+      var lo = 0, hi = 0; ser.forEach(function (s) { s.y.forEach(function (v) { if (v < lo) lo = v; if (v > hi) hi = v; }); });
+      var span = hi - lo || 1; lo -= span * .06; hi += span * .06;
+      var W = 520, H = 320, pl = 58, pr = 12, pt = 12, pb = 30, X = function (t) { return pl + (W - pl - pr) * (t - start) / ((end - start) || 1); }, Y = function (v) { return pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo)); };
+      var raw = (hi - lo) / 4, pw = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / pw, step = (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * pw, g = '';
+      for (var v = Math.ceil(lo / step) * step; v <= hi; v += step) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" class="ucm-gl' + (Math.abs(v) < step / 100 ? ' z' : '') + '"/><text x="' + (pl - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end" class="ucm-tx">' + (v > 0 ? '+' : '') + v.toFixed(0) + '%</text>';
+      g += '<text x="' + pl + '" y="' + (H - 7) + '" class="ucm-tx">' + ymd(start) + '</text><text x="' + (W - pr) + '" y="' + (H - 7) + '" text-anchor="end" class="ucm-tx">' + ymd(end) + '</text>';
+      var ln = ser.map(function (s) { return '<polyline fill="none" stroke="' + COL[s.i] + '" stroke-width="2" stroke-linejoin="round" points="' + s.y.map(function (v, k) { return X(s.t[k]).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>'; }).join('');
+      host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="종목별 누적 수익률 곡선">' + g + ln + '</svg>';
+      lg.innerHTML = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i style="background:' + COL[s.i] + '"></i><b>' + esc(s.n) + '</b> <em class="' + (e > 0 ? 'up' : e < 0 ? 'dn' : '') + '">' + (e > 0 ? '+' : '') + e.toFixed(2) + '%</em></span>'; }).join('');
+    }
+    function render() {
+      var cols = data.map(function (c) { return c.pts ? metrics(c) : null; });
+      var row = function (l, fn) { return '<tr><th scope="row">' + l + '</th>' + data.map(function (c, i) { return '<td class="n">' + (cols[i] ? fn(cols[i], c) : '—') + '</td>'; }).join('') + '</tr>'; };
+      var tbl = '<table class="ucm-t"><thead><tr><th></th>' + data.map(function (c, i) { return '<th class="n"><i style="background:' + COL[i] + '"></i>' + esc(c.name) + (c.pts ? '' : '<br><small class="na">조회 실패</small>') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        row('현재가', function (m, c) { return '<b>' + price(c, m.px) + '</b>'; }) + row('1일', function (m) { return fp(m.d1); }) + row('1주', function (m) { return fp(m.w); }) + row('1개월', function (m) { return fp(m.m); }) + row('1년', function (m) { return fp(m.y); }) + row('52주 고점 대비', function (m) { return fp(m.hi); }) + '</tbody></table>';
+      data = data.filter(function (c) { return c.pts; }).length ? data : data;
+      out.innerHTML = '<div class="ucm-grid"><div class="ucm-tb">' + tbl + '</div><div class="ucm-ch"><div class="ucm-chh"><b>수익률 곡선</b><span class="ucm-rg" role="group" aria-label="기간">' + PERIODS.map(function (x) { return '<button type="button" data-m="' + x[1] + '"' + (x[1] === months ? ' class="on"' : '') + '>' + x[0] + '</button>'; }).join('') + '</span></div><div class="ucm-svg"></div><div class="ucm-lg"></div></div></div>' +
+        '<p class="ucm-note">곡선은 일봉 종가 기준 가격 수익률(배당·세금·환율 제외)이며 시세가 제공되는 구간만 표시합니다.</p>';
+      var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok;
+    }
+    async function fetchOne(sym) {
+      var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?range=10y&interval=1d';
+      var j = typeof getJSON === 'function' ? await getJSON(url) : await fetch('https://ai.coolzet.workers.dev/?url=' + encodeURIComponent(url)).then(function (r) { return r.json(); });
+      var r = j.chart.result[0], cl = r.indicators.quote[0].close, pts = [];
+      r.timestamp.forEach(function (t, i) { if (cl[i] > 0) pts.push({ t: t * 1000, v: cl[i] }); });
+      if (pts.length < 2) throw Error('no data');
+      return { pts: pts, px: r.meta.regularMarketPrice, prev: r.meta.regularMarketPreviousClose, cur: r.meta.currency, nm: r.meta.longName || r.meta.shortName };
+    }
+    var go = async function (e) {
+      if (e) e.preventDefault();
+      var vals = $$('input[name^=compare]', form).map(function (i) { return i.value.trim(); }).filter(Boolean);
+      if (!vals.length) { msg('비교할 종목을 입력해 주세요.'); return; }
+      var my = ++serial; msg(''); out.innerHTML = '<p class="mut">수익률을 불러오는 중…</p>';
+      var resolver = window.MK_KR_RESOLVE_SYMBOL || window.MK_CRYPTO_RESOLVE_SYMBOL, nm = saved();
+      var res = await Promise.all(vals.map(async function (v) {
+        var sym, c = { name: v, pts: null };
+        try { sym = (resolver ? await resolver(v) : v).toUpperCase(); } catch (er) { msg('종목을 찾지 못했습니다: ' + v); sym = /^[A-Z0-9.\-]+$/i.test(v) ? v.toUpperCase() : null; }
+        if (!sym) return c;
+        c.name = hangul(v) ? v : (NAMES[sym] || nm[sym] || sym);
+        try { var q = await fetchOne(sym); c.pts = q.pts; c.px = q.px; c.prev = q.prev; c.cur = q.cur || (/\.(KS|KQ)$/.test(sym) ? 'KRW' : 'USD'); } catch (er) {}
+        return c;
+      }));
+      if (my !== serial) return;
+      data = res; render();
+    };
+    form.onsubmit = go; form.addEventListener('submit', function (e) { e.preventDefault(); }, true);
+    out.addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; months = +b.dataset.m; sel.value = String(months); $$('button', out).forEach(function (x) { x.classList.toggle('on', x === b); }); var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok; });
+    var nav = d.querySelector('#unified-tools [data-tool=compare]'); if (nav) nav.addEventListener('click', function () { if (!data.length) setTimeout(go, 0); }, { once: true });
   }
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
