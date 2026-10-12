@@ -324,3 +324,43 @@ html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .card.mk-flat>h3:first-c
   html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card)>.fg-hd:first-child .tabs button{color:var(--tx2)!important;border-right:0!important}
   html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#kr-idxrel-card,#krcap-caprel-card,#cry-rel-card)>.fg-hd:first-child .tabs button.on{background:var(--accent)!important;color:#fff!important}
 }
+
+/* v112: 선물 흐름 카드 — PC에서 스파크라인이 글자 폭을 0으로 눌러 표가 세로로 깨지던 문제(모든 폭에서 세로 배치) */
+html body.pro.pro.pro.pro #pb-fut .pf-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.pro.pro.pro.pro #pb-fut .pf-c{flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:4px!important;min-width:0}
+html body.pro.pro.pro.pro #pb-fut .pf-t{flex:0 0 auto!important;width:100%;min-width:0;align-items:center!important}
+html body.pro.pro.pro.pro #pb-fut .pf-t>*{white-space:nowrap;writing-mode:horizontal-tb}
+html body.pro.pro.pro.pro #pb-fut .pf-c .pf-sp{flex:0 0 auto!important;width:100%!important;height:30px!important}
+html body.pro.pro.pro.pro #pb-fut .pf-cl{text-align:center}
+
+/* v112: 가상화폐 상태 카드 — 버튼 묶음이 칩과 같은 한 박스 안에서 미국/한국주식과 같은 모양으로 */
+html body.pro.pro.pro.v93-crypto #pro-status .cross-status-actions:empty{display:none!important}
+html body.pro.pro.pro.v93-crypto #pro-status{display:flex!important;flex-wrap:wrap;align-items:center;gap:6px 8px;box-sizing:border-box}
+html body.pro.pro.pro.v93-crypto #pro-status .v90-actions{margin-left:auto!important;display:flex!important;gap:8px;align-items:center;flex-wrap:nowrap}
+html body.pro.pro.pro.v93-crypto #pro-status .ps-t{flex:1 0 100%}
+@media(min-width:701px){
+  html body.pro.pro.pro.pro.v93-crypto #pro-status .v90-actions button:not(:first-child){background:#f8fafb!important;border:1px solid #e0e5e9!important;color:#16745d!important;font-weight:700!important;border-radius:8px!important}
+}
+
+/* v112: 가상화폐 코인 행 — + 아래 🌈 레인보우 차트 버튼 */
+.wl-actions .rb-open-btn{display:inline-flex;align-items:center;justify-content:center;font-size:16px!important;line-height:1;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--panel2,#f6f8f7);text-decoration:none!important;min-width:30px;box-sizing:border-box}
+.wl-actions .rb-open-btn .rb-t{display:none}
+.wl-row.rb-open .rb-open-btn{background:#fff;border-color:var(--accent)}
+@media(max-width:700px){
+  .pro .wl-row.m-x .wl-actions .rb-open-btn{font-size:13px!important;gap:2px}
+  .pro .wl-row.m-x .wl-actions .rb-open-btn .rb-t{display:inline}
+}
+
+/* v112: 시장 한눈에 보기 타일 — 코인 아이콘 + 이름 한 줄 */
+.v105-tl>span{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.v105-tl .cico{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:20px;height:20px;border-radius:50%;color:#fff;font:700 12px/1 system-ui,sans-serif;font-style:normal}
+
+/* v112: 지표 읽는 법 박스 — 다른 박스와 같은 폭·높이(내 투자 도구 박스와 동일 52px / 모바일 46px)로 정렬 */
+html body.pro.pro.pro.brand-v93.refine-v97 :is(#guide.v95-guide,.v95-guide){padding:7px 14px!important;margin:20px auto 12px!important;box-sizing:border-box!important;display:block}
+html body.pro.pro.pro.brand-v93.refine-v97 :is(#guide.v95-guide,.v95-guide)>h2{margin:0!important;min-height:36px}
+@media(max-width:700px){
+  html body.pro.pro.pro.brand-v93.refine-v97:is(.v93-stock,.v93-crypto) :is(#guide.v95-guide,.v95-guide){margin:20px 12px 12px!important;padding:5px 12px!important}
+  html body.pro.pro.pro.brand-v93.refine-v97.v93-kr-stock :is(#guide.v95-guide,.v95-guide){margin:20px 0 12px!important;padding:5px 12px!important}
+}
+html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:36px!important;height:36px!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:34px!important;height:34px!important}}

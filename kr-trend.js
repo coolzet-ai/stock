@@ -30,7 +30,8 @@
       var res = j && j.chart && j.chart.result && j.chart.result[0]; if (!res) throw 0;
       var q = res.indicators.quote[0].close.filter(function (x) { return x != null && isFinite(x); });
       var m = res.meta || {}, last = m.regularMarketPrice != null ? m.regularMarketPrice : q[q.length - 1];
-      var prev = m.chartPreviousClose != null ? m.chartPreviousClose : q[q.length - 2];
+      /* 전일 종가: range=1mo 의 chartPreviousClose 는 '한 달 전' 종가라 쓰면 안 된다. 직전 종가 → 현재가가 마지막 일봉과 같은지로 판단 */
+      var prev = m.regularMarketPreviousClose != null ? m.regularMarketPreviousClose : (Math.abs(last / q[q.length - 1] - 1) < 1e-6 ? q[q.length - 2] : q[q.length - 1]);
       if (q.length < 3 || last == null || !prev) throw 0;
       return { last: last, day: (last / prev - 1) * 100, mo: (last / q[0] - 1) * 100, closes: q };
     }).catch(function () { clearTimeout(to); return null; });

@@ -2748,7 +2748,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ui-fixes-v106.css?v=90425858">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=37cc05ae">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -9772,8 +9772,11 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
       var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(sym)+'?range=5d&interval=1d');
       var r=j.chart.result[0], c=mkFillClose(r).filter(function(x){return x!=null;});
       var p=(r.meta&&r.meta.regularMarketPrice!=null)?r.meta.regularMarketPrice:c[c.length-1];
-      var prev=c.length>=2?c[c.length-2]:null;
-      if(prev==null||!isFinite(p)) return null;
+      /* 전일 종가: 제공처의 직전 종가를 우선 쓰고, 없으면 '현재가가 마지막 일봉과 같은지'로 판단 —
+         장 시작 전·휴장일처럼 마지막 일봉이 이미 직전 거래일이면 그 일봉이 전일 종가(예전에는 무조건 끝에서 두 번째를 써서 등락률이 어긋남) */
+      var m=r.meta||{}, prev=(m.regularMarketPreviousClose!=null&&isFinite(m.regularMarketPreviousClose))?m.regularMarketPreviousClose:null;
+      if(prev==null&&c.length){ var lastC=c[c.length-1]; prev=(Math.abs(p/lastC-1)<1e-6)?(c.length>=2?c[c.length-2]:null):lastC; }
+      if(prev==null||!isFinite(p)||!prev) return null;
       return {p:p,prev:prev,pct:(p/prev-1)*100,diff:p-prev};
     }catch(e){ return null; }
   }
@@ -10820,8 +10823,8 @@ async function toggleKrLev(t,ev){
 <script src="kr-standard.js?v=76912559"></script>
 <script defer src="market-refine.js?v=bfdc42f5"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
-<script defer src="ui-fixes-v106.js?v=7309129b"></script>
+<script defer src="ui-fixes-v106.js?v=a44ccb0c"></script>
 <script defer src="kr-live.js?v=f2caaa57"></script>
-<script defer src="kr-trend.js?v=ba45f2d3"></script>
+<script defer src="kr-trend.js?v=9f0f711d"></script>
 </body>
 </html>
