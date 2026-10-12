@@ -133,3 +133,51 @@ html body.pro.pro.pro .hero .cross-more nav a:hover{color:var(--accent)}
 @media(max-width:560px){.subdesc-tbl td{width:auto!important;max-width:none!important;white-space:normal!important}.subdesc-tbl td.sd-nm b{white-space:normal}}
 html body.pro.pro.pro .v95-guide>h2 :is(button,a,summary,.help-btn,[class*=help]){padding:5px 12px!important;min-height:32px!important;font-size:12.5px!important;line-height:1.2!important}
 html body.pro.pro.pro .v95-guide>h2{font-size:16px!important}
+
+/* ═══ v107 ═══ 신호등 뒤 종목명 줄바꿈 방지 · 52주 위치 막대 · 로딩 표시 · 티커 가장자리 · 잠금 표시 ═══ */
+
+/* 1) 한국주식·가상화폐 목록: 🟡/🔴/🟢 신호등과 종목명은 같은 줄에 두고, 이름이 길면 이름 칸 안에서만 줄바꿈 */
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{
+  display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;column-gap:6px;row-gap:3px;overflow:visible!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-sig{flex:0 0 auto!important;width:auto!important;margin:.12em 0 0!important;line-height:1.2}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{flex:1 1 0!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
+
+/* 2) 52주 범위 막대: 폭이 0이라 점(●)만 보이던 것을 라벨 + 막대로 표시 */
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty){
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;justify-content:flex-end;gap:6px;align-self:stretch;width:auto;margin-top:7px;font-size:10.5px;line-height:1;color:var(--tx2)}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty)::before{content:'52주';font-weight:700;letter-spacing:-.2px}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w>div{flex:0 0 60px;width:60px!important;max-width:60px!important;margin:0!important}
+@media(max-width:700px){
+  html body.pro.pro.pro :is(#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row:not(.m-x) .wl-quote .wl-52w{display:none}
+}
+
+/* 3) 시세를 기다리는 행: 깜빡이는 자리표시(스켈레톤) — 값이 없을 때는 흐린 대시 */
+@keyframes mk-shim{0%{background-position:100% 0}100%{background-position:-100% 0}}
+html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct){
+  color:transparent!important;border-radius:4px;min-width:60px;min-height:1.1em;user-select:none;
+  background:linear-gradient(90deg,var(--line) 25%,var(--panel2,#F6F8F7) 40%,var(--line) 60%)!important;background-size:300% 100%;animation:mk-shim 1.4s ease-in-out infinite}
+html body.pro.pro.pro .wl-row :is(.wl-price,.wl-pct).na{color:var(--tx2)!important;opacity:.55}
+@media(prefers-reduced-motion:reduce){html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct){animation:none}}
+
+/* 4) 시세 띠: 양끝이 글자 중간에서 잘려 보이지 않도록 가장자리를 흐리게 */
+html body.pro.pro.pro #pro-tick{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+
+/* 5) 암호가 필요한 펼치기 버튼 표시 */
+.mk-locked::before{content:'🔒';margin-right:5px;font-size:.9em}
+/* 버튼형(Help)은 폭이 늘어 줄바꿈되지 않도록 모서리 배지로 */
+html body.pro.pro.pro #guide>h2 .mk-locked{position:relative}
+html body.pro.pro.pro #guide>h2 .mk-locked::before{position:absolute;top:-8px;right:-6px;margin:0;padding:2px;font-size:12px;line-height:1;background:var(--panel,#fff);border-radius:50%;box-shadow:0 0 0 1px var(--line)}
+
+/* 6) 모바일: 긴 레버리지 종목명도 신호등 뒤에서 한 줄로 들어가도록 글자 크기·자간을 화면 폭에 맞춤(그래도 넘치면 이름 칸 안에서만 줄바꿈) */
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{
+    font-size:clamp(12px,3.3vw,13.5px)!important;letter-spacing:-.4px}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{min-width:76px!important}
+}
+
+/* 7) 320px 화면: 상대수익률 범례 칩이 화면 밖으로 나가던 것을 줄바꿈 */
+html body.pro.pro.pro :has(>.rel-chip){flex-wrap:wrap!important;min-width:0}
+html body.pro.pro.pro .rel-chip{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+html body.pro.pro.pro .rel-chip{min-width:0}
+html body.pro.pro.pro .rel-chip>span{white-space:normal!important;min-width:0;overflow-wrap:anywhere}

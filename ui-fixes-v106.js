@@ -52,7 +52,23 @@
     });
   }
 
-  function run() { dropHistory(); sectorLegend(); liveCards(); }
+  /* ── 암호가 필요한 펼치기(상세 보기)에 🔒 표시. 암호를 통과하면 모두 제거 ── */
+  var LOCKED = ['.cross-restricted>summary', '#kr-breadth-panel>summary', '#guide>h2 button', '#guide>h2 a'];
+  function lockOn() {
+    try { if (localStorage.getItem('mk_gate_off') === '1') return false; } catch (e) {}
+    return !window.__mkUnlocked;
+  }
+  function markLocks() {
+    if (!lockOn()) { $$('.mk-locked').forEach(function (e) { e.classList.remove('mk-locked'); }); return; }
+    LOCKED.forEach(function (sel) { $$(sel).forEach(function (e) { e.classList.add('mk-locked'); }); });
+  }
+  function wrapGate() {
+    var f = window.MK_REQUEST_DETAIL; if (typeof f !== 'function' || f.__mkWrapped) return;
+    var w = function (done) { return f.call(this, function () { window.__mkUnlocked = true; markLocks(); if (done) done.apply(this, arguments); }); };
+    w.__mkWrapped = true; window.MK_REQUEST_DETAIL = w;
+  }
+
+  function run() { dropHistory(); sectorLegend(); liveCards(); wrapGate(); markLocks(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });
 })();
