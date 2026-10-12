@@ -468,13 +468,13 @@ html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{
 
 /* ② 터치 영역 44px — 터치 기기·좁은 화면의 작은 버튼/탭/링크 */
 @media(hover:none),(max-width:900px){
-  html body.pro.pro.pro :is(#pro-status button,.pb-hd button,#mk-live-sw,.tabs button,.fg-hd .tabs button,.kt-retry,.pf-retry,.src-line button,.ev-more-btn,.v95-help,.m-fold-btn,.fold-btn,.market-fold-btn,.lg-t,#pro-toc a,#cr-toc a,.pt-s,.unified-invest-link,.stock-ticker-toggle){min-height:44px}
-  html body.pro.pro.pro :is(.tabs button,.fg-hd .tabs button){min-width:44px}
+  html body.pro.pro.pro.pro.pro :is(#pro-status button,.pb-hd button,#mk-live-sw,.tabs button,.fg-hd .tabs button,.kt-retry,.pf-retry,.src-line button,.ev-more-btn,.v95-help,.m-fold-btn,.fold-btn,.market-fold-btn,.lg-t,#pro-toc a,#cr-toc a,.pt-s,.unified-invest-link,.stock-ticker-toggle){min-height:44px!important}
+  html body.pro.pro.pro.pro.pro :is(.tabs button,.fg-hd .tabs button){min-width:44px!important}
   html body.pro.pro.pro header .logo{min-height:44px;display:inline-flex;align-items:center}
   html body.pro.pro.pro :is(.kr-toolbar,.unified-tools) summary{min-height:44px}
 }
 @media(max-width:700px){
-  html body.pro.pro.pro #pro-status .v87-status-actions button:first-child,html body.pro.pro.pro #pro-status .v90-actions button:first-child,html body.pro.pro.pro #pro-status .stock-status-actions>button:first-child{min-width:44px;min-height:44px}
+  html body.pro.pro.pro.pro.pro #pro-status .v87-status-actions button:first-child,html body.pro.pro.pro.pro.pro #pro-status .v90-actions button:first-child,html body.pro.pro.pro.pro.pro .stock-status .stock-status-actions>button:first-child{min-width:44px!important;min-height:44px!important;width:44px!important;height:44px!important}
 }
 
 /* ③ 실시간 숫자 변동 — 값이 바뀔 때 0.3초 색 번쩍임(상승=빨강·하락=파랑, 한국식) */
@@ -505,4 +505,7 @@ html body.pro.pro.pro :is(#pro-toc,#cr-toc) a.mk-spy{background:#e3f2ea!importan
 
 @media(prefers-reduced-motion:reduce){
   .mk-fl-up,.mk-fl-dn,.mk-skel,h2.fold-h+.fold-body,.market-fold-body,.v105-pulse-body,details[open]>:not(summary),.m-fold.m-open>:not(h3){animation:none!important}
+}
+@media(hover:none),(max-width:900px){
+  html body.pro.pro.pro.pro.pro main :is([class*="sort"] button,.kr-toolbar summary,.pro-tools summary,details.cross-restricted>summary,details.kr-standard-panel>summary,.stock-brief-details>summary){min-height:44px!important}
 }

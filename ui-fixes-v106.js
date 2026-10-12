@@ -206,6 +206,7 @@
   /* ── 첫 화면 조립 완료 신호(mk-boot.js): 상태 카드 안에 버튼·칩이 들어간 것을 확인하면 본문을 보여 준다 ── */
   function bootReady() {
     if (!window.__mkBootDone) return;
+    if (performance.now() < 2000) return; /* 늦게 도착하는 그래프·차트 영역이 자리를 잡은 뒤에 보여 준다 */
     var st = d.getElementById('pro-status') || d.querySelector('.stock-status');
     var ok = false;
     if (st) {
