@@ -7502,10 +7502,10 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
       if(have.length<list.length/2&&!levAsked&&typeof loadTickGroup==='function'){ levAsked=true; try{ loadTickGroup('lev'); }catch(e){} }
       var a=g.querySelector('.pb-lev');
       if(!have.length){ if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#lev-tbl'; a.dataset.go='lev'; a.innerHTML='<small>레버리지 ETF 연속 하락</small><b>--</b>'; g.appendChild(a); } return; }
-      var two=[],three=[]; have.forEach(function(t){ var n=levStreakN(tickData[t]); if(n===2) two.push(t); else if(n>=3) three.push([t,n]); });
+      var two=[],three=[],cum=[]; have.forEach(function(t){ var d=tickData[t],n=levStreakN(d); if(n===2) two.push(t); else if(n>=3) three.push([t,n]); if(n>=2){ var c=(d[d.length-1]/d[d.length-1-n]-1)*100; if(c<=-30) cum.push([t,c]); } }); cum.sort(function(x,y){ return x[1]-y[1]; });
       three.sort(function(x,y){ return y[1]-x[1]; });
       var chips=function(arr,cls){ return arr.length?arr.map(function(x){ var t=Array.isArray(x)?x[0]:x, n=Array.isArray(x)?x[1]:2; return '<i class="'+cls+'">'+t+(Array.isArray(x)?' '+n+'일':'')+'</i>'; }).join(''):'<em class="none">없음</em>'; };
-      var h='<small>레버리지 ETF 연속 하락 <span class="lv-n">'+have.length+'종목 기준</span></small><div class="lv-g"><div class="lv-r"><b class="lv-k">2연속 하락 · '+two.length+'</b><span class="lv-c">'+chips(two,'d2')+'</span></div><div class="lv-r"><b class="lv-k">3연속 이상 · '+three.length+'</b><span class="lv-c">'+chips(three,'d3')+'</span></div></div>';
+      var h='<small>레버리지 ETF 연속 하락 <span class="lv-n">'+have.length+'종목 기준</span></small><div class="lv-g"><div class="lv-r"><b class="lv-k">2연속 하락 · '+two.length+'</b><span class="lv-c">'+chips(two,'d2')+'</span></div><div class="lv-r"><b class="lv-k">3연속 이상 · '+three.length+'</b><span class="lv-c">'+chips(three,'d3')+'</span></div><div class="lv-r lv-w"><b class="lv-k">연속 하락 누적 −30% 초과 · '+cum.length+'</b><span class="lv-c">'+(cum.length?cum.map(function(x){ return '<i class="d4">'+x[0]+' −'+Math.abs(x[1]).toFixed(1)+'%</i>'; }).join(''):'<em class="none">없음</em>')+'</span></div></div>';
       if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#lev-tbl'; a.dataset.go='lev'; g.appendChild(a); }
       if(a._h!==h){ a._h=h; a.innerHTML=h; }
     };

@@ -607,3 +607,38 @@ html body.pro.pro.pro #pro-brief .pb-lev i.d2{background:#EFF4FF;color:#1D4ED8;b
 html body.pro.pro.pro #pro-brief .pb-lev i.d3{background:#1D4ED8;color:#fff;border:1px solid #1D4ED8}
 html body.pro.pro.pro #pro-brief .pb-lev .none{font-style:normal;font-size:12.5px;color:var(--tx2)}
 @media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-lev .lv-g{grid-template-columns:1fr}}
+
+/* v128: 가상화폐 오늘의 시장 요약 — 비트코인 반감기 D-day 칸 */
+html body.pro.pro.pro #pro-brief .pb-grid>.pb-halv{grid-column:1/-1!important;display:block!important;min-height:0!important;height:auto!important;align-self:start;cursor:default}
+html body.pro.pro.pro #pro-brief .pb-halv small{display:block;margin-bottom:6px}
+html body.pro.pro.pro #pro-brief .pb-halv .lv-n{font-weight:500;color:var(--tx2);margin-left:6px}
+html body.pro.pro.pro #pro-brief .pb-halv .hv-g{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+html body.pro.pro.pro #pro-brief .pb-halv .hv-d{font-size:28px!important;font-weight:850;color:#B54708;line-height:1.2;font-variant-numeric:tabular-nums}
+html body.pro.pro.pro #pro-brief .pb-halv .hv-i{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 220px}
+html body.pro.pro.pro #pro-brief .pb-halv .hv-i b{font-size:13.5px!important;font-weight:800;color:var(--tx)}
+html body.pro.pro.pro #pro-brief .pb-halv .hv-i em{font-style:normal;font-size:12px;color:var(--tx2);line-height:1.5}
+@media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-halv .hv-d{font-size:24px!important}}
+
+/* v128: 종목 비교 — 입력칸 3개 + 비교 버튼 한 줄(미국주식과 동일), 기간 버튼 */
+.unified-tools [data-panel=compare] form{display:flex!important;flex-wrap:nowrap;gap:10px;align-items:flex-end}
+html body.pro.pro.pro .unified-tools [data-panel=compare] .kr-compare-inputs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;flex:1 1 auto;min-width:0;width:auto!important}
+.unified-tools [data-panel=compare] form>button{height:44px;align-self:end}
+.unified-tools [data-panel=compare] h3 .cm-note{float:right;font-size:11.5px;font-weight:400;color:var(--tx2)}
+.unified-tools [data-panel=compare] .cm-rg2{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 4px}
+.unified-tools [data-panel=compare] .cm-rg2>b{font-size:12.5px;margin-right:4px;color:var(--tx2)}
+.unified-tools [data-panel=compare] .cm-rg2 button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--tx);font:700 13px inherit;cursor:pointer}
+.unified-tools [data-panel=compare] .cm-rg2 button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+@media(max-width:700px){.unified-tools [data-panel=compare] form{flex-wrap:wrap}html body.pro.pro.pro .unified-tools [data-panel=compare] .kr-compare-inputs{grid-template-columns:1fr!important;width:100%!important}.unified-tools [data-panel=compare] form>button{width:100%}}
+.unified-tools [data-panel=compare] :is(label,div)[hidden]{display:none!important}
+.unified-tools [data-panel=compare] form{flex-wrap:nowrap!important}
+.unified-tools [data-panel=compare] form{flex-direction:row!important;align-items:flex-end!important}
+html body.pro.pro.pro .unified-tools [data-panel=compare] .kr-compare-inputs{margin:0!important;flex:1 1 0!important}
+@media(max-width:700px){.unified-tools [data-panel=compare] form{flex-direction:column!important;align-items:stretch!important}}
+@media(min-width:701px){
+  html body.pro.pro.pro.pro.pro.pro #unified-tools [data-panel=compare] form{flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-end!important}
+  html body.pro.pro.pro.pro.pro.pro #unified-tools [data-panel=compare] form .kr-compare-inputs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:auto!important;flex:1 1 0!important;margin:0!important}
+}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-g{grid-template-columns:1fr 1fr!important}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-w{grid-column:1/-1}
+html body.pro.pro.pro #pro-brief .pb-lev i.d4{background:#B42318;color:#fff;border:1px solid #B42318}
+@media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-lev .lv-g{grid-template-columns:1fr!important}}

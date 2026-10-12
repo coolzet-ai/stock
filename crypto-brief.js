@@ -32,7 +32,17 @@ function build(){
  br.after(toc);
  toc.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();var t=$(a.getAttribute('href'));if(!t)return;var det=t.closest('details');if(det)det.open=true;var h=(d.querySelector('header')||{}).offsetHeight||0;window.scrollTo({top:Math.max(0,t.getBoundingClientRect().top+scrollY-h-12),behavior:'smooth'})});
 }
+/* 비트코인 반감기 D-day — 4차 반감기(2024-04-20 블록 840,000)에서 210,000블록 × 평균 10분으로 추정한 다음(5차) 반감기 */
+function halving(){
+ var g=$('#pro-brief .pb-grid');if(!g)return;
+ var est=Date.UTC(2024,3,20,0,9,27)+210000*600*1000,now=Date.now(),days=Math.ceil((est-now)/86400000),dt=new Date(est);
+ var ymd=dt.getUTCFullYear()+'.'+('0'+(dt.getUTCMonth()+1)).slice(-2)+'.'+('0'+dt.getUTCDate()).slice(-2);
+ var h='<small>비트코인 반감기(5차) D-day <span class="lv-n">추정치</span></small><div class="hv-g"><b class="hv-d">'+(days>0?'D-'+days.toLocaleString('ko-KR'):days===0?'D-Day':'D+'+Math.abs(days).toLocaleString('ko-KR'))+'</b><span class="hv-i"><b>예상 '+ymd+' 전후</b><em>블록 1,050,000 · 채굴 보상 3.125 → 1.5625 BTC · 평균 블록 10분 기준 추정(실제와 수일 차이 가능)</em></span></div>';
+ var a=g.querySelector('.pb-halv');if(!a){a=d.createElement('div');a.className='pb-c pb-halv';g.appendChild(a)}
+ if(a._h!==h){a._h=h;a.innerHTML=h}
+}
 function fill(){
+ try{halving()}catch(e){}
  var v=parseFloat(txt($('#cf-val'))),s=txt($('#cf-state')),P=[];
  if(isFinite(v)){var z=v<25?0:v<45?1:v<=55?2:v<=75?3:4,lab=(s&&s.indexOf('불러')<0)?s:['극단적 공포','공포','중립','탐욕','극단적 탐욕'][z],b=$('#pb-fg');if(b){b.textContent=Math.round(v)+' · '+lab;b.style.color=ZC[z]}var f2=$('#pb-fg2');if(f2)f2.textContent='Alternative.me 기준 · 0 공포 ~ 100 탐욕';P.push('공포탐욕 '+Math.round(v)+' <em>'+lab+'</em>')}
  [['bitcoin','btc','비트코인'],['ethereum','eth','이더리움']].forEach(function(x){var c=coin(x[0]),b=$('#pb-'+x[1]),b2=$('#pb-'+x[1]+'2');if(c&&b&&c.p){b.textContent=c.p;if(b2)b2.innerHTML=pctHtml(c);if(isFinite(c.pct))P.push(x[2]+' <em>'+(c.pct>=0?'+':'')+c.pct.toFixed(2)+'%</em>')}});
