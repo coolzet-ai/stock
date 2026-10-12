@@ -536,3 +536,9 @@ html body.pro.pro.pro :is(#pro-toc,#cr-toc) a.mk-spy{background:#e3f2ea!importan
 html body.pro.pro.lite header .wrap.nav{max-width:1280px!important;margin-left:auto!important;margin-right:auto!important}
 html body.pro.pro.lite :is(.hero .wrap,main .wrap,footer .wrap){max-width:1280px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
 html body.pro.pro.lite :is(.v95-guide,details.cross-more){display:none!important}
+
+/* v123: 접힌 제목 옆 등락 요약(상승·하락 · 최대 상승/하락 종목) — 모바일은 제목 아래에서 줄바꿈해 칩이 잘리지 않게 */
+@media(max-width:700px){
+  html body.pro.pro.pro .fold-sum .mv{display:flex!important;flex-wrap:wrap;gap:4px 6px}
+  html body.pro.pro.pro .fold-sum .mv>span{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+}
