@@ -416,3 +416,21 @@ html body.pro.pro.pro.pro .stock-bottom-personal{margin:20px 0 12px!important}
 @media(min-width:701px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:52px}}
 @media(max-width:700px){html body.pro.pro.pro.pro .stock-bottom-personal{min-height:46px}}
 html body.pro.pro.pro.pro.v93-crypto main>section#crypto{padding-bottom:0!important}
+
+/* v115: 한국주식·가상화폐 대시보드 표현을 미국주식과 통일(기본 글자 14px · 접이식 제목 17px/750 · 요약 카드 수치 · 모바일 요약 카드 좌측 띠·간격) */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto){font-size:14px!important;line-height:1.6}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h{font-size:17px!important;font-weight:750!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h .fold-t{font-size:16px!important;font-weight:750!important;line-height:1.4}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c>b{font-size:26px!important}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h{font-size:17px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) h2.fold-h .fold-t{font-size:15px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c>b{font-size:22px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief{border-left:4px solid #27835d!important;margin:12px 0 0!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-c{padding:8px 6px!important}
+}
+/* 상태 카드 ↔ 오늘의 시장 요약 간격: 미국주식과 같은 12px */
+html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status{margin-bottom:0!important}
+html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>section:is(#kr-stock,#crypto){padding-top:0!important}
+html body.pro.pro.pro.pro.brand-v93.refine-v99.v93-crypto main>section#crypto{padding-top:0!important}
+html body.pro.pro.pro.pro.pro.v93-crypto main>section#crypto>.wrap{padding-top:0!important}
