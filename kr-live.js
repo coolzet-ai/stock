@@ -1,7 +1,7 @@
 /* 한국주식 실시간 시세 — 네이버 증권(모바일 API, 기존 Worker 프록시 경유)으로
    · 코스피·코스닥 지수 → 오늘의 시장 요약·시세 띠·공포탐욕(모멘텀) 게이지
    · 시가총액 TOP10(코스피·코스닥)·11~20위·레버리지 ETF·KOSPI200 편입편출 종목 가격·등락률
-   을 정규장(평일 09:00~15:30 KST) 동안 15초마다 갱신한다. 장이 끝나면 한 번 마감값으로 맞추고 5분 간격으로 늦춘다.
+   을 정규장(평일 09:00~15:30 KST) 동안 사용자가 정한 주기(15·30·60초)로 갱신한다. 실시간 스위치(MK_LIVE)가 꺼져 있으면 요청을 하지 않는다. 장이 끝나면 한 번 마감값으로 맞추고 5분 간격으로 늦춘다.
    받지 못하면 임의 값을 만들지 않고 기존(야후) 값을 그대로 둔다. */
 (function () {
   'use strict';
@@ -79,7 +79,7 @@
   function pollLists(map) {
     var got = {}, dirty = {};
     return Promise.all(['KOSPI', 'KOSDAQ'].map(function (mk) {
-      return getJ('stocks/marketValue/' + mk + '?page=1&pageSize=100').then(function (j) {
+      return getJ('stocks/marketValue/' + mk + '?page=1&pageSize=20').then(function (j) {
         (j.stocks || []).forEach(function (s) {
           var t = map[s.itemCode]; if (!t) return;
           var p = num(s.closePrice), diff = sgn(s.compareToPreviousPrice && s.compareToPreviousPrice.code, s.compareToPreviousClosePrice);
@@ -109,22 +109,17 @@
     Object.keys(dirty).forEach(function (g) { try { renderTick(g, curPer[g]); } catch (e) {} });
   }
 
-  /* ── 표시 ── */
-  var chip;
-  function mountChip() {
-    if (chip && chip.isConnected) return true;
-    var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return false;
-    chip = d.getElementById('kr-live') || d.createElement('span'); chip.id = 'kr-live'; chip.setAttribute('role', 'status'); hd.appendChild(chip); return true;
-  }
+  /* ── 표시: 스위치(MK_LIVE) 버튼에 상태 문구를 넘긴다 ── */
   function paint(state) {
-    if (!mountChip()) return;
     var n = new Date(), z = function (v) { return v < 10 ? '0' + v : '' + v; }, t = z(n.getHours()) + ':' + z(n.getMinutes()) + ':' + z(n.getSeconds());
-    chip.className = 'kr-live ' + state;
-    chip.textContent = state === 'on' ? '● 실시간 ' + t : state === 'closed' ? '장 마감 · ' + t.slice(0, 5) + ' 기준' : '시세 연결 지연 · 기존 값 유지';
+    if (!window.MK_LIVE) return;
+    if (state === 'on') window.MK_LIVE.status('● 실시간 ' + t, 'on');
+    else if (state === 'closed') window.MK_LIVE.status('장 마감 · ' + t.slice(0, 5) + ' 기준', 'closed');
+    else window.MK_LIVE.status('시세 연결 지연 · 기존 값 유지', 'err');
   }
 
   function run() {
-    if (busy) return; busy = true;
+    if (busy) return; if (!window.MK_LIVE || !window.MK_LIVE.active()) { schedule(); return; } busy = true;
     var map = groups();
     pollIdx().then(function (ok) {
       if (ok) { window.dispatchEvent(new CustomEvent('mk:kr-live')); liveGauge(); if (window.__krLoadTicks) window.__krLoadTicks(); }
@@ -136,9 +131,12 @@
   function schedule() {
     clearTimeout(timer);
     var open = live.open !== null ? live.open : sessionOpen();
-    timer = setTimeout(function () { if (d.hidden) { schedule(); return; } run(); }, open ? 15000 : 300000);
+    timer = setTimeout(run, open ? (window.MK_LIVE ? window.MK_LIVE.ms() : 30000) : 300000);
   }
   d.addEventListener('visibilitychange', function () { if (!d.hidden && Date.now() - live.okAt > 20000) { clearTimeout(timer); run(); } });
+  /* 스위치를 켜거나 일시정지에서 돌아오면 바로 한 번 */
+  function hook() { if (!window.MK_LIVE) { setTimeout(hook, 300); return; } window.MK_LIVE.onChange(function () { clearTimeout(timer); if (window.MK_LIVE.active()) run(); else schedule(); }); }
+  hook();
 
   function start() { wrapGauge(); setTimeout(function () { wrapGauge(); run(); }, 2500); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', start); else start();

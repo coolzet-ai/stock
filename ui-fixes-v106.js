@@ -68,6 +68,51 @@
     w.__mkWrapped = true; window.MK_REQUEST_DETAIL = w;
   }
 
+  /* ═══ 실시간 시세 스위치(MK_LIVE) ═══
+     Cloudflare Worker 요청·데이터 사용을 줄이기 위해 실시간 갱신은 사용자가 켠 경우에만 돈다(기본 꺼짐).
+     켜 두어도 · 탭이 숨겨지면 멈춤 · 10분간 조작이 없으면 일시정지(다시 조작하면 재개) · 데이터 절약 모드(mk_save)면 기본 꺼짐.
+     한국주식(kr-live.js)과 미국주식 선물 카드가 이 설정을 함께 쓴다. 저장: mk_live('0'|'1'), mk_live_ms(15000|30000|60000). */
+  var DEFAULT_ON = false, IDLE_MS = 10 * 60000, MS_OPTS = [15000, 30000, 60000];
+  var lastAct = Date.now(), subs = [], btn = null, sel = null, st = { text: '', cls: '' };
+  function rd(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function wr(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var LIVE = window.MK_LIVE = {
+    on: function () { var v = rd('mk_live'); return v === null ? (DEFAULT_ON && !window.MK_SAVE) : v === '1'; },
+    ms: function () { var m = +rd('mk_live_ms'); return MS_OPTS.indexOf(m) >= 0 ? m : 30000; },
+    idle: function () { return Date.now() - lastAct > IDLE_MS; },
+    active: function () { return LIVE.on() && !LIVE.idle() && !d.hidden; },
+    set: function (on) { wr('mk_live', on ? '1' : '0'); lastAct = Date.now(); notify(); },
+    setMs: function (ms) { wr('mk_live_ms', String(ms)); notify(); },
+    onChange: function (fn) { subs.push(fn); },
+    status: function (text, cls) { st = { text: text, cls: cls || '' }; paintSw(); }
+  };
+  function notify() { paintSw(); subs.forEach(function (f) { try { f(); } catch (e) {} }); }
+  function paintSw() {
+    if (!btn) return;
+    var on = LIVE.on(), idle = on && LIVE.idle();
+    var text = !on ? '○ 실시간 꺼짐' : idle ? '⏸ 무조작 일시정지 · 눌러서 재개' : (st.text || '● 실시간 연결 중');
+    btn.textContent = text; btn.className = 'mk-live-sw ' + (!on ? 'off' : idle ? 'paused' : (st.cls || 'on'));
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = !on ? '꺼져 있습니다(서버 요청 절약). 눌러서 실시간 시세를 켭니다' : '눌러서 실시간 시세를 끕니다. 켜 두면 갱신마다 서버 요청이 발생합니다';
+    if (sel) { sel.hidden = !on; sel.value = String(LIVE.ms()); }
+  }
+  function mountSw() {
+    if (btn && btn.isConnected) return true;
+    var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return false;
+    btn = d.getElementById('mk-live-sw') || d.createElement('button'); btn.type = 'button'; btn.id = 'mk-live-sw';
+    btn.addEventListener('click', function () { if (LIVE.on() && LIVE.idle()) { lastAct = Date.now(); notify(); } else LIVE.set(!LIVE.on()); });
+    sel = d.createElement('select'); sel.id = 'mk-live-ms'; sel.setAttribute('aria-label', '실시간 갱신 주기');
+    MS_OPTS.forEach(function (m) { var o = d.createElement('option'); o.value = m; o.textContent = (m / 1000) + '초'; sel.appendChild(o); });
+    sel.addEventListener('change', function () { LIVE.setMs(+sel.value); });
+    hd.appendChild(btn); hd.appendChild(sel); paintSw(); return true;
+  }
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+    window.addEventListener(ev, function () { var was = LIVE.on() && LIVE.idle(); lastAct = Date.now(); if (was) notify(); }, { passive: true, capture: true });
+  });
+  (function () { var n = 0, iv = setInterval(function () { if (mountSw() || ++n > 60) clearInterval(iv); }, 500); })();
+  setInterval(paintSw, 20000); /* 무조작 일시정지 표시 반영 */
+  LIVE.onChange(function () { if (LIVE.active() && typeof window.__fillFut === 'function') window.__fillFut(); }); /* 미국 선물: 켜면 바로 한 번 */
+
   function run() { dropHistory(); sectorLegend(); liveCards(); wrapGate(); markLocks(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });

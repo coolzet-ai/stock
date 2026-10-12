@@ -7454,6 +7454,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
               (!open&&d.afterClose!=null?'<em class="pf-cl">마감 후 '+(d.afterClose>=0?'+':'')+d.afterClose.toFixed(2)+'%</em>':'')+'</div>'; }).join('')+
           '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance(약 15분 지연 가능)</p>';
         box.hidden=false; box._ok=true; futT=Date.now();
+        if(window.MK_LIVE){ var nw=new Date(), z2=function(v){return v<10?'0'+v:''+v}; window.MK_LIVE.status('● 선물 '+z2(nw.getHours())+':'+z2(nw.getMinutes())+':'+z2(nw.getSeconds()),'on'); }
         var s0=res[0]||ok[0]; window.__futLine=' · 선물 <em>S&amp;P '+(s0.pct>=0?'+':'')+s0.pct.toFixed(2)+'%</em>';
       }finally{ futBusy=false; }
     };
@@ -7481,7 +7482,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
         if(usOpen()&&window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); if(window.__futLine&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…';
         if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } }
     };
-    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});fillBrief(); fillFut(); setInterval(fillFut,60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
+    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});fillBrief(); fillFut(); setInterval(function(){ if(window.MK_LIVE&&!window.MK_LIVE.active()) return; fillFut(); },60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
     var openAndGo=function(el){ if(!el) return; var h=el.closest&&el.closest('.fold-body'); if(h&&h.style.display==='none'){ var hh=h.previousElementSibling; if(hh&&hh._set) hh._set(true); } var mc=el.closest&&el.closest('.m-fold'); if(mc&&!mc.classList.contains('m-open')){ var bt=mc.querySelector('.m-fold-btn'); if(bt&&getComputedStyle(bt).display!=='none') bt.click(); } setTimeout(function(){ var off=(document.querySelector('header')?document.querySelector('header').offsetHeight:0)+44; var y=el.getBoundingClientRect().top+window.scrollY-off; window.scrollTo({top:y,behavior:'smooth'}); },60); };
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); openAndGo(document.querySelector(a.getAttribute('href'))); });
     /* 목차 */
