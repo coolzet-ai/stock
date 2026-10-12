@@ -593,3 +593,17 @@ html body.pro.pro.pro.pro.v93-crypto .card.v92-global-trend>:is(h3,.market-fold-
   html body.pro.pro.pro.pro.pro.pro.v93-crypto :is(#cr-top>.card,#crypto>.wrap>.grid>.card){align-self:stretch!important;height:auto!important}
   html body.pro.pro.pro.pro.v93-crypto .card.v92-global-trend>:is(h3,.market-fold-h) :is(.market-fold-btn,.m-fold-btn){width:84px!important;min-width:84px!important}
 }
+
+/* v127: 오늘의 시장 요약 — 레버리지 ETF 연속 하락(2연속 / 3연속 이상) 칸 */
+html body.pro.pro.pro #pro-brief .pb-grid>.pb-lev{grid-column:1/-1!important;display:block!important;min-height:0!important;height:auto!important;align-self:start}
+html body.pro.pro.pro #pro-brief .pb-lev small{display:block;margin-bottom:6px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-n{font-weight:500;color:var(--tx2);margin-left:6px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-g{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-r{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;min-width:0}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-k{font-size:13px!important;font-weight:800;color:var(--tx);white-space:nowrap}
+html body.pro.pro.pro #pro-brief .pb-lev .lv-c{display:flex;flex-wrap:wrap;gap:4px 6px;min-width:0}
+html body.pro.pro.pro #pro-brief .pb-lev i{font-style:normal;font-size:12.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+html body.pro.pro.pro #pro-brief .pb-lev i.d2{background:#EFF4FF;color:#1D4ED8;border:1px solid #B2CCFF}
+html body.pro.pro.pro #pro-brief .pb-lev i.d3{background:#1D4ED8;color:#fff;border:1px solid #1D4ED8}
+html body.pro.pro.pro #pro-brief .pb-lev .none{font-style:normal;font-size:12.5px;color:var(--tx2)}
+@media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-lev .lv-g{grid-template-columns:1fr}}

@@ -1883,13 +1883,21 @@ function putRowStats(row,o){
   if(!box){ box=document.createElement('div'); box.className='wl-stats'; const info=row.querySelector('.wl-info'); if(info) info.after(box); else return; }
   const h=rowStatsHtml(o); if(!h){ box.remove(); return; } box.innerHTML=h;
 }
-async function fillUsRowStats(tableId,set){
+async function fillUsRowStats(tableId,set,_retry){
   if(window.innerWidth<1000) return;
-  const map=await loadUsFundamentalsOnce(set); if(!map) return;
+  const map=(await loadUsFundamentalsOnce(set))||{};
+  const put=(row,it)=>putRowStats(row,{rg:it.revenueGrowth!=null?it.revenueGrowth*100:null, og:it.earningsGrowth!=null?it.earningsGrowth*100:null, per:it.trailingPE, eps:it.trailingEps, feps:it.forwardEps, psr:it.psr});
+  const missing=[];
   document.querySelectorAll('#'+tableId+' .wl-row').forEach(row=>{
-    const it=map[row.dataset.t]; if(!it) return;
-    putRowStats(row,{rg:it.revenueGrowth!=null?it.revenueGrowth*100:null, og:it.earningsGrowth!=null?it.earningsGrowth*100:null, per:it.trailingPE, eps:it.trailingEps, feps:it.forwardEps, psr:it.psr});
+    const it=map[row.dataset.t];
+    if(usFundHasData(it)) put(row,it); else if(row.dataset.t) missing.push(row);
   });
+  /* 일괄 조회에서 값이 비어 온 종목은 종목별 조회로 보충(3개씩) — 일부 종목만 지표가 보이던 문제 */
+  for(let i=0;i<missing.length;i+=3){
+    await Promise.all(missing.slice(i,i+3).map(async row=>{ try{ const it=await loadUsFundamentalOne(row.dataset.t); if(usFundHasData(it)) put(row,it); }catch(e){} }));
+  }
+  /* 그래도 비어 있으면 1분 뒤 한 번 더 */
+  if(!_retry && missing.some(r=>r.isConnected && !r.querySelector('.wl-stats'))) setTimeout(()=>fillUsRowStats(tableId,set,1),60000);
 }
 const KR_STAT_CACHE={};
 async function krStatsLite(code){
@@ -2653,6 +2661,8 @@ function usFundNum(v,d){ return (v==null||isNaN(v)) ? '—' : v.toFixed(d==null?
    이후 클릭은 네트워크 요청 없이 캐시에서 즉시 렌더링한다(동시에 여러 번 눌러도 요청은 1번만
    나가도록 Promise 자체를 캐시). */
 const usFundCaches={}, usFundPromises={};
+/* 재무 지표가 하나라도 들어 있는 항목인가 */
+function usFundHasData(it){ return !!it && [it.revenueGrowth,it.earningsGrowth,it.trailingEps,it.forwardEps,it.psr,it.trailingPE].some(v=>v!=null&&!isNaN(v)); }
 async function loadUsFundamentalsOnce(set){
   set=set===3?3:set===2?2:1;
   if(usFundCaches[set]) return usFundCaches[set];
@@ -2669,7 +2679,8 @@ async function loadUsFundamentalsOnce(set){
       if(data && Array.isArray(data.items)){
         const map={};
         data.items.forEach(it=>{ map[it.ticker]=it; });
-        usFundCaches[set]=map;
+        /* 사용할 수 있는 값이 하나도 없으면(Yahoo 일시 차단 등) 캐시하지 않아 다음 호출에서 다시 시도한다 */
+        if(data.items.some(usFundHasData)) usFundCaches[set]=map; else usFundPromises[set]=null;
         return map;
       }
     }catch(e){
@@ -2684,7 +2695,7 @@ async function loadUsFundamentalsOnce(set){
 /* 지수 편입·편출 등 TOP10 밖 종목: Worker /us-fundamental-one 에서 종목별로 받아온다 */
 const usFundOne={};
 async function loadUsFundamentalOne(t){
-  for(const k of [1,2,3]){ if(usFundCaches[k]&&usFundCaches[k][t]) return usFundCaches[k][t]; }
+  for(const k of [1,2,3]){ if(usFundCaches[k]&&usFundHasData(usFundCaches[k][t])) return usFundCaches[k][t]; }
   if(usFundOne[t]) return usFundOne[t];
   usFundOne[t]=(async()=>{
     if(!PROXY_BASE) return null;
@@ -7483,7 +7494,23 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
         if(usOpen()&&window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); if(window.__futLine&&P.length) P.push((usPhase()==='pre'?'프리마켓 ':usPhase()==='post'?'애프터마켓 ':'')+window.__futLine.replace(/^ · /,'')); var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…';
         if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } }
     };
-    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});fillBrief(); fillFut(); setInterval(function(){ if(window.MK_LIVE&&!window.MK_LIVE.active()) return; fillFut(); },60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
+    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});    /* 레버리지 ETF 연속 하락 — 2연속 / 3연속 이상 종목을 요약 카드에 한 칸으로 */
+    var levAsked=false;
+    var fillLev=function(){
+      var g=document.querySelector('#pro-brief .pb-grid'); if(!g||typeof TICKGROUPS==='undefined'||!TICKGROUPS.lev) return;
+      var list=TICKGROUPS.lev.list||[], have=list.filter(function(t){ return typeof tickData!=='undefined'&&tickData[t]&&tickData[t].length>3; });
+      if(have.length<list.length/2&&!levAsked&&typeof loadTickGroup==='function'){ levAsked=true; try{ loadTickGroup('lev'); }catch(e){} }
+      var a=g.querySelector('.pb-lev');
+      if(!have.length){ if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#lev-tbl'; a.dataset.go='lev'; a.innerHTML='<small>레버리지 ETF 연속 하락</small><b>--</b>'; g.appendChild(a); } return; }
+      var two=[],three=[]; have.forEach(function(t){ var n=levStreakN(tickData[t]); if(n===2) two.push(t); else if(n>=3) three.push([t,n]); });
+      three.sort(function(x,y){ return y[1]-x[1]; });
+      var chips=function(arr,cls){ return arr.length?arr.map(function(x){ var t=Array.isArray(x)?x[0]:x, n=Array.isArray(x)?x[1]:2; return '<i class="'+cls+'">'+t+(Array.isArray(x)?' '+n+'일':'')+'</i>'; }).join(''):'<em class="none">없음</em>'; };
+      var h='<small>레버리지 ETF 연속 하락 <span class="lv-n">'+have.length+'종목 기준</span></small><div class="lv-g"><div class="lv-r"><b class="lv-k">2연속 하락 · '+two.length+'</b><span class="lv-c">'+chips(two,'d2')+'</span></div><div class="lv-r"><b class="lv-k">3연속 이상 · '+three.length+'</b><span class="lv-c">'+chips(three,'d3')+'</span></div></div>';
+      if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#lev-tbl'; a.dataset.go='lev'; g.appendChild(a); }
+      if(a._h!==h){ a._h=h; a.innerHTML=h; }
+    };
+    fillLev(); setInterval(fillLev,4000); [3000,7000,12000].forEach(function(t){ setTimeout(fillLev,t); });
+    fillBrief(); fillFut(); setInterval(function(){ if(window.MK_LIVE&&!window.MK_LIVE.active()) return; fillFut(); },60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
     var openAndGo=function(el){ if(!el) return; var h=el.closest&&el.closest('.fold-body'); if(h&&h.style.display==='none'){ var hh=h.previousElementSibling; if(hh&&hh._set) hh._set(true); } var mc=el.closest&&el.closest('.m-fold'); if(mc&&!mc.classList.contains('m-open')){ var bt=mc.querySelector('.m-fold-btn'); if(bt&&getComputedStyle(bt).display!=='none') bt.click(); } setTimeout(function(){ var off=(document.querySelector('header')?document.querySelector('header').offsetHeight:0)+44; var y=el.getBoundingClientRect().top+window.scrollY-off; window.scrollTo({top:y,behavior:'smooth'}); },60); };
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); openAndGo(document.querySelector(a.getAttribute('href'))); });
     /* 목차 */
@@ -7652,10 +7679,17 @@ async function toggleUsFinancials(ticker,pre){
       let item=null;
       if(US_FUND_NAME[ticker]||US_FUND_SET2.indexOf(ticker)>=0){ const cache=await loadUsFundamentalsOnce(US_FUND_SET2.indexOf(ticker)>=0?2:1); item=cache?cache[ticker]:null; }
       else item=await loadUsFundamentalOne(ticker);
+      if(!usFundHasData(item)){ try{ const one=await loadUsFundamentalOne(ticker); if(usFundHasData(one)) item=one; }catch(e){} }
       let techD=null;
       try{ techD=(typeof tickData!=='undefined'&&tickData[ticker])||await yclose(ticker,'1y'); }catch(e){}
       el.innerHTML=renderUsFinancialRatios(item, techD);
-      usFinLoaded[(pre||'')+ticker]=true;
+      if(usFundHasData(item)) usFinLoaded[(pre||'')+ticker]=true;
+      else{
+        /* 실패하면 '다시 시도' 버튼 — 눌러도 막힌 캐시 때문에 계속 실패하던 문제 방지 */
+        const b=document.createElement('button'); b.type='button'; b.className='btn sm mk-retry'; b.textContent='다시 시도'; b.style.marginLeft='8px';
+        b.onclick=function(){ usFundOne[ticker]=null; usFundPromises[1]=usFundPromises[2]=usFundPromises[3]=null; el.style.display='none'; toggleUsFinancials(ticker,pre); };
+        const pEl=el.querySelector('p.mut'); if(pEl) pEl.appendChild(b); else el.appendChild(b);
+      }
     }
   }else{
     el.style.display='none';
