@@ -215,7 +215,7 @@ html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.shake{animation:mk-shake .45
 /* 제목 위쪽 여백(미국주식과 같이 헤더 바로 아래 6px) */
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>section:first-of-type,
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>.wrap:first-child{padding-top:0!important}
-html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{display:block!important;padding:0!important;margin:0 auto 12px!important;width:min(1232px,calc(100% - 24px))!important;max-width:none!important;width:auto!important;box-sizing:border-box}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{display:block!important;padding:0!important;margin:0 auto 12px!important;width:min(1232px,calc(100% - 24px))!important;max-width:1232px!important;box-sizing:border-box}
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1.v93-title{margin:6px 0!important;padding:0!important;font-size:24px!important;font-weight:850!important;letter-spacing:-.7px;line-height:1.4!important;display:block!important;width:auto!important}
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1 small{display:block;margin:4px 0 0;font-size:12px!important;font-weight:500!important;letter-spacing:normal;line-height:1.5;color:var(--tx2)}
 html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{margin:10px 0 0;font-size:12px;font-weight:750;letter-spacing:0}
@@ -530,4 +530,15 @@ html body.pro.pro.pro :is(#pro-toc,#cr-toc) a.mk-spy{background:#e3f2ea!importan
   html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-spark{grid-column:4!important}
   html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-quote{grid-column:5!important}
   html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-actions{grid-column:6!important}
+}
+
+/* v122: 메인(mrkim-signal) — 다른 페이지와 같은 1280px 컨테이너·중앙 정렬, 지표 읽는 법·다른 메뉴 더보기 삭제 */
+html body.pro.pro.lite header .wrap.nav{max-width:1280px!important;margin-left:auto!important;margin-right:auto!important}
+html body.pro.pro.lite :is(.hero .wrap,main .wrap,footer .wrap){max-width:1280px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+html body.pro.pro.lite :is(.v95-guide,details.cross-more){display:none!important}
+
+/* v123: 접힌 제목 옆 등락 요약(상승·하락 · 최대 상승/하락 종목) — 모바일은 제목 아래에서 줄바꿈해 칩이 잘리지 않게 */
+@media(max-width:700px){
+  html body.pro.pro.pro .fold-sum .mv{display:flex!important;flex-wrap:wrap;gap:4px 6px}
+  html body.pro.pro.pro .fold-sum .mv>span{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 }
