@@ -186,7 +186,36 @@
     e.preventDefault(); e.stopPropagation();
     var row = b.closest('.wl-row'); if (row) row.click();
   }, true);
-  function run() { flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); }
+  /* ── 가상화폐 지표 읽는 법: 미국주식과 같은 용어 목록(dl.gl-list) 구성으로 ── */
+  function guideCrypto() {
+    if (!d.body.classList.contains('v93-crypto')) return;
+    var g = d.querySelector('.v95-guide'), box = g && g.querySelector(':scope>div'); if (!box || box.querySelector('dl.gl-list')) return;
+    var T = [
+      ['공포탐욕지수 (가상화폐)', 'Alternative.me가 변동성·시장 모멘텀과 거래량·소셜 미디어·비트코인 도미넌스·검색 트렌드 등을 종합해 0~100점으로 만든 심리 지표입니다. 0~24 극단적 공포, 25~44 공포, 45~55 중립, 56~75 탐욕, 76~100 극단적 탐욕으로 구분하며 매매 신호를 보장하지 않습니다.'],
+      ['가격 · 등락률', '최근 수신 시세이며 가상화폐는 24시간 거래됩니다. 등락률은 선택한 기간(일간·주간·월간·연간)의 기준 가격 대비 변화이고, 제공처 지연 시에는 갱신 시각을 확인하세요.'],
+      ['상대수익률 (시작일=100)', '선택한 기간의 시작일 가격을 100으로 맞춰 여러 코인의 흐름을 같은 기준에서 비교하는 방식입니다.'],
+      ['RSI · 이동평균선', 'RSI(14일)는 최근 상승·하락 강도를 0~100으로 나타내며 30 이하는 과매도, 70 이상은 과열로 해석합니다. 5일·200일선은 단기·장기 추세의 기준선입니다.'],
+      ['레인보우 차트', '가격 이력에 로그 회귀를 적용해 색 밴드로 나눈 근사 모델입니다. 비트코인 외 코인은 이력이 짧아 신뢰도가 낮고, 투자 권유가 아닌 참고용입니다.'],
+      ['센티먼트 · 소셜 순위', '센티먼트는 CoinGecko 커뮤니티의 강세·약세 투표 비율, 소셜 순위는 CoinGecko 트렌딩(검색·관심도) 순위입니다. 게시글 수 기준의 참고 지표로 봇·밈에 의해 왜곡될 수 있습니다.'],
+      ['ETF 순유입', '현물 ETF로 들어오고 나간 자금의 합계입니다. 순유입이 이어지면 수요 증가, 순유출이 이어지면 이탈로 해석하는 경향이 있으나 가격을 보장하지 않습니다.']
+    ];
+    box.id = 'v95-guide-content'; box.innerHTML = '<dl class="gl-list">' + T.map(function (t) { return '<dt>' + t[0] + '</dt><dd>' + t[1] + '</dd>'; }).join('') + '</dl>';
+    var h = g.querySelector('h2'); if (h) h.id = h.id || 'guide-h'; var bt = g.querySelector('button'); if (bt) bt.setAttribute('aria-controls', 'v95-guide-content');
+    g.id = g.id || 'guide';
+  }
+  /* ── 첫 화면 조립 완료 신호(mk-boot.js): 상태 카드 안에 버튼·칩이 들어간 것을 확인하면 본문을 보여 준다 ── */
+  function bootReady() {
+    if (!window.__mkBootDone) return;
+    var st = d.getElementById('pro-status') || d.querySelector('.stock-status');
+    var ok = false;
+    if (st) {
+      var hasBtn = !!st.querySelector('button'), hasChip = !!st.querySelector('.ps-mk,.ps-net,.stock-live-badges');
+      ok = hasBtn && hasChip && (PAGE !== 'crypto' || !!st.querySelector('.v90-actions,.mk-status-actions'));
+    }
+    if (ok) setTimeout(window.__mkBootDone, 300);
+  }
+  function run() { guideCrypto(); flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); bootReady(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
+  var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });
 })();
