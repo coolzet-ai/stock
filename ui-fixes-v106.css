@@ -553,3 +553,11 @@ html body.pro.pro.pro .unified-tools #my-tbl .wl-row{grid-column:auto!important}
 html body.pro.pro.pro .unified-tools #my-tbl .wl-name{display:flex!important;align-items:center;flex-wrap:wrap;gap:2px 6px}
 html body.pro.pro.pro .unified-tools #my-tbl .wl-name>a{display:inline!important;flex:0 1 auto!important;width:auto!important}
 html body.pro.pro.pro .unified-tools #my-tbl .wl-name .wl-ind{display:inline-flex;gap:4px;margin:0!important;width:auto!important}
+
+/* v125: 오늘의 시장 요약 제목 줄 — 모바일에서 제목·실시간 칩·갱신 주기 선택을 한 줄에(두 줄로 갈라지지 않게) */
+@media(max-width:700px){
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd:has(#mk-live-sw){flex-wrap:nowrap!important;align-items:center;gap:6px!important;padding:8px 12px!important}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd:has(#mk-live-sw)>b{flex:0 0 auto;white-space:nowrap;font-size:16px!important}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd #mk-live-sw{flex:0 1 auto;min-width:0;max-width:150px;min-height:36px!important;padding:2px 10px!important;margin-left:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px!important}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd #mk-live-ms{flex:0 0 auto;margin-left:0!important;min-height:36px!important;width:58px;padding:0 4px!important}
+}

@@ -7455,7 +7455,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
               (!open&&d.afterClose!=null?'<em class="pf-cl">마감 후 '+(d.afterClose>=0?'+':'')+d.afterClose.toFixed(2)+'%</em>':'')+'</div>'; }).join('')+
           '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance(약 15분 지연 가능)</p>';
         box.hidden=false; box._ok=true; futT=Date.now();
-        if(window.MK_LIVE){ var nw=new Date(), z2=function(v){return v<10?'0'+v:''+v}; window.MK_LIVE.status('● 선물 '+z2(nw.getHours())+':'+z2(nw.getMinutes())+':'+z2(nw.getSeconds()),'on'); }
+        if(window.MK_LIVE){ var nw=new Date(), z2=function(v){return v<10?'0'+v:''+v}; var lb=open?'실시간':ph==='pre'?'프리마켓 선물':ph==='post'?'애프터 선물':'선물'; window.MK_LIVE.status('● '+lb+' '+z2(nw.getHours())+':'+z2(nw.getMinutes())+':'+z2(nw.getSeconds()),'on'); }
         var s0=res[0]||ok[0]; window.__futLine=' · 선물 <em>S&amp;P '+(s0.pct>=0?'+':'')+s0.pct.toFixed(2)+'%</em>';
       }finally{ futBusy=false; }
     };
