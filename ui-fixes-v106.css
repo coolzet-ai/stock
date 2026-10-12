@@ -364,3 +364,40 @@ html body.pro.pro.pro.brand-v93.refine-v97 :is(#guide.v95-guide,.v95-guide)>h2{m
 }
 html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:36px!important;height:36px!important}
 @media(max-width:700px){html body.pro.pro.pro.pro.pro.brand-v93.refine-v97 .v95-guide>h2{min-height:34px!important;height:34px!important}}
+
+/* v113: 종목 목록(PC) — 가격·등락률 칸(160px)이 격자 칸(132px)보다 넓어 세로선(액션 열)과 겹치던 문제 */
+@media(min-width:701px){
+  html body.pro.pro.pro.pro .wl-list .wl-row>.wl-quote{width:auto!important;min-width:0!important;max-width:100%;box-sizing:border-box;padding-right:8px!important}
+}
+/* 투자자 체크패널: ①②③ 한 줄(3칸) · ④는 아래 전체 폭, 값이 표 가장자리에 붙지 않게 여백 */
+html body.pro.pro.pro.pro .lv2 .lv2-gs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.pro.pro.pro.pro .lv2 .lv2-g.c4{grid-column:1/-1!important}
+@media(max-width:700px){html body.pro.pro.pro.pro .lv2 .lv2-gs{grid-template-columns:minmax(0,1fr)!important}}
+html body.pro.pro.pro.pro .lv2 .lv2-g>.lv2-t{margin:0 12px 4px!important;width:calc(100% - 24px)!important}
+html body.pro.pro.pro.pro .lv2 .lv2-t td{padding-right:4px!important}
+html body.pro.pro.pro.pro .lv2 .lv2-g>.lv2-t{table-layout:fixed!important}
+html body.pro.pro.pro.pro .lv2 .lv2-t th{width:56%!important;overflow-wrap:anywhere}
+html body.pro.pro.pro.pro .lv2 .lv2-t td{width:44%!important;padding-right:6px!important;text-align:right;overflow:hidden}
+html body.pro.pro.pro.pro .lv2 .lv2-t td *{max-width:100%;box-sizing:border-box}
+html body.pro.pro.pro.pro #kr-stock .lv2 .lv2-g>table.lv2-t{width:calc(100% - 24px)!important;margin:0 12px 4px!important;table-layout:fixed!important}
+
+/* v113: 태블릿 폭(701~1279px)에서 미국주식·가상화폐 지표 읽는 법 박스가 화면 끝까지 늘어나던 문제 → 한국주식과 같은 24px 여백 */
+@media(min-width:701px) and (max-width:1279px){
+  html body.pro.pro.pro.brand-v93.refine-v97:is(.v93-stock,.v93-crypto) :is(#guide.v95-guide,.v95-guide){margin-left:24px!important;margin-right:24px!important}
+}
+/* 가상화폐 하단 푸터 폭 — 한국/미국주식과 같은 1280px */
+html body.pro.pro.pro.v93-crypto footer>.wrap{max-width:1280px!important;margin-left:auto!important;margin-right:auto!important}
+
+/* v113: 지표 읽는 법 본문 — 3개 페이지 모두 미국주식과 같은 용어 목록 디자인(초록 제목 · 구분선 · 13px 본문) */
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list{margin:14px 0 0!important;padding:0!important;border:1px solid #d5dcd8!important;border-radius:6px!important;background:#fff!important;font-size:13px!important;line-height:1.7!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dt,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dt,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dt{margin:0!important;padding:10px 12px 4px!important;border:0!important;background:none!important;color:#00754a!important;font-size:14px!important;font-weight:800!important;line-height:21px!important;text-indent:0!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dt:not(:first-child),
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dt:not(:first-child),
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dt:not(:first-child){border-top:1px solid #e1e4e8!important}
+html body.pro.pro.pro.pro.pro .v95-guide dl.gl-list>dd,
+html body.pro.pro.pro.pro.pro.pro #guide.v95-guide dl.gl-list>dd,
+html body.pro.pro.pro.pro.pro.pro .v95-guide dl.gl-list#kr-glossary-list>dd{margin:0!important;padding:0 12px 12px!important;color:#344054!important;font-size:13px!important;line-height:1.7!important}
