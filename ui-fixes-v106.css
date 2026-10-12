@@ -207,3 +207,88 @@ html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.on::first-letter{animation:m
 html body.pro.pro.pro #pro-brief .pb-hd #mk-live-ms{margin-left:6px;min-height:32px;padding:0 6px;border-radius:8px;border:1px solid #D0D5DD;background:#fff!important;color:#344054!important;font:inherit;font-size:12px!important;font-weight:600}
 html body.pro.pro.pro #pro-brief .pb-hd #mk-live-ms[hidden]{display:none!important}
 @media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-hd:has(#mk-live-sw){flex-wrap:wrap;row-gap:6px}}
+html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.locked{background:#F9FAFB!important;color:#98A2B3!important;border-style:dashed;cursor:not-allowed}
+html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.shake{animation:mk-shake .45s}
+@keyframes mk-shake{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+
+/* ═══ v110 ═══ 첫 화면 구조 통일: 가상화폐·한국주식 → 미국주식과 같은 제목·부제·소개·상태 카드 ═══ */
+/* 제목 위쪽 여백(미국주식과 같이 헤더 바로 아래 6px) */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>section:first-of-type,
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) main>.wrap:first-child{padding-top:0!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{display:block!important;padding:0!important;margin:0 auto 12px!important;width:min(1232px,calc(100% - 24px))!important;max-width:none!important;box-sizing:border-box}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1.v93-title{margin:6px 0!important;padding:0!important;font-size:24px!important;font-weight:850!important;letter-spacing:-.7px;line-height:1.4!important;display:block!important;width:auto!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1 small{display:block;margin:4px 0 0;font-size:12px!important;font-weight:500!important;letter-spacing:normal;line-height:1.5;color:var(--tx2)}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{margin:10px 0 0;font-size:12px;font-weight:750;letter-spacing:0}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .pg-lead{display:none!important}
+@media(min-width:701px){
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1.v93-title{font-size:32px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1 small{font-size:13px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .pg-lead{display:block!important;margin:6px 0 0;max-width:820px;font-size:13px;line-height:1.5;color:var(--tx2);text-align:left}
+}
+/* 가상화폐 코인 아이콘: 국기와 같은 꽉 찬 직사각형 */
+html body.pro.pro.pro.v93-crypto .v87-market-badge svg rect{fill:#f7931a!important;rx:3}
+html body.pro.pro.pro.v93-crypto .v87-market-badge svg circle{fill:#f7931a!important;stroke:#fff;stroke-width:1.4}
+
+/* 상태 카드(#pro-status): 칩 + 새로고침·모두 접기/펼치기 + 최근 조회 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px 12px!important;
+  padding:10px 12px!important;margin:0 auto 12px!important;width:min(1232px,calc(100% - 24px))!important;box-sizing:border-box;min-height:48px;background:var(--panel,#fff)!important;border:1px solid var(--line)!important;border-radius:10px!important;font-size:12px!important;color:var(--tx2)!important;line-height:1.5}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.ps-mk,.ps-net){display:inline-flex!important;align-items:center;min-height:26px;padding:4px 10px!important;border-radius:999px!important;font-size:12px!important;font-weight:700!important;border:1px solid var(--line);background:var(--panel2,#F6F8F7);color:var(--tx);white-space:nowrap}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-net.g{background:#e4f5eb;color:#075c3b;border-color:#9cd4b6}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-net.w{background:#fff6e5;color:#8a5a00;border-color:#f2d38b}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-n{display:none!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t{flex:1 1 100%;order:3;margin:0!important;font-size:12px!important;line-height:1.5;color:var(--tx2)}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions,.cross-status-actions:not(:empty)){display:flex!important;align-items:center;gap:6px!important;margin:0 0 0 auto!important;padding:0!important;width:auto!important;order:2}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button{height:36px;min-height:36px;padding:0 12px;border:1px solid #16865c;border-radius:8px;font-size:12px;font-weight:750;white-space:nowrap;background:var(--panel,#fff);color:var(--accent);cursor:pointer;box-sizing:border-box}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions)>button:first-child{background:#075c3b;color:#fff}
+@media(max-width:700px){
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status{padding:10px!important;gap:8px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions){margin-left:auto!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button{width:30px;height:30px;min-height:30px;padding:0;font-size:0}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button::after{content:attr(data-mobile-icon);position:static;display:block;font-size:16px;font-weight:800;line-height:30px;text-align:center}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button:not(:first-child){display:none}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t{order:3}
+}
+
+/* 칩 문구: 짧은 문구(::after)와 전체 문구가 겹쳐 두 번 보이던 것을 전체 문구 하나로 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.ps-mk,.ps-net)::after{content:none!important;display:none!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .lead-more{display:none!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t .lbl{margin-right:4px}
+
+/* 모바일 상태 카드 버튼: 새로고침 아이콘 1개만(미국주식과 동일) — 라벨 숨기고 아이콘 표시 */
+@media(max-width:700px){
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button{display:inline-flex!important;align-items:center;justify-content:center;width:30px!important;min-width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;font-size:0!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button>span{display:none!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button::after{content:none!important;display:none!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button:not(:first-child){display:none!important}
+}
+
+/* PC: 제목 블록 위치를 미국주식과 같게(헤더 아래 28px에서 시작) · 한국주식 헤더 높이 59px로 통일 */
+@media(min-width:701px){
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{padding-top:28px!important}
+  html body.pro.pro.pro.v93-kr-stock header{min-height:59px!important;height:59px!important}
+  html body.pro.pro.pro.v93-kr-stock header .wrap.nav{min-height:58px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head .v86-eyebrow{margin-bottom:0!important;line-height:19px!important}
+}
+
+/* 미세 조정: 부제·소개문·상태 카드 간격을 미국주식과 같게 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{margin-bottom:6px!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status{margin-bottom:12px!important}
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t{display:block!important}
+html body.pro.pro.pro.v93-kr-stock #pro-status .ps-t .lbl{margin-right:4px}
+@media(min-width:701px){
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1 small{margin-top:2px}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{margin-bottom:9px!important}
+}
+
+/* 모바일 상태 카드 버튼 아이콘(실제 요소) */
+html body.pro.pro.pro #pro-status .mk-ico{display:none;font-style:normal}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro.pro #pro-status :is(.v87-status-actions,.mk-status-actions,.v90-actions) button>.mk-ico{display:block!important;font-size:16px;font-weight:800;line-height:1;color:inherit}
+}
+
+/* 메인 페이지 카드 제목의 국기·코인 아이콘 */
+html body.pro.pro.pro .hero .cross-market-links>a>b{display:flex!important;align-items:center;gap:0}
+html body.pro.pro.pro .hero .cross-market-links>a>b .v87-market-badge{display:inline-flex!important;margin-right:8px!important;width:30px!important;height:22px!important;min-width:30px!important;flex-shrink:0}
+html body.pro.pro.pro .hero .cross-market-links>a>b .v87-market-badge svg{width:30px!important;height:22px!important;border:1px solid var(--line);border-radius:4px;display:block!important}
+/* KR/가상화폐 상태 카드의 마지막 갱신 라벨 */
+html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-status .ps-t .lbl{display:inline!important;margin-right:4px}
