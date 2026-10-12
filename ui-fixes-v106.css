@@ -509,3 +509,25 @@ html body.pro.pro.pro :is(#pro-toc,#cr-toc) a.mk-spy{background:#e3f2ea!importan
 @media(hover:none),(max-width:900px){
   html body.pro.pro.pro.pro.pro main :is([class*="sort"] button,.kr-toolbar summary,.pro-tools summary,details.cross-restricted>summary,details.kr-standard-panel>summary,.stock-brief-details>summary){min-height:44px!important}
 }
+
+/* v121: 좁은 PC·태블릿 폭(701~1000px)에서 한국주식·가상화폐 접이식 제목의 가운데 요약이 왼쪽 아래로 붙던 문제 → 미국주식처럼 가운데 칸에 고정 */
+@media(min-width:701px) and (max-width:1000px){
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like){grid-template-columns:minmax(0,38%) minmax(0,1fr) 84px!important;grid-template-rows:auto!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like)>:is(.fold-t,.market-fold-title){grid-column:1!important;grid-row:1!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like)>.fold-sum{grid-column:2!important;grid-row:1!important;justify-self:stretch!important;text-align:center!important;margin:0!important;padding:0!important;order:0!important}
+  html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(h2.fold-h,h2.market-fold-h.mk-fold-like)>:is(.fold-btn,.market-fold-btn){grid-column:3!important;grid-row:1!important;justify-self:end!important}
+}
+
+/* v121: 한국주식 종목 행 — 매출증가율~PSR 6개 지표(.wl-stats)가 격자 칸이 없어 행 아래로 떨어지던 문제 → 미국주식처럼 종목명과 스파크라인 사이 가운데 칸에 배치 */
+@media(min-width:1000px){
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats){grid-template-columns:4px minmax(120px,1fr) 418px 112px 132px 70px!important;align-items:center}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row>.wl-stats{grid-column:auto!important;grid-row:auto!important;align-self:center}
+}
+@media(min-width:1000px){
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-bar{grid-column:1!important}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-info{grid-column:2!important}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-stats{grid-column:3!important}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-spark{grid-column:4!important}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-quote{grid-column:5!important}
+  html body.pro.pro.pro.pro.v93-kr-stock .wl-list .wl-row:has(>.wl-stats)>.wl-actions{grid-column:6!important}
+}
