@@ -2749,7 +2749,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ui-fixes-v106.css?v=2abb422b">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=a42c0347">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -9853,6 +9853,23 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
       var fx=Q['KRW=X']; if(fx){ document.getElementById('pb-fx').textContent=fmt(fx.p,1)+'원'; var e3=document.getElementById('pb-fx2'); e3.innerHTML='<span style="color:'+(fx.pct>=0?'#B42318':'#1D4ED8')+'">'+sgn(fx)+'</span>'; P.push('원/달러 <em>'+fmt(fx.p,0)+'원</em>'); }
       var ne=nextEv(); if(ne){ document.getElementById('pb-ev').textContent=ne.t; document.getElementById('pb-ev2').textContent=ne.dd+' · '+ne.when; P.push('다음 일정 <em>'+ne.t+' '+ne.dd+'</em>'); }
       var pl=document.getElementById('pb-line'); if(pl){ var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…'; if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } } };
+    /* 레버리지 ETF 연속 하락 — 2연속 / 3연속 이상 종목을 요약 카드에 한 칸으로(미국주식과 동일) */
+    var levAskedKr=false;
+    var fillLevKr=function(){
+      var g=document.querySelector('#pro-brief .pb-grid'); if(!g||typeof TICKGROUPS==='undefined'||!TICKGROUPS.krlev) return;
+      var list=TICKGROUPS.krlev.list||[], have=list.filter(function(t){ return tickData[t]&&tickData[t].length>3; });
+      if(have.length<list.length/2&&!levAskedKr&&typeof loadTickGroup==='function'){ levAskedKr=true; try{ loadTickGroup('krlev'); }catch(e){} }
+      var nameOf=function(t){ var a=document.querySelector('#krlev-tbl .wl-row[data-t="'+t+'"] .wl-name>a'); return a?a.textContent.replace(/\s+/g,' ').trim():t; };
+      var a=g.querySelector('.pb-lev');
+      if(!have.length){ if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#krlev-tbl'; a.dataset.go='h:레버리지'; a.innerHTML='<small>레버리지 ETF 연속 하락</small><b>--</b>'; g.appendChild(a); } return; }
+      var two=[],three=[],cum=[]; have.forEach(function(t){ var d=tickData[t],n=levStreakN(d); if(n===2) two.push(nameOf(t)); else if(n>=3) three.push([nameOf(t),n]); if(n>=2){ var c=(d[d.length-1]/d[d.length-1-n]-1)*100; if(c<=-30) cum.push([nameOf(t),c]); } }); cum.sort(function(x,y){ return x[1]-y[1]; });
+      three.sort(function(x,y){ return y[1]-x[1]; });
+      var chips=function(arr,cls){ return arr.length?arr.map(function(x){ var t=Array.isArray(x)?x[0]:x; return '<i class="'+cls+'">'+t+(Array.isArray(x)?' '+x[1]+'일':'')+'</i>'; }).join(''):'<em class="none">없음</em>'; };
+      var h='<small>레버리지 ETF 연속 하락 <span class="lv-n">'+have.length+'종목 기준</span></small><div class="lv-g"><div class="lv-r"><b class="lv-k">2연속 하락 · '+two.length+'</b><span class="lv-c">'+chips(two,'d2')+'</span></div><div class="lv-r"><b class="lv-k">3연속 이상 · '+three.length+'</b><span class="lv-c">'+chips(three,'d3')+'</span></div><div class="lv-r lv-w"><b class="lv-k">연속 하락 누적 −30% 초과 · '+cum.length+'</b><span class="lv-c">'+(cum.length?cum.map(function(x){ return '<i class="d4">'+x[0]+' −'+Math.abs(x[1]).toFixed(1)+'%</i>'; }).join(''):'<em class="none">없음</em>')+'</span></div></div>';
+      if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#krlev-tbl'; a.dataset.go='h:레버리지'; g.appendChild(a); }
+      if(a._h!==h){ a._h=h; a.innerHTML=h; }
+    };
+    fillLevKr(); setInterval(fillLevKr,4000); [3000,7000,12000].forEach(function(t){ setTimeout(fillLevKr,t); });
     fillBrief(); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); var t=a.getAttribute('data-go'), el;
       if(t.indexOf('h:')===0){ var k=t.slice(2); el=[].slice.call(document.querySelectorAll('h2.fold-h')).find(function(h){ return (h.textContent||'').replace(/\s+/g,' ').trim().indexOf(k)===0; }); if(el&&el._set) el._set(true); } else el=document.querySelector(t);
@@ -10826,7 +10843,7 @@ async function toggleKrLev(t,ev){
 <script src="kr-standard.js?v=76912559"></script>
 <script defer src="market-refine.js?v=bfdc42f5"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
-<script defer src="ui-fixes-v106.js?v=b774ba6c"></script>
+<script defer src="ui-fixes-v106.js?v=5ea6ccba"></script>
 <script defer src="kr-live.js?v=f2caaa57"></script>
 <script defer src="kr-trend.js?v=9f0f711d"></script>
 </body>

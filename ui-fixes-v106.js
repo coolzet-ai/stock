@@ -43,7 +43,10 @@
       fetch(PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + cfg[0] + '?range=5d&interval=1d'), ctl ? { signal: ctl.signal } : {})
         .then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
           clearTimeout(to);
-          var m = j.chart.result[0].meta, last = m.regularMarketPrice, prev = m.chartPreviousClose != null ? m.chartPreviousClose : m.previousClose;
+          var r0 = j.chart.result[0], m = r0.meta, last = m.regularMarketPrice;
+          /* 전일 종가: range=5d 의 chartPreviousClose 는 '5일 전' 종가라 쓰면 안 된다(예전에 코스피가 -8%대로 잘못 표시) */
+          var cl = ((r0.indicators && r0.indicators.quote && r0.indicators.quote[0] && r0.indicators.quote[0].close) || []).filter(function (x) { return x != null && isFinite(x); });
+          var prev = m.regularMarketPreviousClose != null ? m.regularMarketPreviousClose : (cl.length ? (Math.abs(last / cl[cl.length - 1] - 1) < 1e-6 ? cl[cl.length - 2] : cl[cl.length - 1]) : null);
           if (last == null || !prev) throw 0;
           var v = (last / prev - 1) * 100;
           em.className = 'mk-live ' + (v > 0 ? 'up' : v < 0 ? 'down' : 'flat');
@@ -284,9 +287,47 @@
     var r = d.getElementById('mk-resume'); if (!r || r._seen) return; r._seen = 1;
     try { if (sessionStorage.getItem('mk_resume_seen') === '1') r.remove(); else sessionStorage.setItem('mk_resume_seen', '1'); } catch (e) {}
   }
+  /* ── 메인 페이지: 지표 읽는 법·다른 메뉴 더보기 삭제 ── */
+  function homeClean() {
+    if (PAGE !== 'mrkim-signal') return;
+    $$('.v95-guide,details.cross-more').forEach(function (e) { e.remove(); });
+  }
+  /* ── 접이식 버튼의 +/− 기호를 다른 버튼과 같은 ➕/➖ 이모티콘으로(주요 코인 가격 등) ── */
+  function foldEmoji() {
+    $$('.market-fold-btn').forEach(function (b) {
+      var fix = function () {
+        var t = b.textContent, n = t.replace(/\s*[+＋]\s*$/, ' ➕').replace(/\s*[−-]\s*$/, ' ➖');
+        if (n !== t) b.textContent = n;
+      };
+      fix();
+      if (!b._mkEm) { b._mkEm = 1; try { new MutationObserver(fix).observe(b, { childList: true, characterData: true, subtree: true }); } catch (e) {} }
+    });
+  }
+  /* ── 내 투자 도구 · 종목 비교: 미국주식과 같은 방식(종목 1·2·3 입력칸 + 비교 버튼, 기간은 결과의 기간 버튼) ── */
+  var CMP_DEF = { 'kr-stock': ['삼성전자', 'SK하이닉스', 'NAVER'], 'crypto': ['비트코인', '이더리움', '솔라나'] };
+  function unifyCompare() {
+    var def = CMP_DEF[PAGE]; if (!def) return;
+    var form = d.querySelector('#unified-tools [data-panel=compare] form'); if (!form || form._mkU) return;
+    var sel = form.elements.months, btn = form.querySelector('button[type=submit],button:not([type])'); if (!sel || !btn) return;
+    form._mkU = 1;
+    $$('input[name^=compare]', form).forEach(function (i, n) { if (!i.value) i.value = def[n] || ''; i.setAttribute('aria-label', '비교 종목 ' + (n + 1)); });
+    [[1, '1개월'], [3, '3개월'], [6, '6개월']].forEach(function (x) { if (!$$('option', sel).some(function (o) { return +o.value === x[0]; })) { var o = d.createElement('option'); o.value = x[0]; o.textContent = x[1]; sel.insertBefore(o, sel.firstChild); } });
+    var PERIODS = [['1개월', 1], ['3개월', 3], ['6개월', 6], ['1년', 12], ['3년', 36], ['5년', 60], ['10년', 120]];
+    var lab = sel.closest('label'); if (lab) lab.hidden = true;
+    sel.value = '12'; btn.textContent = '비교';
+    var h3 = form.closest('section').querySelector('h3'); if (h3 && !h3.querySelector('.cm-note')) h3.insertAdjacentHTML('beforeend', ' <span class="cm-note">최대 3개 · 시세 기준 계산</span>');
+    var rg = d.createElement('div'); rg.className = 'cm-rg2'; rg.setAttribute('role', 'group'); rg.setAttribute('aria-label', '기간');
+    rg.innerHTML = '<b>기간</b>' + PERIODS.map(function (x) { return '<button type="button" data-m="' + x[1] + '"' + (x[1] === 12 ? ' class="on"' : '') + '>' + x[0] + '</button>'; }).join('');
+    form.after(rg);
+    rg.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-m]'); if (!b) return;
+      sel.value = b.dataset.m; $$('button', rg).forEach(function (x) { x.classList.toggle('on', x === b); });
+      if (form.requestSubmit) form.requestSubmit(); else btn.click();
+    });
+  }
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
-    [coinFold, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
+    [homeClean, coinFold, foldEmoji, unifyCompare, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
