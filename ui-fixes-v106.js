@@ -180,6 +180,12 @@
       card.classList.add('mk-flat');
     });
   }
+  /* ── 가상화폐: 🌈 버튼 = 코인 행을 눌렀을 때 열리는 레인보우 차트와 같은 동작 ── */
+  d.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.rb-open-btn'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var row = b.closest('.wl-row'); if (row) row.click();
+  }, true);
   function run() { flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });

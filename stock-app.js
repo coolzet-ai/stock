@@ -7405,65 +7405,65 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
        기준: 직전 정규장 마감(미 동부 16:00) 시점의 선물 가격 대비 현재 선물 등락 + 마감 이후 15분봉 흐름 */
     var FUT=[['ES=F','S&P500 선물'],['NQ=F','나스닥100 선물'],['YM=F','다우 선물']];
     var nyp=function(ms){ try{ var f=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'}).formatToParts(new Date(ms)), o={}; f.forEach(function(p){o[p.type]=p.value;}); return {w:o.weekday,h:(+o.hour)%24,m:+o.minute}; }catch(e){ return null; } };
+    var usPhase=function(){ var n=nyp(Date.now()); if(!n||n.w==='Sat'||n.w==='Sun') return 'wk'; var t=n.h*60+n.m; return t>=570&&t<960?'open':t>=240&&t<570?'pre':t>=960&&t<1200?'post':'closed'; };
     var usOpen=function(){ var n=nyp(Date.now()); if(!n) return false; if(n.w==='Sat'||n.w==='Sun') return false; var t=n.h*60+n.m; return t>=570&&t<960; };
+    /* 선물 흐름(현재): 장중·장마감 후·주말 모두 선물(ES·NQ·YM)의 현재가를 전일 정산가 대비로 보여 주고, 최근 24시간 5분 흐름을 그린다.
+       선물 거래시간(CME Globex): 일 18:00 ET ~ 금 17:00 ET, 월~목 17:00~18:00 ET 휴장. 시세를 못 받으면 숨기지 않고 안내와 '다시 시도'를 보여 준다. */
+    var futOpen=function(){ var n=nyp(Date.now()); if(!n) return true; var t=n.h*60+n.m;
+      if(n.w==='Sat') return false; if(n.w==='Sun') return t>=1080; if(n.w==='Fri') return t<1020; return !(t>=1020&&t<1080); };
     var futOne=async function(sym){
       try{
-        var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(sym)+'?range=5d&interval=15m');
-        var r=j.chart.result[0], ts=r.timestamp||[], cl=r.indicators.quote[0].close||[], last=r.meta&&r.meta.regularMarketPrice;
-        var ref=-1; for(var i=ts.length-1;i>=0;i--){ if(cl[i]==null) continue; var n=nyp(ts[i]*1000); if(n&&n.h===15&&n.m===45&&n.w!=='Sat'&&n.w!=='Sun'){ ref=i; break; } }
-        if(ref<0||last==null) return null;
-        var pts=[]; for(var k=ref;k<ts.length;k++) if(cl[k]!=null) pts.push(cl[k]);
+        var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(sym)+'?range=1d&interval=5m&includePrePost=true');
+        var r=j.chart.result[0], ts=r.timestamp||[], cl=r.indicators.quote[0].close||[], m=r.meta||{};
+        var last=m.regularMarketPrice, prev=m.regularMarketPreviousClose!=null?m.regularMarketPreviousClose:(m.chartPreviousClose!=null?m.chartPreviousClose:m.previousClose);
+        if(last==null||!prev) return null;
+        var pts=[], ref=null;
+        for(var i=0;i<ts.length;i++){ if(cl[i]==null) continue; pts.push(cl[i]); var n=nyp(ts[i]*1000); if(n&&n.h===15&&n.m===55&&n.w!=='Sat'&&n.w!=='Sun') ref=cl[i]; }
         pts.push(last);
-        return {p:last, ref:cl[ref], pct:(last/cl[ref]-1)*100, pts:pts};
+        return {p:last, prev:prev, pct:(last/prev-1)*100, pts:pts, afterClose:ref?(last/ref-1)*100:null};
       }catch(e){ return null; }
     };
     var futSpark=function(pts,col){
-      if(pts.length<3) return ''; var W=70,H=34,mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rg=(mx-mn)||1;
+      if(pts.length<3) return ''; var W=96,H=30,mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),rg=(mx-mn)||1;
       var d=pts.map(function(v,i){ return (i/(pts.length-1)*W).toFixed(1)+','+(H-2-(v-mn)/rg*(H-4)).toFixed(1); }).join(' ');
-      return '<svg class="pf-sp" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="정규장 마감 이후 선물 흐름"><polyline points="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+      return '<svg class="pf-sp" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" width="100%" height="'+H+'" role="img" aria-label="최근 24시간 선물 흐름"><polyline points="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
     };
     var futBusy=false, futT=0;
     var fillFut=async function(){
       var box=document.getElementById('pb-fut'); if(!box||futBusy) return;
-      var open=usOpen();
-      if(Date.now()-futT<55000&&!box.hidden&&box._open===open) return;
+      var open=usOpen(), fo=futOpen();
+      if(Date.now()-futT<55000&&!box.hidden&&box._ok&&box._open===open&&box._fo===fo) return;
       futBusy=true;
       try{
-        if(open){
-          var SP=[['^GSPC','S&P500'],['^IXIC','나스닥 종합'],['^DJI','다우존스']];
-          var rs=await Promise.all(SP.map(async function(f){ try{
-            var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(f[0])+'?range=1d&interval=5m');
-            var r=j.chart.result[0], cl=(r.indicators.quote[0].close||[]).filter(function(x){return x!=null;}), p=r.meta.regularMarketPrice, pv=r.meta.chartPreviousClose;
-            if(p==null||!pv) return null; return {p:p,pct:(p/pv-1)*100,pts:cl.concat([p])}; }catch(e){ return null; } }));
-          if(!rs.some(Boolean)){ box.hidden=true; return; }
-          var fm0=function(v){ return v.toLocaleString('en-US',{maximumFractionDigits:2}); };
-          box.innerHTML='<div class="pf-hd"><b>📈 정규장 진행 중 · 미국 3대 지수</b><span>전일 종가 대비 · 장중 5분 흐름</span></div><div class="pf-grid">'+
-            SP.map(function(f,i){ var d=rs[i]; if(!d) return '<div class="pf-c"><small>'+f[1]+'</small><b>--</b></div>'; var up=d.pct>=0, col=up?UP:DN;
-              return '<div class="pf-c"><div class="pf-t"><small>'+f[1]+'</small><b>'+fm0(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span></div>'+futSpark(d.pts,col)+'</div>'; }).join('')+
-            '</div><p class="pf-note">장중 시세는 약 15분 지연될 수 있습니다. 출처: Yahoo Finance</p>';
-          box.hidden=false; box._open=true; futT=Date.now(); window.__futLine=null;
-          var s1=rs[0]; if(s1) window.__spotLine='S&amp;P500 <em>'+(s1.pct>=0?'+':'')+s1.pct.toFixed(2)+'%</em>';
-          return;
-        }
-        window.__spotLine=null; box._open=false;
+        /* 정규장 중에는 현물 S&P500 등락을 한 줄 요약(__spotLine)에 쓰기 위해 따로 받는다 */
+        window.__spotLine=null;
+        if(open){ try{ var sj=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent('^GSPC')+'?range=1d&interval=5m'), sm=sj.chart.result[0].meta;
+          if(sm.regularMarketPrice!=null&&sm.chartPreviousClose){ var sp=(sm.regularMarketPrice/sm.chartPreviousClose-1)*100; window.__spotLine='S&amp;P500 <em>'+(sp>=0?'+':'')+sp.toFixed(2)+'%</em>'; } }catch(e){} }
         var res=await Promise.all(FUT.map(function(f){ return futOne(f[0]); })), ok=res.filter(Boolean);
-        if(!ok.length){ box.hidden=true; return; }
+        box._open=open; box._fo=fo;
+        var ph=usPhase(), st=open?'<i class="ps-d on"></i>미국 정규장 진행 중':fo?'<i class="ps-d on"></i>'+(ph==='pre'?'프리마켓 · 선물 거래 중':ph==='post'?'애프터마켓 · 선물 거래 중':'정규장 마감 후 · 선물 거래 중'):'<i class="ps-d"></i>선물 휴장 · 직전 거래 기준';
+        if(!ok.length){
+          box._ok=false;
+          box.innerHTML='<div class="pf-hd"><b>📊 선물 흐름</b><span class="pf-st">'+st+'</span></div><p class="pf-note">선물 시세를 불러오지 못했습니다. 제공처 지연·차단일 수 있습니다. <button type="button" class="pf-retry">다시 시도</button></p>';
+          box.hidden=false; window.__futLine=null; futT=Date.now()-40000; return;
+        }
         var fm=function(v){ return v.toLocaleString('en-US',{maximumFractionDigits:2}); };
-        var n=nyp(Date.now()), wk=n&&(n.w==='Sat'||n.w==='Sun');
-        box.innerHTML='<div class="pf-hd"><b>🌙 '+(wk?'주말':'정규장 마감 후')+' 선물 흐름</b><span>정규장 마감(미 동부 16:00) 대비 · 다음 개장 방향 참고용</span></div><div class="pf-grid">'+
+        box.innerHTML='<div class="pf-hd"><b>📊 선물 흐름 · 현재</b><span class="pf-st">'+st+'</span></div><div class="pf-sub">전일 정산가 대비 · 최근 24시간 5분 흐름</div><div class="pf-grid">'+
           FUT.map(function(f,i){ var d=res[i]; if(!d) return '<div class="pf-c"><small>'+f[1]+'</small><b>--</b></div>';
             var up=d.pct>=0, col=up?UP:DN;
-            return '<div class="pf-c"><div class="pf-t"><small>'+f[1]+'</small><b>'+fm(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span></div>'+futSpark(d.pts,col)+'</div>'; }).join('')+
-          '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance</p>';
-        box.hidden=false; box._open=false; futT=Date.now();
-        var pl=document.getElementById('pb-line');
-        if(pl&&ok.length){ var s0=res[0]||ok[0]; window.__futLine=' · 선물 <em>S&amp;P '+(s0.pct>=0?'+':'')+s0.pct.toFixed(2)+'%</em>'; }
+            return '<div class="pf-c"><div class="pf-t"><small>'+f[1]+'</small><b>'+fm(d.p)+'</b><span style="color:'+col+'">'+(up?'▲ +':'▼ ')+d.pct.toFixed(2)+'%</span></div>'+futSpark(d.pts,col)+
+              (!open&&d.afterClose!=null?'<em class="pf-cl">마감 후 '+(d.afterClose>=0?'+':'')+d.afterClose.toFixed(2)+'%</em>':'')+'</div>'; }).join('')+
+          '</div><p class="pf-note">선물은 거의 24시간 거래되며 결제월 차이로 현물 지수와 가격이 다를 수 있어 등락률만 참고하세요. 출처: Yahoo Finance(약 15분 지연 가능)</p>';
+        box.hidden=false; box._ok=true; futT=Date.now();
+        if(window.MK_LIVE){ var nw=new Date(), z2=function(v){return v<10?'0'+v:''+v}; window.MK_LIVE.status('● 선물 '+z2(nw.getHours())+':'+z2(nw.getMinutes())+':'+z2(nw.getSeconds()),'on'); }
+        var s0=res[0]||ok[0]; window.__futLine=' · 선물 <em>S&amp;P '+(s0.pct>=0?'+':'')+s0.pct.toFixed(2)+'%</em>';
       }finally{ futBusy=false; }
     };
+    (function(){ var bx=document.getElementById('pb-fut'); if(bx&&!bx._retry){ bx._retry=1; bx.addEventListener('click',function(e){ if(e.target.closest('.pf-retry')){ futT=0; fillFut(); } }); } })();
     window.__fillFut=fillFut;
     var fillBrief=function(){
       (function(){ var e=document.getElementById('pb-state'); if(!e) return; var n=nyp(Date.now()), wk=n&&(n.w==='Sat'||n.w==='Sun'), op=usOpen(), tm=hhmm();
-        var h=op?'<i class="ps-d on"></i>🟢 정규장 진행 중 · 실시간 시세(약 15분 지연 가능)':wk?'<i class="ps-d"></i>🌙 주말 휴장 · 직전 금요일 종가 기준':'<i class="ps-d"></i>🌙 정규장 마감 · 종가 기준 · 선물은 아래 카드';
+        var h=op?'<i class="ps-d on"></i>🟢 정규장 진행 중 · 실시간 시세(약 15분 지연 가능)':usPhase()==='pre'?'<i class="ps-d on"></i>🌅 프리마켓 · 현물 지수는 전일 종가 · 선물 흐름은 아래 카드':usPhase()==='post'?'<i class="ps-d on"></i>🌆 애프터마켓 · 현물 지수는 오늘 종가 · 선물 흐름은 아래 카드':wk?'<i class="ps-d"></i>🌙 주말 휴장 · 직전 금요일 종가 기준':'<i class="ps-d"></i>🌙 정규장 마감 · 종가 기준 · 선물은 아래 카드';
         h+='<span class="ps-t">확인 '+tm+'</span>'; if(e._h!==h){ e._h=h; e.innerHTML=h; } })();
       var v=num(txt('us-val')); if(v<0||v>100)v=NaN;
       if(isFinite(v)){ var z=v<25?0:v<45?1:v<=55?2:v<=75?3:4, ZN=['극단적 공포','공포','중립','탐욕','극단적 탐욕'], AC=['매수 시작 구간','매수 시작 구간','관망','매수 금지 구간','매수 금지 구간'];
@@ -7480,10 +7480,10 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
         if(isFinite(fv)&&fv>=0&&fv<=100){ var zz=fv<25?'극단적 공포':fv<45?'공포':fv<=55?'중립':fv<=75?'탐욕':'극단적 탐욕'; P.push('공포탐욕 '+Math.round(fv)+' <em>'+zz+'</em>'); }
         if(isFinite(vv)){ var vl=vv<15?'낮음':vv<20?'보통':vv<30?'높음':'매우 높음'; P.push('변동성 <em>'+vl+'</em> (VIX '+vv.toFixed(1)+')'); }
         var ev=(document.getElementById('pb-ev')||{}).textContent; if(ev&&ev!=='--'&&ev.indexOf('없음')<0){ var w=(document.getElementById('pb-ev2')||{}).textContent||''; var dm=w.match(/D[-+]?\d+/); P.push('다음 일정 <em>'+ev+(dm?' '+dm[0]:'')+'</em>'); }
-        if(usOpen()){ if(window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); } else if(window.__futLine&&P.length) P.push(window.__futLine.replace(/^ · /,'')); var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…';
+        if(usOpen()&&window.__spotLine&&P.length) P.push('장중 '+window.__spotLine); if(window.__futLine&&P.length) P.push((usPhase()==='pre'?'프리마켓 ':usPhase()==='post'?'애프터마켓 ':'')+window.__futLine.replace(/^ · /,'')); var nh=P.length?P.map(function(x){return '<span class="pb-seg">'+x+'</span>'}).join('')+'<span class="pb-note">참고용 요약 · 투자 권유 아님</span>':'시장 상태를 불러오는 중…';
         if(pl._h!==nh){ pl._h=nh; pl.innerHTML=nh; } }
     };
-    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});fillBrief(); fillFut(); setInterval(fillFut,60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
+    var sourceScore=document.getElementById('us-val');if(sourceScore)new MutationObserver(fillBrief).observe(sourceScore,{childList:true,characterData:true,subtree:true});fillBrief(); fillFut(); setInterval(function(){ if(window.MK_LIVE&&!window.MK_LIVE.active()) return; fillFut(); },60000); setInterval(fillBrief,4000); [2500,6000,12000].forEach(function(t){ setTimeout(fillBrief,t); });
     var openAndGo=function(el){ if(!el) return; var h=el.closest&&el.closest('.fold-body'); if(h&&h.style.display==='none'){ var hh=h.previousElementSibling; if(hh&&hh._set) hh._set(true); } var mc=el.closest&&el.closest('.m-fold'); if(mc&&!mc.classList.contains('m-open')){ var bt=mc.querySelector('.m-fold-btn'); if(bt&&getComputedStyle(bt).display!=='none') bt.click(); } setTimeout(function(){ var off=(document.querySelector('header')?document.querySelector('header').offsetHeight:0)+44; var y=el.getBoundingClientRect().top+window.scrollY-off; window.scrollTo({top:y,behavior:'smooth'}); },60); };
     br.addEventListener('click',function(e){ var a=e.target.closest('a.pb-c'); if(!a) return; e.preventDefault(); openAndGo(document.querySelector(a.getAttribute('href'))); });
     /* 목차 */
