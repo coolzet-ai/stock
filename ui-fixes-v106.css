@@ -690,3 +690,38 @@ html body.pro.pro.pro #pro-brief .pb-lev i.d4{background:#B42318;color:#fff;bord
 @media(max-width:480px){#cry-hv .hv2-row{grid-template-columns:1fr 1fr}#cry-hv .hv2-row b{grid-column:1/-1}#cry-hv .hv2-ch,#cry-hv .hv2-cr{grid-template-columns:62px minmax(0,1fr) minmax(0,1fr);gap:6px}#cry-hv .hv2-kpi b{font-size:19px}}
 html body.pro.pro.pro.v93-crypto .card.v92-global-trend{display:flex;flex-direction:column}
 html body.pro.pro.pro.v93-crypto .card.v92-global-trend>#cry-hv{flex:1 1 auto;justify-content:space-between;margin-top:16px}
+
+/* v130 — 한국주식·가상화폐 종목비교: 미국주식과 같은 표 + 수익률 곡선 구성 */
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-r{margin-top:14px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-tb{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t th,html body.pro.pro #unified-tools [data-panel=compare] .ucm-t td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t .n{text-align:right}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t thead th{font-size:12px;font-weight:800;background:rgba(0,0,0,.025)}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t thead th i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t tbody th{color:var(--tx2);font-weight:700}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-t tr:last-child th,html body.pro.pro #unified-tools [data-panel=compare] .ucm-t tr:last-child td{border-bottom:0}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-r .up{color:var(--up);font-weight:600}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-r .dn{color:var(--down);font-weight:600}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-r .na{color:var(--tx2)}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-ch{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel);min-width:0}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-chh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-rg{display:flex;flex-wrap:wrap;gap:6px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-rg button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--tx);font:700 13px inherit;cursor:pointer}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-rg button.on{background:#111;border-color:#111;color:#fff}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-svg svg{width:100%;height:auto;display:block}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-gl{stroke:var(--line)}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-gl.z{stroke:var(--tx2);stroke-dasharray:3 3}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-tx{font-size:11px;fill:var(--tx2)}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;margin-top:8px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-lg em{font-style:normal;font-weight:700}
+html body.pro.pro #unified-tools [data-panel=compare] .ucm-note{margin:8px 0 0;font-size:12px;color:var(--tx2)}
+@media(max-width:900px){html body.pro.pro #unified-tools [data-panel=compare] .ucm-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){html body.pro.pro #unified-tools [data-panel=compare] .ucm-t{font-size:12px}html body.pro.pro #unified-tools [data-panel=compare] .ucm-t th,html body.pro.pro #unified-tools [data-panel=compare] .ucm-t td{padding:9px 6px}html body.pro.pro #unified-tools [data-panel=compare] .ucm-t thead th{font-size:11px}html body.pro.pro #unified-tools [data-panel=compare] .ucm-t thead th i{display:none}html body.pro.pro #unified-tools [data-panel=compare] .ucm-r{margin-top:0}}
+
+/* v131 — 모바일 오늘의 시장 요약: 3열 + 외톨이 칸 → 2×2 균등 배치 */
+@media(max-width:560px){html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;overflow:visible!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-c{min-height:92px;height:auto!important;justify-content:center}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-lev,html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-halv{grid-column:1/-1!important}}
