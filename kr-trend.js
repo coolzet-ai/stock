@@ -8,7 +8,7 @@
     { s: '^KQ11', n: '코스닥', dp: 2, u: '' },
     { s: 'KRW=X', n: '원/달러', dp: 1, u: '원' }
   ];
-  var box, timer, started = false;
+  var box, timer, started = false, cache = null;
 
   function fmt(v, dp) { return v.toLocaleString('ko-KR', { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
   function pct(v) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '%'; }
@@ -36,6 +36,16 @@
     }).catch(function () { clearTimeout(to); return null; });
   }
 
+  /* kr-live.js 가 받은 네이버 실시간 지수값이 있으면 현재가·전일 등락·추세선 끝점을 그 값으로 맞춘다 */
+  function adjust(it, r) {
+    var q = window.__krLiveQuote && window.__krLiveQuote(it.s); if (!r || !q) return r;
+    var cl = r.closes.slice(0, -1).concat([q.p]);
+    return { last: q.p, day: q.pct, mo: (q.p / cl[0] - 1) * 100, closes: cl, live: true };
+  }
+  function render() {
+    if (!cache) return;
+    box.querySelector('.kt-grid').innerHTML = cache.map(function (r, i) { return card(ITEMS[i], adjust(ITEMS[i], r)); }).join('');
+  }
   function card(it, r) {
     if (!r) return '<div class="kt-c na"><small>' + it.n + '</small><b>—</b><span class="kt-d">시세 일시 오류</span></div>';
     var c = cls(r.day);
@@ -48,7 +58,7 @@
   function paint() {
     box.querySelector('.kt-grid').setAttribute('aria-busy', 'true');
     Promise.all(ITEMS.map(load)).then(function (rs) {
-      box.querySelector('.kt-grid').innerHTML = rs.map(function (r, i) { return card(ITEMS[i], r); }).join('');
+      cache = rs; render();
       box.querySelector('.kt-grid').removeAttribute('aria-busy');
       var ok = rs.some(Boolean);
       box.querySelector('.kt-time').textContent = ok ? '갱신 ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -63,6 +73,7 @@
     host.after(box);
     box.querySelector('.kt-retry').addEventListener('click', paint);
     paint(); timer = setInterval(paint, 180000);
+    window.addEventListener('mk:kr-live', render);
     return true;
   }
 

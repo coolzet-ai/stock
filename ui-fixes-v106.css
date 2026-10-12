@@ -193,3 +193,12 @@ html body.pro.pro.pro #pb-fut .pf-sub{font-size:11.5px;color:var(--tx2);margin:-
 html body.pro.pro.pro #pb-fut .pf-c .pf-sp{display:block;width:100%;height:30px;margin-top:4px}
 html body.pro.pro.pro #pb-fut .pf-cl{display:block;font-style:normal;font-size:10.5px;font-weight:600;color:var(--tx2);margin-top:3px;white-space:nowrap}
 html body.pro.pro.pro #pb-fut .pf-retry{font:inherit;font-size:12px;font-weight:700;margin-left:6px;padding:3px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel,#fff);color:var(--accent);cursor:pointer;min-height:32px}
+
+/* ═══ v109 ═══ 한국주식 실시간 표시 칩(kr-live.js) — 초록 제목 띠 안에서도 읽히도록 색을 명시 ═══ */
+html body.pro.pro.pro #pro-brief .pb-hd #kr-live.kr-live{display:inline-flex!important;align-items:center;gap:5px;margin-left:auto;padding:3px 10px;border-radius:999px;font-size:11.5px!important;font-weight:700!important;white-space:nowrap;line-height:1.3;
+  background:#F2F4F7!important;color:#344054!important;border:1px solid #D0D5DD}
+html body.pro.pro.pro #pro-brief .pb-hd #kr-live.kr-live.on{background:#ECFDF3!important;color:#067647!important;border-color:#ABEFC6}
+html body.pro.pro.pro #pro-brief .pb-hd #kr-live.kr-live.err{background:#FFFAEB!important;color:#B54708!important;border-color:#FEDF89}
+html body.pro.pro.pro #pro-brief .pb-hd #kr-live.kr-live.on::first-letter{animation:kr-pulse 1.6s ease-in-out infinite}
+@keyframes kr-pulse{50%{opacity:.35}}
+@media(prefers-reduced-motion:reduce){html body.pro.pro.pro #pro-brief .pb-hd #kr-live.kr-live.on::first-letter{animation:none}}

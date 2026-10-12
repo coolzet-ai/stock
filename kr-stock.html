@@ -2748,7 +2748,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ui-fixes-v106.css?v=09d1eb27">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=4847379b">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -9767,6 +9767,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
   /* 현재 페이지 메뉴 강조 */
   try{ var file=(location.pathname.split('/').pop()||'index.html'); document.querySelectorAll('#nav-menu a').forEach(function(a){ if((a.getAttribute('href')||'')===file) a.classList.add('on-page'); }); }catch(e){}
   async function quote(sym){
+    if(window.__krLiveQuote&&(sym==='^KS11'||sym==='^KQ11')){ var lq=window.__krLiveQuote(sym); if(lq) return lq; }
     try{
       var j=await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(sym)+'?range=5d&interval=1d');
       var r=j.chart.result[0], c=mkFillClose(r).filter(function(x){return x!=null;});
@@ -9875,7 +9876,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
     var upd=function(){ var v=document.getElementById('kr-val'); if(!v) return; var n=parseFloat((v.textContent||'').replace(/[^\d.]/g,'')); var mk=document.getElementById('pro-mk'); if(mk&&isFinite(n)){ mk.style.left=Math.max(0,Math.min(100,n))+'%'; var mv=document.getElementById('pro-mkv'); if(mv) mv.textContent=Math.round(n); } };
     upd(); setInterval(upd,3000); setTimeout(upd,1200);
   })();
-  loadTicks(); setInterval(loadTicks,60000); setInterval(setFg,3000); setTimeout(setFg,1500);
+  window.__krLoadTicks=loadTicks; loadTicks(); setInterval(loadTicks,60000); setInterval(setFg,3000); setTimeout(setFg,1500);
   /* ===== ④ 용어 툴팁(재무 패널 등) ===== */
   var GL=[['PSR','주가매출비율 = 시가총액 ÷ 매출. 낮을수록 매출 대비 저렴하다고 봅니다.'],['ROE','자기자본이익률. 주주 자본 대비 이익이며, 부채가 많으면 부풀려질 수 있습니다.'],['ROA','총자산이익률. 가진 자산으로 이익을 얼마나 효율적으로 내는지 봅니다.'],
     ['RSI','상대강도지수(14일). 30 이하 과매도, 70 이상 과열로 해석합니다.'],['EPS','주당순이익. 순이익 ÷ 발행주식 수입니다.'],['PER','주가수익비율 = 주가 ÷ 주당순이익. 높을수록 이익 대비 비싸다고 봅니다.'],['이격도','현재 지수가 이동평균선에서 얼마나 떨어져 있는지 나타내는 비율입니다.'],['풋/콜','풋옵션은 하락, 콜옵션은 상승에 거는 계약입니다. 풋이 많으면 공포 쪽입니다.']];
@@ -10820,6 +10821,7 @@ async function toggleKrLev(t,ev){
 <script defer src="market-refine.js?v=44f2afb9"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
 <script defer src="ui-fixes-v106.js?v=daa3dc5d"></script>
-<script defer src="kr-trend.js?v=f67af5e7"></script>
+<script defer src="kr-live.js?v=eea08ba8"></script>
+<script defer src="kr-trend.js?v=ba45f2d3"></script>
 </body>
 </html>
