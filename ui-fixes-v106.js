@@ -33,11 +33,11 @@
 
 
   /* ── 메인 페이지: 시장 카드에 실시간 등락률(S&P500 · 코스피 · 비트코인) ── */
-  var LIVE = { 'stock': ['^GSPC', 'S&P 500'], 'kr-stock': ['^KS11', '코스피'], 'crypto': ['BTC-USD', '비트코인'] };
+  var LIVE_CARDS = { 'stock': ['^GSPC', 'S&P 500'], 'kr-stock': ['^KS11', '코스피'], 'crypto': ['BTC-USD', '비트코인'] };
   var PROXY = 'https://ai.coolzet.workers.dev/?url=';
   function liveCards() {
     $$('.cross-market-links a[data-market]').forEach(function (a) {
-      var cfg = LIVE[a.dataset.market]; if (!cfg || a.dataset.live === '1') return; a.dataset.live = '1';
+      var cfg = LIVE_CARDS[a.dataset.market]; if (!cfg || a.dataset.live === '1') return; a.dataset.live = '1';
       var em = d.createElement('em'); em.className = 'mk-live'; em.textContent = cfg[1] + ' —'; a.append(em);
       var ctl = ('AbortController' in window) ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 9000);
       fetch(PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + cfg[0] + '?range=5d&interval=1d'), ctl ? { signal: ctl.signal } : {})
@@ -68,7 +68,119 @@
     w.__mkWrapped = true; window.MK_REQUEST_DETAIL = w;
   }
 
-  function run() { dropHistory(); sectorLegend(); liveCards(); wrapGate(); markLocks(); }
+  /* ═══ 실시간 시세 스위치(MK_LIVE) ═══
+     Cloudflare Worker 요청·데이터 사용을 줄이기 위해 실시간 갱신은 사용자가 켠 경우에만 돈다(기본 꺼짐).
+     켜 두어도 · 탭이 숨겨지면 멈춤 · 10분간 조작이 없으면 일시정지(다시 조작하면 재개) · 데이터 절약 모드(mk_save)면 기본 꺼짐.
+     한국주식(kr-live.js)과 미국주식 선물 카드가 이 설정을 함께 쓴다. 저장: mk_live('0'|'1'), mk_live_ms(15000|30000|60000).
+     켜기는 관리자 모드(암호 인증 후 mk_gate_off=1)에서만 가능하다. 일반 방문자는 저장값이 1이어도 꺼진 것으로 본다.
+     (브라우저 저장소 기반이라 서버가 강제하는 보안 장치는 아니며, 일반 이용자의 실수·과다 사용을 막는 용도다.) */
+  var DEFAULT_ON = false, IDLE_MS = 10 * 60000, MS_OPTS = [15000, 30000, 60000];
+  var lastAct = Date.now(), subs = [], btn = null, sel = null, st = { text: '', cls: '' };
+  function rd(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function wr(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var LIVE = window.MK_LIVE = {
+    admin: function () { return rd('mk_gate_off') === '1'; },
+    on: function () { if (!LIVE.admin()) return false; var v = rd('mk_live'); return v === null ? (DEFAULT_ON && !window.MK_SAVE) : v === '1'; },
+    ms: function () { var m = +rd('mk_live_ms'); return MS_OPTS.indexOf(m) >= 0 ? m : 30000; },
+    idle: function () { return Date.now() - lastAct > IDLE_MS; },
+    active: function () { return LIVE.on() && !LIVE.idle() && !d.hidden; },
+    set: function (on) { if (on && !LIVE.admin()) { notify(); return; } wr('mk_live', on ? '1' : '0'); lastAct = Date.now(); notify(); },
+    setMs: function (ms) { wr('mk_live_ms', String(ms)); notify(); },
+    onChange: function (fn) { subs.push(fn); },
+    status: function (text, cls) { st = { text: text, cls: cls || '' }; paintSw(); }
+  };
+  function notify() { paintSw(); subs.forEach(function (f) { try { f(); } catch (e) {} }); }
+  function paintSw() {
+    if (!btn) return;
+    var on = LIVE.on(), idle = on && LIVE.idle(), adm = LIVE.admin();
+    var text = !adm ? '🔒 실시간 · 관리자 전용' : !on ? '○ 실시간 꺼짐' : idle ? '⏸ 무조작 일시정지 · 눌러서 재개' : (st.text || '● 실시간 연결 중');
+    btn.textContent = text; btn.className = 'mk-live-sw ' + (!adm ? 'locked' : !on ? 'off' : idle ? 'paused' : (st.cls || 'on'));
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = !adm ? '실시간 시세는 관리자 모드에서만 켤 수 있습니다(서버 요청 절약)' : !on ? '꺼져 있습니다(서버 요청 절약). 눌러서 실시간 시세를 켭니다' : '눌러서 실시간 시세를 끕니다. 켜 두면 갱신마다 서버 요청이 발생합니다';
+    if (sel) { sel.hidden = !on; sel.value = String(LIVE.ms()); }
+  }
+  function mountSw() {
+    if (btn && btn.isConnected) return true;
+    var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return false;
+    btn = d.getElementById('mk-live-sw') || d.createElement('button'); btn.type = 'button'; btn.id = 'mk-live-sw';
+    btn.addEventListener('click', function () { if (!LIVE.admin()) { btn.classList.add('shake'); setTimeout(function () { btn.classList.remove('shake'); }, 500); return; } if (LIVE.on() && LIVE.idle()) { lastAct = Date.now(); notify(); } else LIVE.set(!LIVE.on()); });
+    sel = d.createElement('select'); sel.id = 'mk-live-ms'; sel.setAttribute('aria-label', '실시간 갱신 주기');
+    MS_OPTS.forEach(function (m) { var o = d.createElement('option'); o.value = m; o.textContent = (m / 1000) + '초'; sel.appendChild(o); });
+    sel.addEventListener('change', function () { LIVE.setMs(+sel.value); });
+    hd.appendChild(btn); hd.appendChild(sel); paintSw(); return true;
+  }
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+    window.addEventListener(ev, function () { var was = LIVE.on() && LIVE.idle(); lastAct = Date.now(); if (was) notify(); }, { passive: true, capture: true });
+  });
+  (function () { var n = 0, iv = setInterval(function () { if (mountSw() || ++n > 60) clearInterval(iv); }, 500); })();
+  setInterval(paintSw, 20000); /* 무조작 일시정지 표시 반영 */
+  LIVE.onChange(function () { if (LIVE.active() && typeof window.__fillFut === 'function') window.__fillFut(); }); /* 미국 선물: 켜면 바로 한 번 */
+
+  /* ═══ 첫 화면 구조 통일(한국주식·가상화폐 → 미국주식과 같은 구조) ═══
+     제목(h1) 안에 부제(small) · 소개문(.pg-lead) · 상태 카드(#pro-status: 칩 + 새로고침/모두 접기·펼치기 + 최근 조회) */
+  var PAGE = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  function z2(v) { return v < 10 ? '0' + v : '' + v; }
+  function iconize() { /* 상태 카드 버튼: 모바일용 아이콘을 실제 요소로 넣는다(의사요소 충돌 방지) */
+    $$('#pro-status .v87-status-actions button, #pro-status .v90-actions button, #pro-status .mk-status-actions button').forEach(function (b) {
+      if (b.querySelector('.mk-ico')) return; var ic = b.dataset.mobileIcon; if (!ic) return;
+      var i = d.createElement('i'); i.className = 'mk-ico'; i.setAttribute('aria-hidden', 'true'); i.textContent = ic; b.appendChild(i); });
+  }
+  function unifyHead() {
+    if (PAGE !== 'kr-stock' && PAGE !== 'crypto') return;
+    iconize();
+    var head = d.querySelector('.v86-page-head'); if (!head) return;
+    var h1 = head.querySelector('h1'); if (!h1) return;
+    /* 부제: h1 안의 <small> */
+    if (!h1.querySelector('small')) {
+      var sub = head.querySelector('.kr-page-subtitle'), txt = sub ? sub.textContent.trim() : (PAGE === 'crypto' ? '공포탐욕지수 · 주요 코인 · 시장 한눈에 · 일정' : '');
+      if (txt) { var sm = d.createElement('small'); sm.textContent = txt; h1.appendChild(sm); }
+    }
+    var sub2 = head.querySelector('.kr-page-subtitle'); if (sub2) sub2.hidden = true;
+    /* 소개문 */
+    $$(':scope>p', head).forEach(function (pp) { if (!pp.classList.contains('v86-eyebrow') && !pp.classList.contains('kr-page-subtitle')) pp.classList.add('pg-lead'); });
+    /* 가상화폐: 새로고침·모두 접기/펼치기 버튼을 상태 카드로 옮기고 칩을 만든다 */
+    if (PAGE === 'crypto') {
+      var st = d.getElementById('pro-status'), act = head.querySelector('.v90-actions');
+      if (st && !st.querySelector('.ps-mk')) {
+        var c1 = d.createElement('span'); c1.className = 'ps-mk c'; c1.id = 'ps-mk'; c1.textContent = '24시간 거래';
+        var c2 = d.createElement('span'); c2.className = 'ps-net w'; c2.id = 'ps-net'; c2.textContent = '● 데이터 확인 중';
+        st.insertBefore(c2, st.firstChild); st.insertBefore(c1, st.firstChild);
+        var tm = d.createElement('p'); tm.className = 'ps-t'; st.appendChild(tm);
+        var upd = function () { var n = new Date(); tm.textContent = '최근 조회 ' + (n.getHours() < 12 ? '오전 ' : '오후 ') + z2(n.getHours() % 12 || 12) + ':' + z2(n.getMinutes()) + ' · 시세 기준은 카드별 표시';
+          var ok = !!d.querySelector('#cr-top [id*="val"], #cr-top .big, #cr-top .state'); /* 값이 그려졌는지 */
+          var v = d.querySelector('#cr-top'); var has = v && /\d/.test((v.textContent || '').slice(0, 200));
+          c2.className = 'ps-net ' + (has ? 'g' : 'w'); c2.textContent = has ? '● 데이터 정상' : '● 데이터 확인 중'; };
+        upd(); setInterval(upd, 10000);
+      }
+      if (st && act && act.parentElement !== st) { act.classList.add('mk-status-actions'); st.appendChild(act); }
+    }
+  }
+
+  /* ── 메인 페이지 시장 카드: 각 대시보드 제목과 같은 국기·코인 아이콘 ── */
+  var BADGES = {'stock':"<svg viewBox=\"0 0 38 26\" role=\"img\" aria-label=\"미국\"><rect width=\"38\" height=\"26\" fill=\"#fff\"></rect><path d=\"M0 1h38M0 5h38M0 9h38M0 13h38M0 17h38M0 21h38M0 25h38\" stroke=\"#bd2937\" stroke-width=\"2\"></path><rect width=\"16\" height=\"14\" fill=\"#244b82\"></rect><path d=\"M3 3h1m3 0h1m3 0h1M3 7h1m3 0h1m3 0h1M3 11h1m3 0h1m3 0h1\" stroke=\"#fff\" stroke-width=\"1.5\"></path></svg>",'kr-stock':"<svg viewBox=\"0 0 38 26\" role=\"img\" aria-label=\"대한민국\"><rect width=\"38\" height=\"26\" fill=\"#fff\"></rect><circle cx=\"19\" cy=\"13\" r=\"6\" fill=\"#cc2433\"></circle><path d=\"M13 13a6 6 0 0 0 12 0c-3 4-3-4-6 0s-3 0-6 0\" fill=\"#215ba7\"></path><g stroke=\"#20252b\" stroke-width=\"1.3\"><path d=\"M5 7l5-4m-4 6 5-4m-4 6 5-4M27 20l5-4m-4 6 5-4m-4 6 5-4M5 18l5 4m-4-6 5 4m-4-6 5 4M27 3l5 4m-4-2 5 4m-4-2 5 4\"></path></g></svg>",'crypto':"<svg viewBox=\"0 0 38 26\" role=\"img\" aria-label=\"가상화폐 글로벌 시장\"><rect width=\"38\" height=\"26\" rx=\"3\" fill=\"#f7931a\"></rect><circle cx=\"19\" cy=\"13\" r=\"10\" fill=\"#f7931a\" stroke=\"#fff\" stroke-width=\"1.4\"></circle><text x=\"19\" y=\"19\" text-anchor=\"middle\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"800\" fill=\"#fff\">₿</text></svg>"};
+  function homeBadges() {
+    $$('.cross-market-links a[data-market]').forEach(function (a) {
+      var b = a.querySelector('b'), svg = BADGES[a.dataset.market]; if (!b || !svg || b.querySelector('.v87-market-badge')) return;
+      var sp = d.createElement('span'); sp.className = 'v87-market-badge'; sp.innerHTML = svg; b.insertBefore(sp, b.firstChild);
+    });
+  }
+
+  /* ── 가상화폐: 상대수익률·소셜 언급 카드 안쪽의 2중 접기를 풀어 한 번에 보이게(미국주식과 동일) ── */
+  function flatten() {
+    ['cry-rel-card', 'soc-sent', 'soc-rank'].forEach(function (id) {
+      var e = d.getElementById(id), card = e && e.closest('.card');
+      var body = card && card.querySelector('.market-fold-body'), h = card && card.querySelector('.market-fold-h');
+      if (!body || !h) return;
+      var hd = card.querySelector(':scope>.fg-hd'), holder = h.closest('.market-card-header'), anchor = hd || h;
+      Array.prototype.slice.call(body.childNodes).forEach(function (k) { anchor.parentNode.insertBefore(k, anchor.nextSibling); anchor = k; });
+      body.remove();
+      var b = h.querySelector('.market-fold-btn'); if (b) b.remove();
+      h.classList.remove('market-fold-h'); h.removeAttribute('id');
+      if (holder && holder.parentNode) { var rest = Array.prototype.slice.call(holder.childNodes).filter(function (n) { return n !== h && n !== body; }); holder.replaceWith.apply(holder, [h].concat(rest)); }
+      card.classList.add('mk-flat');
+    });
+  }
+  function run() { flatten(); dropHistory(); sectorLegend(); liveCards(); homeBadges(); wrapGate(); markLocks(); unifyHead(); }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   [800, 2000, 4500, 9000].forEach(function (t) { setTimeout(run, t); });
 })();
