@@ -4,18 +4,18 @@
 
 /* ── 1) 목록 행: 이름 | 시세 2열 + 아래 줄에 스파크라인·링크 ── */
 @media(max-width:700px){
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row{
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row{
     display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;grid-auto-rows:auto!important;
     gap:4px 10px!important;align-items:start!important;min-height:0!important;padding:10px 12px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-bar{display:none!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-info{grid-column:1!important;grid-row:1!important;min-width:0!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{grid-column:2!important;grid-row:1!important;justify-self:end;min-width:84px!important;align-items:flex-end!important;text-align:right}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-spark{grid-column:1!important;grid-row:2!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;align-self:center}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-spark svg{height:26px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-actions{grid-column:2!important;grid-row:2!important;justify-self:end;align-self:center;justify-content:flex-end!important;flex-direction:row!important;gap:12px!important;padding:0!important;margin:0!important;border:0!important;min-width:84px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-info{overflow:visible!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-ind{flex:1 0 100%!important;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:2px 0 0!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-bar{display:none!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-info{grid-column:1!important;grid-row:1!important;min-width:0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-quote{grid-column:2!important;grid-row:1!important;justify-self:end;min-width:84px!important;align-items:flex-end!important;text-align:right}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark{grid-column:1!important;grid-row:2!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;align-self:center}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark svg{height:26px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-actions{grid-column:2!important;grid-row:2!important;justify-self:end;align-self:center;justify-content:flex-end!important;flex-direction:row!important;gap:12px!important;padding:0!important;margin:0!important;border:0!important;min-width:84px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-info{overflow:visible!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-ind{flex:1 0 100%!important;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:2px 0 0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-name{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35!important}
   html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:100%}
   html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-tag{white-space:normal!important;line-height:1.35!important}
 }
@@ -542,3 +542,14 @@ html body.pro.pro.lite :is(.v95-guide,details.cross-more){display:none!important
   html body.pro.pro.pro .fold-sum .mv{display:flex!important;flex-wrap:wrap;gap:4px 6px}
   html body.pro.pro.pro .fold-sum .mv>span{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 }
+
+/* v124: 내 투자 도구 관심종목 — 미국주식과 같은 종목 행 */
+.unified-tools .ut-note{float:right;font-size:11px;font-weight:400;color:var(--tx2)}
+.unified-tools #my-tbl{margin-top:8px}
+.unified-tools #my-tbl .wl-row[hidden]{display:none!important}
+.unified-tools .ut-watch .my-more{display:block;width:100%;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2,#f6f8f7);font:800 13px inherit;color:var(--accent);cursor:pointer}
+html body.pro.pro.pro .unified-tools #my-tbl{display:block!important;grid-template-columns:none!important}
+html body.pro.pro.pro .unified-tools #my-tbl .wl-row{grid-column:auto!important}
+html body.pro.pro.pro .unified-tools #my-tbl .wl-name{display:flex!important;align-items:center;flex-wrap:wrap;gap:2px 6px}
+html body.pro.pro.pro .unified-tools #my-tbl .wl-name>a{display:inline!important;flex:0 1 auto!important;width:auto!important}
+html body.pro.pro.pro .unified-tools #my-tbl .wl-name .wl-ind{display:inline-flex;gap:4px;margin:0!important;width:auto!important}
