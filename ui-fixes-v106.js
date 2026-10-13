@@ -381,6 +381,7 @@
         try { sym = (resolver ? await resolver(v) : v).toUpperCase(); } catch (er) { msg('종목을 찾지 못했습니다: ' + v); sym = /^[A-Z0-9.\-]+$/i.test(v) ? v.toUpperCase() : null; }
         if (!sym) return c;
         c.name = hangul(v) ? v : (NAMES[sym] || nm[sym] || sym);
+        if (!hangul(c.name) && /\.(KS|KQ)$/.test(sym) && window.MK_KR_NAME) { try { var kn = await window.MK_KR_NAME(sym, ''); if (kn && hangul(kn)) c.name = kn; } catch (er) {} }
         try { var q = await fetchOne(sym); c.pts = q.pts; c.px = q.px; c.prev = q.prev; c.cur = q.cur || (/\.(KS|KQ)$/.test(sym) ? 'KRW' : 'USD'); } catch (er) {}
         return c;
       }));
