@@ -221,7 +221,11 @@
       var hasBtn = !!st.querySelector('button'), hasChip = !!st.querySelector('.ps-mk,.ps-net,.stock-live-badges');
       ok = hasBtn && hasChip && (PAGE !== 'crypto' || !!st.querySelector('.v90-actions,.mk-status-actions'));
     }
-    if (ok) setTimeout(window.__mkBootDone, 300);
+    if (ok) {
+      setTimeout(window.__mkBootDone, 300);
+      if (!REDUCE && !bootReady._e) { bootReady._e = 1; d.body.classList.add('mk-enter'); setTimeout(function () { d.body.classList.remove('mk-enter'); }, 900); }
+      setTimeout(window.__mkArmFlash, 1500);
+    }
   }
   /* ── 가상화폐 "주요 코인 가격" 접이식 제목: 다른 접이식 박스처럼 제목 · 가운데 요약 · 버튼 3칸 ── */
   function coinFold() {
@@ -236,14 +240,18 @@
   /* ── 실시간 숫자 변동 번쩍임 + 값 도착 전 스켈레톤 ── */
   var NUM_SEL = '.wl-price,.wl-pct,#pro-tick .pt b,#pro-tick .pt i,.pb-c>b,.pb-c>span,.pf-t b,.pf-t>span,.kt-c b,.kt-d,.px,.ch';
   var SKEL_RE = /^(--|—|-- --|-)$/;
+  var REDUCE = false, FLASH_ARMED = false; try { REDUCE = matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
+  /* 첫 로딩 중에는 값이 바뀌어도 번쩍이지 않는다 — 화면이 안정된 뒤(또는 8초 뒤)부터 */
+  window.__mkArmFlash = function () { FLASH_ARMED = true; }; setTimeout(window.__mkArmFlash, 8000);
   function numOf(t) { var m = String(t).replace(/[,\s]/g, '').replace(/−/g, '-').match(/-?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : NaN; }
   function touchNum(el) {
     var t = (el.textContent || '').trim();
     if (el._mkTxt === t) return;
     var old = el._mkTxt; el._mkTxt = t;
     var sk = SKEL_RE.test(t) && !el.querySelector('*') && !el.closest('.kt-c.na') && performance.now() < 15000;
-    if (sk !== el.classList.contains('mk-skel')) el.classList.toggle('mk-skel', sk);
-    if (sk || old == null || SKEL_RE.test(old)) return;
+    var had = el.classList.contains('mk-skel');
+    if (sk !== had) { el.classList.toggle('mk-skel', sk); if (had && !sk && !REDUCE) { el.classList.add('mk-unskel'); setTimeout(function () { el.classList.remove('mk-unskel'); }, 140); } }
+    if (sk || old == null || SKEL_RE.test(old) || !FLASH_ARMED) return;
     var a = numOf(old), b = numOf(t); if (!isFinite(a) || !isFinite(b) || a === b) return;
     var cls = b > a ? 'mk-fl-up' : 'mk-fl-dn';
     el.classList.remove('mk-fl-up', 'mk-fl-dn'); void el.offsetWidth; el.classList.add(cls);
