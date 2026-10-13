@@ -4,25 +4,25 @@
 
 /* ── 1) 목록 행: 이름 | 시세 2열 + 아래 줄에 스파크라인·링크 ── */
 @media(max-width:700px){
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row{
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row{
     display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;grid-auto-rows:auto!important;
     gap:4px 10px!important;align-items:start!important;min-height:0!important;padding:10px 12px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-bar{display:none!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-info{grid-column:1!important;grid-row:1!important;min-width:0!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-quote{grid-column:2!important;grid-row:1!important;justify-self:end;min-width:84px!important;align-items:flex-end!important;text-align:right}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark{grid-column:1!important;grid-row:2!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;align-self:center}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark svg{height:26px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-actions{grid-column:2!important;grid-row:2!important;justify-self:end;align-self:center;justify-content:flex-end!important;flex-direction:row!important;gap:12px!important;padding:0!important;margin:0!important;border:0!important;min-width:84px!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-info{overflow:visible!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-ind{flex:1 0 100%!important;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:2px 0 0!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-name{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35!important}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:100%}
-  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-tag{white-space:normal!important;line-height:1.35!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-bar{display:none!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-info{grid-column:1!important;grid-row:1!important;min-width:0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-quote{grid-column:2!important;grid-row:1!important;justify-self:end;min-width:84px!important;align-items:flex-end!important;text-align:right}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark{grid-column:1!important;grid-row:2!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;align-self:center}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-spark svg{height:26px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row>.wl-actions{grid-column:2!important;grid-row:2!important;justify-self:end;align-self:center;justify-content:flex-end!important;flex-direction:row!important;gap:12px!important;padding:0!important;margin:0!important;border:0!important;min-width:84px!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-info{overflow:visible!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-ind{flex:1 0 100%!important;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:2px 0 0!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#my-tbl) .wl-row .wl-name{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px 6px;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35!important}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-name a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:100%}
+  html body.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row .wl-tag{white-space:normal!important;line-height:1.35!important}
 }
 
 @media(max-width:700px){
-  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;row-gap:3px}
-  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;row-gap:3px}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
 }
 
 /* ── 2) 한국주식 "지수 해석·관련 일정 보기" 바: 좌우 여백 복구 ── */
@@ -137,17 +137,17 @@ html body.pro.pro.pro .v95-guide>h2{font-size:16px!important}
 /* ═══ v107 ═══ 신호등 뒤 종목명 줄바꿈 방지 · 52주 위치 막대 · 로딩 표시 · 티커 가장자리 · 잠금 표시 ═══ */
 
 /* 1) 한국주식·가상화폐 목록: 🟡/🔴/🟢 신호등과 종목명은 같은 줄에 두고, 이름이 길면 이름 칸 안에서만 줄바꿈 */
-html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name{
   display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;column-gap:6px;row-gap:3px;overflow:visible!important}
-html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-sig{flex:0 0 auto!important;width:auto!important;margin:.12em 0 0!important;line-height:1.2}
-html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{flex:1 1 0!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere}
-html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-sig{flex:0 0 auto!important;width:auto!important;margin:.12em 0 0!important;line-height:1.2}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{flex:1 1 0!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere}
+html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>.wl-ind{flex:1 0 100%!important}
 
 /* 2) 52주 범위 막대: 폭이 0이라 점(●)만 보이던 것을 라벨 + 막대로 표시 */
-html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty){
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty){
   display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;justify-content:flex-end;gap:6px;align-self:stretch;width:auto;margin-top:7px;font-size:10.5px;line-height:1;color:var(--tx2)}
-html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty)::before{content:'52주';font-weight:700;letter-spacing:-.2px}
-html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w>div{flex:0 0 60px;width:60px!important;max-width:60px!important;margin:0!important}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w:not(:empty)::before{content:'52주';font-weight:700;letter-spacing:-.2px}
+html body.pro.pro.pro :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl,#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row .wl-quote .wl-52w>div{flex:0 0 60px;width:60px!important;max-width:60px!important;margin:0!important}
 @media(max-width:700px){
   html body.pro.pro.pro :is(#tick-tbl,#cap-tbl,#lev-tbl,#idxchg-tbl,#my-wl) .wl-row:not(.m-x) .wl-quote .wl-52w{display:none}
 }
@@ -171,9 +171,9 @@ html body.pro.pro.pro #guide>h2 .mk-locked::before{position:absolute;top:-8px;ri
 
 /* 6) 모바일: 긴 레버리지 종목명도 신호등 뒤에서 한 줄로 들어가도록 글자 크기·자간을 화면 폭에 맞춤(그래도 넘치면 이름 칸 안에서만 줄바꿈) */
 @media(max-width:700px){
-  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row.wl-row>.wl-info>.wl-name>a{
     font-size:clamp(12px,3.3vw,13.5px)!important;letter-spacing:-.4px}
-  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{min-width:76px!important}
+  html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) :is(#krcap-tbl,#krkq-tbl,#krwl-tbl,#krlev-tbl,#kridx-tbl,#coin-tbl) .wl-row>.wl-quote{min-width:76px!important}
 }
 
 /* 7) 320px 화면: 상대수익률 범례 칩이 화면 밖으로 나가던 것을 줄바꿈 */
@@ -810,3 +810,45 @@ html body.pro.pro.pro.pro #pro-brief>.kr-sc:not(.sc-na){display:flex!important;f
 html body.pro.pro.pro.pro #pro-brief>.kr-sc .sc-ic{flex:none!important}
 html body.pro.pro.pro.pro #pro-brief>.kr-sc .sc-tx{align-items:flex-start!important;text-align:left!important}
 html body.pro.pro.pro.pro #pro-brief>.kr-sc.sc-ok b{font-size:inherit!important;font-weight:800}
+
+/* v137 — 호버 시 박스 안 글씨·배경 보존(전역 .pb-c:hover * 흰색/투명 규칙 무력화) */
+/* v132 — 레버리지 ETF 연속 하락 박스 시인성(미국·한국) */
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-sum{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:8px 0 10px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;padding:8px 4px!important;border-radius:12px!important;border:1px solid var(--line)!important;background:var(--panel)!important;opacity:.62!important;text-align:center!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t b{font-size:22px!important;line-height:1.1!important;font-weight:800!important;color:var(--tx2)!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t em{font-style:normal!important;font-size:11.5px!important;color:var(--tx2)!important;margin-top:2px!important;white-space:nowrap!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.on{opacity:1!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s2.on{background:#FFF8DB!important;border-color:#F5D86B!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s2.on b{color:#946200!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s3.on{background:#FFEBD5!important;border-color:#F8B56B!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s3.on b{color:#B54708!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s4.on{background:#FEE4E2!important;border-color:#F6A09A!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.s4.on b{color:#B42318!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.sx.on{background:#B42318!important;border-color:#B42318!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.sx.on b,html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t.sx.on em{color:#fff!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px 12px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r{display:grid!important;grid-template-columns:auto minmax(0,1fr) 54px auto!important;align-items:center!important;gap:8px!important;padding:6px 8px!important;border-radius:10px!important;background:var(--panel)!important;border-left:4px solid var(--lc,#F5D86B)!important;font-size:13px!important;min-width:0!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.s2{--lc:#F5D86B!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.s3{--lc:#F59E0B!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.s4{--lc:#DC2626!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.x{background:#FEF3F2!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-b{font-style:normal!important;font-weight:800!important;font-size:12px!important;padding:2px 7px!important;border-radius:999px!important;background:var(--lc)!important;color:#3b2a00!important;white-space:nowrap!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.s3 .lv2-b{color:#fff!important;background:#E08600!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.s4 .lv2-b{color:#fff!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-n{font-weight:700!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:var(--tx)!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-g{height:6px!important;border-radius:3px!important;background:rgba(0,0,0,.07)!important;overflow:hidden!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-g u{display:block!important;height:100%!important;background:var(--lc)!important;border-radius:3px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-c{font-variant-numeric:tabular-nums!important;white-space:nowrap!important;color:#1D4ED8!important;font-size:12.5px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.x .lv2-c{color:#B42318!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-none{grid-column:1/-1!important;font-style:normal!important;font-size:13px!important;color:var(--tx2)!important;padding:6px 2px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-more{display:block!important;margin-top:8px!important;font-size:12px!important;color:var(--tx2)!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-list{grid-template-columns:minmax(0,1fr)!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-sum{gap:6px!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t b{font-size:19px!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t em{font-size:10.5px!important}}
+/* v136 — v132/v134 보정(우선순위·글자 크기) */
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-c{font-size:13px!important;font-weight:800!important;line-height:1.2!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t b{font-size:22px!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r{grid-template-columns:auto minmax(0,1fr) 72px auto!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-n{white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;line-height:1.3!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.x .lv2-c{color:#B42318!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t b{font-size:19px!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r{grid-template-columns:auto minmax(0,1fr) 44px auto!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t em{font-size:10px!important;white-space:normal!important;line-height:1.15!important}}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover{background:#fff!important;border-color:var(--accent)!important;color:var(--tx)!important}
+html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover>small,html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover>small *{color:var(--tx2)!important;background:transparent!important}
