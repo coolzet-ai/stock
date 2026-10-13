@@ -59,11 +59,15 @@
   };
   function sources() {
     var map = SRC[PAGE]; if (!map) return;
-    d.querySelectorAll('main h2').forEach(function (h) {
-      if (h.querySelector('.mk-src')) return; var t = h.textContent;
-      for (var i = 0; i < map.length; i++) if (t.indexOf(map[i][0]) >= 0) {
-        var s = el('small', 'mk-src', map[i][1]); s.title = '출처·지연 안내 — 자세한 내용은 FAQ'; h.appendChild(s); break;
-      }
+    d.querySelectorAll('main h2.fold-h, main h2.market-fold-h').forEach(function (h) {
+      var t = h.textContent, txt = '';
+      for (var i = 0; i < map.length; i++) if (t.indexOf(map[i][0]) >= 0) { txt = map[i][1]; break; }
+      if (!txt) return;
+      /* 헤더 높이를 바꾸지 않도록: PC는 가운데 요약 칸 안에 이어 붙이고, 모바일은 펼친 본문 맨 위 한 줄로 */
+      var sum = h.querySelector('.fold-sum');
+      if (sum && !sum.querySelector('.mk-src')) { var s1 = el('span', 'mk-src', ' · ' + txt); sum.appendChild(s1); }
+      var btn = h.querySelector('button[aria-controls]'), body = btn && d.getElementById(btn.getAttribute('aria-controls'));
+      if (body && !body.querySelector(':scope > .mk-src-b')) { var s2 = el('p', 'mk-src-b', '출처·지연: ' + txt); body.insertBefore(s2, body.firstChild); }
     });
   }
 
@@ -99,7 +103,7 @@
   try { if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); } catch (e) {}
   function boot() {
     try { footer(); } catch (e) {} try { cross(); } catch (e) {} try { sources(); } catch (e) {}
-    try { failLinks(); new MutationObserver(function () { failLinks(); }).observe(d.body, { childList: true, subtree: true }); } catch (e) {}
+    try { failLinks(); var sq = 0; new MutationObserver(function () { failLinks(); if (!sq) sq = setTimeout(function () { sq = 0; try { sources(); } catch (e) {} }, 400); }).observe(d.body, { childList: true, subtree: true }); } catch (e) {}
     /* 첫 방문 카드는 화면이 안정된 뒤(고정 위치라 레이아웃 이동 없음) */
     var go = function () { try { onboard(); refreshed(); sources(); } catch (e) {} };
     var tries = 0; (function w() { if (window.__mkBootDone || ++tries > 30) { setTimeout(go, 600); } else setTimeout(w, 200); })();

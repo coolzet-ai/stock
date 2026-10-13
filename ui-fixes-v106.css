@@ -953,12 +953,14 @@ html body.pro :is(.wl-price,.wl-pct,.px,.ch,.m,.big,.chg,#pro-tick .pt b,#pro-ti
 .mk-flinks a,.mk-flinks button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;font:600 13px/1 inherit;font-family:inherit;color:var(--tx2,#5b6675);text-decoration:none;background:none;border:0;border-radius:8px;cursor:pointer}
 .mk-flinks a:hover,.mk-flinks button:hover{color:#0A6B48;background:rgba(10,107,72,.08)}
 .mk-flinks .mk-share{margin-left:auto;color:#0A6B48;border:1px solid rgba(10,107,72,.35)}
-/* 카드 출처·지연 */
-.mk-src{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--tx2,#5b6675);white-space:nowrap;vertical-align:middle;letter-spacing:0}
-@media(max-width:700px){.mk-src{display:block;margin:2px 0 0;font-size:11px;white-space:normal}}
+/* 카드 출처·지연: 헤더 높이는 그대로 */
+html body.pro .fold-sum .mk-src,html body.pro .fold-sum .mk-src:hover{display:inline;margin:0;font-size:inherit;font-weight:inherit;color:inherit!important;white-space:inherit;opacity:.8}
+html body.pro .mk-src-b{margin:0 0 8px;font-size:12px;color:var(--tx2,#5b6675)!important}
+@media(max-width:700px){html body.pro .fold-sum .mk-src{display:none}}
+@media(min-width:701px){html body.pro .mk-src-b{display:none}}
 .mk-why{margin-left:6px;font-size:12px;font-weight:700;color:#0A6B48;text-decoration:underline}
 /* 다른 시장 */
-.mk-cross{margin:40px 0 8px}.mk-cross-h{font-size:18px!important;margin:0 0 10px!important}
+.mk-cross{width:min(1232px,calc(100% - 24px));margin:40px auto 8px;box-sizing:border-box}.mk-cross-h{font-size:18px!important;margin:0 0 10px!important}
 .mk-cross-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .mk-cross-g a{display:flex;flex-direction:column;gap:2px;padding:14px 16px;min-height:64px;border:1px solid var(--line,#dfe6e2);border-radius:12px;text-decoration:none;color:inherit;background:var(--panel,#fff)}
 .mk-cross-g a:hover{border-color:#0A6B48}.mk-cross-g b{font-size:15px;color:#0A6B48}.mk-cross-g span{font-size:12.5px;color:var(--tx2,#5b6675)}
@@ -1016,3 +1018,16 @@ html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.on::first-letter{animation-i
   .mk-first.open{padding-bottom:10px}
 }
 @media(max-width:700px){.mk-first:not(.open){right:auto;width:210px}.mk-first.open{right:12px;bottom:calc(150px + env(safe-area-inset-bottom,0px))}}
+/* 모바일 미국주식 시장 요약: 핵심 4칸(공탐·VIX·일정·섹터)을 먼저, 레버리지 박스는 그 아래 */
+@media(max-width:700px){html body.pro.stock-v2 #pro-brief .pb-grid>.pb-lev{order:2}}
+/* 접이식 제목: 높이 일정(출처 표기는 요약 칸 안/본문 안) */
+html body.pro .fold-h .fold-sum{min-width:0}
+/* 잘림 방지: 레버리지 종목명은 모바일에서 3줄까지, 폴드 폭 접이식 요약은 줄바꿈 */
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev .lv2-n{-webkit-line-clamp:3!important}}
+@media(min-width:701px) and (max-width:960px){html body.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto,.v93-stock) h2.fold-h>.fold-sum,html body.pro.pro.pro.pro.pro h2.fold-h .fold-sum .mv{overflow:visible!important;white-space:normal!important;text-overflow:clip!important}html body.pro.pro.pro.pro.pro h2.fold-h .fold-sum .mv>span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}}
+/* 가상화폐 코인 행: 한국주식 행과 같은 방향 색 배경, 이름·배지 겹침 방지 */
+html body.pro.pro.pro.pro.v93-crypto #coin-tbl .wl-row:has(>.wl-bar.up){background:#FFF3F1!important}
+html body.pro.pro.pro.pro.v93-crypto #coin-tbl .wl-row:has(>.wl-bar.down){background:#EEF3FF!important}
+html body.pro.pro.pro.v93-crypto #coin-tbl .wl-row .wl-tag{display:flex!important;flex-wrap:wrap;align-items:center;gap:3px 6px;line-height:1.3!important;min-width:0}
+html body.pro.pro.pro.v93-crypto #coin-tbl .wl-row .wl-tag .rb-badge{margin-left:0!important;font-size:10.5px!important;padding:2px 6px!important;flex:0 0 auto}
+html body.pro.pro.pro.v93-crypto #coin-tbl .wl-row .wl-info{min-width:0}
