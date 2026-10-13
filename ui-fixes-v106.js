@@ -310,17 +310,30 @@
     var form = d.querySelector('#unified-tools [data-panel=compare] form'); if (!form || form._mkU) return;
     var sel = form.elements.months, btn = form.querySelector('button[type=submit],button:not([type])'); if (!sel || !btn) return;
     form._mkU = 1;
-    $$('input[name^=compare]', form).forEach(function (i, n) { if (!i.value) i.value = def[n] || ''; i.setAttribute('aria-label', '비교 종목 ' + (n + 1)); });
+    var SK = 'mk_cmp_' + PAGE, sv = null;
+    try { sv = JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) {}
+    if (sv && !Array.isArray(sv.v)) sv = null;
+    $$('input[name^=compare]', form).forEach(function (i, n) {
+      if (!i.value) { var sval = sv && typeof sv.v[n] === 'string' ? sv.v[n].slice(0, 40) : ''; i.value = sval || (sv ? '' : def[n] || ''); if (sval && sv.s && typeof sv.s[n] === 'string' && /^[A-Za-z0-9.\-^=]{1,20}$/.test(sv.s[n])) { i.dataset.sym = sv.s[n]; i.dataset.nm = sval; } }
+      i.setAttribute('aria-label', '비교 종목 ' + (n + 1)); });
+    var svM = sv && [1, 3, 6, 12, 36, 60, 120].indexOf(+sv.m) >= 0 ? +sv.m : 12;
     [[1, '1개월'], [3, '3개월'], [6, '6개월']].forEach(function (x) { if (!$$('option', sel).some(function (o) { return +o.value === x[0]; })) { var o = d.createElement('option'); o.value = x[0]; o.textContent = x[1]; sel.insertBefore(o, sel.firstChild); } });
     var PERIODS = [['1개월', 1], ['3개월', 3], ['6개월', 6], ['1년', 12], ['3년', 36], ['5년', 60], ['10년', 120]];
     var lab = sel.closest('label'); if (lab) lab.hidden = true;
-    sel.value = '12'; btn.textContent = '비교';
+    sel.value = String(svM); btn.textContent = '비교';
     var sec = form.closest('section'), h3 = sec.querySelector('h3');
     if (h3) { h3.textContent = '🔍 종목 비교 '; h3.insertAdjacentHTML('beforeend', '<span class="cm-note">최대 3개 · 시세 기준 계산</span>'); }
     var old = sec.querySelector('.ut-compare-chart'); if (old) old.hidden = true;
     var out = d.createElement('div'); out.className = 'ucm-r'; form.after(out);
     var COL = ['#16865c', '#4386db', '#d5872a'], NAMES = { 'BTC-USD': '비트코인', 'ETH-USD': '이더리움', 'SOL-USD': '솔라나', 'XRP-USD': '리플', 'BNB-USD': '바이낸스코인', 'DOGE-USD': '도지코인', 'ADA-USD': '에이다' };
-    var data = [], months = 12, serial = 0;
+    var data = [], months = svM, serial = 0, lastRes = [];
+    function saveCmp() {
+      try {
+        var k = 0, v = [], sy = [];
+        $$('input[name^=compare]', form).forEach(function (i) { var t = i.value.trim(); v.push(t); sy.push(t && lastRes[k] ? (lastRes[k].sym || '') : ''); if (t) k++; });
+        localStorage.setItem(SK, JSON.stringify({ v: v, s: sy, m: months }));
+      } catch (er) {}
+    }
     var esc = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
     var msg = function (t) { var m = d.querySelector('#unified-tools .ut-message'); if (m) m.textContent = t || ''; };
     var fp = function (v) { return v == null ? '<span class="na">—</span>' : '<span class="' + (v > 0 ? 'up' : v < 0 ? 'dn' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(2) + '%</span>'; };
@@ -387,10 +400,11 @@
       }));
       if (my !== serial) return;
       data = res; render();
+      lastRes = res; saveCmp();
       $$('input[name^=compare]', form).filter(function (i) { return i.value.trim(); }).forEach(function (i, k) { var c = res[k]; if (c && c.sym && c.name && c.name !== c.sym && c.pts && i.value.trim() !== c.name) { i.dataset.sym = c.sym; i.dataset.nm = c.name; i.value = c.name; } });
     };
     form.onsubmit = go; form.addEventListener('submit', function (e) { e.preventDefault(); }, true);
-    out.addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; months = +b.dataset.m; sel.value = String(months); $$('button', out).forEach(function (x) { x.classList.toggle('on', x === b); }); var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok; });
+    out.addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; months = +b.dataset.m; sel.value = String(months); if (lastRes.length) saveCmp(); else try { localStorage.setItem(SK, JSON.stringify({ v: $$('input[name^=compare]', form).map(function (i) { return i.value.trim(); }), s: [], m: months })); } catch (er) {} $$('button', out).forEach(function (x) { x.classList.toggle('on', x === b); }); var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok; });
     var nav = d.querySelector('#unified-tools [data-tool=compare]'); if (nav) nav.addEventListener('click', function () { if (!data.length) setTimeout(go, 0); }, { once: true });
   }
 
