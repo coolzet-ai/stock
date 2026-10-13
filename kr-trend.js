@@ -121,7 +121,7 @@
     var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return false;
     if (d.getElementById('kr-sidecar')) return true;
     scBox = d.createElement('div'); scBox.id = 'kr-sidecar'; scBox.className = 'kr-sc sc-na'; hd.after(scBox);
-    pollSide(); setInterval(function () { if (!d.hidden) pollSide(); }, 60000);
+    pollSide(); setInterval(function () { if (!d.hidden && sessionOpen()) pollSide(); }, 60000);
     return true;
   }
 
