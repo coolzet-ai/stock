@@ -7713,6 +7713,11 @@ async function toggleEtfHoldings(ticker, ev){
       let lev='';
       try{ if(typeof LEV_META!=='undefined'&&LEV_META[ticker]) lev=await renderLevPanel(ticker,data); }catch(e){ console.warn('레버리지 패널 실패',e); }
       el.innerHTML=lev+renderEtfHoldings(data);
+      /* 레버리지 ETF: 보유종목 TOP10·섹터 가중치를 ④ 구성 집중도 옆(같은 줄)으로 옮겨 PC에서 총 2줄 배치 */
+      try{
+        if(lev){ var gs=el.querySelector('.lv2-gs'), eh=el.querySelector('.eh2');
+          if(gs&&eh){ Array.prototype.slice.call(eh.children).forEach(function(c,i){ if(!c.children.length) return; var w=document.createElement('section'); w.className='lv2-g eh-g eh-g'+(i+1); w.appendChild(c); gs.appendChild(w); }); gs.classList.add('has-eh'); eh.style.display='none'; } }
+      }catch(e){}
       etfHoldLoaded[ticker]=true;
     }
   }else{
@@ -8493,7 +8498,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
       var day = ymd(); if (o.day && o.day !== day) o.prev = { v: o.v, day: o.day };
       o.v = v; o.t = tx; o.day = day; o.ts = Date.now(); try { localStorage.setItem(key, JSON.stringify(o)); } catch (x) {}
       var hd = $('#pro-brief .pb-hd'), old = $('#pro-brief .pb-delta'); if (old) old.remove();
-      if (hd && o.prev && isFinite(o.prev.v)) { var d = Math.round((v - o.prev.v) * 10) / 10, s = document.createElement('span'); s.className = 'pb-delta'; s.textContent = o.prev.day.slice(5).replace('-', '/') + ' 대비 공탐 ' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d); hd.appendChild(s); }
+      if (hd && o.prev && isFinite(o.prev.v)) { var d = Math.round((v - o.prev.v) * 10) / 10, s = document.createElement('span'); s.className = 'pb-delta'; s.className = 'pb-delta ' + (d > 0 ? 'up' : d < 0 ? 'dn' : 'eq'); s.title = o.prev.day.slice(5).replace('-', '/') + ' 대비 공포탐욕 지수 ' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d); s.innerHTML = '<i class="d-date">' + o.prev.day.slice(5).replace('-', '/') + ' 대비 </i><i class="d-l">공탐</i> <b>' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d) + '</b>'; hd.appendChild(s); }
     }
     var t = setInterval(function () { tick(); if (++n > 40) clearInterval(t); }, 2000);
   })();

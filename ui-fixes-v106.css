@@ -876,3 +876,30 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{min-height:170px!important
 #cry-hv.hv2:not(.hv2-done){min-height:740px}
 @media(max-width:700px){#cry-hv.hv2:not(.hv2-done){min-height:690px}}
 #cry-hv .hv2-ld .mut{min-height:20px}
+
+/* v140 — 투자자 체크패널(레버리지 ETF): ④ 구성 집중도 · 보유종목 TOP10 · 섹터 가중치를 한 줄(2번째 줄)에 */
+@media(min-width:701px){
+  html body.pro.pro.pro.pro .lv2 .lv2-gs.has-eh>.lv2-g.c4{grid-column:auto!important}
+  html body.pro.pro.pro.pro .lv2 .lv2-gs.has-eh>.eh-g{grid-column:auto}
+}
+html body.pro.pro.pro.pro .lv2 .lv2-g.eh-g{padding:10px 12px;display:block}
+html body.pro.pro.pro.pro .lv2 .lv2-g.eh-g>div{margin:0}
+html body.pro.pro.pro.pro .lv2 .lv2-g.eh-g .mut{white-space:normal}
+
+/* v141 — 모바일 '오늘의 시장 요약' 제목줄: 공탐 대비 텍스트 최소화 */
+html body.pro.pro.pro #pro-brief .pb-hd .pb-delta{white-space:nowrap}
+html body.pro.pro.pro #pro-brief .pb-hd .pb-delta i{font-style:normal}
+html body.pro.pro.pro #pro-brief .pb-hd .pb-delta b{font-weight:800}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta .d-date{display:none}
+  html body.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;line-height:1;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;margin-left:auto;flex:none}
+  html body.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta .d-l{opacity:.85;font-weight:600}
+  html body.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta b{font-size:13px}
+}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd:has(#mk-live-sw)>b{font-size:15.5px!important}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd #mk-live-sw{flex:1 1 0!important;min-width:0!important;padding:0 8px!important;font-size:12.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd #mk-live-ms{flex:none!important;width:56px!important;min-width:0!important;padding:0 4px!important;font-size:13px!important;background-image:none!important;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;text-indent:0}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta{margin-left:0!important;padding:4px 7px!important;font-size:11.5px!important;gap:2px!important;order:5}
+  html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta b{font-size:12.5px!important}
+}

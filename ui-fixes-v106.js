@@ -97,6 +97,7 @@
     if (!btn) return;
     var on = LIVE.on(), idle = on && LIVE.idle(), adm = LIVE.admin();
     var text = !adm ? '🔒 실시간 · 관리자 전용' : !on ? '○ 실시간 꺼짐' : idle ? '⏸ 무조작 일시정지 · 눌러서 재개' : (st.text || '● 실시간 연결 중');
+    if (window.innerWidth <= 700 && on && !idle && st.text) text = '● ' + ((st.text.match(/(\d\d:\d\d)/) || [])[1] || st.text.replace(/^● /, '').replace(/프리마켓 |애프터 |선물 /, '')); /* 모바일: 짧게 */
     btn.textContent = text; btn.className = 'mk-live-sw ' + (!adm ? 'locked' : !on ? 'off' : idle ? 'paused' : (st.cls || 'on'));
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.title = !adm ? '실시간 시세는 관리자 모드에서만 켤 수 있습니다(서버 요청 절약)' : !on ? '꺼져 있습니다(서버 요청 절약). 눌러서 실시간 시세를 켭니다' : '눌러서 실시간 시세를 끕니다. 켜 두면 갱신마다 서버 요청이 발생합니다';
