@@ -8775,30 +8775,31 @@ setTimeout(draw,5000);setInterval(draw,20000);
     var host = $('#cm-r'); if (!ts.length) { ++cmSerial;host.innerHTML = ''; return; }
     host.innerHTML = '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
     var D = (window.MK_DATA ? window.MK_DATA() : {}) || {};
-    var serial=++cmSerial;var cs = await Promise.all(ts.map(function (t) { return chart(t, cmRg>12?'10y':'1y'); }));
+    var serial=++cmSerial;var cs = await Promise.all(ts.map(function (t) { return chart(t, '10y'); }));try{ cmBench = await chart('QQQ','10y'); }catch(e){ cmBench=null; }
     var directDiv=null;try{if(typeof PROXY_BASE!=='undefined'&&PROXY_BASE){var response=await fetch(PROXY_BASE.replace(/\?url=$/,'')+'divs?symbols='+ts.map(encodeURIComponent).join(','),{signal:AbortSignal.timeout(25000)});if(response.ok)directDiv=await response.json();}}catch(e){}
     if(serial!==cmSerial)return;
     D=(window.MK_DATA?window.MK_DATA():{})||{};
     var pc = function (a, b) { return a != null && b ? (a / b - 1) * 100 : null; };
+    var retN = function (c, m, px) { var end = c.ts[c.ts.length - 1], st = window.MK_RETURNS.cutoff(end, m); if (!c.ts.length || c.ts[0] > st + 7 * 86400000) return null; var p = window.MK_RETURNS.slice(c, m, end); return p.length ? pc(px, p[0].v) : null; };
     var col = ts.map(function (t, i) {
       var c = cs[i]; if (!c || !c.cl.length) return { t: t, none: true };
       var cl = c.cl, n = cl.length, hi = Math.max.apply(null, cl), px = c.px;
       var e = D.earn && D.earn[t], dv = directDiv&&directDiv[t] || D.div&&D.div[t];
       var year=window.MK_RETURNS.slice(c,12,c.ts[c.ts.length-1]),recent=c.cl.filter(function(_,i){return c.ts[i]>=window.MK_RETURNS.cutoff(c.ts[c.ts.length-1],12);});hi=Math.max.apply(null,recent);
-      return { t: t, px: px, d1: pc(px, c.prev), w: n > 5 ? pc(px, cl[n - 6]) : null, m: n > 21 ? pc(px, cl[n - 22]) : null, y: year.length?pc(px,year[0].v):null, hi: pc(px, hi), er: e && e.ts ? earnDays(e.ts) : null, dv: dv && dv.ex ? earnDays(dv.ex) : null, ex:dv&&dv.ex, divFailed:!directDiv||!!directDiv.error };
+      return { t: t, px: px, d1: pc(px, c.prev), w: n > 5 ? pc(px, cl[n - 6]) : null, m: n > 21 ? pc(px, cl[n - 22]) : null, y: year.length?pc(px,year[0].v):null, y3: retN(c,36,px), y5: retN(c,60,px), y10: retN(c,120,px), hi: pc(px, hi), er: e && e.ts ? earnDays(e.ts) : null, dv: dv && dv.ex ? earnDays(dv.ex) : null, ex:dv&&dv.ex, divFailed:!directDiv||!!directDiv.error };
     });
     var row = function (l, f) { return '<tr><th scope="row">' + l + '</th>' + col.map(function (c) { return '<td class="n">' + (c.none ? '—' : f(c)) + '</td>'; }).join('') + '</tr>'; };
     var pcell = function (v) { return '<span class="' + cls(v) + '">' + fmtPct(v) + '</span>'; };
     var dd = function (v) { return v == null ? '<span class="na">미확인</span>' : v < 0 ? '지남' : 'D-' + (v === 0 ? 'day' : v); };
     var tbl = '<table class="cm-t"><thead><tr><th></th>' + col.map(function (c, i) { return '<th class="n"><i class="cm-sw cm-c' + i + '"></i>' + esc(c.t) + (c.none ? '<br><small class="na">조회 실패</small>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      row('현재가', function (c) { return '<b class="stock-price">$' + c.px.toFixed(2)+'</b>'; }) + row('1일', function (c) { return pcell(c.d1); }) + row('1주', function (c) { return pcell(c.w); }) + row('1개월', function (c) { return pcell(c.m); }) + row('1년', function (c) { return pcell(c.y); }) + row('52주 고점 대비', function (c) { return pcell(c.hi); }) + row('다음 실적', function (c) { return dd(c.er); }) + row('배당락', function (c) { return c.ex?'<span>'+new Date(c.ex*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'})+'</span><small class="cm-date-note">'+(c.dv<0?'최근 배당락 · 경과':dd(c.dv))+'</small>':'<span class="na">'+(c.divFailed?'조회 실패':'일정 미제공')+'</span>'; }) +
+      row('현재가', function (c) { return '<b class="stock-price">$' + c.px.toFixed(2)+'</b>'; }) + row('1일', function (c) { return pcell(c.d1); }) + row('1주', function (c) { return pcell(c.w); }) + row('1개월', function (c) { return pcell(c.m); }) + row('1년', function (c) { return pcell(c.y); }) + row('3년', function (c) { return pcell(c.y3); }) + row('5년', function (c) { return pcell(c.y5); }) + row('10년', function (c) { return pcell(c.y10); }) + row('52주 고점 대비', function (c) { return pcell(c.hi); }) + row('다음 실적', function (c) { return dd(c.er); }) + row('배당락', function (c) { return c.ex?'<span>'+new Date(c.ex*1000).toLocaleDateString('ko-KR',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'})+'</span><small class="cm-date-note">'+(c.dv<0?'최근 배당락 · 경과':dd(c.dv))+'</small>':'<span class="na">'+(c.divFailed?'조회 실패':'일정 미제공')+'</span>'; }) +
       '</tbody></table>';
     cmData = ts.map(function (t, i) { return cs[i] && cs[i].cl.length ? { t: t, cl: cs[i].cl, ts: cs[i].ts, i: i } : null; }).filter(Boolean);
     host.innerHTML = '<div class="cm-grid"><div class="cm-tb">' + tbl + '</div><div class="cm-ch"><div class="cm-chh"><b>수익률 곡선</b><span class="cm-rg" role="group" aria-label="기간">' + PERIODS.map(function (x) { return '<button type="button" data-rg="' + x[1] + '" class="' + (cmRg == x[1] ? 'on' : '') + '">' + x[0] + '</button>'; }).join('') + '</span></div><div id="cm-svg"></div></div></div>' +
-      '<p class="mut" style="font-size:12px;margin:8px 0 0">배당락은 비교 종목을 직접 조회하며 최근 배당락과 예정일을 구분합니다. 일정 미제공은 무배당을 의미하지 않습니다. 곡선은 일봉 종가 기준 가격 수익률(배당 재투자 제외)이며 상장 이후 제공 구간만 표시합니다.</p>';
+      '<p class="mut" style="font-size:12px;margin:8px 0 0">배당락은 비교 종목을 직접 조회하며 최근 배당락과 예정일을 구분합니다. 일정 미제공은 무배당을 의미하지 않습니다. 곡선은 일봉 종가 기준 가격 수익률(배당 재투자 제외)이며 상장 이후 제공 구간만 표시합니다. 3·5·10년 값은 해당 기간 시세가 있는 종목만 나오고 없으면 —입니다. 점선은 벤치마크(QQQ)입니다.</p>';
     drawCmp();
   }
-  var PERIODS=[['1개월',1],['3개월',3],['6개월',6],['1년',12],['3년',36],['5년',60],['10년',120]];var cmData = [], cmRg = 12,cmSerial=0;
+  var PERIODS=[['1개월',1],['3개월',3],['6개월',6],['1년',12],['3년',36],['5년',60],['10년',120]];var cmData = [], cmRg = 12,cmSerial=0,cmBench=null;
   function drawCmp() {
     var host = $('#cm-svg'); if (!host) return;
     if (!cmData.length) { host.innerHTML = '<p class="mut" style="font-size:12.5px">그릴 수 있는 시세가 없습니다.</p>'; return; }
@@ -8807,7 +8808,8 @@ setTimeout(draw,5000);setInterval(draw,20000);
     var start=window.MK_RETURNS.cutoff(end,cmRg);
     var ser=cmData.map(function(d){var p=window.MK_RETURNS.slice(d,cmRg,end);return {t:d.t,i:d.i,y:p.map(function(x){return (x.v/p[0].v-1)*100;}),ts:p.map(function(x){return x.t;})};}).filter(function(s){return s.y.length>1;});
     if(!ser.length){host.innerHTML='<p class="mut">선택 기간에 표시할 시세가 없습니다.</p>';return;}
-    var lo = Infinity, hi = -Infinity; ser.forEach(function (s) { s.y.forEach(function (v) { if (v < lo) lo = v; if (v > hi) hi = v; }); });
+    var bs=null; if(cmBench&&cmBench.ts&&cmBench.ts.length){ var bp=window.MK_RETURNS.slice(cmBench,cmRg,end); if(bp.length>1) bs={t:'QQQ',y:bp.map(function(x){return (x.v/bp[0].v-1)*100;}),ts:bp.map(function(x){return x.t;})}; }
+    var lo = Infinity, hi = -Infinity; ser.concat(bs?[bs]:[]).forEach(function (s) { s.y.forEach(function (v) { if (v < lo) lo = v; if (v > hi) hi = v; }); });
     lo = Math.min(lo, 0); hi = Math.max(hi, 0); var span = hi - lo || 1; lo -= span * .06; hi += span * .06;
     var X = function (k, n) { return pl + (W - pl - pr) * (n <= 1 ? 0 : k / (n - 1)); }, Y = function (v) { return pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo)); };
     var step = (function () { var raw = (hi - lo) / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; })();
@@ -8815,7 +8817,9 @@ setTimeout(draw,5000);setInterval(draw,20000);
     var L0 = ser.reduce(function (a, s) { return s.ts.length > a.ts.length ? s : a; }, ser[0]), md = function (t) { var d = new Date(t); return d.getFullYear()+'.'+(d.getMonth() + 1) + '.' + d.getDate(); };
     var xl = '<text x="' + pl + '" y="' + (H - 7) + '" class="cm-tx">' + md(start) + '</text><text x="' + (W - pr) + '" y="' + (H - 7) + '" text-anchor="end" class="cm-tx">' + md(end) + '</text>';
     var ln = ser.map(function (s) { var n = s.y.length, off = L0.ts.length - n; return '<polyline class="cm-ln cm-c' + s.i + '" fill="none" points="' + s.y.map(function (v, k) { return (pl+(W-pl-pr)*(s.ts[k]-start)/(end-start)).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>'; }).join('');
+    if(bs) ln += '<polyline fill="none" stroke="#6b7782" stroke-width="1.8" stroke-dasharray="5 4" points="' + bs.y.map(function (v, k) { return (pl+(W-pl-pr)*(bs.ts[k]-start)/(end-start)).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>';
     var lg = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i class="cm-sw cm-c' + s.i + '"></i><b>' + esc(s.t) + '</b> <em class="' + cls(e) + '">' + fmtPct(e) + '</em></span>'; }).join('');
+    if(bs){ var be=bs.y[bs.y.length-1]; lg += '<span><i class="cm-sw" style="background:#6b7782"></i><b>QQQ</b> <small class="mut">벤치마크</small> <em class="' + cls(be) + '">' + fmtPct(be) + '</em></span>'; }
     host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="종목별 누적 수익률 곡선" class="cm-svg">' + g + xl + ln + '</svg><div class="cm-lg">' + lg + '</div>';
   }
   document.addEventListener('click', function (e) { var b = e.target.closest('.cm-rg button'); if (!b) return; cmRg = +b.dataset.rg; try { localStorage.setItem('mk_cmp_stock', JSON.stringify({ t: $$('#mk-cmp input[type=text]').map(function (i) { return i.value.trim().toUpperCase(); }), m: cmRg })); } catch (e) {} $$('.cm-rg button').forEach(function (x) { x.classList.toggle('on', x === b); }); if(cmRg>12&&cmData.some(function(d){return d.ts.length<500;}))runCmp();else drawCmp(); });
