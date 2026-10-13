@@ -106,7 +106,7 @@
   function paintSide() {
     if (!scBox) return;
     var T = [{ q: sc.k200, n: '코스피200', th: 5, mk: '코스피' }, { q: sc.kq, n: '코스닥', th: 6, mk: '코스닥' }].filter(function (x) { return x.q; });
-    if (!T.length) { scBox.className = 'kr-sc sc-na'; scBox.innerHTML = ''; return; }
+    if (!T.length) { scBox.className = 'kr-sc sc-na'; scBox.innerHTML = ''; titleMark(); return; }
     var hit = T.filter(function (x) { return Math.abs(x.q.pct) >= x.th; }), near = T.filter(function (x) { return Math.abs(x.q.pct) >= x.th * 0.8; });
     var sg = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + '%'; };
     var now = Date.now(), L = readLatch(), h = hit[0]; if (!h) sawBelow = true;
@@ -125,15 +125,20 @@
       var s3 = h.q.pct < 0;
       scBox.className = 'kr-sc sc-done ' + (s3 ? 'sc-sell' : 'sc-buy'); scBox.removeAttribute('role');
       scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">' + (s3 ? '🚨' : '🔔') + '</span><div class="sc-tx"><b>오늘 장중 ' + (s3 ? '매도' : '매수') + ' 사이드카 기준(±' + h.th + '%) 도달 · 마감 기준</b><span>' + h.n + ' ' + sg(h.q.pct) + ' · 발동 시각은 KRX 공시 확인</span></div>';
-    } else if (near.length) {
-      var n0 = near[0];
-      scBox.className = 'kr-sc sc-near'; scBox.removeAttribute('role');
-      scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">⚠️</span><div class="sc-tx"><b>사이드카 근접</b><span>' + n0.n + ' ' + sg(n0.q.pct) + ' · 발동 기준 ±' + n0.th + '%</span></div>';
-    } else {
-      var a = T[0];
-      scBox.className = 'kr-sc sc-ok'; scBox.removeAttribute('role');
-      scBox.innerHTML = '<span class="sc-dot" aria-hidden="true"></span><span>사이드카 <b>미발동</b> · 코스피200 ' + (sc.k200 ? sg(sc.k200.pct) : '--') + ' (±5% 도달 시 발동 구간)</span>';
+    } else { /* 미발동(근접 포함): 아무것도 표시하지 않는다 */
+      scBox.className = 'kr-sc sc-na'; scBox.removeAttribute('role'); scBox.innerHTML = '';
     }
+    titleMark();
+  }
+  /* 발동(또는 오늘 발동 이력)이 있으면 '오늘의 시장 요약' 제목줄에 이모티콘 표시 */
+  function titleMark() {
+    var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return;
+    var on = scBox && /\bsc-(hit|done)\b/.test(scBox.className), sell = scBox && scBox.classList.contains('sc-sell'), mk = d.getElementById('kr-sc-mark');
+    if (!on) { if (mk) mk.remove(); return; }
+    if (!mk) { mk = d.createElement('span'); mk.id = 'kr-sc-mark'; var t = hd.querySelector('b,h2,h3,strong') || hd.firstElementChild; if (t) t.after(mk); else hd.prepend(mk); }
+    mk.textContent = sell ? '🚨' : '🔔'; mk.className = 'sc-mark ' + (scBox.classList.contains('sc-hit') ? 'live' : 'done');
+    mk.title = (sell ? '매도' : '매수') + ' 사이드카 ' + (scBox.classList.contains('sc-hit') ? '발동 구간' : '오늘 발동 이력') + ' — 아래 안내 참고';
+    mk.setAttribute('role', 'img'); mk.setAttribute('aria-label', mk.title);
   }
   function mountSide() {
     var hd = d.querySelector('#pro-brief .pb-hd'); if (!hd) return false;

@@ -859,3 +859,6 @@ html body.pro .kr-sc.sc-done .sc-ic{font-size:18px}
 html body.pro .kr-sc.sc-done .sc-tx{display:flex;flex-direction:column;gap:2px}
 html body.pro .kr-sc.sc-done .sc-tx span{color:var(--tx2)}
 html body.pro.pro.pro.pro #pro-brief>.kr-sc.sc-done{background:var(--panel)!important}
+html body.pro #pro-brief .pb-hd .sc-mark{display:inline-block;margin-left:8px;font-size:20px;line-height:1;vertical-align:middle;flex:none}
+html body.pro #pro-brief .pb-hd .sc-mark.live{animation:kr-sc-shake 1.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){html body.pro #pro-brief .pb-hd .sc-mark.live{animation:none}}
