@@ -903,3 +903,40 @@ html body.pro.pro.pro #pro-brief .pb-hd .pb-delta b{font-weight:800}
   html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta{margin-left:0!important;padding:4px 7px!important;font-size:11.5px!important;gap:2px!important;order:5}
   html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-hd .pb-delta b{font-size:12.5px!important}
 }
+
+/* v142 — 종목비교(미국·한국·가상화폐 공통): 표 종목 폭 동일 · 기간 탭 동일 크기/가운데 · 범례 가운데 한 줄 · 모바일 입력 한 줄 */
+html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t){table-layout:fixed!important;width:100%!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) :is(th,td):first-child{width:27%!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) :is(th,td).n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) thead th.n i{display:inline-block!important;vertical-align:middle;margin:0 4px 0 0!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-tb,#unified-tools [data-panel=compare] .ucm-tb){overflow-x:visible!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-chh,#unified-tools [data-panel=compare] .ucm-chh){display:block!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-chh>b,#unified-tools [data-panel=compare] .ucm-chh>b){display:block;margin-bottom:8px}
+html body.pro.pro.pro :is(#mk-cmp .cm-rg,#unified-tools [data-panel=compare] .ucm-rg){display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important;width:100%!important;margin:0!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-rg,#unified-tools [data-panel=compare] .ucm-rg) button{width:100%!important;min-width:0!important;height:36px!important;min-height:36px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center;text-align:center;font-size:13px!important;white-space:nowrap}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){display:flex!important;justify-content:center!important;flex-wrap:nowrap!important;gap:6px 14px!important;white-space:nowrap;overflow:hidden}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg)>span{display:inline-flex!important;align-items:center;gap:5px;min-width:0;flex:0 1 auto}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg)>span>b{overflow:hidden;text-overflow:ellipsis;min-width:0}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) small{display:none!important}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) i{margin:0!important;flex:none}
+html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) i.bn{background:none!important;height:0!important;width:16px!important;border-top:2px dashed #6b7782;border-radius:0!important}
+@media(max-width:700px){
+  html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t){font-size:12px!important}
+  html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) :is(th,td){padding:9px 3px!important}
+  html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) :is(th,td):first-child{padding-left:8px!important;width:25%!important;white-space:normal}
+  html body.pro.pro.pro :is(#mk-cmp .cm-t,#unified-tools [data-panel=compare] .ucm-t) thead th.n i{display:none!important}
+  html body.pro.pro.pro :is(#mk-cmp .cm-rg,#unified-tools [data-panel=compare] .ucm-rg){gap:4px!important}
+  html body.pro.pro.pro :is(#mk-cmp .cm-rg,#unified-tools [data-panel=compare] .ucm-rg) button{height:34px!important;min-height:34px!important;font-size:11.5px!important;letter-spacing:-.02em}
+  html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){gap:4px 8px!important;font-size:10.5px!important}
+  html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) em{display:none!important}
+  /* 한국주식·가상화폐: 입력칸 3개를 미국주식처럼 한 줄 */
+  html body.pro.pro.pro #unified-tools [data-panel=compare] form{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px 8px!important;align-items:end}
+  html body.pro.pro.pro.pro #unified-tools [data-panel=compare] form>div:is(.kr-compare-inputs,.crypto-compare-inputs){grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px 8px!important}
+  html body.pro.pro.pro.pro #unified-tools [data-panel=compare] form>div :is(label){min-width:0}
+  html body.pro.pro.pro #unified-tools [data-panel=compare] form label{font-size:12px!important;white-space:nowrap}
+  html body.pro.pro.pro #unified-tools [data-panel=compare] form input[name^=compare]{min-width:0;padding:0 8px!important;font-size:13px!important}
+  html body.pro.pro.pro #unified-tools [data-panel=compare] form>button{grid-column:1/-1;width:100%}
+}
+html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){font-size:12px!important;gap:6px 10px!important}
+html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) :is(span,b,em){font-size:inherit!important;letter-spacing:-.02em}
+@media(max-width:700px){html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){font-size:10.5px!important;gap:4px 8px!important}}

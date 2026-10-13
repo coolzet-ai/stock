@@ -318,6 +318,7 @@
     var SK = 'mk_cmp_' + PAGE, sv = null;
     try { sv = JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) {}
     if (sv && !Array.isArray(sv.v)) sv = null;
+    $$('input[name^=compare]', form).forEach(function (i, n) { var lb = i.closest('label'); if (lb && lb.firstChild && lb.firstChild.nodeType === 3) lb.firstChild.textContent = '비교 종목 ' + (n + 1); });
     $$('input[name^=compare]', form).forEach(function (i, n) {
       if (!i.value) { var sval = sv && typeof sv.v[n] === 'string' ? sv.v[n].slice(0, 40) : ''; i.value = sval || (sv ? '' : def[n] || ''); if (sval && sv.s && typeof sv.s[n] === 'string' && /^[A-Za-z0-9.\-^=]{1,20}$/.test(sv.s[n])) { i.dataset.sym = sv.s[n]; i.dataset.nm = sval; } }
       i.setAttribute('aria-label', '비교 종목 ' + (n + 1)); });
@@ -371,7 +372,7 @@
       var ln = ser.map(function (s) { return '<polyline fill="none" stroke="' + COL[s.i] + '" stroke-width="2" stroke-linejoin="round" points="' + s.y.map(function (v, k) { return X(s.t[k]).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>'; }).join('');
       if (bs) ln += '<polyline fill="none" stroke="#6b7782" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" points="' + bs.y.map(function (v, k) { return X(bs.t[k]).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ') + '"/>';
       host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="종목별 누적 수익률 곡선">' + g + ln + '</svg>';
-      lg.innerHTML = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i style="background:' + COL[s.i] + '"></i><b>' + esc(s.n) + '</b> <em class="' + (e > 0 ? 'up' : e < 0 ? 'dn' : '') + '">' + (e > 0 ? '+' : '') + e.toFixed(2) + '%</em></span>'; }).join('') + (bs ? '<span><i style="background:#6b7782"></i><b>' + BNAME + '</b> <small class="mut">벤치마크</small> <em class="' + (bs.y[bs.y.length - 1] > 0 ? 'up' : bs.y[bs.y.length - 1] < 0 ? 'dn' : '') + '">' + (bs.y[bs.y.length - 1] > 0 ? '+' : '') + bs.y[bs.y.length - 1].toFixed(2) + '%</em></span>' : '');
+      lg.innerHTML = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i style="background:' + COL[s.i] + '"></i><b>' + esc(s.n) + '</b> <em class="' + (e > 0 ? 'up' : e < 0 ? 'dn' : '') + '">' + (e > 0 ? '+' : '') + e.toFixed(2) + '%</em></span>'; }).join('') + (bs ? '<span><i class="bn" style="background:#6b7782"></i><b>' + BNAME + '</b> <small class="mut">벤치마크</small> <em class="' + (bs.y[bs.y.length - 1] > 0 ? 'up' : bs.y[bs.y.length - 1] < 0 ? 'dn' : '') + '">' + (bs.y[bs.y.length - 1] > 0 ? '+' : '') + bs.y[bs.y.length - 1].toFixed(2) + '%</em></span>' : '');
     }
     function render() {
       var cols = data.map(function (c) { return c.pts ? metrics(c) : null; });
