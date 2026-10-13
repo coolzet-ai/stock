@@ -85,7 +85,7 @@
   /* ── 사이드카(매수·매도) 강조 ──
      코스피200 선물이 전일 대비 ±5%(1분 지속)면 프로그램매매 호가 효력 5분 정지, 코스닥150 선물 ±6%·지수 ±3%면 코스닥 사이드카.
      선물 시세 API가 없어 코스피200 지수(코스닥은 종합지수)의 등락률로 '발동 가능 구간'을 추정해 보여 준다. 공식 발동 여부는 KRX 공시 확인. */
-  var sc = { k200: null, kq: null }, scBox;
+  var sc = { k200: null, kq: null }, scBox, sawBelow = false;
   function pollSide() {
     var one = function (code, key) {
       var ctl = ('AbortController' in window) ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 9000);
@@ -96,17 +96,35 @@
     };
     return Promise.all([one('KPI200', 'k200'), one('KOSDAQ', 'kq')]).then(paintSide);
   }
+  function kstDay(ms) { return new Date(ms + 9 * 3600000).toISOString().slice(0, 10); }
+  function readLatch() { try { var o = JSON.parse(localStorage.getItem('mk_sidecar') || 'null'); return o && o.d && o.t ? o : null; } catch (e) { return null; } }
+  function sideValid(L) { /* 발동 당일, 또는 다음 날 09:00(KST) 전 */
+    var now = Date.now(), k = new Date(now + 9 * 3600000), today = kstDay(now); if (L.d === today) return true;
+    return kstDay(now - 86400000) === L.d && (k.getUTCHours() < 9);
+  }
+  function afterCloseWindow() { var k = new Date(Date.now() + 9 * 3600000), m = k.getUTCHours() * 60 + k.getUTCMinutes(), wd = k.getUTCDay(); return wd >= 1 && wd <= 5 && m >= 930 || wd >= 2 && wd <= 6 && m < 540; }
   function paintSide() {
     if (!scBox) return;
     var T = [{ q: sc.k200, n: '코스피200', th: 5, mk: '코스피' }, { q: sc.kq, n: '코스닥', th: 6, mk: '코스닥' }].filter(function (x) { return x.q; });
     if (!T.length) { scBox.className = 'kr-sc sc-na'; scBox.innerHTML = ''; return; }
     var hit = T.filter(function (x) { return Math.abs(x.q.pct) >= x.th; }), near = T.filter(function (x) { return Math.abs(x.q.pct) >= x.th * 0.8; });
     var sg = function (v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + '%'; };
-    if (hit.length) {
-      var h = hit[0], sell = h.q.pct < 0, open = h.q.open;
+    var now = Date.now(), L = readLatch(), h = hit[0]; if (!h) sawBelow = true;
+    if (h && h.q.open && (!L || L.mk !== h.mk)) { L = { d: kstDay(now), t: now, side: h.q.pct < 0 ? 'sell' : 'buy', mk: h.mk, n: h.n, pct: h.q.pct, late: !sawBelow }; try { localStorage.setItem('mk_sidecar', JSON.stringify(L)); } catch (e) {} }
+    var WIN = 5 * 60000, hm = function (t) { return new Date(t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' }); };
+    if (L && !L.late && h && h.q.open && now - L.t < WIN) { /* 발동 직후 5분: 크게 강조 + 남은 시간(효력 정지 5분 기준 추정) */
+      var sell = L.side === 'sell', left = Math.max(0, WIN - (now - L.t)), mm = Math.floor(left / 60000), ss = Math.floor(left % 60000 / 1000);
       scBox.className = 'kr-sc sc-hit ' + (sell ? 'sc-sell' : 'sc-buy');
-      scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">' + (sell ? '🚨' : '🔔') + '</span><div class="sc-tx"><b>' + (sell ? '매도' : '매수') + ' 사이드카 발동 구간 <em>' + h.mk + '</em></b><span>' + h.n + ' ' + sg(h.q.pct) + ' (기준 ±' + h.th + '%) · 프로그램매매 ' + (sell ? '매도' : '매수') + '호가 효력 5분 정지 대상' + (open ? '' : ' · 장 마감 기준') + '</span><small>지수 등락률 기준 추정 · 공식 발동 여부는 KRX 공시 확인</small></div><span class="sc-live">' + (open ? 'LIVE' : '마감') + '</span>';
+      scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">' + (sell ? '🚨' : '🔔') + '</span><div class="sc-tx"><b>' + (sell ? '매도' : '매수') + ' 사이드카 발동 구간 <em>' + h.mk + '</em></b><span>' + h.n + ' ' + sg(h.q.pct) + ' (기준 ±' + h.th + '%) · 프로그램매매 ' + (sell ? '매도' : '매수') + '호가 효력정지 약 <u>' + mm + ':' + (ss < 10 ? '0' : '') + ss + '</u> 남음(추정)</span><small>' + hm(L.t) + ' 감지 · 지수 등락률 기준 추정 · 공식 발동 여부는 KRX 공시 확인</small></div><span class="sc-live">LIVE</span>';
       scBox.setAttribute('role', 'alert');
+    } else if (L && sideValid(L)) { /* 5분 경과·장 마감 후: 오늘 있었던 일로 조용히 남김(당일 → 다음 날 09시 전까지) */
+      var s2 = L.side === 'sell';
+      scBox.className = 'kr-sc sc-done ' + (s2 ? 'sc-sell' : 'sc-buy'); scBox.removeAttribute('role');
+      scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">' + (s2 ? '🚨' : '🔔') + '</span><div class="sc-tx"><b>오늘 ' + (s2 ? '매도' : '매수') + ' 사이드카 ' + (L.late ? '기준 초과 상태 · 접속 시 이미 도달' : '발동 구간 진입 · ' + hm(L.t)) + '</b><span>' + L.n + ' ' + sg(L.pct) + (L.late ? ' · 발동 시각은 KRX 공시 확인' : ' · 효력정지 5분 경과(해제 추정)') + (h ? ' · 현재 ' + sg(h.q.pct) : '') + '</span></div>';
+    } else if (h && !h.q.open && afterCloseWindow()) { /* 장 마감 후 접속: 마감 등락률이 기준을 넘은 경우만 */
+      var s3 = h.q.pct < 0;
+      scBox.className = 'kr-sc sc-done ' + (s3 ? 'sc-sell' : 'sc-buy'); scBox.removeAttribute('role');
+      scBox.innerHTML = '<span class="sc-ic" aria-hidden="true">' + (s3 ? '🚨' : '🔔') + '</span><div class="sc-tx"><b>오늘 장중 ' + (s3 ? '매도' : '매수') + ' 사이드카 기준(±' + h.th + '%) 도달 · 마감 기준</b><span>' + h.n + ' ' + sg(h.q.pct) + ' · 발동 시각은 KRX 공시 확인</span></div>';
     } else if (near.length) {
       var n0 = near[0];
       scBox.className = 'kr-sc sc-near'; scBox.removeAttribute('role');
@@ -122,6 +140,7 @@
     if (d.getElementById('kr-sidecar')) return true;
     scBox = d.createElement('div'); scBox.id = 'kr-sidecar'; scBox.className = 'kr-sc sc-na'; hd.after(scBox);
     pollSide(); setInterval(function () { if (!d.hidden && sessionOpen()) pollSide(); }, 60000);
+    setInterval(function () { if (scBox && scBox.classList.contains('sc-hit')) paintSide(); }, 1000);
     return true;
   }
 

@@ -765,8 +765,8 @@ html body.pro .kr-sc .sc-dot{width:8px;height:8px;border-radius:50%;background:#
 html body.pro .kr-sc.sc-near{padding:10px 14px;background:#FFF4E5;border:1px solid #F8B56B;color:#7A3E00;font-size:13px}
 html body.pro .kr-sc.sc-near .sc-tx{display:flex;flex-direction:column;gap:2px}
 html body.pro .kr-sc.sc-hit{padding:16px 18px;color:#fff;border:2px solid transparent;box-shadow:0 0 0 0 rgba(0,0,0,.4);animation:kr-sc-pulse 1.4s ease-in-out infinite}
-html body.pro .kr-sc.sc-sell{background:linear-gradient(135deg,#1D4ED8,#1E3A8A);--scc:29,78,216}
-html body.pro .kr-sc.sc-buy{background:linear-gradient(135deg,#DC2626,#991B1B);--scc:220,38,38}
+html body.pro .kr-sc.sc-hit.sc-sell{background:linear-gradient(135deg,#1D4ED8,#1E3A8A);--scc:29,78,216}
+html body.pro .kr-sc.sc-hit.sc-buy{background:linear-gradient(135deg,#DC2626,#991B1B);--scc:220,38,38}
 html body.pro .kr-sc.sc-hit .sc-ic{font-size:30px;line-height:1;animation:kr-sc-shake 1.4s ease-in-out infinite}
 html body.pro .kr-sc.sc-hit .sc-tx{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 html body.pro .kr-sc.sc-hit .sc-tx b{font-size:19px;font-weight:800;letter-spacing:-.01em}
@@ -852,3 +852,10 @@ html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r.x .lv2-c{color
 @media(max-width:700px){html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t b{font-size:19px!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-r{grid-template-columns:auto minmax(0,1fr) 44px auto!important}html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover .lv2-t em{font-size:10px!important;white-space:normal!important;line-height:1.15!important}}
 html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover{background:#fff!important;border-color:var(--accent)!important;color:var(--tx)!important}
 html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover>small,html body.pro.pro.pro.pro.pro.pro #pro-brief .pb-lev:hover>small *{color:var(--tx2)!important;background:transparent!important}
+html body.pro .kr-sc.sc-hit .sc-tx u{text-decoration:none;font-variant-numeric:tabular-nums;font-weight:800;background:rgba(255,255,255,.2);border-radius:6px;padding:0 6px}
+html body.pro .kr-sc.sc-done{padding:8px 12px;font-size:12.5px;gap:10px;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--scc-b,#1D4ED8);color:var(--tx)}
+html body.pro .kr-sc.sc-done.sc-sell{--scc-b:#1D4ED8}html body.pro .kr-sc.sc-done.sc-buy{--scc-b:#DC2626}
+html body.pro .kr-sc.sc-done .sc-ic{font-size:18px}
+html body.pro .kr-sc.sc-done .sc-tx{display:flex;flex-direction:column;gap:2px}
+html body.pro .kr-sc.sc-done .sc-tx span{color:var(--tx2)}
+html body.pro.pro.pro.pro #pro-brief>.kr-sc.sc-done{background:var(--panel)!important}
