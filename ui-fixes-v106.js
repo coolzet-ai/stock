@@ -377,9 +377,9 @@
       var my = ++serial; msg(''); out.innerHTML = '<p class="mut">수익률을 불러오는 중…</p>';
       var resolver = window.MK_KR_RESOLVE_SYMBOL || window.MK_CRYPTO_RESOLVE_SYMBOL, nm = saved();
       var res = await Promise.all(vals.map(async function (v) {
-        var sym, c = { name: v, pts: null };
-        try { sym = (resolver ? await resolver(v) : v).toUpperCase(); } catch (er) { msg('종목을 찾지 못했습니다: ' + v); sym = /^[A-Z0-9.\-]+$/i.test(v) ? v.toUpperCase() : null; }
-        if (!sym) return c;
+        var sym, c = { name: v, pts: null }; var inEl = $$('input[name^=compare]', form).filter(function (i) { return i.value.trim() === v; })[0];
+        try { sym = (inEl && inEl.dataset.sym && inEl.value === inEl.dataset.nm) ? inEl.dataset.sym : (resolver ? await resolver(v) : v).toUpperCase(); } catch (er) { msg('종목을 찾지 못했습니다: ' + v); sym = /^[A-Z0-9.\-]+$/i.test(v) ? v.toUpperCase() : null; }
+        if (!sym) return c; c.sym = sym;
         c.name = hangul(v) ? v : (NAMES[sym] || nm[sym] || sym);
         if (!hangul(c.name) && /\.(KS|KQ)$/.test(sym) && window.MK_KR_NAME) { try { var kn = await window.MK_KR_NAME(sym, ''); if (kn && hangul(kn)) c.name = kn; } catch (er) {} }
         try { var q = await fetchOne(sym); c.pts = q.pts; c.px = q.px; c.prev = q.prev; c.cur = q.cur || (/\.(KS|KQ)$/.test(sym) ? 'KRW' : 'USD'); } catch (er) {}
@@ -387,6 +387,7 @@
       }));
       if (my !== serial) return;
       data = res; render();
+      $$('input[name^=compare]', form).filter(function (i) { return i.value.trim(); }).forEach(function (i, k) { var c = res[k]; if (c && c.sym && c.name && c.name !== c.sym && c.pts && i.value.trim() !== c.name) { i.dataset.sym = c.sym; i.dataset.nm = c.name; i.value = c.name; } });
     };
     form.onsubmit = go; form.addEventListener('submit', function (e) { e.preventDefault(); }, true);
     out.addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; months = +b.dataset.m; sel.value = String(months); $$('button', out).forEach(function (x) { x.classList.toggle('on', x === b); }); var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok; });
@@ -413,9 +414,45 @@
       '<div class="lv2-list">' + list + '</div>' + (rows.length > LIM ? '<span class="lv2-more">외 ' + (rows.length - LIM) + '종목 · 아래 표에서 전체 확인</span>' : '');
   };
 
+
+  /* ═══ 내 투자 도구 입력칸: 종목 코드(005930.KS · BTC-USD)를 입력하면 한글 종목명으로 바꿔 보여 준다 ═══
+     값은 dataset.sym 에 코드를 보관하고, 제출 직전에만 코드로 되돌렸다가 곧바로 한글명으로 복원한다. */
+  function nameInputs() {
+    if (PAGE !== 'kr-stock' && PAGE !== 'crypto') return;
+    var hub = d.getElementById('unified-tools'); if (!hub) return;
+    var CN = { 'BTC-USD': '비트코인', 'ETH-USD': '이더리움', 'SOL-USD': '솔라나', 'XRP-USD': '리플', 'BNB-USD': '바이낸스코인', 'DOGE-USD': '도지코인', 'ADA-USD': '에이다' };
+    var RE = PAGE === 'kr-stock' ? /^[0-9A-Z]{6}\.(KS|KQ)$/i : /^[A-Z0-9]{2,10}-USD$/i;
+    var skip = function (n) { return !n || n === '종목명 미수신'; };
+    async function nameOf(sym) {
+      sym = sym.toUpperCase();
+      if (CN[sym]) return CN[sym];
+      if (PAGE === 'kr-stock' && window.MK_KR_NAME) { var n = await window.MK_KR_NAME(sym, ''); return skip(n) || !/[가-힣]/.test(n) ? null : n; }
+      return null;
+    }
+    $$('form', hub).forEach(function (form) {
+      var ins = $$('input[name^=compare], input[name=ticker]', form).filter(function (i) { return !i._mkN; });
+      if (!ins.length) return;
+      ins.forEach(function (i) {
+        i._mkN = 1;
+        i.addEventListener('input', function () { if (i.dataset.nm && i.value !== i.dataset.nm) { delete i.dataset.sym; delete i.dataset.nm; } });
+        i.addEventListener('change', async function () {
+          var v = i.value.trim(); if (!RE.test(v) || i.dataset.sym) return;
+          var n = null; try { n = await nameOf(v); } catch (e) {}
+          if (n && i.value.trim() === v) { i.dataset.sym = v.toUpperCase(); i.dataset.nm = n; i.value = n; }
+        });
+      });
+      if (form._mkNs) return; form._mkNs = 1;
+      form.addEventListener('submit', function () {
+        var sw = $$('input', form).filter(function (i) { return i.dataset.sym && i.value === i.dataset.nm; });
+        sw.forEach(function (i) { i.value = i.dataset.sym; });
+        setTimeout(function () { sw.forEach(function (i) { if (i.value === i.dataset.sym) i.value = i.dataset.nm; }); }, 0);
+      }, true);
+    });
+  }
+
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
-    [homeClean, coinFold, foldEmoji, unifyCompare, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
+    [homeClean, coinFold, foldEmoji, unifyCompare, nameInputs, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', run); else run();
   var bn = 0, bt = setInterval(function () { if (!window.__mkBootDone || ++bn > 40) { clearInterval(bt); return; } try { unifyHead(); } catch (e) {} bootReady(); }, 150);
