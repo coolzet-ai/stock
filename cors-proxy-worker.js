@@ -1626,17 +1626,20 @@ const handler = {
 
     const reqUrl = new URL(request.url);
 
-    // KRX 보도자료 사이드카 공식 이력 (장중 60초 / 그 외 10분 캐시)
+    // KRX 보도자료 사이드카 공식 이력 (장중 60초 / 그 외 10분 캐시 — Cache API로 인스턴스 간 공유)
+    // ?debug=1 은 관리자(STATS_KEY 일치 또는 DEBUG=1)만 — 외부에서 캐시를 우회해 KRX를 반복 호출하는 것을 막는다.
     if (reqUrl.pathname.replace(/\/{2,}/g, '/') === '/krx-sidecar') {
       const hdr = { ...CORS, 'Content-Type': 'application/json' };
-      const debug = reqUrl.searchParams.get('debug') === '1';
+      const debug = reqUrl.searchParams.get('debug') === '1' && !!globalThis.__MK_DBG;
       const k = new Date(Date.now() + 9 * 3600000), m = k.getUTCHours() * 60 + k.getUTCMinutes(), wd = k.getUTCDay();
-      const ttl = (wd >= 1 && wd <= 5 && m >= 540 && m < 960) ? 60000 : 600000;
-      if (!debug && krxSideCache.data && Date.now() - krxSideCache.at < ttl) return new Response(JSON.stringify(krxSideCache.data), { headers: hdr });
+      const ttl = (wd >= 1 && wd <= 5 && m >= 540 && m < 960) ? 60 : 600;
+      const ck = new Request('https://cache.local/krx-sidecar-v1');
+      if (!debug) { try { const hit = await caches.default.match(ck); if (hit) return new Response(await hit.text(), { headers: hdr }); } catch (e) {} }
       try {
         const data = await fetchKrxSidecar(debug);
-        if (!debug) krxSideCache = { at: Date.now(), data };
-        return new Response(JSON.stringify(data), { headers: hdr });
+        const body = JSON.stringify(data);
+        if (!debug) { krxSideCache = { at: Date.now(), data }; try { ctx.waitUntil(caches.default.put(ck, new Response(body, { headers: { 'Cache-Control': 'max-age=' + ttl } }))); } catch (e) {} }
+        return new Response(body, { headers: hdr });
       } catch (e) {
         if (krxSideCache.data && !debug) return new Response(JSON.stringify(Object.assign({}, krxSideCache.data, { stale: true })), { headers: hdr });
         return new Response(JSON.stringify({ ok: false, error: errMsg(e), dbg: debug && e && e.dbg ? e.dbg : undefined }), { status: 502, headers: hdr });
