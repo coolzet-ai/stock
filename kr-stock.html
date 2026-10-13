@@ -2749,7 +2749,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ui-fixes-v106.css?v=0f7f3342">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=6a5cf123">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -2843,6 +2843,16 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
     <h3 style="font-size:15px;color:var(--tx2);margin:32px 0 10px">자산간 상관관계 — 코스피 기준</h3>
     <p class="sub" style="margin-bottom:0">원/달러 환율·S&amp;P500·VIX·반도체(SOXX)와 최근 90거래일 상관계수 · 매크로 환경 파악용</p>
     <div class="card" style="margin-top:16px" id="kr-corr-grid"><p class="mut" style="font-size:12.5px">불러오는 중…</p></div>
+
+    <h2 id="krwl-h" style="font-size:21px;margin-top:44px">김군 관심종목</h2>
+    <p class="sub">고배당·금융 중심 관심종목 · 기간별 등락률 · 검색해서 추가하고 ✕로 삭제 (이 브라우저에만 저장)</p>
+    <div class="tabs" data-group="krwl">
+      <button class="on" data-p="d">1일</button><button data-p="w">1주</button>
+      <button data-p="m">1개월</button><button data-p="y">1년</button>
+    </div>
+    <div class="scroll">
+      <div class="wl-list" id="krwl-tbl"></div>
+    </div>
 
     <h2 style="font-size:21px;margin-top:44px">시가총액 TOP10 (코스피)</h2>
     <p class="sub">코스피 상장 종목 시가총액 순위 · 기간별 등락률 (2026년 9월 11일 기준 순위)</p>
@@ -4680,6 +4690,7 @@ const TICKGROUPS={
   lev: {table:'lev-tbl',  list:['TQQQ','UPRO','HIBL','UDOW','TECL','BULZ','SOXL','SMHU','FNGU','WEBL','DFEN','FAS','LABU','KORU','YINN','GDXU']},
   kridx:{table:'kridx-tbl', list:['267270.KS','000990.KS','483650.KS','456040.KS','006360.KS','004490.KS','114090.KS','005250.KS','082740.KS','007660.KS','034230.KS','062040.KS','064400.KS','307950.KS','002030.KS','010620.KS','012630.KS','489790.KS','145720.KS','039130.KS','003620.KS','002710.KS','010060.KS'], cur:'₩', fmt:fmtWon},
   krcap:{table:'krcap-tbl', list:['005930.KS','000660.KS','402340.KS','009150.KS','005380.KS','373220.KS','207940.KS','105560.KS','032830.KS','028260.KS'], cur:'₩', fmt:fmtWon},
+  krwl:{table:'krwl-tbl', list:[], cur:'₩', fmt:fmtWon},
   krlev:{table:'krlev-tbl', list:['122630.KS','243880.KS','494310.KS','0080Y0.KS','233740.KS','0193T0.KS','0193W0.KS'], cur:'₩', fmt:fmtWon},
   krkq: {table:'krkq-tbl',  list:['196170.KQ','086520.KQ','247540.KQ','036930.KQ','277810.KQ','240810.KQ','039030.KQ','058470.KQ','222800.KQ','108490.KQ'], cur:'₩', fmt:fmtWon}
 };
@@ -9862,10 +9873,9 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
       var nameOf=function(t){ var a=document.querySelector('#krlev-tbl .wl-row[data-t="'+t+'"] .wl-name>a'); return a?a.textContent.replace(/\s+/g,' ').trim():t; };
       var a=g.querySelector('.pb-lev');
       if(!have.length){ if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#krlev-tbl'; a.dataset.go='h:레버리지'; a.innerHTML='<small>레버리지 ETF 연속 하락</small><b>--</b>'; g.appendChild(a); } return; }
-      var two=[],three=[],cum=[]; have.forEach(function(t){ var d=tickData[t],n=levStreakN(d); if(n===2) two.push(nameOf(t)); else if(n>=3) three.push([nameOf(t),n]); if(n>=2){ var c=(d[d.length-1]/d[d.length-1-n]-1)*100; if(c<=-30) cum.push([nameOf(t),c]); } }); cum.sort(function(x,y){ return x[1]-y[1]; });
-      three.sort(function(x,y){ return y[1]-x[1]; });
-      var chips=function(arr,cls){ return arr.length?arr.map(function(x){ var t=Array.isArray(x)?x[0]:x; return '<i class="'+cls+'">'+t+(Array.isArray(x)?' '+x[1]+'일':'')+'</i>'; }).join(''):'<em class="none">없음</em>'; };
-      var h='<small>레버리지 ETF 연속 하락 <span class="lv-n">'+have.length+'종목 기준</span></small><div class="lv-g"><div class="lv-r"><b class="lv-k">2연속 하락 · '+two.length+'</b><span class="lv-c">'+chips(two,'d2')+'</span></div><div class="lv-r"><b class="lv-k">3연속 이상 · '+three.length+'</b><span class="lv-c">'+chips(three,'d3')+'</span></div><div class="lv-r lv-w"><b class="lv-k">연속 하락 누적 −30% 초과 · '+cum.length+'</b><span class="lv-c">'+(cum.length?cum.map(function(x){ return '<i class="d4">'+x[0]+' −'+Math.abs(x[1]).toFixed(1)+'%</i>'; }).join(''):'<em class="none">없음</em>')+'</span></div></div>';
+      var rows=[]; have.forEach(function(t){ var d=tickData[t],n=levStreakN(d); if(n>=2) rows.push({n:nameOf(t),s:n,c:(d[d.length-1]/d[d.length-1-n]-1)*100}); });
+      if(typeof window.mkLevHtml!=='function') return;
+      var h=window.mkLevHtml(rows,have.length);
       if(!a){ a=document.createElement('a'); a.className='pb-c pb-lev'; a.href='#krlev-tbl'; a.dataset.go='h:레버리지'; g.appendChild(a); }
       if(a._h!==h){ a._h=h; a.innerHTML=h; }
     };
@@ -9875,7 +9885,7 @@ setInterval(()=>{ try{ updateActionLine(); }catch(e){} },5000);
       if(t.indexOf('h:')===0){ var k=t.slice(2); el=[].slice.call(document.querySelectorAll('h2.fold-h')).find(function(h){ return (h.textContent||'').replace(/\s+/g,' ').trim().indexOf(k)===0; }); if(el&&el._set) el._set(true); } else el=document.querySelector(t);
       if(el) openAndGo(el); });
     var toc=document.createElement('nav'); toc.id='pro-toc'; toc.setAttribute('aria-label','페이지 목차');
-    var ITEMS=[['요약','#pro-brief'],['공탐','#kr-card'],['투자자 동향','h:투자자별'],['지수비교','h:코스피·코스닥'],['코스피 TOP10','h:시가총액 TOP10 (코스피)'],['코스닥 TOP10','h:시가총액 TOP10 (코스닥)'],['레버리지','h:레버리지'],['이벤트','h:주요 이벤트'],['편입·편출','h:KOSPI200']];
+    var ITEMS=[['요약','#pro-brief'],['공탐','#kr-card'],['투자자 동향','h:투자자별'],['지수비교','h:코스피·코스닥'],['김군 관심종목','h:김군 관심종목'],['코스피 TOP10','h:시가총액 TOP10 (코스피)'],['코스닥 TOP10','h:시가총액 TOP10 (코스닥)'],['레버리지','h:레버리지'],['이벤트','h:주요 이벤트'],['편입·편출','h:KOSPI200']];
     toc.innerHTML=ITEMS.map(function(it,i){ return '<a href="#" data-i="'+i+'">'+it[0]+'</a>'; }).join('');
     var st2=document.getElementById('pro-status'); (st2||hd).after(toc);
     var place=function(){ if(!document.querySelector('header.hdr-off')) toc.style.top=(hd?hd.offsetHeight:0)+'px'; }; place(); window.addEventListener('resize',place); setTimeout(place,1500);
@@ -10838,13 +10848,14 @@ async function toggleKrLev(t,ev){
   })();
 })();
 </script>
-<script src="kr-tools.js?v=5951c061"></script>
+<script src="kr-tools.js?v=f7370846"></script>
 <script src="mrkim-detail.js?v=446c8c63"></script>
 <script src="kr-standard.js?v=76912559"></script>
 <script defer src="market-refine.js?v=bfdc42f5"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
-<script defer src="ui-fixes-v106.js?v=c2a72818"></script>
-<script defer src="kr-live.js?v=f2caaa57"></script>
-<script defer src="kr-trend.js?v=9f0f711d"></script>
+<script defer src="mk-watch.js?v=bf4b8b8a"></script>
+<script defer src="ui-fixes-v106.js?v=27f0a7a0"></script>
+<script defer src="kr-live.js?v=2f4f4d21"></script>
+<script defer src="kr-trend.js?v=9e848cac"></script>
 </body>
 </html>

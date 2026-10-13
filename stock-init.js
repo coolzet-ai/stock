@@ -6,7 +6,7 @@
 /* Allow only harmless presentation preferences in settings backups. */
 (function () {
   'use strict';
-  var enums = {mk_theme:['auto','light','dark'],mk_cv:['us','kr'],mk_save:['0','1'],mk_live:['0','1'],mk_live_ms:['15000','30000','60000'],mk_one:['0','1'],mk_noev:['0','1'],mk_sort:['o','d','a']};
+  var enums = {mk_theme:['auto','light','dark'],mk_cv:['us','kr'],mk_save:['0','1'],mk_live:['0','1'],mk_live_ms:['60000','1800000','3600000'],mk_one:['0','1'],mk_noev:['0','1'],mk_sort:['o','d','a']};
   function valid(k,v) {
     if (typeof v !== 'string' || v.length > 150) return false;
     if (Object.prototype.hasOwnProperty.call(enums,k)) return enums[k].indexOf(v) !== -1;

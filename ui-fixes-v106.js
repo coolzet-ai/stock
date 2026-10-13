@@ -74,18 +74,18 @@
   /* ═══ 실시간 시세 스위치(MK_LIVE) ═══
      Cloudflare Worker 요청·데이터 사용을 줄이기 위해 실시간 갱신은 사용자가 켠 경우에만 돈다(기본 꺼짐).
      켜 두어도 · 탭이 숨겨지면 멈춤 · 10분간 조작이 없으면 일시정지(다시 조작하면 재개) · 데이터 절약 모드(mk_save)면 기본 꺼짐.
-     한국주식(kr-live.js)과 미국주식 선물 카드가 이 설정을 함께 쓴다. 저장: mk_live('0'|'1'), mk_live_ms(15000|30000|60000).
+     한국주식(kr-live.js)과 미국주식 선물 카드가 이 설정을 함께 쓴다. 저장: mk_live('0'|'1'), mk_live_ms(60000|1800000|3600000).
      켜기는 관리자 모드(암호 인증 후 mk_gate_off=1)에서만 가능하다. 일반 방문자는 저장값이 1이어도 꺼진 것으로 본다.
      (브라우저 저장소 기반이라 서버가 강제하는 보안 장치는 아니며, 일반 이용자의 실수·과다 사용을 막는 용도다.) */
-  var DEFAULT_ON = false, IDLE_MS = 10 * 60000, MS_OPTS = [15000, 30000, 60000];
+  var DEFAULT_ON = false, IDLE_MS = 10 * 60000, MS_OPTS = [60000, 1800000, 3600000];
   var lastAct = Date.now(), subs = [], btn = null, sel = null, st = { text: '', cls: '' };
   function rd(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function wr(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   var LIVE = window.MK_LIVE = {
     admin: function () { return rd('mk_gate_off') === '1'; },
     on: function () { if (!LIVE.admin()) return false; var v = rd('mk_live'); return v === null ? (DEFAULT_ON && !window.MK_SAVE) : v === '1'; },
-    ms: function () { var m = +rd('mk_live_ms'); return MS_OPTS.indexOf(m) >= 0 ? m : 30000; },
-    idle: function () { return Date.now() - lastAct > IDLE_MS; },
+    ms: function () { var m = +rd('mk_live_ms'); return MS_OPTS.indexOf(m) >= 0 ? m : 60000; },
+    idle: function () { return Date.now() - lastAct > Math.max(IDLE_MS, LIVE.ms() * 2); },
     active: function () { return LIVE.on() && !LIVE.idle() && !d.hidden; },
     set: function (on) { if (on && !LIVE.admin()) { notify(); return; } wr('mk_live', on ? '1' : '0'); lastAct = Date.now(); notify(); },
     setMs: function (ms) { wr('mk_live_ms', String(ms)); notify(); },
@@ -108,7 +108,7 @@
     btn = d.getElementById('mk-live-sw') || d.createElement('button'); btn.type = 'button'; btn.id = 'mk-live-sw';
     btn.addEventListener('click', function () { if (!LIVE.admin()) { btn.classList.add('shake'); setTimeout(function () { btn.classList.remove('shake'); }, 500); return; } if (LIVE.on() && LIVE.idle()) { lastAct = Date.now(); notify(); } else LIVE.set(!LIVE.on()); });
     sel = d.createElement('select'); sel.id = 'mk-live-ms'; sel.setAttribute('aria-label', '실시간 갱신 주기');
-    MS_OPTS.forEach(function (m) { var o = d.createElement('option'); o.value = m; o.textContent = (m / 1000) + '초'; sel.appendChild(o); });
+    MS_OPTS.forEach(function (m) { var o = d.createElement('option'); o.value = m; o.textContent = m >= 3600000 ? (m / 3600000) + '시간' : m >= 60000 && m % 60000 === 0 && m > 60000 ? (m / 60000) + '분' : (m / 1000) + '초'; sel.appendChild(o); });
     sel.addEventListener('change', function () { LIVE.setMs(+sel.value); });
     hd.appendChild(btn); hd.appendChild(sel); paintSw(); return true;
   }
@@ -391,6 +391,27 @@
     out.addEventListener('click', function (e) { var b = e.target.closest('button[data-m]'); if (!b) return; months = +b.dataset.m; sel.value = String(months); $$('button', out).forEach(function (x) { x.classList.toggle('on', x === b); }); var ok = data; data = data.filter(function (c) { return c.pts; }); draw(); data = ok; });
     var nav = d.querySelector('#unified-tools [data-tool=compare]'); if (nav) nav.addEventListener('click', function () { if (!data.length) setTimeout(go, 0); }, { once: true });
   }
+
+  /* ═══ 레버리지 ETF 연속 하락 박스(미국·한국 공통) ═══
+     연속 하락 일수별 색(2연속 노랑 → 3연속 주황 → 4연속+ 빨강)과 누적 하락률 막대로 한눈에 보이게 한다.
+     rows: [{n:표시명, s:연속일수, c:연속 하락 구간 누적 등락률(%)}] (s>=2 만) */
+  window.mkLevHtml = function (rows, total) {
+    var esc = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var c2 = 0, c3 = 0, c4 = 0, cx = 0;
+    rows.forEach(function (r) { if (r.s === 2) c2++; else if (r.s === 3) c3++; else c4++; if (r.c <= -30) cx++; });
+    rows = rows.slice().sort(function (a, b) { return b.s - a.s || a.c - b.c; });
+    var mx = Math.max(30, Math.max.apply(null, rows.map(function (r) { return Math.abs(r.c); }).concat([0])));
+    var LIM = 10, shown = rows.slice(0, LIM);
+    var tile = function (cls, n, l) { return '<span class="lv2-t ' + cls + (n ? ' on' : '') + '"><b>' + n + '</b><em>' + l + '</em></span>'; };
+    var list = shown.length ? shown.map(function (r) {
+      var k = r.s >= 4 ? 's4' : r.s === 3 ? 's3' : 's2', w = Math.min(100, Math.abs(r.c) / mx * 100);
+      return '<span class="lv2-r ' + k + (r.c <= -30 ? ' x' : '') + '"><i class="lv2-b">' + r.s + '일</i><span class="lv2-n">' + esc(r.n) + '</span><span class="lv2-g"><u style="width:' + w.toFixed(0) + '%"></u></span><b class="lv2-c">' + (r.c <= -30 ? '⚠ ' : '') + '−' + Math.abs(r.c).toFixed(1) + '%</b></span>';
+    }).join('') : '<em class="lv2-none">연속 하락 중인 종목이 없습니다</em>';
+    return '<small>레버리지 ETF 연속 하락 <span class="lv-n">' + total + '종목 기준 · 종가 기준 연속 하락일 · 누적 하락률</span></small>' +
+      '<div class="lv2-sum">' + tile('s2', c2, '2연속') + tile('s3', c3, '3연속') + tile('s4', c4, '4연속 이상') + tile('sx', cx, '−30% 초과') + '</div>' +
+      '<div class="lv2-list">' + list + '</div>' + (rows.length > LIM ? '<span class="lv2-more">외 ' + (rows.length - LIM) + '종목 · 아래 표에서 전체 확인</span>' : '');
+  };
+
   /* 한 기능에서 오류가 나도 나머지(특히 상태 카드 정리 unifyHead)가 멈추지 않도록 각각 따로 실행 */
   function run() {
     [homeClean, coinFold, foldEmoji, unifyCompare, guideCrypto, flatten, dropHistory, sectorLegend, liveCards, homeBadges, wrapGate, markLocks, unifyHead, numScan, spyUpdate, resumeOnce, bootReady].forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.warn('[ui-fixes]', fn.name, e); } });

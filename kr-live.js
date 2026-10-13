@@ -131,9 +131,9 @@
   function schedule() {
     clearTimeout(timer);
     var open = live.open !== null ? live.open : sessionOpen();
-    timer = setTimeout(run, open ? (window.MK_LIVE ? window.MK_LIVE.ms() : 30000) : 300000);
+    timer = setTimeout(run, open ? (window.MK_LIVE ? window.MK_LIVE.ms() : 60000) : 300000);
   }
-  d.addEventListener('visibilitychange', function () { if (!d.hidden && Date.now() - live.okAt > 20000) { clearTimeout(timer); run(); } });
+  d.addEventListener('visibilitychange', function () { if (!d.hidden && Date.now() - live.okAt > Math.max(20000, window.MK_LIVE ? window.MK_LIVE.ms() : 0)) { clearTimeout(timer); run(); } });
   /* 스위치를 켜거나 일시정지에서 돌아오면 바로 한 번 */
   function hook() { if (!window.MK_LIVE) { setTimeout(hook, 300); return; } window.MK_LIVE.onChange(function () { clearTimeout(timer); if (window.MK_LIVE.active()) run(); else schedule(); }); }
   hook();
