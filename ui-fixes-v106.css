@@ -862,3 +862,8 @@ html body.pro.pro.pro.pro #pro-brief>.kr-sc.sc-done{background:var(--panel)!impo
 html body.pro #pro-brief .pb-hd .sc-mark{display:inline-block;margin-left:8px;font-size:20px;line-height:1;vertical-align:middle;flex:none}
 html body.pro #pro-brief .pb-hd .sc-mark.live{animation:kr-sc-shake 1.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){html body.pro #pro-brief .pb-hd .sc-mark.live{animation:none}}
+html body.pro .kr-sc em.sc-off,html body.pro .kr-sc em.sc-est{font-style:normal;font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+html body.pro .kr-sc.sc-done em.sc-off{background:#0B6B45;color:#fff}
+html body.pro .kr-sc.sc-done em.sc-est{background:#eef0f2;color:#5b6570}
+html body.pro .kr-sc.sc-hit em.sc-off{background:rgba(255,255,255,.25);margin-left:0}
+html body.pro .kr-sc.sc-done a{color:var(--accent);font-weight:700}
