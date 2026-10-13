@@ -1577,6 +1577,47 @@ async function fetchKrxRowsRecent(path, maxBack) {
   return { rows: [], basDd: fmtYmd(new Date()) };
 }
 
+
+/* ───────── KRX 보도자료 — 사이드카 발동 공식 이력 ─────────
+   open.krx.co.kr 보도자료 게시판(제목 검색 '사이드카')을 2단계(OTP 발급 → 목록 POST)로 조회한다.
+   응답 형식(사용자가 브라우저에서 확인해 준 값): {"output":[{"title":"유가증권시장 매도사이드카(…) 발동","creat_ddtm":"2026/10/13","noti_dd":"2026/10/13","noti_no":"…","totCnt":"84"}]}
+   게시글에는 날짜만 있고 발동 시각은 첨부파일에 있다(여기서는 읽지 않는다).
+   [주의] 서버에서 실제 호출은 아직 검증하지 못했다 — /krx-sidecar?debug=1 로 각 단계 응답을 확인할 수 있다. */
+const KRX_OPN_REF = 'https://open.krx.co.kr/contents/OPN/05/05000000/OPN05000000.jsp';
+let krxSideCache = { at: 0, data: null };
+async function fetchKrxSidecar(debug) {
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+  const base = { 'User-Agent': UA, 'Referer': KRX_OPN_REF, 'Origin': 'https://open.krx.co.kr', 'Accept': 'application/json, text/javascript, */*; q=0.01', 'X-Requested-With': 'XMLHttpRequest' };
+  const dbg = {};
+  const r1 = await fetch('https://open.krx.co.kr/contents/COM/GenerateOTP.jspx?bld=' + encodeURIComponent('OPN/05/05000000/opn05000000t1_01') + '&name=list&_=' + Date.now(), { headers: base });
+  const otp = (await r1.text()).trim();
+  dbg.otp = { status: r1.status, length: otp.length };
+  if (!r1.ok || otp.length < 20 || /[<>{]/.test(otp)) throw Object.assign(new Error('OTP 발급 실패'), { dbg });
+  let cookie = '';
+  try { cookie = (r1.headers.getSetCookie ? r1.headers.getSetCookie() : []).map(function (c) { return c.split(';')[0]; }).join('; '); } catch (e) {}
+  const ymd = function (d) { return d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, '0') + String(d.getUTCDate()).padStart(2, '0'); };
+  const kst = new Date(Date.now() + 9 * 3600000), from = new Date(kst.getTime() - 60 * 86400000);
+  const form = new URLSearchParams({ sch_tp: 'title', sch_word: '사이드카', fromdate: ymd(from), todate: ymd(kst), pagePath: '/contents/OPN/05/05000000/OPN05000000T1.jsp', curPage: '1', pageSize: '30', code: otp });
+  const headers = Object.assign({}, base, { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' });
+  if (cookie) headers['Cookie'] = cookie;
+  const r2 = await fetch('https://open.krx.co.kr/contents/OPN/99/OPN99000001.jspx?code=' + encodeURIComponent(otp), { method: 'POST', headers, body: form.toString() });
+  const text = await r2.text();
+  dbg.list = { status: r2.status, contentType: r2.headers.get('content-type'), head: debug ? text.slice(0, 1500) : undefined };
+  let j = null; try { j = JSON.parse(text); } catch (e) {}
+  const rows = j && Array.isArray(j.output) ? j.output : [];
+  if (!rows.length && !(j && Array.isArray(j.output))) throw Object.assign(new Error('목록 응답 형식 불일치'), { dbg });
+  const events = [];
+  rows.forEach(function (r) {
+    const t = String(r.title || ''); if (!/사이드카/.test(t)) return;
+    const market = /코스닥/.test(t) ? '코스닥' : /유가증권|코스피/.test(t) ? '코스피' : '';
+    const side = /매도/.test(t) ? 'sell' : /매수/.test(t) ? 'buy' : '';
+    const dd = String(r.noti_dd || r.creat_ddtm || '').replace(/[^0-9]/g, '').slice(0, 8);
+    if (!market || !side || dd.length !== 8) return;
+    events.push({ date: dd, market, side, title: t, no: String(r.noti_no || '') });
+  });
+  return { ok: true, updatedAt: Date.now(), source: 'open.krx.co.kr 보도자료', link: KRX_OPN_REF, total: rows.length ? Number(rows[0].totCnt) || null : 0, events, dbg: debug ? dbg : undefined };
+}
+
 const handler = {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') {
@@ -1584,6 +1625,23 @@ const handler = {
     }
 
     const reqUrl = new URL(request.url);
+
+    // KRX 보도자료 사이드카 공식 이력 (장중 60초 / 그 외 10분 캐시)
+    if (reqUrl.pathname.replace(/\/{2,}/g, '/') === '/krx-sidecar') {
+      const hdr = { ...CORS, 'Content-Type': 'application/json' };
+      const debug = reqUrl.searchParams.get('debug') === '1';
+      const k = new Date(Date.now() + 9 * 3600000), m = k.getUTCHours() * 60 + k.getUTCMinutes(), wd = k.getUTCDay();
+      const ttl = (wd >= 1 && wd <= 5 && m >= 540 && m < 960) ? 60000 : 600000;
+      if (!debug && krxSideCache.data && Date.now() - krxSideCache.at < ttl) return new Response(JSON.stringify(krxSideCache.data), { headers: hdr });
+      try {
+        const data = await fetchKrxSidecar(debug);
+        if (!debug) krxSideCache = { at: Date.now(), data };
+        return new Response(JSON.stringify(data), { headers: hdr });
+      } catch (e) {
+        if (krxSideCache.data && !debug) return new Response(JSON.stringify(Object.assign({}, krxSideCache.data, { stale: true })), { headers: hdr });
+        return new Response(JSON.stringify({ ok: false, error: errMsg(e), dbg: debug && e && e.dbg ? e.dbg : undefined }), { status: 502, headers: hdr });
+      }
+    }
 
     // [미국] 시장 폭 — TradingView 스캐너에서 NYSE·NASDAQ 보통주(시총 3억$ 이상) 개수를 집계 (5분 캐시)
     if (reqUrl.pathname.replace(/\/{2,}/g, '/') === '/us-breadth') {
