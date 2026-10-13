@@ -8756,6 +8756,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
   function buildCmp() {
     var base = $('#mk-acct') || $('#my-wl'); if (!base) return false; if ($('#mk-cmp')) return true;
     var my = myTickers(), d = my.length ? my.slice(0, 3) : ['NVDA', 'AAPL', 'MSFT'];
+    try { var sv = JSON.parse(localStorage.getItem('mk_cmp_stock') || 'null'); if (sv && Array.isArray(sv.t)) { d = [0, 1, 2].map(function (i) { var x = String(sv.t[i] || '').toUpperCase(); return RE.test(x) ? x : ''; }); if ([1, 3, 6, 12, 36, 60, 120].indexOf(+sv.m) >= 0) cmRg = +sv.m; } } catch (e) {}
     var box = document.createElement('div'); box.className = 'card'; box.id = 'mk-cmp'; box.style.marginTop = '16px';
     box.innerHTML = '<h3><span>🔍 종목 비교</span><span class="mut" style="font-weight:400;font-size:11.5px">최대 3개 · 시세 기준 계산</span></h3>' +
       '<form class="cm-f" autocomplete="off">' + [0, 1, 2].map(function (i) { return '<input type="text" maxlength="15" value="' + esc(d[i] || '') + '" placeholder="티커 ' + (i + 1) + '" aria-label="비교 종목 ' + (i + 1) + '">'; }).join('') + '<button type="submit">비교</button></form><div id="cm-r" class="scroll"></div>';
@@ -8765,6 +8766,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
   }
   async function runCmp() {
     var ts = $$('#mk-cmp input[type=text]').map(function (i) { return i.value.trim().toUpperCase(); }).filter(function (t, i, a) { return RE.test(t) && a.indexOf(t) === i; });
+    try { localStorage.setItem('mk_cmp_stock', JSON.stringify({ t: $$('#mk-cmp input[type=text]').map(function (i) { return i.value.trim().toUpperCase(); }), m: cmRg })); } catch (e) {}
     var host = $('#cm-r'); if (!ts.length) { ++cmSerial;host.innerHTML = ''; return; }
     host.innerHTML = '<p class="mut" style="font-size:12.5px">불러오는 중…</p>';
     var D = (window.MK_DATA ? window.MK_DATA() : {}) || {};
@@ -8811,7 +8813,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
     var lg = ser.map(function (s) { var e = s.y[s.y.length - 1]; return '<span><i class="cm-sw cm-c' + s.i + '"></i><b>' + esc(s.t) + '</b> <em class="' + cls(e) + '">' + fmtPct(e) + '</em></span>'; }).join('');
     host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="종목별 누적 수익률 곡선" class="cm-svg">' + g + xl + ln + '</svg><div class="cm-lg">' + lg + '</div>';
   }
-  document.addEventListener('click', function (e) { var b = e.target.closest('.cm-rg button'); if (!b) return; cmRg = +b.dataset.rg; $$('.cm-rg button').forEach(function (x) { x.classList.toggle('on', x === b); }); if(cmRg>12&&cmData.some(function(d){return d.ts.length<500;}))runCmp();else drawCmp(); });
+  document.addEventListener('click', function (e) { var b = e.target.closest('.cm-rg button'); if (!b) return; cmRg = +b.dataset.rg; try { localStorage.setItem('mk_cmp_stock', JSON.stringify({ t: $$('#mk-cmp input[type=text]').map(function (i) { return i.value.trim().toUpperCase(); }), m: cmRg })); } catch (e) {} $$('.cm-rg button').forEach(function (x) { x.classList.toggle('on', x === b); }); if(cmRg>12&&cmData.some(function(d){return d.ts.length<500;}))runCmp();else drawCmp(); });
 
   /* ───────── 구동 ───────── */
   var tries = 0;
