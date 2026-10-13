@@ -7955,7 +7955,7 @@ setTimeout(draw,5000);setInterval(draw,20000);
   var pcn=document.getElementById('pc-note'); if(pcn) pcn.addEventListener('click',function(){ pcn.classList.toggle('open'); });
   /* ===== 홈 화면 추가(PWA) 서비스워커 ===== */
   if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
-    window.addEventListener('load',function(){ navigator.serviceWorker.register('stock-sw.js',{scope:'./stock.html'}).catch(function(){}); }); }
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 
   /* ===== 유니콘 카드: 주제별(기업가치·손익·상장·미국/한국 투자자·뉴스) 줄맞춤 — 카드 내용을 구역으로 묶고 subgrid 로 같은 줄에 맞춘다 ===== */
   (function(){ var g=document.querySelector('#unicorn .grid'); if(!g||!CSS.supports||!CSS.supports('grid-template-rows','subgrid')) return;

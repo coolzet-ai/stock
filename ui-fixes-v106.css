@@ -940,3 +940,79 @@ html body.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .uc
 html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){font-size:12px!important;gap:6px 10px!important}
 html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg) :is(span,b,em){font-size:inherit!important;letter-spacing:-.02em}
 @media(max-width:700px){html body.pro.pro.pro.pro :is(#mk-cmp .cm-lg,#unified-tools [data-panel=compare] .ucm-lg){font-size:10.5px!important;gap:4px 8px!important}}
+
+/* ===== v143: 안내·유입 요소 / 디자인 규칙 / 모션 통일 ===== */
+:root{--sk-a:#e6ebe8;--sk-b:#f3f6f4;--mk-up:#d92d20;--mk-dn:#2563eb}
+/* 색 규칙: 상승=빨강(--mk-up) · 하락=파랑(--mk-dn) · 경고=주황/빨강 배너 · 브랜드=#0A6B48 (DESIGN-RULES.md 참고) */
+
+/* 숫자 정렬 */
+html body.pro :is(.wl-price,.wl-pct,.px,.ch,.m,.big,.chg,#pro-tick .pt b,#pro-tick .pt i,.pb-c>b,.kt-c b,.kt-d,td,.fold-sum b){font-variant-numeric:tabular-nums}
+
+/* 푸터 안내 링크 */
+.mk-flinks{display:flex;flex-wrap:wrap;gap:2px 4px;margin:14px 0 4px}
+.mk-flinks a,.mk-flinks button{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;font:600 13px/1 inherit;font-family:inherit;color:var(--tx2,#5b6675);text-decoration:none;background:none;border:0;border-radius:8px;cursor:pointer}
+.mk-flinks a:hover,.mk-flinks button:hover{color:#0A6B48;background:rgba(10,107,72,.08)}
+.mk-flinks .mk-share{margin-left:auto;color:#0A6B48;border:1px solid rgba(10,107,72,.35)}
+/* 카드 출처·지연 */
+.mk-src{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--tx2,#5b6675);white-space:nowrap;vertical-align:middle;letter-spacing:0}
+@media(max-width:700px){.mk-src{display:block;margin:2px 0 0;font-size:11px;white-space:normal}}
+.mk-why{margin-left:6px;font-size:12px;font-weight:700;color:#0A6B48;text-decoration:underline}
+/* 다른 시장 */
+.mk-cross{margin:40px 0 8px}.mk-cross-h{font-size:18px!important;margin:0 0 10px!important}
+.mk-cross-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.mk-cross-g a{display:flex;flex-direction:column;gap:2px;padding:14px 16px;min-height:64px;border:1px solid var(--line,#dfe6e2);border-radius:12px;text-decoration:none;color:inherit;background:var(--panel,#fff)}
+.mk-cross-g a:hover{border-color:#0A6B48}.mk-cross-g b{font-size:15px;color:#0A6B48}.mk-cross-g span{font-size:12.5px;color:var(--tx2,#5b6675)}
+/* 첫 방문 카드(고정 위치 → 레이아웃 이동 없음) */
+.mk-first{position:fixed;z-index:50;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));max-width:420px;padding:14px 40px 12px 16px;background:#fff;color:#1b2430;border:1px solid #cfe5da;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.16);font-size:13px;line-height:1.5;animation:mk-pop .22s ease both}
+.mk-first .mk-t{display:block;font-size:15px;color:#0A6B48;margin-bottom:4px}
+.mk-first ol{margin:0 0 6px;padding-left:18px}.mk-first li{margin:2px 0}
+.mk-first a{color:#0A6B48;font-weight:700}
+.mk-first .mk-more{display:inline-flex;align-items:center;min-height:36px}
+.mk-first .mk-x{position:absolute;top:2px;right:2px;width:44px;height:44px;border:0;background:none;font-size:24px;line-height:1;color:#5b6675;cursor:pointer}
+.mk-first.out,.mk-done.out{opacity:0;transition:opacity .2s}
+@media(min-width:760px){.mk-first{right:auto;left:20px;bottom:20px}}
+@keyframes mk-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mk-done{position:fixed;z-index:60;left:50%;top:14px;transform:translateX(-50%);padding:8px 16px;border-radius:20px;background:#0A6B48;color:#fff;font:700 13px/1.2 system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.2);animation:mk-pop .2s ease both}
+
+/* 스켈레톤 1종(색·속도·방향 통일) */
+@keyframes mk-sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct),.mk-skel{background:linear-gradient(90deg,var(--sk-a) 25%,var(--sk-b) 50%,var(--sk-a) 75%)!important;background-size:200% 100%!important;animation:mk-sk 1.3s ease-in-out infinite!important}
+/* 스켈레톤 → 실내용 120ms 페이드 */
+@keyframes mk-unsk{from{opacity:0}to{opacity:1}}
+.mk-unskel{animation:mk-unsk .12s ease-out}
+/* 숫자 변동 하이라이트: 150~250ms */
+.mk-fl-up{animation-duration:.22s!important}.mk-fl-dn{animation-duration:.22s!important}
+/* 첫 진입 요약 칸: 40ms 간격 opacity만 */
+@keyframes mk-stg{from{opacity:0}to{opacity:1}}
+body.mk-enter #pro-brief :is(.pb-c,.pb-lev,.pf-t,.pb-fg,.pb-grid>*,.pb-sum>*){animation:mk-stg .2s ease both}
+body.mk-enter #pro-brief :is(.pb-c,.pf-t,.pb-grid>*,.pb-sum>*):nth-child(2){animation-delay:40ms}
+body.mk-enter #pro-brief :is(.pb-c,.pf-t,.pb-grid>*,.pb-sum>*):nth-child(3){animation-delay:80ms}
+body.mk-enter #pro-brief :is(.pb-c,.pf-t,.pb-grid>*,.pb-sum>*):nth-child(4){animation-delay:120ms}
+body.mk-enter #pro-brief :is(.pb-c,.pf-t,.pb-grid>*,.pb-sum>*):nth-child(n+5){animation-delay:160ms}
+/* 경고 깜빡임 3회 후 정지 */
+html body.pro .kr-sc.sc-hit{animation-iteration-count:3!important}
+html body.pro .kr-sc.sc-hit .sc-ic,html body.pro #pro-brief .pb-hd .sc-mark.live{animation-iteration-count:3!important}
+html body.pro.pro.pro #pro-brief .pb-hd #mk-live-sw.on::first-letter{animation-iteration-count:3!important}
+/* 모션 줄이기: 전부 끔 */
+@media(prefers-reduced-motion:reduce){.mk-first,.mk-done,.mk-unskel,body.mk-enter #pro-brief *,.mk-skel,html body.pro.pro.pro .wl-row[data-quote-state="loading"] :is(.wl-price,.wl-pct){animation:none!important}.mk-first.out,.mk-done.out{transition:none}}
+
+/* 터치 대상 44px (모바일·폴드 구간) */
+@media(max-width:960px){
+  html body.pro.pro.pro :is(#mk-live-sw,#hd-set,#stock-gift,#fa-lo,#fa-hi,#fa-perm,#cap2-btn,#cap3-btn,button.my-ex,button.my-more,button.ev-tg,#ac-cap,summary,.skip-link){min-height:44px}
+  html body.pro.pro.pro :is(.srt button,button.mk-mon,button.fin-btn,button.on){position:relative}
+  html body.pro.pro.pro :is(.srt button,button.mk-mon,button.fin-btn,button.on)::after{content:"";position:absolute;left:-2px;right:-2px;top:50%;height:44px;transform:translateY(-50%)}
+}
+/* 폴드 펼침(800~960px): 좌우 여백·요약 열 균형 */
+@media(min-width:800px) and (max-width:960px){
+  html body.pro.pro.pro .wrap{padding-left:20px;padding-right:20px}
+  .mk-cross-g{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .mk-first{right:68px;padding:0 44px 0 14px}
+  .mk-first .mk-t{margin:0;display:flex;align-items:center;min-height:44px;font-size:14px;cursor:pointer}
+  .mk-first .mk-t::after{content:"▾";margin-left:6px;font-size:12px;transition:transform .15s}
+  .mk-first.open .mk-t::after{transform:rotate(180deg)}
+  .mk-first:not(.open) :is(ol,.mk-more){display:none}
+  .mk-first.open{padding-bottom:10px}
+}
+@media(max-width:700px){.mk-first:not(.open){right:auto;width:210px}.mk-first.open{right:12px;bottom:calc(150px + env(safe-area-inset-bottom,0px))}}

@@ -9,12 +9,18 @@
 <script src="mk-boot.js?v=4cd6249d"></script>
 <meta name="description" content="한국주식 시장 한눈에 보기: 코스피 기준 공포탐욕지수와 7개 세부지표, 투자자별 매매동향·증시자금동향, 코스피·코스닥 시가총액 TOP10, 2배 레버리지 ETF, 주요 이벤트 일정, KOSPI200 편입·편출 종목을 한 화면에서 확인하세요. 무료 공개 데이터 기반 참고용 정보입니다.">
 <meta name="theme-color" content="#0A6B48">
+<meta property="og:image" content="https://coolzet-ai.github.io/stock/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Mr.Kim Signal — 공포탐욕지수·시장 신호 대시보드">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://coolzet-ai.github.io/stock/og-image.png">
 <link rel="canonical" href="https://coolzet-ai.github.io/stock/kr-stock.html">
 <meta property="og:type" content="website"><meta property="og:locale" content="ko_KR"><meta property="og:site_name" content="Mr.Kim Signal">
 <meta property="og:title" content="한국주식 시장 대시보드 | 공포탐욕지수·투자자 동향·시가총액·경제일정">
 <meta property="og:description" content="코스피 공포탐욕지수, 투자자별 매매동향, 시가총액 TOP10, 레버리지 ETF, 이벤트 일정을 한눈에. 무료 공개 데이터 기반 참고용 정보.">
 <meta property="og:url" content="https://coolzet-ai.github.io/stock/kr-stock.html">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="한국주식 시장 대시보드 | Mr.Kim Signal"><meta name="twitter:description" content="코스피 공포탐욕지수, 투자자 동향, 시가총액 TOP10, 이벤트 일정을 한눈에.">
+<meta name="twitter:title" content="한국주식 시장 대시보드 | Mr.Kim Signal"><meta name="twitter:description" content="코스피 공포탐욕지수, 투자자 동향, 시가총액 TOP10, 이벤트 일정을 한눈에.">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"한국주식 시장 대시보드 — 공포탐욕지수·투자자 동향·시가총액·경제일정","description":"코스피 기준 공포탐욕지수와 세부지표, 투자자별 매매동향, 시가총액 TOP10, 레버리지 ETF, 이벤트 일정, KOSPI200 편입·편출 종목을 한 화면에 보여주는 참고용 대시보드","url":"https://coolzet-ai.github.io/stock/kr-stock.html","inLanguage":"ko-KR","isPartOf":{"@type":"WebSite","name":"Mr.Kim Signal","url":"https://coolzet-ai.github.io/stock/mrkim-signal.html"}}</script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="김군시그널">
@@ -22,7 +28,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <title>한국주식 시장 대시보드 | 공포탐욕지수·투자자 동향·시가총액·경제일정 — Mr.Kim Signal</title>
 <style>
 :root{
@@ -607,7 +613,7 @@ footer{border-top:1px solid var(--line);padding:30px 0 44px;color:var(--tx2);fon
 @media(max-width:700px){.fold-t{flex:1}.fold-h{padding:12px;font-size:17px!important;gap:8px}.fold-sum{display:block}.fold-btn{padding:4px 9px;font-size:12px}}
 @media(max-width:700px){.risk-note{margin:30px 0 -6px}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"><style>/* mrkim-pro.css */
+<style>/* mrkim-pro.css */
 /* Mr.Kim Signal — 전문 도구형 스킨 (body.pro 에서만 적용 · 기존 DOM/JS 그대로) */
 body.pro{
   --bg:#EEF0F2; --panel:#ffffff; --panel2:#F6F7F8; --line:#D5D9DD;
@@ -2749,7 +2755,7 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ui-fixes-v106.css?v=0310255d">
+<link rel="stylesheet" href="ui-fixes-v106.css?v=80f19c18">
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -10854,7 +10860,8 @@ async function toggleKrLev(t,ev){
 <script defer src="market-refine.js?v=bfdc42f5"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
 <script defer src="mk-watch.js?v=b85eb4af"></script>
-<script defer src="ui-fixes-v106.js?v=df3131ac"></script>
+<script defer src="mk-info.js?v=fe75f149"></script>
+<script defer src="ui-fixes-v106.js?v=28f9c733"></script>
 <script defer src="kr-live.js?v=2f4f4d21"></script>
 <script defer src="kr-trend.js?v=bf62a160"></script>
 </body>
