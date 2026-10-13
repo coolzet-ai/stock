@@ -210,6 +210,10 @@
   function bootReady() {
     if (!window.__mkBootDone) return;
     if (performance.now() < 2000) return; /* 늦게 도착하는 그래프·차트 영역이 자리를 잡은 뒤에 보여 준다 */
+    /* 문서 높이가 600ms 동안 변하지 않을 때만 보여 준다 — 접기 상태 적용·카드 삽입이 늦게 일어나 화면이 밀리는 것을 가린다(최대 6초) */
+    var bh = d.documentElement.scrollHeight, bn2 = performance.now();
+    if (bh !== bootReady._h) { bootReady._h = bh; bootReady._t = bn2; }
+    if (bn2 - (bootReady._t || 0) < 600) return;
     var st = d.getElementById('pro-status') || d.querySelector('.stock-status');
     var ok = false;
     if (st) {

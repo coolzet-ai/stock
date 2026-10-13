@@ -871,3 +871,8 @@ html body.pro .kr-sc.sc-done a{color:var(--accent);font-weight:700}
 /* v138 — 미국주식 첫 화면 안정화: 레버리지 박스 높이 예약 */
 html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{min-height:170px!important}
 @media(max-width:700px){html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{min-height:190px!important}}
+
+/* v139 — 가상화폐 반감기 카드: 데이터 도착 전에도 최종 높이만큼 자리를 잡아 화면이 밀리지 않게 */
+#cry-hv.hv2:not(.hv2-done){min-height:740px}
+@media(max-width:700px){#cry-hv.hv2:not(.hv2-done){min-height:690px}}
+#cry-hv .hv2-ld .mut{min-height:20px}

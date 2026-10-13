@@ -155,7 +155,7 @@ function run(){
   var now=Date.now();
   var pb=mountP(); if(pb) pb.innerHTML=progressHTML(now);
   box.innerHTML=(pb?'':progressHTML(now))+'<div class="hv2-sec hv2-ld"><div class="hv2-t">반감기 기준 상승·하락 구간 · 상관관계</div><p class="mut">차트 데이터를 불러오는 중…</p></div>';
-  if(typeof getJSON!=='function') return;
+  if(typeof getJSON!=='function'){ box.classList.add('hv2-done'); return; }
   var from=Math.floor((HALV[0]-190*DAY)/1000);
   Promise.all([fetchDaily('BTC-USD',from)].concat(COINS.map(function(c){return fetchDaily(c[0],Math.floor((H4-5*DAY)/1000))}))).then(function(r){
     var btc=r[0], html=pb?'':progressHTML(now);
@@ -165,7 +165,7 @@ function run(){
       try{html+=corrHTML(btc,r.slice(1),now)}catch(e){}
       html+='<p class="hv2-note">과거 사이클 패턴 참고용이며 미래 수익을 보장하지 않습니다. 5차 반감기는 블록 생성 속도 기준 추정일입니다.</p>';
     }
-    box.innerHTML=html;
+    box.innerHTML=html; box.classList.add('hv2-done');
   });
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
