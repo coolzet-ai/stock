@@ -97,6 +97,7 @@
     if (!btn) return;
     var on = LIVE.on(), idle = on && LIVE.idle(), adm = LIVE.admin();
     var text = !adm ? '🔒 실시간 · 관리자 전용' : !on ? '○ 실시간 꺼짐' : idle ? '⏸ 무조작 일시정지 · 눌러서 재개' : (st.text || '● 실시간 연결 중');
+    if (window.innerWidth <= 700 && on && !idle && st.text) text = '● ' + ((st.text.match(/(\d\d:\d\d)/) || [])[1] || st.text.replace(/^● /, '').replace(/프리마켓 |애프터 |선물 /, '')); /* 모바일: 짧게 */
     btn.textContent = text; btn.className = 'mk-live-sw ' + (!adm ? 'locked' : !on ? 'off' : idle ? 'paused' : (st.cls || 'on'));
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.title = !adm ? '실시간 시세는 관리자 모드에서만 켤 수 있습니다(서버 요청 절약)' : !on ? '꺼져 있습니다(서버 요청 절약). 눌러서 실시간 시세를 켭니다' : '눌러서 실시간 시세를 끕니다. 켜 두면 갱신마다 서버 요청이 발생합니다';
@@ -210,6 +211,10 @@
   function bootReady() {
     if (!window.__mkBootDone) return;
     if (performance.now() < 2000) return; /* 늦게 도착하는 그래프·차트 영역이 자리를 잡은 뒤에 보여 준다 */
+    /* 문서 높이가 600ms 동안 변하지 않을 때만 보여 준다 — 접기 상태 적용·카드 삽입이 늦게 일어나 화면이 밀리는 것을 가린다(최대 6초) */
+    var bh = d.documentElement.scrollHeight, bn2 = performance.now();
+    if (bh !== bootReady._h) { bootReady._h = bh; bootReady._t = bn2; }
+    if (bn2 - (bootReady._t || 0) < 600) return;
     var st = d.getElementById('pro-status') || d.querySelector('.stock-status');
     var ok = false;
     if (st) {
