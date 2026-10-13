@@ -417,7 +417,7 @@
     rows.forEach(function (r) { if (r.s === 2) c2++; else if (r.s === 3) c3++; else c4++; if (r.c <= -30) cx++; });
     rows = rows.slice().sort(function (a, b) { return b.s - a.s || a.c - b.c; });
     var mx = Math.max(30, Math.max.apply(null, rows.map(function (r) { return Math.abs(r.c); }).concat([0])));
-    var LIM = 10, shown = rows.slice(0, LIM);
+    var LIM = (window.innerWidth <= 700 ? 5 : 10), shown = rows.slice(0, LIM);
     var tile = function (cls, n, l) { return '<span class="lv2-t ' + cls + (n ? ' on' : '') + '"><b>' + n + '</b><em>' + l + '</em></span>'; };
     var list = shown.length ? shown.map(function (r) {
       var k = r.s >= 4 ? 's4' : r.s === 3 ? 's3' : 's2', w = Math.min(100, Math.abs(r.c) / mx * 100);

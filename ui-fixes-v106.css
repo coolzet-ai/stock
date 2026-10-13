@@ -867,3 +867,7 @@ html body.pro .kr-sc.sc-done em.sc-off{background:#0B6B45;color:#fff}
 html body.pro .kr-sc.sc-done em.sc-est{background:#eef0f2;color:#5b6570}
 html body.pro .kr-sc.sc-hit em.sc-off{background:rgba(255,255,255,.25);margin-left:0}
 html body.pro .kr-sc.sc-done a{color:var(--accent);font-weight:700}
+
+/* v138 — 미국주식 첫 화면 안정화: 레버리지 박스 높이 예약 */
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{min-height:170px!important}
+@media(max-width:700px){html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{min-height:190px!important}}
