@@ -725,3 +725,88 @@ html body.pro.pro #unified-tools [data-panel=compare] .ucm-note{margin:8px 0 0;f
 @media(max-width:560px){html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;overflow:visible!important}
 html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-c{min-height:92px;height:auto!important;justify-content:center}
 html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-lev,html body.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) #pro-brief .pb-grid>.pb-halv{grid-column:1/-1!important}}
+
+/* v132 — 레버리지 ETF 연속 하락 박스 시인성(미국·한국) */
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 10px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border-radius:12px;border:1px solid var(--line);background:var(--panel);opacity:.62;text-align:center}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t b{font-size:22px;line-height:1.1;font-weight:800;color:var(--tx2)}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t em{font-style:normal;font-size:11.5px;color:var(--tx2);margin-top:2px;white-space:nowrap}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.on{opacity:1}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s2.on{background:#FFF8DB;border-color:#F5D86B}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s2.on b{color:#946200}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s3.on{background:#FFEBD5;border-color:#F8B56B}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s3.on b{color:#B54708}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s4.on{background:#FEE4E2;border-color:#F6A09A}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.s4.on b{color:#B42318}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.sx.on{background:#B42318;border-color:#B42318}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.sx.on b,html body.pro.pro.pro #pro-brief .pb-lev .lv2-t.sx.on em{color:#fff}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-r{display:grid;grid-template-columns:auto minmax(0,1fr) 54px auto;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:var(--panel);border-left:4px solid var(--lc,#F5D86B);font-size:13px;min-width:0}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.s2{--lc:#F5D86B}html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.s3{--lc:#F59E0B}html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.s4{--lc:#DC2626}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.x{background:#FEF3F2}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-b{font-style:normal;font-weight:800;font-size:12px;padding:2px 7px;border-radius:999px;background:var(--lc);color:#3b2a00;white-space:nowrap}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.s3 .lv2-b{color:#fff;background:#E08600}html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.s4 .lv2-b{color:#fff}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx)}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-g{height:6px;border-radius:3px;background:rgba(0,0,0,.07);overflow:hidden}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-g u{display:block;height:100%;background:var(--lc);border-radius:3px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-c{font-variant-numeric:tabular-nums;white-space:nowrap;color:#1D4ED8;font-size:12.5px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-r.x .lv2-c{color:#B42318}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-none{grid-column:1/-1;font-style:normal;font-size:13px;color:var(--tx2);padding:6px 2px}
+html body.pro.pro.pro #pro-brief .pb-lev .lv2-more{display:block;margin-top:8px;font-size:12px;color:var(--tx2)}
+@media(max-width:700px){html body.pro.pro.pro #pro-brief .pb-lev .lv2-list{grid-template-columns:minmax(0,1fr)}html body.pro.pro.pro #pro-brief .pb-lev .lv2-sum{gap:6px}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t b{font-size:19px}html body.pro.pro.pro #pro-brief .pb-lev .lv2-t em{font-size:10.5px}}
+
+/* v133 — 한국주식 공포탐욕: 최근 흐름(데이터 없음) 삭제, 게이지 가운데 정렬(가상화폐와 동일 구조) */
+html body.pro.pro.pro.pro.v93-kr-stock #kr-card .v92-trend-area,html body.pro.pro.pro.pro.v93-kr-stock #kr-card #kr-trend{display:none!important}
+html body.pro.pro.pro.pro.v93-kr-stock #kr-card .v92-fg-top{display:flex!important;justify-content:center!important;align-items:center!important;grid-template-columns:none!important}
+html body.pro.pro.pro.pro.v93-kr-stock #kr-card .v92-fg-top>*{margin-left:auto!important;margin-right:auto!important}
+
+/* v134 — 사이드카(매수·매도) 발동 강조 */
+html body.pro .kr-sc{display:flex;align-items:center;gap:12px;margin:0 0 10px;border-radius:12px}
+html body.pro .kr-sc.sc-na{display:none}
+html body.pro .kr-sc.sc-ok{padding:6px 12px;font-size:12px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);gap:8px}
+html body.pro .kr-sc.sc-ok b{color:var(--tx)}
+html body.pro .kr-sc .sc-dot{width:8px;height:8px;border-radius:50%;background:#22a06b;flex:none}
+html body.pro .kr-sc.sc-near{padding:10px 14px;background:#FFF4E5;border:1px solid #F8B56B;color:#7A3E00;font-size:13px}
+html body.pro .kr-sc.sc-near .sc-tx{display:flex;flex-direction:column;gap:2px}
+html body.pro .kr-sc.sc-hit{padding:16px 18px;color:#fff;border:2px solid transparent;box-shadow:0 0 0 0 rgba(0,0,0,.4);animation:kr-sc-pulse 1.4s ease-in-out infinite}
+html body.pro .kr-sc.sc-sell{background:linear-gradient(135deg,#1D4ED8,#1E3A8A);--scc:29,78,216}
+html body.pro .kr-sc.sc-buy{background:linear-gradient(135deg,#DC2626,#991B1B);--scc:220,38,38}
+html body.pro .kr-sc.sc-hit .sc-ic{font-size:30px;line-height:1;animation:kr-sc-shake 1.4s ease-in-out infinite}
+html body.pro .kr-sc.sc-hit .sc-tx{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+html body.pro .kr-sc.sc-hit .sc-tx b{font-size:19px;font-weight:800;letter-spacing:-.01em}
+html body.pro .kr-sc.sc-hit .sc-tx b em{font-style:normal;font-size:12px;font-weight:700;background:rgba(255,255,255,.22);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+html body.pro .kr-sc.sc-hit .sc-tx span{font-size:13.5px;font-weight:600}
+html body.pro .kr-sc.sc-hit .sc-tx small{font-size:11.5px;opacity:.85}
+html body.pro .kr-sc.sc-hit .sc-live{flex:none;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:#fff;color:#111}
+@keyframes kr-sc-pulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--scc),.55)}50%{box-shadow:0 0 0 10px rgba(var(--scc),0)}}
+@keyframes kr-sc-shake{0%,60%,100%{transform:rotate(0)}10%,30%,50%{transform:rotate(-12deg)}20%,40%{transform:rotate(12deg)}}
+@media(prefers-reduced-motion:reduce){html body.pro .kr-sc.sc-hit,html body.pro .kr-sc.sc-hit .sc-ic{animation:none}}
+@media(max-width:560px){html body.pro .kr-sc.sc-hit{padding:12px 14px}html body.pro .kr-sc.sc-hit .sc-tx b{font-size:16px}html body.pro .kr-sc.sc-hit .sc-live{display:none}}
+
+/* v135 — 김군 관심종목 검색·추가·삭제 */
+.mw-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.mw-bar input{flex:1 1 220px;min-width:0;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--tx);font:500 14px inherit}
+.mw-bar input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.mw-bar .mw-add{height:44px;padding:0 18px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:800 14px inherit;cursor:pointer}
+.mw-bar .mw-reset{height:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--tx2);font:700 13px inherit;cursor:pointer}
+.mw-bar .mw-msg{flex:1 0 100%;font-size:12.5px;color:var(--tx2);min-height:0}
+.mw-bar .mw-msg:empty{display:none}
+.mw-bar .mw-msg.bad{color:#B42318}
+.mw-bar .mw-undo{margin-left:4px;border:0;background:none;color:var(--accent);font:800 12.5px inherit;text-decoration:underline;cursor:pointer;min-height:32px}
+.wl-actions .mw-del{font:inherit;font-size:13px;font-weight:800;line-height:1;background:none;border:0;padding:6px 8px;margin-left:2px;cursor:pointer;color:var(--tx2);border-radius:6px;min-width:32px;min-height:32px}
+.wl-actions .mw-del:hover{background:#FEE4E2;color:#B42318}
+.wl-actions .mw-del:focus-visible{outline:2px solid var(--accent)}
+@media(max-width:700px){.pro .wl-row.m-x .wl-actions .mw-del{flex:1;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #D5DCD8;border-radius:8px;background:#fff;font-size:13px;color:#B42318;margin:0}}
+
+@media(max-width:700px){.mw-bar input{flex:1 1 130px}.mw-bar .mw-add{padding:0 14px}.mw-bar .mw-reset{padding:0 10px;font-size:12px}}
+
+/* v136 — v132/v134 보정(우선순위·글자 크기) */
+html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-c{font-size:13px!important;font-weight:800!important;line-height:1.2!important}
+html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-t b{font-size:22px!important}
+html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-r{grid-template-columns:auto minmax(0,1fr) 72px auto}
+html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-n{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-r.x .lv2-c{color:#B42318}
+html body.pro .kr-sc.sc-hit,html body.pro .kr-sc.sc-hit *{color:#fff!important}
+html body.pro .kr-sc.sc-hit .sc-live{color:#111!important}
+html body.pro .kr-sc.sc-hit .sc-tx small{opacity:.9}
+@media(max-width:700px){html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-t b{font-size:19px!important}html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-r{grid-template-columns:auto minmax(0,1fr) 44px auto}html body.pro.pro.pro.pro #pro-brief .pb-lev .lv2-t em{font-size:10px;white-space:normal;line-height:1.15}}
+html body.pro.pro.pro.pro #pro-brief>.kr-sc:not(.sc-na){display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;text-align:left!important;justify-content:flex-start!important}
+html body.pro.pro.pro.pro #pro-brief>.kr-sc .sc-ic{flex:none!important}
+html body.pro.pro.pro.pro #pro-brief>.kr-sc .sc-tx{align-items:flex-start!important;text-align:left!important}
+html body.pro.pro.pro.pro #pro-brief>.kr-sc.sc-ok b{font-size:inherit!important;font-weight:800}
