@@ -20,13 +20,14 @@
   var say = function (t, bad) { if (!msg) return; msg.textContent = t || ''; msg.className = 'mw-msg' + (bad ? ' bad' : ''); };
   var list = function () { return TICKGROUPS[CFG.group].list; };
   var rows = function () { return Array.prototype.slice.call(host.querySelectorAll('.wl-row')); };
-  var per = function () { return (typeof curPer !== 'undefined' && curPer[CFG.group]) || 'd'; };
+  var per = function () { var p = typeof curPer !== 'undefined' && curPer[CFG.group]; return /^[dwmy]$/.test(p) ? p : 'd'; };
 
   function rowHtml(t, name, tag) {
     if (CFG.kr) {
-      var c = t.slice(0, 6);
-      return '<div class="wl-row" data-t="' + t + '" data-mw="1"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">' + esc(tag || '관심') + ' · ' + c + '</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=' + c + '" target="_blank" rel="noopener" title="네이버 증권에서 ' + esc(name) + ' 보기">' + esc(name) + '</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>' +
-        '<div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=' + c + '" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/' + t + '/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a></div></div>';
+      var c = t.slice(0, 6), fin = !/^(KODEX|TIGER|ACE|SOL|RISE|PLUS|HANARO|KBSTAR|ARIRANG|KOSEF|TIMEFOLIO|WON|BNK|ETN)/i.test(name || '') && tag !== 'ETF', bid = 'wlfin-' + c, go = "toggleFinancials('" + c + "',event,'" + bid + "')";
+      return '<div class="wl-row" data-t="' + t + '" data-mw="1"><div class="wl-bar"></div><div class="wl-info"' + (fin ? ' onclick="' + go + '" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"' : '') + '><div class="wl-tag">' + esc(tag || '관심') + ' · ' + c + '</div><div class="wl-name"><a href="https://finance.naver.com/item/main.naver?code=' + c + '" target="_blank" rel="noopener" title="네이버 증권에서 ' + esc(name) + ' 보기">' + esc(name) + '</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>' +
+        '<div class="wl-actions"><a href="https://finance.naver.com/item/main.naver?code=' + c + '" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/' + t + '/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a>' + (fin ? '<button type="button" class="fin-btn" onclick="' + go.replace('event', 'null') + '" title="손익계산서(최근 3년, DART 전자공시)">재무</button>' : '') + '</div></div>' +
+        (fin ? '<div id="' + bid + '" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>' : '');
     }
     var q = encodeURIComponent('$' + t + ' from:trendspider');
     return '<div class="wl-row" data-t="' + t + '" data-mw="1"><div class="wl-bar"></div><div class="wl-info"><div class="wl-tag">' + esc(name && name !== t ? '추가 · ' + name : '추가한 종목') + '</div><div class="wl-name"><a href="https://finviz.com/quote.ashx?t=' + t + '" target="_blank" rel="noopener">' + esc(t) + '</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>' +
@@ -36,11 +37,26 @@
     rows().forEach(function (r) { var a = r.querySelector('.wl-actions'); if (!a || a.querySelector('.mw-del')) return; var b = d.createElement('button'); b.type = 'button'; b.className = 'mw-del'; b.dataset.t = r.dataset.t; b.title = '목록에서 삭제'; b.setAttribute('aria-label', r.dataset.t + ' 삭제'); b.textContent = '✕'; a.appendChild(b); });
   }
   var fetching = {};
+  var clean = function (v) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'number' && isFinite(x) && x > 0; }) : null; };
+  async function loadOne(t) { /* 실패·지연에도 다른 종목에 영향 없게: 최대 3회, 종목별 15초 제한 */
+    for (var i = 0; i < 3; i++) {
+      try {
+        var v = await Promise.race([yclose(t, '1y'), new Promise(function (r) { setTimeout(function () { r(null); }, 15000); })]);
+        v = clean(v); if (v && v.length > 30) { tickData[t] = v; return true; }
+      } catch (e) {}
+      await new Promise(function (r) { setTimeout(r, 1500 * (i + 1)); });
+    }
+    return false;
+  }
   async function ensureData(ts) {
-    await Promise.all(ts.map(async function (t) { if (tickData[t] && tickData[t].length > 3) return; if (fetching[t]) return fetching[t]; fetching[t] = yclose(t, '1y').then(function (v) { if (v) tickData[t] = v; }); await fetching[t]; delete fetching[t]; }));
+    await Promise.all(ts.map(async function (t) {
+      if (tickData[t] && tickData[t].length > 30) return;
+      if (!fetching[t]) fetching[t] = loadOne(t).then(function (ok) { delete fetching[t]; try { renderTick(CFG.group, per()); } catch (e) {} return ok; });
+      await fetching[t];
+    }));
     try { renderTick(CFG.group, per()); } catch (e) {}
   }
-  function removeRow(t) { rows().forEach(function (r) { if (r.dataset.t !== t) return; var nx = r.nextElementSibling; if (nx && /^etf-hold-|^fin-/.test(nx.id || '')) nx.remove(); r.remove(); }); var L = list(), i = L.indexOf(t); if (i >= 0) L.splice(i, 1); }
+  function removeRow(t) { rows().forEach(function (r) { if (r.dataset.t !== t) return; var nx = r.nextElementSibling; if (nx && /^etf-hold-|^fin-|^wlfin-/.test(nx.id || '')) nx.remove(); r.remove(); }); var L = list(), i = L.indexOf(t); if (i >= 0) L.splice(i, 1); }
   function isDefault(t) { return CFG.kr ? CFG.defaults.some(function (x) { return x[0] === t; }) : !!(baseSet && baseSet[t]); }
   var baseSet = null, baseHtml = {};
 
@@ -66,8 +82,8 @@
       }
       if (!RE.test(t)) throw Error('종목 형식이 올바르지 않습니다.');
       if (rows().some(function (r) { return r.dataset.t === t; })) { say(t + ' 는 이미 목록에 있습니다.', 1); return; }
-      var data = await yclose(t, '1y');
-      if (!data) throw Error('"' + v + '" 시세를 찾지 못했습니다.' + (CFG.kr ? ' 한글 종목명 또는 6자리코드.KS/.KQ를 확인해 주세요.' : ' 티커를 확인해 주세요.'));
+      var data = clean(await yclose(t, '1y'));
+      if (!data || data.length < 31) throw Error('"' + v + '" 시세를 찾지 못했습니다.' + (CFG.kr ? ' 한글 종목명 또는 6자리코드.KS/.KQ를 확인해 주세요.' : ' 티커를 확인해 주세요.'));
       tickData[t] = data;
       if (CFG.kr && window.MK_KR_NAME) { try { name = await window.MK_KR_NAME(t, name); } catch (e2) {} }
       if (!addTicker(t, name)) return;
@@ -94,7 +110,7 @@
   }
   function del(t) {
     var i = st.add.findIndex(function (a) { return a[0] === t; }), name = (host.querySelector('.wl-row[data-t="' + t + '"] .wl-name a') || {}).textContent || t, wasDefault = i < 0;
-    var snap = null; rows().forEach(function (r) { if (r.dataset.t === t) { snap = r.outerHTML; var nx = r.nextElementSibling; if (nx && /^etf-hold-|^fin-/.test(nx.id || '')) snap += nx.outerHTML; } });
+    var snap = null; rows().forEach(function (r) { if (r.dataset.t === t) { snap = r.outerHTML; var nx = r.nextElementSibling; if (nx && /^etf-hold-|^fin-|^wlfin-/.test(nx.id || '')) snap += nx.outerHTML; } });
     var before = rows().map(function (r) { return r.dataset.t; }), at = before.indexOf(t);
     removeRow(t);
     if (i >= 0) st.add.splice(i, 1); else if (st.del.indexOf(t) < 0) st.del.push(t);

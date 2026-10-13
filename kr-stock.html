@@ -3110,7 +3110,7 @@ function __jFree(){ var n=__jQ.shift(); if(n) n(); else __jActive--; }
   document.head.appendChild(st);}catch(e){} })();
 const $=s=>document.querySelector(s);
 const PERKO={d:'일간',w:'주간',m:'월간',y:'연간'};
-const curPer={kridx:'d',idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',krlev:'d',
+const curPer={krwl:'d',kridx:'d',idxchg:'d',cap2:'d',krcap2:'d',krkq2:'d',us:'d',tick:'d',cap:'d',lev:'d',cf:'d',coin:'d',fx:'d',krcap:'d',krkq:'d',krlev:'d',
   usrel:'3m',caprel:'3m',krrel:'3m',krcaprel:'3m',cryrel:'3m'};
 const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sign=v=>(v>0?'+':'')+v.toFixed(2)+'%';
@@ -9993,14 +9993,14 @@ const KR_TOP10_NAME_BY_CODE={'267270':'HD건설기계','000990':'DB하이텍','4
   '028300':'HLB','000250':'삼천당제약','403870':'HPSP','319660':'피에스케이','095340':'ISC','440110':'파두','031980':'피에스케이홀딩스','084370':'유진테크','067310':'하나마이크론','131290':'티에스이'
 };
 const finLoaded={};
-function finRetry(code){ finLoaded[code]=false; const el=document.getElementById('fin-'+code); if(el){ el.style.display='none'; } delete dartCorpCodeCache[code]; toggleFinancials(code); }
-async function toggleFinancials(stockCode, ev){
-  if(ev && ev.target && ev.target.closest && ev.target.closest('a')) return;
-  const el=document.getElementById('fin-'+stockCode);
+function finRetry(code,boxId){ const k=boxId||code; finLoaded[k]=false; const el=document.getElementById(boxId||('fin-'+code)); if(el){ el.style.display='none'; } delete dartCorpCodeCache[code]; toggleFinancials(code,null,boxId); }
+async function toggleFinancials(stockCode, ev, boxId){
+  if(ev && ev.target && ev.target.closest && ev.target.closest('a,button')) return;
+  const el=document.getElementById(boxId||('fin-'+stockCode)); const fk=boxId||stockCode;
   if(!el) return;
   if(el.style.display==='none'){
     el.style.display='block';
-    if(!finLoaded[stockCode]){
+    if(!finLoaded[fk]){
       el.innerHTML='<p class="mut" style="font-size:12.5px">DART 전자공시에서 불러오는 중…</p>';
       const {fin3y,growth,eps,psr,dividend}=await dartFinancialsWithRatios(stockCode, KR_TOP10_NAME_BY_CODE[stockCode]);
       /* 기술 평가용 종가(5일선·200일선·RSI) — 이미 불러온 tickData를 쓰고, 없으면 .KS→.KQ 순으로 조회 */
@@ -10015,8 +10015,8 @@ async function toggleFinancials(stockCode, ev){
       if(fin3y&&fin3y.length&&estInfo&&estInfo.est&&estInfo.est.length){ finAll=fin3y.concat(estInfo.est); }
       el.innerHTML=(fin3y&&fin3y.length)
         ? renderFinancialsPanel(finAll,{growth,eps,psr,techD,dividend},'손익계산서 최근 '+fin3y.length+'개년'+(finAll!==fin3y?' + 올해 예상(E)':'')+'(연결 우선, 단위: 억원) · 출처: DART 전자공시(OpenDART)'+(finAll!==fin3y?' · 예상치: 네이버 증권(FnGuide 컨센서스)':''),null)
-        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.<span id="finwhy-'+stockCode+'"></span> <button type="button" class="btn sm" onclick="finRetry(\''+stockCode+'\')" style="cursor:pointer;margin-left:6px">↻ 다시 불러오기</button></p>';
-      if(fin3y&&fin3y.length){ finLoaded[stockCode]=true; }
+        : '<p class="mut" style="font-size:12.5px">DART에서 재무제표를 가져오지 못했습니다.<span id="finwhy-'+stockCode+'"></span> <button type="button" class="btn sm" onclick="finRetry(\''+stockCode+'\''+(boxId?',\''+boxId+'\'':'')+')" style="cursor:pointer;margin-left:6px">↻ 다시 불러오기</button></p>';
+      if(fin3y&&fin3y.length){ finLoaded[fk]=true; }
       else { try{ const cc=await resolveDartCorpCodes([stockCode]); const w=document.getElementById('finwhy-'+stockCode); if(w) w.textContent=window.__dartDown?' (DART 서버가 점검 중입니다. 점검이 끝나면 자동으로 다시 불러올 수 있습니다)':cc&&cc[0]?' (DART 응답 없음·일시 지연일 수 있습니다)':' (DART 고유번호를 찾지 못했습니다)'; }catch(e){} }
     }
   }else{
@@ -10853,7 +10853,7 @@ async function toggleKrLev(t,ev){
 <script src="kr-standard.js?v=76912559"></script>
 <script defer src="market-refine.js?v=bfdc42f5"></script>
 <script defer src="brand-layout.js?v=2e2346e1"></script>
-<script defer src="mk-watch.js?v=bf4b8b8a"></script>
+<script defer src="mk-watch.js?v=b85eb4af"></script>
 <script defer src="ui-fixes-v106.js?v=722f4a5f"></script>
 <script defer src="kr-live.js?v=2f4f4d21"></script>
 <script defer src="kr-trend.js?v=834a2076"></script>
