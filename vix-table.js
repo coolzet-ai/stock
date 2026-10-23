@@ -40,7 +40,7 @@
     var last = r[n - 1], lvl = last.vc >= 30 ? '매우 높음 · 패닉 구간' : last.vc >= 20 ? '높음 · 경계 구간' : last.vc >= 15 ? '보통' : '낮음 · 안일 구간';
     host.innerHTML = '<div class="vt-h"><b>📈 VIX × S&amp;P500 (최근 3개월)</b><span class="vt-lg"><i style="background:#067647"></i>VIX(좌) <i style="background:#1D4ED8"></i>S&amp;P500(우)</span></div>' + svg +
       '<div class="vt-n">최근 VIX <b>' + f2(last.vc) + '</b> · ' + lvl + ' <span class="mut">(VIX가 오르면 보통 주가는 내립니다. 두 선이 반대로 움직이는지 확인하세요.)</span></div>' +
-      '<div class="vt-tw"><table class="vt-t"><thead><tr><th>일자</th><th>S&amp;P500</th><th>VIX 종가</th><th>VIX 시가</th><th>VIX 고가</th><th>VIX 저가</th></tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="vt-tw"><table class="vt-t"><tbody><tr><th>일자</th><th>S&amp;P500</th><th>VIX 종가</th><th>VIX 시가</th><th>VIX 고가</th><th>VIX 저가</th></tr>' + body + '</tbody></table></div>' +
       '<div class="vt-s">출처: Yahoo Finance 일봉(미국 거래일 기준, 15분 지연 가능). 종가가 전일보다 높으면 <b class="u">빨강</b>, 낮으면 <b class="dn">파랑</b>.</div>';
     return true;
   }

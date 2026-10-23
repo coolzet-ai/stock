@@ -199,3 +199,26 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct>b{font-size:30px}
 .vt-t td{padding:6px;text-align:right;border-bottom:1px solid #eef0f3}
 .vt-t td.u,.vt-s b.u{color:#D92D20;font-weight:800}.vt-t td.dn,.vt-s b.dn{color:#1D4ED8;font-weight:800}
 .vt-s{font-size:11.5px;color:#667085;margin-top:6px}
+/* 매크로 차트북 · 종목 개요 · 일별표 카드 */
+.vt-card{padding:14px 16px}
+#mk-cb summary,#mk-ov summary{cursor:pointer;font-size:15px;padding:4px 0;list-style:none}#mk-cb summary::-webkit-details-marker,#mk-ov summary::-webkit-details-marker{display:none}
+#mk-cb summary::after,#mk-ov summary::after{content:"＋";float:right;color:#067647;font-weight:900}#mk-cb details[open] summary::after,#mk-ov details[open] summary::after{content:"－"}
+.cb-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+@media(max-width:1000px){.cb-g{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cb-c{border:1px solid #e4e7ec;border-radius:12px;padding:10px 12px;background:#fff;min-width:0}
+.cb-t{font-size:12px;font-weight:800;color:#475467;line-height:1.3;min-height:31px}
+.cb-v{font-size:22px;font-weight:900;color:#101828;font-variant-numeric:tabular-nums;margin:2px 0}.cb-v small{font-size:12px;font-weight:700;color:#667085;margin-left:2px}
+.cb-v span{font-size:12px;font-weight:800;margin-left:8px}.cb-v span.u,.ov-t td.u,.ov-tp b.u{color:#D92D20}.cb-v span.dn,.ov-t td.dn,.ov-tp b.dn{color:#1D4ED8}
+.cb-svg{width:100%;height:64px;display:block}.cb-d{font-size:11px;color:#667085;margin-top:2px}
+.cb-na{padding:14px;font-size:13px;color:#667085}.cb-s{font-size:11.5px;color:#667085;margin-top:10px;line-height:1.5}
+.ov-q{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.ov-f{display:flex;gap:6px}.ov-f input{height:38px;border:1px solid #d0d5dd;border-radius:10px;padding:0 12px;font-size:14px;width:170px}.ov-f button{height:38px;padding:0 14px;border:0;border-radius:10px;background:#067647;color:#fff;font-weight:800}
+.ov-ch{display:flex;gap:6px;flex-wrap:wrap}.ov-ch button{height:32px;padding:0 11px;border:1px solid #d0d5dd;border-radius:999px;background:#fff;font-weight:700;font-size:13px}.ov-ch button.on{background:#067647;color:#fff;border-color:#067647}
+.ov-hd{font-size:17px;margin:4px 0 8px}.ov-fv{font-size:12px;margin-left:6px;color:#1D4ED8}
+.ov-kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0}.ov-kp>div{background:#f8fafb;border:1px solid #eef0f3;border-radius:10px;padding:8px 10px}.ov-kp small{display:block;font-size:11.5px;color:#667085}.ov-kp b{font-size:16px;font-variant-numeric:tabular-nums}
+.ov-sec{margin-top:14px}.ov-sec h4{font-size:14px;margin:0 0 6px;border-left:4px solid #067647;padding-left:8px}
+.ov-bar{display:flex;height:22px;border-radius:6px;overflow:hidden}.ov-bar i{display:block}
+.ov-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;margin:6px 0}.ov-lg u{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.ov-tp{font-size:13.5px;line-height:1.6}.ov-sm{font-size:12.5px;color:#475467;margin-top:6px}
+.ov-tw{overflow-x:auto}.ov-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;min-width:420px}.ov-t th{background:#667085;color:#fff;padding:6px;text-align:right;white-space:nowrap}.ov-t th:first-child,.ov-t td:first-child{text-align:left}
+.ov-t td{padding:6px;text-align:right;border-bottom:1px solid #eef0f3}.ov-t td.l{max-width:220px;white-space:normal}
