@@ -19,6 +19,21 @@
   setInterval(function () { var b = d.getElementById('pro-top'); if (!b) return; if (window.innerWidth <= 700) b.style.setProperty('font-size', '0', 'important'); else if (b.style.fontSize === '0px') b.style.removeProperty('font-size'); }, 1200);
 
 
+
+  /* ───────── 하단 업데이트 표시 통일 (미국·한국·가상화폐·홈) ─────────
+     표시 날짜는 아래 상수 한 곳만 고치면 4개 페이지가 함께 바뀝니다(배포하는 날짜로 갱신). */
+  window.MK_UPDATED = '2026.10.23';
+  if (/^(stock|kr-stock|crypto|mrkim-signal)$/.test(PAGE)) {
+    var unifyUpd = function () {
+      var f = $('footer'); if (!f) return;
+      var old = d.getElementById('stock-update-footer'); if (old) old.style.display = 'none';
+      var b = $('.cross-update', f);
+      if (!b) { b = mk('button', 'cross-update', '🗓️ 업데이트 · ' + window.MK_UPDATED); b.type = 'button'; b.disabled = true; f.appendChild(b); }
+      $$('.cross-update', f).forEach(function (x) { if (x !== b) x.style.display = 'none'; });
+    };
+    setTimeout(unifyUpd, 1500); setInterval(unifyUpd, 3000);
+  }
+
   /* ───────── 접근성·구조 보강 ───────── */
   function a11y() {
     /* 건너뛰기 링크 */
@@ -109,7 +124,7 @@
       }
       if (PAGE === 'kr-stock') { ch.appendChild(chip('코스피', fmtp(x.kospi), x.kospi != null && x.kospi < 0 ? 'cool' : x.kospi > 0 ? 'on' : '')); ch.appendChild(chip('원/달러', fmtp(x.fx), '')); }
       if (PAGE === 'crypto') { ch.appendChild(chip('비트코인', fmtp(x.btc), x.btc < 0 ? 'cool' : x.btc > 0 ? 'on' : '')); ch.appendChild(chip('이더리움', fmtp(x.eth), x.eth < 0 ? 'cool' : x.eth > 0 ? 'on' : '')); if (x.halv) ch.appendChild(chip('반감기', 'D-' + x.halv, '')); }
-      if (x.l3 != null) ch.appendChild(chip('레버리지 3일+ 연속하락', (x.l3 + x.l4) + '종목', (x.l3 + x.l4) >= 2 ? 'on' : ''));
+      if (x.l3 != null) ch.appendChild(chip('레버리지 3일+ 연속하락', (x.l3 + x.l4) + '종목', 'wide' + ((x.l3 + x.l4) >= 2 ? ' on' : '')));
       ch.appendChild(chip('다음 일정', x.ev != null ? 'D-' + x.ev : '–', x.ev != null && +x.ev <= 3 ? 'on' : '')); el.appendChild(ch);
       var tip = mk('div', 'sg-msg'); var b = mk('b', '', '👉 ' + r.tip); tip.appendChild(b);
       if (x.ev != null && +x.ev <= 3) tip.appendChild(mk('div', 'sg-warn', '⚠ D-' + x.ev + ' ' + (x.evn || '주요 일정') + ' 임박 — 변동성 확대에 유의하세요.'));

@@ -105,3 +105,38 @@ body.sg-rb-on .sg-ribbon{display:flex;transform:translate(-50%,0)}
 /* ── 홈: 오늘의 한 줄 ── */
 .mk-home-sum{max-width:1232px;margin:0 auto 14px;padding:12px 16px;border-radius:12px;border:1px solid #cfe3d8;background:#f4fbf7;font-size:14px;line-height:1.55;color:#1f2937;text-align:left}
 .mk-home-sum small{display:block;margin-top:3px;font-size:11.5px;color:#6b7280}
+/* ── '오늘 내 계좌' 칸: 줄바꿈 방지 — 데스크톱은 같은 줄 5번째 칸, 그 외는 전체 폭 한 줄 ── */
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-lev{order:8}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-rsi{order:9}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{order:4;grid-column:1/-1;min-height:0}
+@media(min-width:901px){
+  html body.pro.pro.pro.pro #pro-brief .pb-grid.has-acct{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{order:0;grid-column:auto}
+}
+/* ── PC: 시그널 체크 2단 배치 — 왼쪽 판정(크게) / 오른쪽 지표 칩 ── */
+@media(min-width:901px){
+  .sg-strip{display:grid;grid-template-columns:minmax(280px,340px) 1fr;grid-template-rows:auto 1fr;gap:12px 24px;padding:18px 20px}
+  .sg-strip .sg-top{grid-column:1;grid-row:1;flex-direction:column;align-items:flex-start;gap:8px}
+  .sg-strip .sg-ttl{font-size:16px}
+  .sg-strip .sg-top .sg-badge{font-size:17px;padding:8px 18px;border-radius:12px}
+  .sg-strip .sg-msg{grid-column:1;grid-row:2;font-size:14.5px;line-height:1.55;padding-top:12px;border-top:1px dashed #cfe3d8}
+  .sg-strip .sg-chips{grid-column:2;grid-row:1/3;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-content:start}
+  .sg-strip .sg-chip{min-width:0;padding:10px 12px;border-radius:12px}
+  .sg-strip .sg-chip small{font-size:12px}
+  .sg-strip .sg-chip b{font-size:21px;line-height:1.25}
+  .sg-strip .sg-chip.wide{grid-column:auto}
+  .sg-strip .sg-cands,.sg-strip .sg-more{grid-column:1/-1}
+  .sg-strip .sg-cands{padding-top:12px;border-top:1px solid #e3ece6}
+  .sg-strip .sg-tk{font-size:13px;padding:5px 11px}
+}
+/* ── 모바일: 레버리지 연속하락 칩은 전체 폭 한 줄(라벨 좌 · 값 우) ── */
+@media(max-width:700px){
+  .sg-chip.wide{order:20;flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+  .sg-chip.wide small{white-space:nowrap}
+  .sg-chip.wide b{white-space:nowrap}
+}
+@media(max-width:900px){html body.pro.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{grid-column:1/-1!important;width:auto!important;min-height:0!important}}
+.mv-f{color:#6b7280}
+@media(min-width:901px){.sg-ribbon{top:104px}}
+/* ── 하단 업데이트 표시(4개 페이지 공통) ── */
+html body.pro.pro footer .cross-update:not([hidden]){display:block!important;width:100%;margin:18px auto 0;padding:14px 16px;background:transparent;border:0;text-align:center;font:inherit;font-size:12.5px;color:var(--tx2,#6b7280);cursor:default}

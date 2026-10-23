@@ -2755,9 +2755,10 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ux-pass.css?v=11">
+<link rel="stylesheet" href="ux-pass.css?v=19">
 <link rel="stylesheet" href="ui-fixes-v106.css?v=e3eaba04">
-<script defer src="ux-pass.js?v=7"></script>
+<script defer src="ux-pass.js?v=10"></script>
+<script defer src="rsi-weekly.js?v=7"></script>
 </head>
 <body class="pro kr">
 <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -10167,7 +10168,7 @@ async function toggleKrLev(t,ev){
     const LST=KR?{'시가총액 TOP10 (코스피)':'krcap-tbl','시가총액 TOP10 (코스닥)':'krkq-tbl','레버리지 ETF':'krlev-tbl'}:{'김군 관심종목':'tick-tbl','시가총액 TOP10':'cap-tbl','레버리지 ETF':'lev-tbl'};
     /* 접힌 제목 옆 등락 요약에는 종목코드(105560.KS) 대신 한글 종목명을 쓴다 */
     const krRowName=r=>{ const a=r.querySelector('.wl-name>a'); const t=a?a.textContent.replace(/\s+/g,' ').trim():''; return t||r.dataset.t; };
-    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([KR?krRowName(r):r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; const up=a.filter(x=>x[1]>0).length, dn=a.filter(x=>x[1]<0).length; return '<span class="mv"><span class="mv-l">상승 '+up+' · 하락 '+dn+'</span><span class="mv-u">'+u[0]+' '+f(u)+'</span><span class="mv-d">'+d[0]+' '+f(d)+'</span></span>'; };
+    const movers=id=>{ const a=[]; document.querySelectorAll('#'+id+' .wl-row').forEach(r=>{ const c=r.querySelector('.ch'); if(!c) return; const m=c.textContent.match(/([\d.]+)\s*%/); if(!m) return; const v=parseFloat(m[1])*(/▼|-|−/.test(c.textContent)?-1:1); a.push([KR?krRowName(r):r.dataset.t,v]); }); if(a.length<2) return ''; a.sort((x,y)=>y[1]-x[1]); const u=a[0],d=a[a.length-1]; const f=x=>(x[1]>=0?'▲':'▼')+Math.abs(x[1]).toFixed(2)+'%'; const cl=x=>x[1]>0?'mv-u':x[1]<0?'mv-d':'mv-f'; const up=a.filter(x=>x[1]>0).length, dn=a.filter(x=>x[1]<0).length; return '<span class="mv"><span class="mv-l">상승 '+up+' · 하락 '+dn+'</span><span class="'+cl(u)+'">'+u[0]+' '+f(u)+'</span><span class="'+cl(d)+'">'+d[0]+' '+f(d)+'</span></span>'; };
     const refresh=()=>{ const id=LST[key]; const h=id?movers(id):''; if(h) sum.innerHTML=h; else sum.textContent=key?SUM[key]():''; };
     refresh(); [1500,4000,9000].forEach(t=>setTimeout(refresh,t)); setInterval(refresh,15000);
     const SK=(KR?'mk_fk_':'mk_f_')+(key||title); const set=open=>{  box.style.display=open?'block':'none'; btn.innerHTML=open?'<em>접기</em> ➖':'<em>펼치기</em> ➕'; btn.setAttribute('aria-expanded',open?'true':'false'); h2.classList.toggle('open',open); refresh(); };
@@ -10860,7 +10861,7 @@ async function toggleKrLev(t,ev){
 <script src="mrkim-detail.js?v=446c8c63"></script>
 <script src="kr-standard.js?v=76912559"></script>
 <script defer src="market-refine.js?v=bfdc42f5"></script>
-<script defer src="brand-layout.js?v=2e2346e1"></script>
+<script defer src="brand-layout.js?v=2e2346e3"></script>
 <script defer src="mk-watch.js?v=b85eb4af"></script>
 <script defer src="mk-info.js?v=eaf6c175"></script>
 <script defer src="ui-fixes-v106.js?v=28f9c733"></script>
