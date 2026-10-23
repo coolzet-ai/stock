@@ -1,50 +1,149 @@
-/* ux-pass.js — (1) 첫 방문 카드 자동 접기 (2) 미국주식 '오늘의 시그널 체크' 스트립
-   스트립은 화면에 이미 표시된 지표(공포탐욕·VIX·레버리지 연속하락·RSI·일정)만 읽어 규칙으로 요약합니다. 투자 권유가 아닙니다. */
+/* ux-pass.js — 전 메뉴 점검 개선
+   (1) 첫 방문 카드 자동 접기  (2) 모바일 '맨 위로' 버튼: 스크롤 후에만 표시
+   (3) 미국·한국·가상화폐 '오늘의 시그널 체크' 스트립(화면에 이미 표시된 지표를 규칙으로 요약 · 연동 상태 표시 · 눌림목/과열 후보)
+   (4) 홈 시장 카드: 5일선·200일선·RSI 한 줄 신호(+ 코인 공포탐욕)
+   모두 참고용이며 투자 권유가 아닙니다. 외부 호출은 기존과 같은 Worker 프록시만 사용합니다. */
 (function () {
   'use strict'; var d = document;
+  var PAGE = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  function $(s, r) { return (r || d).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || d).querySelectorAll(s)); }
+  function mk(tag, cls, txt) { var e = d.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+
+  /* (1) 첫 방문 카드 */
   setTimeout(function () { var c = d.getElementById('mk-first'); if (c && !c.classList.contains('open')) c.classList.add('mk-min'); }, 8000);
-  var brief = d.getElementById('pro-brief'); if (!brief) return;
-  function num(s) { var m = /(-?\d+(?:\.\d+)?)/.exec(s || ''); return m ? parseFloat(m[1]) : null; }
-  function read() {
-    var cs = brief.querySelectorAll('.pb-grid > .pb-c'), t = function (i) { return cs[i] ? cs[i].innerText : ''; };
-    var fg = num((/(\d+)\s*·/.exec(t(0)) || [])[1]), vix = num((/VIX\)\s*\n?\s*([\d.]+)/.exec(t(1)) || [])[1]);
-    var back = /백워데이션/.test(t(1));
-    var ev = (/D-(\d+)/.exec(t(2)) || [])[1], evn = (t(2).split('\n')[1] || '').trim();
-    var lev = brief.querySelector('.pb-lev'), l4 = null, l3 = null;
-    if (lev) { var big = lev.querySelectorAll('.lv-box b, .lv-c b, [class*=lv] b'); }
-    if (lev) { var m = lev.innerText.match(/(\d+)\s*\n?\s*2연속\s*\n?\s*(\d+)\s*\n?\s*3연속\s*\n?\s*(\d+)\s*\n?\s*4연속/); if (m) { l3 = +m[2]; l4 = +m[3]; } }
-    var rs = window.MK_RSI_SUM || null;
-    return { fg: fg, vix: vix, back: back, ev: ev, evn: evn, l3: l3, l4: l4, rs: rs };
+  /* (2) 맨 위로 */
+  function sc() { d.body.classList.toggle('sg-scrolled', (window.scrollY || d.documentElement.scrollTop) > 520); }
+  window.addEventListener('scroll', sc, { passive: true }); sc();
+  /* 일부 페이지가 맨 위로 버튼에 인라인 font-size(!important)를 넣어, 모바일에서는 글자를 숨기고 ↑ 아이콘만 남깁니다 */
+  setInterval(function () { var b = d.getElementById('pro-top'); if (!b) return; if (window.innerWidth <= 700) b.style.setProperty('font-size', '0', 'important'); else if (b.style.fontSize === '0px') b.style.removeProperty('font-size'); }, 1200);
+
+  /* ───────── (3) 시그널 스트립 ───────── */
+  var brief = null;
+  if (/^(stock|kr-stock|crypto)$/.test(PAGE)) {
+    var num = function (s) { var m = /(-?\d+(?:\.\d+)?)/.exec(s || ''); return m ? parseFloat(m[1]) : null; };
+    var pct = function (s) { var m = /([▲▼])\s*([+\-−]?\d+(?:\.\d+)?)%/.exec(s || ''); if (!m) return null; var v = Math.abs(parseFloat(m[2].replace('−', '-'))); return m[1] === '▼' ? -v : v; };
+    var fmtp = function (v) { return v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(2) + '%'; };
+    var read = function () {
+      var cs = $$('.pb-grid > .pb-c', brief), t = function (i) { return cs[i] ? cs[i].innerText : ''; };
+      var x = { fg: num((/(\d+)\s*·/.exec(t(0)) || [])[1]), page: PAGE };
+      var lev = $('.pb-lev', brief); x.l3 = null; x.l4 = null;
+      if (lev) { var m = lev.innerText.match(/(\d+)\s*\n?\s*2연속\s*\n?\s*(\d+)\s*\n?\s*3연속\s*\n?\s*(\d+)\s*\n?\s*4연속/); if (m) { x.l3 = +m[2]; x.l4 = +m[3]; } }
+      var evTxt = '', evi = -1; cs.forEach(function (c, i) { if (/일정/.test(c.innerText.split('\n')[0] || '') && evi < 0) evi = i; });
+      if (evi >= 0) { var tt = t(evi); x.ev = (/D-(\d+)/.exec(tt) || [])[1]; x.evn = (tt.split('\n')[1] || '').trim(); }
+      if (PAGE === 'stock') { x.vix = num((/VIX\)\s*\n?\s*([\d.]+)/.exec(t(1)) || [])[1]); x.back = /백워데이션/.test(t(1)); x.rs = window.MK_RSI_SUM || null; x.rsw = !window.MK_RSI_W_ERR; }
+      if (PAGE === 'kr-stock') { x.kospi = pct(t(1)); x.fx = pct(t(2)); }
+      if (PAGE === 'crypto') { x.btc = pct(t(1)); x.eth = pct(t(2)); var hv = /D-(\d+)/.exec($('.pb-halv', brief) ? $('.pb-halv', brief).innerText : ''); x.halv = hv ? hv[1] : null; }
+      return x;
+    };
+    var cands = function () { /* 눌림목(RSI(일) ≤40 & 200일선 위) · 과열(RSI(일) ≥70) 후보 — 미국 표만 */
+      var pull = [], heat = [], seen = {};
+      ['cap-tbl', 'cap2-tbl', 'cap3-tbl', 'tick-tbl', 'lev-tbl'].forEach(function (id) {
+        $$('#' + id + ' .wl-row[data-t]').forEach(function (r) {
+          var tk = r.getAttribute('data-t'); if (seen[tk]) return; seen[tk] = 1;
+          var db = $('.tb-d', r); if (!db) return; var rsi = num(db.textContent); if (rsi == null) return;
+          var up200 = $$('.tb', r).some(function (b) { return /^200▲/.test(b.textContent.trim()); });
+          if (rsi <= 40 && up200) pull.push({ t: tk, v: rsi, id: id }); else if (rsi >= 70) heat.push({ t: tk, v: rsi, id: id });
+        });
+      });
+      pull.sort(function (a, b) { return a.v - b.v; }); heat.sort(function (a, b) { return b.v - a.v; });
+      return { pull: pull.slice(0, 8), heat: heat.slice(0, 8), np: pull.length, nh: heat.length };
+    };
+    var judge = function (x) {
+      var used = 0, score = 0, heatF = 0, notes = [];
+      if (x.fg != null) { used++; if (x.fg <= 45) score++; if (x.fg <= 25) score++; if (x.fg >= 70) heatF++; }
+      if (PAGE === 'stock') {
+        if (x.rs && x.rs.n) { used++; if (x.rs.lo >= 3) score++; if (x.rs.hi >= 5) heatF++; }
+        if (x.l3 != null) { used++; if ((x.l3 + x.l4) >= 2) score++; }
+      } else if (x.l3 != null) { used++; if ((x.l3 + x.l4) >= 2) score++; }
+      var r = { cls: 'watch', lab: '관망·점검', used: used };
+      if (used < (PAGE === 'crypto' ? 1 : 2)) { r.cls = 'warn'; r.lab = '판정 보류(연동 확인)'; }
+      else if (heatF >= 1 && (x.fg >= 70 || (x.rs && x.rs.hi >= 5))) { r.cls = 'heat'; r.lab = '과열 점검'; }
+      else if (score >= (PAGE === 'stock' ? 3 : 2)) { r.cls = 'buy'; r.lab = '분할 접근 후보 점검'; }
+      r.tip = r.cls === 'buy' ? '공포·과매도 신호가 겹칩니다. 비중·손절 기준을 먼저 정하고 분할로만 접근을 검토하세요.'
+        : r.cls === 'heat' ? '과열 신호가 있습니다. 신규 추격보다 이익 관리·비중 점검이 우선입니다.'
+        : r.cls === 'warn' ? '연동된 지표가 부족해 판정하지 않습니다. 아래 연동 상태를 확인하세요.'
+        : '신호가 엇갈립니다. 서두르지 않고 관심종목의 이평선·RSI를 먼저 확인하세요.';
+      return r;
+    };
+    var chip = function (k, v, c) { var e = mk('div', 'sg-chip' + (c ? ' ' + c : '')); e.appendChild(mk('small', '', k)); e.appendChild(mk('b', '', v)); return e; };
+    var flash = function (tk, id) {
+      var r = $('#' + id + ' .wl-row[data-t="' + tk.replace(/"/g, '') + '"]'); if (!r) return;
+      var h = r.closest('.fold-body'); if (h && h.hidden) { var hd = h.previousElementSibling; if (hd && hd._set) hd._set(true); }
+      r.scrollIntoView({ behavior: 'smooth', block: 'center' }); r.classList.add('sg-flash'); setTimeout(function () { r.classList.remove('sg-flash'); }, 2200);
+    };
+    var cline = function (label, arr, cls) {
+      var l = mk('div', 'sg-cl'); l.appendChild(mk('span', 'sg-cl-t ' + cls, label));
+      if (!arr.length) { l.appendChild(mk('span', 'sg-cl-n', '해당 없음')); return l; }
+      arr.forEach(function (c) { var b = mk('button', 'sg-tk ' + cls, c.t + ' ' + Math.round(c.v)); b.type = 'button'; b.title = 'RSI(일) ' + c.v + ' · 클릭하면 해당 종목으로 이동'; b.addEventListener('click', function () { flash(c.t, c.id); }); l.appendChild(b); });
+      return l;
+    };
+    var last = '';
+    var render = function () {
+      brief = d.getElementById('pro-brief'); if (!brief || !$('.pb-grid', brief)) return;
+      var x = read(), r = judge(x), cd = PAGE === 'stock' ? cands() : null;
+      var sig = JSON.stringify([x, r.cls, cd && [cd.pull, cd.heat]]); if (sig === last) return; last = sig;
+      var g = $('.pb-grid', brief); if (!g) return;
+      var el = d.getElementById('sg-strip'); if (!el) { el = mk('div', 'sg-strip'); el.id = 'sg-strip'; g.parentNode.insertBefore(el, g); }
+      el.replaceChildren();
+      var top = mk('div', 'sg-top'); top.appendChild(mk('span', 'sg-ttl', '📋 오늘의 시그널 체크')); top.appendChild(mk('span', 'sg-badge ' + r.cls, r.lab)); el.appendChild(top);
+      var ch = mk('div', 'sg-chips');
+      ch.appendChild(chip(PAGE === 'stock' ? '공포탐욕' : PAGE === 'kr-stock' ? '한국 공포탐욕' : '코인 공포탐욕', x.fg != null ? x.fg : '–', x.fg != null && x.fg <= 25 ? 'on' : x.fg >= 70 ? 'cool' : ''));
+      if (PAGE === 'stock') {
+        ch.appendChild(chip('VIX', x.vix != null ? x.vix : '–', x.back ? 'on' : ''));
+        ch.appendChild(chip('RSI 과매도', x.rs ? x.rs.lo + '종목' : '–', x.rs && x.rs.lo >= 3 ? 'on' : ''));
+        ch.appendChild(chip('RSI 과매수', x.rs ? x.rs.hi + '종목' : '–', x.rs && x.rs.hi >= 5 ? 'cool' : ''));
+      }
+      if (PAGE === 'kr-stock') { ch.appendChild(chip('코스피', fmtp(x.kospi), x.kospi != null && x.kospi < 0 ? 'cool' : x.kospi > 0 ? 'on' : '')); ch.appendChild(chip('원/달러', fmtp(x.fx), '')); }
+      if (PAGE === 'crypto') { ch.appendChild(chip('비트코인', fmtp(x.btc), x.btc < 0 ? 'cool' : x.btc > 0 ? 'on' : '')); ch.appendChild(chip('이더리움', fmtp(x.eth), x.eth < 0 ? 'cool' : x.eth > 0 ? 'on' : '')); if (x.halv) ch.appendChild(chip('반감기', 'D-' + x.halv, '')); }
+      if (x.l3 != null) ch.appendChild(chip('레버리지 3일+ 연속하락', (x.l3 + x.l4) + '종목', (x.l3 + x.l4) >= 2 ? 'on' : ''));
+      ch.appendChild(chip('다음 일정', x.ev != null ? 'D-' + x.ev : '–', x.ev != null && +x.ev <= 3 ? 'on' : '')); el.appendChild(ch);
+      var tip = mk('div', 'sg-msg'); var b = mk('b', '', '👉 ' + r.tip); tip.appendChild(b);
+      if (x.ev != null && +x.ev <= 3) tip.appendChild(mk('div', 'sg-warn', '⚠ D-' + x.ev + ' ' + (x.evn || '주요 일정') + ' 임박 — 변동성 확대에 유의하세요.'));
+      el.appendChild(tip);
+      if (cd) { var cb = mk('div', 'sg-cands'); cb.appendChild(cline('🧊 눌림목 후보 (RSI(일)≤40 · 200일선 위)', cd.pull, 'pull')); cb.appendChild(cline('🔥 과열 (RSI(일)≥70)', cd.heat, 'heat')); el.appendChild(cb); }
+      /* 연동 상태 */
+      var st = mk('div', 'sg-health'); st.appendChild(mk('span', 'sg-h-t', '연동 상태 '));
+      var items = [['공포탐욕', x.fg != null]];
+      if (PAGE === 'stock') { items.push(['VIX', x.vix != null], ['RSI(일)', !!(x.rs && x.rs.n)], ['RSI(주)', !!x.rsw && !!window.MK_RSI_SUM]); }
+      if (PAGE === 'kr-stock') items.push(['코스피', x.kospi != null], ['환율', x.fx != null]);
+      if (PAGE === 'crypto') items.push(['BTC', x.btc != null], ['ETH', x.eth != null]);
+      if (PAGE !== 'crypto') items.push(['레버리지', x.l3 != null]); items.push(['일정', x.ev != null]);
+      var bad = 0; items.forEach(function (i) { if (!i[1]) bad++; st.appendChild(mk('span', 'sg-h ' + (i[1] ? 'ok' : 'ng'), (i[1] ? '✓ ' : '✗ ') + i[0])); });
+      el.appendChild(st);
+      if (bad) el.appendChild(mk('div', 'sg-note ng', '미연동(✗) 항목은 판정에서 제외됩니다. 계속 ✗이면 Worker 연결·네트워크 상태를 확인해 주세요(다시 불러오기 버튼).'));
+      el.appendChild(mk('div', 'sg-note', '화면에 표시된 지표를 규칙으로 요약한 참고용 체크입니다(투자 권유 아님). 기준: 공포탐욕 ≤45 공포 / ≤25 극단 / ≥70 탐욕 · RSI ≤30 과매도 / ≥75 과매수.'));
+    };
+    setInterval(render, 1500); setTimeout(render, 800);
   }
-  function build(x) {
-    var fear = x.fg != null && x.fg <= 45, extreme = x.fg != null && x.fg <= 25, greed = x.fg != null && x.fg >= 70;
-    var os = x.rs ? x.rs.lo : 0, ob = x.rs ? x.rs.hi : 0, streak = (x.l4 || 0) + (x.l3 || 0);
-    var score = (fear ? 1 : 0) + (extreme ? 1 : 0) + (os >= 3 ? 1 : 0) + (streak >= 2 ? 1 : 0);
-    var cls = 'watch', lab = '관망·점검';
-    if (greed || ob >= 5) { cls = 'heat'; lab = '과열 점검'; } else if (score >= 3) { cls = 'buy'; lab = '분할 접근 후보 점검'; }
-    var msg = [];
-    if (x.fg != null) msg.push('공포탐욕 ' + x.fg + (extreme ? '(극단적 공포)' : fear ? '(공포)' : greed ? '(탐욕)' : '(중립권)'));
-    if (os) msg.push('RSI 과매도 ' + os + '종목'); if (ob) msg.push('RSI 과매수 ' + ob + '종목');
-    if (streak) msg.push('레버리지 3일+ 연속하락 ' + streak + '종목');
-    if (x.ev != null && +x.ev <= 3) msg.push('D-' + x.ev + ' ' + x.evn + ' 임박 → 변동성 확대 주의');
-    var txt = msg.length ? msg.join(' · ') : '지표를 불러오는 중입니다.';
-    var tip = cls === 'buy' ? '공포·과매도 신호가 겹칩니다. 비중·손절 기준을 먼저 정하고 분할로만 접근을 검토하세요.' : cls === 'heat' ? '과열 신호가 있습니다. 신규 추격보다 이익 관리·비중 점검이 우선입니다.' : '신호가 엇갈립니다. 서두르지 않고 관심종목의 이평선·RSI를 먼저 확인하세요.';
-    return { cls: cls, lab: lab, txt: txt, tip: tip, os: os, ob: ob, streak: streak };
+
+  /* ───────── (4) 홈: 시장 카드 한 줄 신호 ───────── */
+  if (PAGE === 'mrkim-signal') {
+    var PROXY = 'https://ai.coolzet.workers.dev/?url=', SYM = { 'stock': '^GSPC', 'kr-stock': '^KS11', 'crypto': 'BTC-USD' };
+    var ma = function (a, n) { if (a.length < n) return null; var s = 0; for (var i = a.length - n; i < a.length; i++) s += a[i]; return s / n; };
+    var rsi = function (c) { if (c.length < 30) return null; var g = 0, l = 0, i; for (i = 1; i <= 14; i++) { var df = c[i] - c[i - 1]; if (df > 0) g += df; else l -= df; } g /= 14; l /= 14; for (i = 15; i < c.length; i++) { var d2 = c[i] - c[i - 1]; g = (g * 13 + Math.max(d2, 0)) / 14; l = (l * 13 + Math.max(-d2, 0)) / 14; } return l === 0 ? 100 : 100 - 100 / (1 + g / l); };
+    var sigCards = function () {
+      $$('.cross-market-links a[data-market]').forEach(function (a) {
+        var s = SYM[a.dataset.market]; if (!s || a.dataset.sig === '1') return; a.dataset.sig = '1';
+        var row = mk('span', 'mk-sig', '추세 신호 확인 중…'); a.appendChild(row);
+        fetch(PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + s + '?range=1y&interval=1d')).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+          var q = j.chart.result[0], cl = (q.indicators.quote[0].close || []).filter(function (v) { return v != null && isFinite(v); }), last = cl[cl.length - 1];
+          var m5 = ma(cl, 5), m200 = ma(cl, 200), rs = rsi(cl); if (last == null || m5 == null) throw 0;
+          row.replaceChildren();
+          var add = function (t, c) { row.appendChild(mk('i', c, t)); };
+          add('5일선 ' + (last >= m5 ? '▲' : '▼'), last >= m5 ? 'up' : 'dn');
+          if (m200 != null) add('200일선 ' + (last >= m200 ? '▲' : '▼'), last >= m200 ? 'up' : 'dn');
+          if (rs != null) add('RSI ' + Math.round(rs), rs >= 70 ? 'hot' : rs <= 30 ? 'cold' : '');
+        }).catch(function () { row.textContent = '추세 신호 일시 불러오기 실패'; row.className = 'mk-sig bad'; });
+      });
+      var c = $('.cross-market-links a[data-market="crypto"]'); if (c && !c.dataset.fng) {
+        c.dataset.fng = '1';
+        fetch(PROXY + encodeURIComponent('https://api.alternative.me/fng/?limit=1&format=json')).then(function (r) { return r.json(); }).then(function (j) {
+          var v = j && j.data && j.data[0]; if (!v) return; var n = +v.value; if (!isFinite(n)) return;
+          var f = mk('span', 'mk-fng', '공포탐욕 ' + n + ' · ' + (n <= 25 ? '극단적 공포' : n <= 45 ? '공포' : n < 55 ? '중립' : n < 75 ? '탐욕' : '극단적 탐욕')); c.appendChild(f);
+        }).catch(function () {});
+      }
+    };
+    var tries = 0; (function w() { if ($('.cross-market-links a[data-market]')) { sigCards(); setTimeout(sigCards, 2500); } else if (++tries < 40) setTimeout(w, 400); })();
   }
-  function chip(k, v, c) { return '<div class="sg-chip' + (c ? ' ' + c : '') + '"><small>' + k + '</small><b>' + v + '</b></div>'; }
-  var last = '';
-  function render() {
-    var x = read(); if (x.fg == null) return; var r = build(x);
-    var html = '<div class="sg-top"><span class="sg-ttl">📋 오늘의 시그널 체크</span><span class="sg-badge ' + r.cls + '">' + r.lab + '</span></div>' +
-      '<div class="sg-chips">' + chip('공포탐욕', x.fg, x.fg <= 25 ? 'on' : x.fg >= 70 ? 'cool' : '') + chip('VIX', x.vix != null ? x.vix : '–', x.back ? 'on' : '') +
-      chip('RSI 과매도', r.os + '종목', r.os >= 3 ? 'on' : '') + chip('RSI 과매수', r.ob + '종목', r.ob >= 5 ? 'cool' : '') + chip('레버리지 연속하락', r.streak + '종목', r.streak >= 2 ? 'on' : '') +
-      chip('다음 일정', x.ev != null ? 'D-' + x.ev : '–', x.ev != null && +x.ev <= 3 ? 'on' : '') + '</div>' +
-      '<div class="sg-msg">' + r.txt + '</div><div class="sg-msg" style="margin-top:4px"><b>👉 ' + r.tip + '</b></div>' +
-      '<div class="sg-note">화면에 표시된 지표를 규칙으로 요약한 참고용 체크입니다(투자 권유 아님). 기준: 공포탐욕 ≤45 공포 / ≤25 극단 · RSI ≤30 과매도 / ≥75 과매수.</div>';
-    if (html === last) return; last = html;
-    var el = d.getElementById('sg-strip');
-    if (!el) { el = d.createElement('div'); el.id = 'sg-strip'; el.className = 'sg-strip'; var g = brief.querySelector('.pb-grid'); if (!g) return; g.parentNode.insertBefore(el, g); }
-    el.innerHTML = html;
-  }
-  setInterval(render, 1500); setTimeout(render, 800);
 })();

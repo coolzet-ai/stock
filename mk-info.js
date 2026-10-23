@@ -42,6 +42,7 @@
 
   /* ── 다른 시장 이동(페이지 간 연결) ── */
   function cross() {
+    if (PAGE === 'mrkim-signal' || PAGE === 'index') return; /* 홈은 위 카드와 중복이라 생략 */
     var main = d.querySelector('main'); if (!main || main.querySelector('.mk-cross')) return;
     var items = [['stock', 'stock.html', '미국주식', '공포탐욕·VIX·섹터'], ['kr-stock', 'kr-stock.html', '한국주식', '코스피 심리·투자자 동향'], ['crypto', 'crypto.html', '가상화폐', '반감기 사이클·코인 비교']];
     var h = '<h2 class="mk-cross-h">다른 시장도 확인해 보세요</h2><div class="mk-cross-g">';
