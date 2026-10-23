@@ -222,3 +222,35 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct>b{font-size:30px}
 .ov-tp{font-size:13.5px;line-height:1.6}.ov-sm{font-size:12.5px;color:#475467;margin-top:6px}
 .ov-tw{overflow-x:auto}.ov-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;min-width:420px}.ov-t th{background:#667085;color:#fff;padding:6px;text-align:right;white-space:nowrap}.ov-t th:first-child,.ov-t td:first-child{text-align:left}
 .ov-t td{padding:6px;text-align:right;border-bottom:1px solid #eef0f3}.ov-t td.l{max-width:220px;white-space:normal}
+/* 큰손 동향 위쪽 구분선 제거 */
+html body.pro.pro.pro #bigmoney,html body #bigmoney{border-top:0!important;box-shadow:none!important}
+/* ═════ 시인성 강화 (차트북 · 재무 확장 · 일별표) ═════ */
+/* 차트북: 분류별 색 띠, 큰 숫자, 변동 배지, 최저/최고 표기 */
+html body #mk-cb .cb-c{border-left:5px solid #98A2B3;border-color:#d5e5dc;border-left-color:#98A2B3;padding:12px 14px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+#mk-cb .cb-m{border-left-color:#1D4ED8!important}#mk-cb .cb-j{border-left-color:#0B6B3A!important}#mk-cb .cb-p{border-left-color:#D92D20!important}#mk-cb .cb-c.cb-gr{border-left-color:#7A5AF8!important}
+html body #mk-cb .cb-t{font-size:13.5px;font-weight:800;color:#1d2939;min-height:36px}
+html body #mk-cb .cb-v{font-size:28px;line-height:1.15;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 4px}
+#mk-cb .cb-v small{font-size:13px;color:#475467}
+html body #mk-cb .cb-chg{margin-left:6px;padding:2px 9px;border-radius:999px;font-size:13px;font-weight:800;background:#eef2f6;color:#475467}
+#mk-cb .cb-chg.u{background:#FEE4E2;color:#B42318}#mk-cb .cb-chg.dn{background:#DCE8FF;color:#1D4ED8}
+html body #mk-cb .cb-svg{height:78px;margin-top:4px;background:linear-gradient(#f8fafc,#f8fafc);border-radius:8px}
+#mk-cb .cb-mm{display:flex;justify-content:space-between;font-size:12.5px;color:#475467;margin-top:4px;font-variant-numeric:tabular-nums}
+html body #mk-cb .cb-d{font-size:12.5px;color:#475467}
+html body #mk-cb .cb-s{font-size:13px;color:#475467}
+#mk-cb summary,#mk-ov summary{font-size:16px}
+/* 재무 확장 패널 */
+.fv2 .fv2-ext .fv2-t{font-size:14px;font-weight:900;color:var(--tx);padding-left:9px;border-left:5px solid #0B6B3A;margin:16px 0 8px}
+.fv2 .fv2-ext .fv2-c{padding:9px 12px}
+.fv2 .fv2-ext .fv2-c small{font-size:12.5px;font-weight:700;color:#475467;white-space:normal}
+.fv2 .fv2-ext .fv2-c b{font-size:19px}
+.fv2 .fv2-ext .fv2-c em{font-size:12.5px;color:#475467}
+.fv2 .fv2-ext .fv2-bar{height:18px!important}
+.fv2 .fv2-ext summary{font-size:13.5px}
+.fv2 .fv2-ext .fv2-rs div{font-size:13px}
+/* 일별 시세표(VIX·코스피·비트코인): 헤더 대비, 줄무늬, 숫자 확대 */
+.vt-t th{background:#475467;font-size:13px;padding:9px 8px}
+.vt-t td{font-size:14.5px;padding:8px}
+.vt-t tr:nth-child(even) td{background:#f8fafc}
+.vt-t tr:first-child+tr td{font-weight:800}
+.vt-n{font-size:14px;color:#1d2939}.vt-s{font-size:12.5px;color:#475467}
+.vt-lg{font-size:13px;font-weight:700}

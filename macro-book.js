@@ -13,6 +13,7 @@
     ['RSXFS', '소매판매 (% 전년비)', 'yoy', '%', 2, 'bar'], ['INDPRO', '산업생산 (% 전월비)', 'mom', '%', 2, 'bar'],
     ['UMCSENT', '미시간 소비자심리 (Index)', 'lvl', '', 1, 'line'], ['M2SL', 'M2 통화량 (% 전년비)', 'yoy', '%', 2, 'bar']
   ];
+  var CAT = { DGS10: 'm', DFEDTARU: 'm', T10Y2Y: 'm', BAMLH0A0HYM2: 'm', DTWEXBGS: 'm', DCOILWTICO: 'm', UNRATE: 'j', PAYEMS: 'j', ICSA: 'j', CPIAUCSL: 'p', PCEPI: 'p', A191RL1Q225SBEA: 'gr', RSXFS: 'gr', INDPRO: 'gr', UMCSENT: 'gr', M2SL: 'p' };
   function tr(raw, mode) {
     var t = raw.t, v = raw.v, o = { t: [], v: [] }, i;
     if (mode === 'lvl') return raw;
@@ -39,21 +40,35 @@
     var cap = s[5] === 'bar' ? 14 : 60; if (s[0] === 'DGS10' || s[0] === 'T10Y2Y' || s[0] === 'BAMLH0A0HYM2' || s[0] === 'DTWEXBGS' || s[0] === 'DCOILWTICO') cap = 90;
     var f = { t: o.t.slice(-cap), v: o.v.slice(-cap) }, n = f.v.length, last = f.v[n - 1], prev = f.v[n - 2], df = last - prev;
     var up = df > 0 ? 'u' : df < 0 ? 'dn' : '';
-    return '<div class="cb-c"><div class="cb-t">' + s[1] + '</div><div class="cb-v">' + fmt(last, s[4]) + '<small>' + (s[3] === '%' || s[3] === '%p' ? s[3] : '') + '</small><span class="' + up + '">' + (df > 0 ? '▲' : df < 0 ? '▼' : '–') + ' ' + fmt(Math.abs(df), s[4]) + '</span></div>' + spark(f, s[5]) + '<div class="cb-d">' + f.t[n - 1] + ' 기준 · 직전 대비</div></div>';
+    var mn = Math.min.apply(null, f.v), mx = Math.max.apply(null, f.v), cat = CAT[s[0]] || 'm';
+    return '<div class="cb-c cb-' + cat + '"><div class="cb-t">' + s[1] + '</div><div class="cb-v">' + fmt(last, s[4]) + '<small>' + (s[3] === '%' || s[3] === '%p' ? s[3] : '') + '</small><span class="cb-chg ' + up + '">' + (df > 0 ? '▲' : df < 0 ? '▼' : '–') + ' ' + fmt(Math.abs(df), s[4]) + '</span></div>' + spark(f, s[5]) + '<div class="cb-mm"><span>최저 ' + fmt(mn, s[4]) + '</span><span>최고 ' + fmt(mx, s[4]) + '</span></div><div class="cb-d">' + f.t[n - 1] + ' 기준 · 직전 대비</div></div>';
   }
   function init() {
-    var anchor = d.getElementById('us-caprel-card') || d.getElementById('us-corr-card'); if (!anchor || d.getElementById('mk-cb')) return;
+    var anchor = d.getElementById('pro-sector'); if (!anchor || d.getElementById('mk-cb')) return;
     var c = d.createElement('div'); c.className = 'card'; c.id = 'mk-cb';
     c.innerHTML = '<details' + (innerWidth > 900 ? ' open' : '') + '><summary><b>🗂️ 매크로 차트북</b><span class="mut"> 금리·물가·고용·성장 16개 지표 · FRED</span></summary><div class="cb-g" id="cb-g"><div class="cb-na">불러오는 중…</div></div><div class="cb-s">출처: 미 연준 FRED(세인트루이스 연은) 공개 통계. 월간 지표는 발표 시차가 있어 최신 월이 지난달일 수 있습니다. 빨강=직전 대비 상승, 파랑=하락(좋고 나쁨 판단 아님).</div></details>';
-    anchor.parentNode.insertBefore(c, anchor.nextSibling);
+    anchor.parentNode.insertBefore(c, anchor); c.style.marginTop = '12px';
     var done = false;
     c.querySelector('details').addEventListener('toggle', load); if (innerWidth > 900) load();
     function load() {
       if (done || !c.querySelector('details').open) return; done = true;
-      fetch(W + S.map(function (s) { return s[0]; }).join(',')).then(function (r) { return r.json(); }).then(function (j) {
-        d.getElementById('cb-g').innerHTML = S.map(function (s) { return cell(s, j[s[0]]); }).join('');
-      }).catch(function () { d.getElementById('cb-g').innerHTML = '<div class="cb-na">차트북을 불러오지 못했습니다. (집계 서버 v47 배포 필요)</div>'; });
+      var host = d.getElementById('cb-g'), why = '';
+      fetch(W + S.map(function (s) { return s[0]; }).join(',')).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) {
+        var okn = S.filter(function (s) { return j[s[0]]; }).length; if (!okn) throw new Error('FRED 응답 없음');
+        host.innerHTML = S.map(function (s) { return cell(s, j[s[0]]); }).join('');
+      }).catch(function (e) { why = e && e.message || '연결 실패'; fallback(host, why); });
+    }
+    /* 집계 서버 v47(/fred)이 아직 없을 때: 기존 서버로 받을 수 있는 시장가격형 지표 4개만 먼저 보여준다 */
+    function fallback(host, why) {
+      var FB = [['^TNX', '미 국채 10년 (%)', 'lvl', '%', 2, 'line'], ['DX-Y.NYB', '달러인덱스 (Index)', 'lvl', '', 1, 'line'], ['CL=F', 'WTI 유가 ($/배럴)', 'lvl', '$', 1, 'line'], ['GC=F', '금 선물 ($/온스)', 'lvl', '$', 0, 'line']];
+      Promise.all(FB.map(function (s) {
+        return fetch('https://ai.coolzet.workers.dev/?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(s[0]) + '?range=6mo&interval=1d')).then(function (r) { return r.json(); }).then(function (j) {
+          var r0 = j.chart.result[0], cl = r0.indicators.quote[0].close, o = { t: [], v: [] }; r0.timestamp.forEach(function (t, i) { if (cl[i] != null) { o.t.push(new Date(t * 1000).toISOString().slice(0, 10)); o.v.push(cl[i]); } }); return o;
+        }).catch(function () { return null; });
+      })).then(function (arr) {
+        host.innerHTML = '<div class="cb-na" style="grid-column:1/-1">⚠ 금리·물가·고용 등 FRED 지표를 불러오지 못했습니다 (' + why + '). 집계 서버(Worker) v47 배포 후 16개 지표가 모두 표시됩니다. 우선 시장가격 지표만 보여드립니다.</div>' + FB.map(function (s, i) { return cell(s, arr[i]); }).join('');
+      });
     }
   }
-  var t = setInterval(function () { if (d.getElementById('us-corr-card')) { clearInterval(t); setTimeout(init, 800); } }, 700);
+  var t = setInterval(function () { if (d.getElementById('pro-sector')) { clearInterval(t); setTimeout(init, 300); } }, 700);
 })();
