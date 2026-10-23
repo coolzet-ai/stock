@@ -520,3 +520,15 @@ a.cta-r{grid-template-rows:auto auto auto;row-gap:3px}
 .cta-v{grid-column:2;grid-row:1}
 .cta-trk{grid-column:1/-1;grid-row:2}
 }
+html body.pro.pro.pro.pro.stock-v2 h1.pg-h1.v93-title,html body.pro.pro.pro.pro.v93-stock h1.v93-title{font-size:24px!important;line-height:1.25!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.stock-v2 h1.pg-h1.v93-title,html body.pro.pro.pro.pro.v93-stock h1.v93-title{font-size:22px!important}}
+
+/* 홈 소제목 */
+h2.mk-h2{font-size:17px;font-weight:800;margin:26px 0 10px;color:var(--tx,inherit);letter-spacing:-.01em}
+h2.mk-vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* 공통 섹션 바로가기 */
+#mk-tpl{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+#mk-tpl a.mk-tpl-a{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;border:1px solid var(--line,#dfe5e1);background:var(--card,transparent);color:var(--tx2,inherit);text-decoration:none;white-space:nowrap}
+#mk-tpl a.mk-tpl-a:hover,#mk-tpl a.mk-tpl-a:focus-visible{border-color:#00754a;color:#00754a}
+@media(max-width:700px){#mk-tpl{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-2px}#mk-tpl::-webkit-scrollbar{display:none}}

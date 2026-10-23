@@ -300,6 +300,31 @@
     setInterval(render, 1500); setTimeout(render, 800);
   }
 
+  /* ───────── (3b) 공통 섹션 바로가기: ①요약 ②수급·유동성 ③후보·과열 ④차트북 ⑤목록 (세 시장 페이지 공통) ───────── */
+  if (PAGE === 'stock' || PAGE === 'kr-stock' || PAGE === 'crypto') {
+    var byText = function (re) { var hs = $$('main h2, h2'); for (var i = 0; i < hs.length; i++) if (re.test(hs[i].textContent) && hs[i].offsetParent) return hs[i]; return null; };
+    var pick = function (sels) { for (var i = 0; i < sels.length; i++) { var e = typeof sels[i] === 'function' ? sels[i]() : $(sels[i]); if (e && e.offsetParent !== null) return e; } return null; };
+    var TPL = [
+      ['① 요약', ['#pro-brief']],
+      ['② 수급·유동성', PAGE === 'stock' ? ['.liq-box', '.cta-box', '#bigmoney'] : PAGE === 'kr-stock' ? ['#kr-breadth-panel', function () { return byText(/투자자별/); }] : ['.cxm']],
+      ['③ 후보·과열', PAGE === 'stock' ? ['.sg-cands'] : ['.sg-strip']],
+      ['④ 차트북', ['#mk-cb']],
+      ['⑤ 목록', PAGE === 'stock' ? ['#tickers', function () { return byText(/시가총액/); }] : PAGE === 'kr-stock' ? [function () { return byText(/시가총액/); }] : ['#market-heading-1']]
+    ];
+    var tplNav = function () {
+      var host = d.getElementById('pro-brief'); if (!host) return;
+      var nav = d.getElementById('mk-tpl'); if (!nav) { nav = mk('nav', 'mk-tpl'); nav.id = 'mk-tpl'; nav.setAttribute('aria-label', '섹션 바로가기'); host.parentNode.insertBefore(nav, host.nextSibling); }
+      var sig = TPL.map(function (t) { var e = pick(t[1]); return e ? t[0] : ''; }).join('|');
+      if (nav.dataset.sig === sig) return; nav.dataset.sig = sig; nav.replaceChildren();
+      TPL.forEach(function (t) {
+        if (!pick(t[1])) return;
+        var a = mk('a', 'mk-tpl-a', t[0]); a.href = '#'; a.addEventListener('click', function (ev) { ev.preventDefault(); var e = pick(t[1]); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+        nav.appendChild(a);
+      });
+    };
+    var tpTry = 0; var tpT = setInterval(function () { tplNav(); if (++tpTry > 40) clearInterval(tpT); }, 1500); setTimeout(tplNav, 900);
+  }
+
   /* ───────── (4) 홈: 시장 카드 한 줄 신호 ───────── */
   if (PAGE === 'mrkim-signal') {
     var PROXY = 'https://ai.coolzet.workers.dev/?url=', SYM = { 'stock': '^GSPC', 'kr-stock': '^KS11', 'crypto': 'BTC-USD' };
@@ -317,7 +342,13 @@
       el.appendChild(mk('span', '', ' ' + (t.join(' · ') || '추세 신호를 계산 중입니다.')));
       el.appendChild(mk('small', '', '대표 지수(S&P500·코스피·비트코인)의 일봉 기준 참고용 요약입니다(투자 권유 아님).'));
     };
+    var homeH2 = function () {
+      var host = $('.cross-market-links'); if (!host || d.getElementById('mk-h2-mk')) return;
+      var h = mk('h2', 'mk-h2', '시장별 바로가기'); h.id = 'mk-h2-mk'; host.parentNode.insertBefore(h, host.previousElementSibling && host.previousElementSibling.id === 'mk-home-sum' ? host.previousElementSibling : host);
+      var ft = d.querySelector('footer .wrap'); if (ft && !d.getElementById('mk-h2-ft')) { var f = mk('h2', 'mk-h2 mk-vh', '서비스 안내·투자 유의사항'); f.id = 'mk-h2-ft'; ft.insertBefore(f, ft.firstChild); }
+    };
     var sigCards = function () {
+      homeH2();
       $$('.cross-market-links a[data-market]').forEach(function (a) {
         var s = SYM[a.dataset.market]; if (!s || a.dataset.sig === '1') return; a.dataset.sig = '1';
         var row = mk('span', 'mk-sig', '추세 신호 확인 중…'); a.appendChild(row);

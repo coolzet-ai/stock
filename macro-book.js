@@ -102,7 +102,11 @@
     g.addEventListener('pointermove', move); g.addEventListener('pointerdown', move);
     g.addEventListener('pointerleave', function () { g.querySelectorAll('.cb-sp.on').forEach(clear); });
     var done = false;
-    c.querySelector('details').addEventListener('toggle', load); if (innerWidth > 900) load();
+    var seen = false; c.querySelector('details').addEventListener('toggle', function () { if (seen) load(); });
+    if (innerWidth > 900) {
+      if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); seen = true; load(); } }, { rootMargin: '400px 0px' }); io.observe(c); }
+      else { seen = true; load(); }
+    } else seen = true;
     function load() {
       if (done || !c.querySelector('details').open) return; done = true;
       var host = d.getElementById('cb-g'), why = '';
