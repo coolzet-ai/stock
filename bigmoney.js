@@ -103,7 +103,7 @@
   /* ───── 뼈대 ───── */
   function build() {
     var sec = $('#bigmoney'); if (!sec || sec.getAttribute('data-ready')) return; sec.setAttribute('data-ready', '1');
-    var wrap = $('.wrap', sec) || sec;
+    var wrap = $('#bm-root', sec) || $('.wrap', sec) || sec;
     var tabs = el('div', 'bm-tabs'); tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', '큰손 동향 종류');
     var panes = {}, names = [['cot', '선물 포지션 (CTA·헤지펀드)'], ['opt', '옵션 풋/콜'], ['f13', '기관 13F']];
     names.forEach(function (n, i) { var b = el('button', '', n[1]); b.type = 'button'; b.setAttribute('data-bm', n[0]); b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false'); tabs.appendChild(b); var p = el('div', 'bm-pane'); if (i) p.hidden = true; panes[n[0]] = p; });

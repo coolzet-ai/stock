@@ -7746,6 +7746,7 @@ async function toggleEtfHoldings(ticker, ev){
     '레버리지 ETF':()=>document.querySelectorAll('#lev-tbl .wl-row').length+'종목',
     '유니콘 기업':()=>document.querySelectorAll('#unicorn .grid>.card').length+'개사',
     '소셜 언급':()=>window.MK_SOC_SUM||'StockTwits 강세·약세 · Reddit 언급',
+    '큰손 동향':()=>'선물 포지션 · 옵션 풋/콜 · 기관 13F',
     '주요 이벤트 일정':()=>(new Date().getMonth()+1)+'월 일정 · 휴장일 · 월별 보기',
     '지수 편입 · 편출 종목':()=>document.querySelectorAll('#idxchg-tbl .wl-row').length+'종목 · S&P500·나스닥100'
   };
@@ -7775,7 +7776,7 @@ async function toggleEtfHoldings(ticker, ev){
     h2.addEventListener('click',tg);
     h2._set=function(open){if(open&&window.MK_REQUEST_DETAIL)window.MK_REQUEST_DETAIL(function(){set(true);});else set(open);};
   }
-  document.querySelectorAll('#stock > .wrap > h2, #unicorn > .wrap > h2, #events > .wrap > h2, #kr-stock > .wrap > h2').forEach(fold);
+  document.querySelectorAll('#stock > .wrap > h2, #bigmoney > .wrap > h2, #unicorn > .wrap > h2, #events > .wrap > h2, #kr-stock > .wrap > h2').forEach(fold);
   const all=[...document.querySelectorAll('h2.fold-h')];
   if(all[0]){ const bar=document.createElement('div'); bar.className='fold-all'; bar.innerHTML='<button type="button" data-o="0">모두 접기 ➖</button><button type="button" data-o="1">모두 펼치기 ➕</button>'; var brief=document.getElementById('pro-brief');if(brief)brief.before(bar);else all[0].before(bar); bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const open=b.dataset.o==='1';const apply=()=>{all.forEach(h=>h._set(open));document.querySelectorAll('.m-fold').forEach(c=>{if(c.classList.contains('m-open')!==open){const btn=c.querySelector('.m-fold-btn');if(btn)btn.click();}});document.querySelectorAll('details:not(.stock-nav-group)').forEach(d=>d.open=open);};if(open&&window.MK_REQUEST_DETAIL)window.MK_REQUEST_DETAIL(apply);else apply(); }); }
   const openByHash=()=>{ const h=location.hash&&document.querySelector(location.hash); if(h&&h._set) h._set(true); };
