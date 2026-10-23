@@ -13,7 +13,6 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c.pb-rsi{grid-column:1/-1!impo
 #pro-brief .pb-rsi .rsb-sw button[aria-pressed=true]{background:#006241;border-color:#006241;color:#fff}
 #pro-brief .pb-rsi .rsb-bo span{color:#7a3e00}
 #pro-brief .pb-rsi .rsb-nt{font-size:11.5px;color:#6b7773}
-.wl-ind .tb-w{border-style:dashed}
 /* RSI 칸: 과매도(왼쪽)·과매수(오른쪽) 분할, 롤오버해도 글씨가 흰색으로 바뀌지 않게 고정 */
 html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c.pb-rsi .rsb-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
 html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-l{flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;border:1px solid #d9e2dd;background:#fff;align-items:flex-start;min-width:0}
@@ -32,3 +31,11 @@ html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .lv-n{color:#6b7773!impo
 @media(max-width:420px){html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols{gap:6px}html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-l{padding:8px 9px;font-size:12.5px}}
 html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi{align-items:stretch!important}
 html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi>*{width:100%;align-self:stretch;box-sizing:border-box}
+/* 종목 표 RSI 배지: 일봉·주봉을 각각 한 줄로, 색과 이름표로 구분 */
+html body.pro.pro .wl-ind:has(.tb-d),html body.pro.pro .wl-ind:has(.tb-w){display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+.wl-ind .rsi-br{flex:0 0 100%;height:0;width:0;margin:0;padding:0;overflow:hidden}
+html body.pro.pro .wl-ind .tb-d,html body.pro.pro .wl-ind .tb-w{font-size:11.5px;padding:3px 8px;border-radius:6px;font-weight:800;border:1px solid transparent;letter-spacing:0}
+html body.pro.pro .wl-ind .tb-d{background:#e8f0fe;color:#1a47b8;border-color:#9db8f3}
+html body.pro.pro .wl-ind .tb-w{background:#f3e8ff;color:#6b21a8;border-color:#c9a3ee}
+html body.pro.pro .wl-ind .tb-d.tb-hot,html body.pro.pro .wl-ind .tb-w.tb-hot{background:#D92D20;color:#fff;border-color:#D92D20}
+html body.pro.pro .wl-ind .tb-d.tb-cold,html body.pro.pro .wl-ind .tb-w.tb-cold{background:#2563EB;color:#fff;border-color:#2563EB}

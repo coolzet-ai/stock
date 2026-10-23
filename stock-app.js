@@ -7804,6 +7804,22 @@ function price(text){
 function col(v){const a=Math.min(Math.abs(v)/4,1);const US=!!(window.MK_CV&&window.MK_CV.us);const L=v>=0?(US?[6,118,71]:[200,32,20]):(US?[200,32,20]:[26,111,168]);const g=[110,118,112];const c=L.map((x,i)=>Math.round(g[i]+(x-g[i])*(.35+.65*a)));return 'rgb('+c+')'}
 let mode='cap';
 const MOV={up:null,dn:null};
+/* 인버스 ETF(하락에 베팅하는 상품) — Worker /yq 로 5일치 종가를 한 번에 받아 마지막 종가와 전일 대비 등락률만 계산한다 */
+const INV={list:null,err:false};
+const INV_SYMS=['SQQQ','TECS','SOXS','SMHD','WEBS','SPXS','SPXU','SDOW','LABD','FAZ','YANG'];
+async function loadInv(){
+  try{
+    if(typeof PROXY_BASE==='undefined'||!PROXY_BASE) throw new Error('no proxy');
+    const origin=PROXY_BASE.replace(/\?url=$/,'').replace(/\/+$/,'');
+    const r=await fetch(origin+'/yq?range=5d&symbols='+encodeURIComponent(INV_SYMS.join(',')),{signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json(), out=[];
+    INV_SYMS.forEach(t=>{ const c=j&&j[t]; if(!c||c.length<2) return; const a=c[c.length-1], b=c[c.length-2]; if(!(b>0)) return; out.push({t:t,nm:t,rk:0,px:'$'+a.toFixed(2),v:(a/b-1)*100}); });
+    INV.list=out; INV.err=!out.length;
+  }catch(e){ if(!INV.list) INV.list=[]; INV.err=true; }
+  draw();
+}
+setTimeout(loadInv,2500);setInterval(loadInv,300000);
 async function loadMov(){
   for(const [k,id] of [['up','day_gainers'],['dn','day_losers']]){
     try{
@@ -7823,14 +7839,14 @@ function draw(){
  if(!p){p=document.createElement('div');p.className='pulse';const bar=document.getElementById('pro-toc');if(bar)bar.after(p);else document.getElementById('pro-brief').after(p);p.classList.add('m-fold');p.addEventListener('click',e=>{const h=e.target.closest('h3');if(h&&p.contains(h)&&!e.target.closest('a')){const o=!p.classList.contains('m-open');p.classList.toggle('m-open',o);draw();return}const b=e.target.closest('[data-m]');if(b){mode=b.dataset.m;draw()}})}
  const KEY=['TQQQ','SOXL','TECL','QLD','USD','SCHD'];
  const kb=(ti,ks)=>{const a=ks.map(k=>all.find(x=>x.t===k)).filter(Boolean);return a.length?'<div class="hm-k"><h4>'+ti+' <small>'+ks.join(' · ')+'</small></h4><div class="hm">'+a.map(x=>'<div class="tl" style="--c:'+col(x.v)+'"><span>★ '+x.t+'</span><small style="background:'+col(x.v)+'">'+price(x.px)+'<b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b>'+ex(x.t)+'</small></div>').join('')+'</div></div>':''};
- const rows=(mode==='up'||mode==='dn')?(MOV[mode]||[]):mode==='cap'?q('cap-tbl'):mode==='tick'?q('tick-tbl'):q('lev-tbl');const g5=(mode==='cap'||mode==='up'||mode==='dn');
+ const rows=(mode==='up'||mode==='dn')?(MOV[mode]||[]):mode==='inv'?(INV.list||[]):mode==='cap'?q('cap-tbl'):mode==='tick'?q('tick-tbl'):q('lev-tbl');const g5=(mode==='cap'||mode==='up'||mode==='dn'||mode==='inv');
  const up=all.filter(x=>x.v>0).length,dn=all.filter(x=>x.v<0).length,fl=all.length-up-dn;
  p.innerHTML='<h3>시장 한눈에 보기 <small>'+all.length+'개 종목 기준 · 최근 시세 등락</small><button type="button" class="m-fold-btn" aria-expanded="'+p.classList.contains('m-open')+'"><em>'+(p.classList.contains('m-open')?'접기':'펼치기')+'</em> '+(p.classList.contains('m-open')?'➖':'➕')+'</button></h3>'+
  '<div class="breadth"><i style="width:'+up/all.length*100+'%;background:var(--up)"></i><i style="width:'+fl/all.length*100+'%;background:#aaa"></i><i style="width:'+dn/all.length*100+'%;background:var(--down)"></i></div>'+
  '<div class="bl"><span style="color:var(--up)">▲ 상승 '+up+'</span><span style="color:var(--tx2)">보합 '+fl+'</span><span style="color:var(--down)">하락 '+dn+' ▼</span></div>'+
  '<div class="hm-kw">'+kb('🔥 3배 핵심 3종',['TQQQ','SOXL','TECL'])+kb('🎯 김군 핵심 3종',['QLD','USD','SCHD'])+'</div>'+
- '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">시가총액 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">관심종목</button><button data-m="lev" class="'+(mode==='lev'?'on':'')+'">레버리지 ETF</button><button data-m="up" class="'+(mode==='up'?'on':'')+'">🚀 급등주</button><button data-m="dn" class="'+(mode==='dn'?'on':'')+'">📉 급락주</button></div>'+
- (rows.length||(mode!=='up'&&mode!=='dn')?'':'<p class="mut" style="font-size:12.5px;margin:8px 0">'+(MOV[mode]===null?'급등·급락 종목을 불러오는 중입니다…':'조건(주가 $2 이상·시총 3억달러 이상)에 맞는 종목이 없습니다.')+'</p>')+'<div class="hm '+(g5?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7))?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'" style="--c:'+col(x.v)+'"><span style="--n:'+String(x.t).length+'">'+(mode==='cap'&&x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+x.t+'</span><small style="background:'+col(x.v)+'">'+price(x.px)+'<b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b>'+ex(x.t)+'</small></div>').join('')+'</div>'+
+ '<div class="hm-t"><button data-m="cap" class="'+(mode==='cap'?'on':'')+'">시가총액 TOP10</button><button data-m="tick" class="'+(mode==='tick'?'on':'')+'">관심종목</button><button data-m="lev" class="'+(mode==='lev'?'on':'')+'">레버리지 ETF</button><button data-m="inv" class="'+(mode==='inv'?'on':'')+'">🔻 인버스 ETF</button><button data-m="up" class="'+(mode==='up'?'on':'')+'">🚀 급등주</button><button data-m="dn" class="'+(mode==='dn'?'on':'')+'">📉 급락주</button></div>'+
+ (rows.length||(mode!=='up'&&mode!=='dn'&&mode!=='inv')?'':mode==='inv'?'<p class="mut" style="font-size:12.5px;margin:8px 0">'+(INV.list===null?'인버스 ETF 시세를 불러오는 중입니다…':'인버스 ETF 시세를 불러오지 못했습니다(Worker 연결 확인).')+'</p>':'<p class="mut" style="font-size:12.5px;margin:8px 0">'+(MOV[mode]===null?'급등·급락 종목을 불러오는 중입니다…':'조건(주가 $2 이상·시총 3억달러 이상)에 맞는 종목이 없습니다.')+'</p>')+'<div class="hm '+(g5?'hm-g5':'')+'">'+rows.map((x,i)=>'<div class="tl '+((mode==='cap'&&(i<3||i>=7))?'st ':'')+(mode==='cap'&&i<3?'big ':'')+(KEY.indexOf(x.t)>=0?'star':'')+'" style="--c:'+col(x.v)+'"><span style="--n:'+String(x.t).length+'">'+(mode==='cap'&&x.rk>0&&x.rk<=10?['','🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'][x.rk]+' ':'')+x.t+'</span><small style="background:'+col(x.v)+'">'+price(x.px)+'<b class="hm-chg">'+(x.v>=0?'▲ +':'▼ ')+Math.abs(x.v).toFixed(2)+'%</b>'+ex(x.t)+'</small></div>').join('')+'</div>'+
  '<div class="hm-l">-4%<i style="background:'+col(-4)+'"></i><i style="background:'+col(-1)+'"></i><i style="background:'+col(0.01)+'"></i><i style="background:'+col(1)+'"></i><i style="background:'+col(4)+'"></i>+4%</div>';
 }
 setTimeout(draw,5000);setInterval(draw,20000);

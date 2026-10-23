@@ -39,13 +39,26 @@
       .then(function () { busy = false; decorate(); d.dispatchEvent(new CustomEvent('mk-rsi-weekly')); });
   }
   function cls(v) { return v >= 75 ? 'tb-hot' : v <= 30 ? 'tb-cold' : 'tb-mid'; }
+  function brk(ind, before) { /* 줄바꿈용 보이지 않는 구분자 */
+    var pr = before.previousElementSibling; if (pr && pr.classList.contains('rsi-br')) return;
+    var b = d.createElement('span'); b.className = 'rsi-br'; b.setAttribute('aria-hidden', 'true'); ind.insertBefore(b, before);
+  }
   function decorate() {
     TABLES.forEach(function (id) {
       Array.prototype.forEach.call(d.querySelectorAll('#' + id + ' .wl-row[data-t]'), function (r) {
-        var o = DATA[r.getAttribute('data-t')], ind = r.querySelector('.wl-ind'); if (!o || !ind) return;
-        var b = ind.querySelector('.tb-w'), txt = '주 ' + Math.round(o.v) + (o.v >= 75 ? '🔥' : o.v <= 30 ? '🧊' : '');
+        var ind = r.querySelector('.wl-ind'); if (!ind) return;
+        /* 일봉 RSI 배지: 이름표를 붙이고 한 줄을 차지하게 한다 */
+        var db = ind.querySelector('.tb[title^="RSI(14)"]:not(.tb-w)');
+        if (db) {
+          var m = /RSI\s*(\d+)(.*)$/.exec(db.textContent);
+          if (m && db.textContent.indexOf('일봉') !== 0) db.textContent = '일봉 RSI ' + m[1] + m[2];
+          db.classList.add('tb-d'); brk(ind, db);
+        }
+        var o = DATA[r.getAttribute('data-t')]; if (!o) return;
+        var b = ind.querySelector('.tb-w'), txt = '주봉 RSI ' + Math.round(o.v) + (o.v >= 75 ? '🔥' : o.v <= 30 ? '🧊' : '');
         var tip = '주봉 RSI(14) ' + o.v.toFixed(1) + ' · ' + (o.v >= 75 ? '과매수(75 이상)' : o.v <= 30 ? '과매도(30 이하)' : '중립') + ' · 주봉 ' + o.n + '개 · 마지막 봉 ' + o.last + '(이번 주 진행 중)';
         if (!b) { b = d.createElement('span'); ind.appendChild(b); }
+        brk(ind, b);
         if (b.textContent !== txt || b.title !== tip) { b.className = 'tb tb-w ' + cls(o.v); b.textContent = txt; b.title = tip; }
       });
     });
