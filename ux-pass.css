@@ -140,3 +140,50 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{order:4;grid-column:1/-1;
 @media(min-width:901px){.sg-ribbon{top:104px}}
 /* ── 하단 업데이트 표시(4개 페이지 공통) ── */
 html body.pro.pro footer .cross-update:not([hidden]){display:block!important;width:100%;margin:18px auto 0;padding:14px 16px;background:transparent;border:0;text-align:center;font:inherit;font-size:12.5px;color:var(--tx2,#6b7280);cursor:default}
+/* ═════ 요약 5개 박스 재디자인 ═════ */
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi){position:relative;display:flex;flex-direction:column;justify-content:flex-start;gap:6px;padding:14px 16px 14px 18px;border:1px solid #d5e5dc!important;border-left:6px solid #98A2B3!important;border-top-width:1px!important;border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:box-shadow .15s,transform .15s}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi):hover{background:#fff;box-shadow:0 6px 16px rgba(16,24,40,.1);transform:translateY(-2px)}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi)>small{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#475467;letter-spacing:-.1px}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="kc"]>small::before{content:"🧭"}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="int"]>small::before{content:"🌪️"}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="cal"]>small::before{content:"🗓️"}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="sec"]>small::before{content:"📊"}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct>small::before{content:"💼"}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi)>b{font-size:30px;font-weight:900;line-height:1.1;letter-spacing:-.5px;color:#101828;display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-variant-numeric:tabular-nums}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="cal"]>b,html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c[data-go="sec"]>b{font-size:17px;line-height:1.3;letter-spacing:-.2px}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c>b .n{font-style:normal}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c>b .z{font-style:normal;font-size:14px;font-weight:800;padding:4px 11px;border-radius:999px;white-space:nowrap;background:#eef2f6;color:#475467;letter-spacing:0}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi)>span{font-size:13px;line-height:1.45;color:#475467}
+/* 공포탐욕 5단계 색 */
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="0"]{border-left-color:#D92D20!important;background:linear-gradient(135deg,#fff5f4,#fff)!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="0"] .n{color:#B42318}html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="0"] .z{background:#D92D20;color:#fff}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="1"]{border-left-color:#F79009!important;background:linear-gradient(135deg,#fff8ee,#fff)!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="1"] .n{color:#B54708}html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="1"] .z{background:#FEF0C7;color:#B54708}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="2"]{border-left-color:#667085!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="3"]{border-left-color:#3F7D20!important;background:linear-gradient(135deg,#f3faee,#fff)!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="3"] .n{color:#3F7D20}html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="3"] .z{background:#DCF0D0;color:#2d5f16}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="4"]{border-left-color:#0B6B3A!important;background:linear-gradient(135deg,#e9f6ee,#fff)!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="4"] .n{color:#0B6B3A}html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="kc"][data-z="4"] .z{background:#0B6B3A;color:#fff}
+/* VIX 수준 색 + 기간구조 배지 */
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="int"]{border-left-color:#3F7D20!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="int"][data-vl="mid"]{border-left-color:#F79009!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="int"][data-vl="hi"]{border-left-color:#D92D20!important;background:linear-gradient(135deg,#fff5f4,#fff)!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="int"][data-vl="hi"]>b{color:#B42318}
+html body.pro.pro.pro.pro #pro-brief .pb-c .vx-pill{font-style:normal;font-size:13px;font-weight:800;padding:3px 10px;border-radius:999px}
+html body.pro.pro.pro.pro #pro-brief .pb-c .vx-pill.ok{background:#DCF0D0;color:#2d5f16}
+html body.pro.pro.pro.pro #pro-brief .pb-c .vx-pill.bad{background:#FEE4E2;color:#B42318}
+/* 일정 */
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="cal"]{border-left-color:#3F7D20!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c .dd{font-style:normal;font-weight:900;font-size:13px;padding:3px 10px;border-radius:999px;background:#DCF0D0;color:#2d5f16}
+html body.pro.pro.pro.pro #pro-brief .pb-c .dd.soon{background:#D92D20;color:#fff}
+/* 섹터 강세·약세 */
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"]{border-left-color:#7A5AF8!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"] span>span,html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"]>b>span{display:block;padding:5px 10px;border-radius:8px;font-size:14px;font-weight:800;line-height:1.3}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"] span[style*="D92D20"]{background:#FEF3F2}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"] span[style*="1D4ED8"]{background:#EFF4FF}
+html body.pro.pro.pro.pro #pro-brief .pb-c[data-go="sec"]>b{display:block}
+/* 내 계좌 */
+html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{border-left-color:#0B6B3A!important}
+html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct>b{font-size:30px}
+@media(max-width:700px){html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi)>b{font-size:26px}html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c .z{font-size:13px;padding:3px 9px}}
+@media(max-width:900px){html body.pro.pro.pro.pro #pro-brief .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}

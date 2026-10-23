@@ -34,6 +34,32 @@
     setTimeout(unifyUpd, 1500); setInterval(unifyUpd, 3000);
   }
 
+
+  /* ───────── 요약 5개 박스 디자인: 숫자는 크게, 상태는 색 배지로 ───────── */
+  function decoTiles() {
+    var b = d.getElementById('pro-brief'); if (!b) return;
+    $$('.pb-grid > .pb-c', b).forEach(function (c) {
+      var val = $('b', c), sub = c.querySelector('span');
+      /* 공포탐욕: "19 · 극단적 공포" → 큰 숫자 + 상태 배지 */
+      if (val && !val.querySelector('.n')) {
+        var m = /^\s*(\d+(?:\.\d+)?)\s*·\s*(.+?)\s*$/.exec(val.textContent || '');
+        if (m) { val.textContent = ''; val.appendChild(mk('em', 'n', m[1])); val.appendChild(mk('i', 'z', m[2])); }
+      }
+      /* 일정: "D-4 · 10.27 (화) 21:30" → D-일수 배지 */
+      if (sub && !sub.querySelector('.dd') && /일정/.test((c.querySelector('small') || {}).textContent || '')) {
+        var e = /^\s*(D-\d+|D-day|D\+\d+)\s*·?\s*(.*)$/.exec(sub.textContent || '');
+        if (e) { var n = +(/\d+/.exec(e[1]) || [9])[0]; sub.textContent = ''; sub.appendChild(mk('i', 'dd' + (n <= 3 ? ' soon' : ''), e[1])); sub.appendChild(d.createTextNode(' ' + e[2])); }
+      }
+      /* 변동성(VIX): 기간구조를 값 옆 배지로, 수준에 따라 색 */
+      if (c.getAttribute('data-go') === 'int' && val && !c.querySelector('.vx-pill')) {
+        var st = $('#pb-vx2', c), tx = st ? st.textContent : '';
+        if (tx) { var back = /역전|백워/.test(tx); var p = mk('i', 'vx-pill ' + (back ? 'bad' : 'ok'), back ? '역전' : '정상'); val.appendChild(p); }
+      }
+      if (c.getAttribute('data-go') === 'int' && val) { var v = parseFloat(val.textContent); c.setAttribute('data-vl', isFinite(v) ? (v >= 30 ? 'hi' : v >= 20 ? 'mid' : 'lo') : ''); }
+    });
+  }
+  setInterval(decoTiles, 1000);
+
   /* ───────── 접근성·구조 보강 ───────── */
   function a11y() {
     /* 건너뛰기 링크 */
@@ -54,7 +80,7 @@
     var fmtp = function (v) { return v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(2) + '%'; };
     var read = function () {
       var cs = $$('.pb-grid > .pb-c', brief), t = function (i) { return cs[i] ? cs[i].innerText : ''; };
-      var x = { fg: num((/(\d+)\s*·/.exec(t(0)) || [])[1]), page: PAGE };
+      var fgn = $('#pb-fg .n', brief); var x = { fg: fgn ? num(fgn.textContent) : num((/(\d+)\s*·/.exec(t(0)) || [])[1]), page: PAGE };
       var lev = $('.pb-lev', brief); x.l3 = null; x.l4 = null;
       if (lev) { var m = lev.innerText.match(/(\d+)\s*\n?\s*2연속\s*\n?\s*(\d+)\s*\n?\s*3연속\s*\n?\s*(\d+)\s*\n?\s*4연속/); if (m) { x.l3 = +m[2]; x.l4 = +m[3]; } }
       var evTxt = '', evi = -1; cs.forEach(function (c, i) { if (/일정/.test(c.innerText.split('\n')[0] || '') && evi < 0) evi = i; });
@@ -103,7 +129,7 @@
     var cline = function (label, arr, cls) {
       var l = mk('div', 'sg-cl'); l.appendChild(mk('span', 'sg-cl-t ' + cls, label));
       if (!arr.length) { l.appendChild(mk('span', 'sg-cl-n', '해당 없음')); return l; }
-      arr.forEach(function (c) { var b = mk('button', 'sg-tk ' + cls, c.t + ' ' + Math.round(c.v)); b.type = 'button'; b.title = 'RSI(일) ' + c.v + ' · 클릭하면 해당 종목으로 이동'; b.addEventListener('click', function () { flash(c.t, c.id); }); l.appendChild(b); });
+      arr.forEach(function (c) { var b = mk('a', 'sg-tk ' + cls, c.t + ' ' + Math.round(c.v)); b.href = 'https://finviz.com/quote.ashx?t=' + encodeURIComponent(c.t); b.target = '_blank'; b.rel = 'noopener noreferrer'; b.title = c.t + ' · RSI(일) ' + c.v + ' · 클릭하면 finviz 주가 페이지가 새 탭으로 열립니다'; l.appendChild(b); });
       return l;
     };
     var last = '';
