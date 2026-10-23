@@ -51,14 +51,14 @@
         var db = ind.querySelector('.tb[title^="RSI(14)"]:not(.tb-w)');
         if (db) {
           var m = /RSI\s*(\d+)(.*)$/.exec(db.textContent);
-          if (m && db.textContent.indexOf('일봉') !== 0) db.textContent = '일봉 RSI ' + m[1] + m[2];
+          if (m && db.textContent.indexOf('RSI(일)') !== 0) db.textContent = 'RSI(일) ' + m[1] + m[2];
           db.classList.add('tb-d'); brk(ind, db);
         }
         var o = DATA[r.getAttribute('data-t')]; if (!o) return;
-        var b = ind.querySelector('.tb-w'), txt = '주봉 RSI ' + Math.round(o.v) + (o.v >= 75 ? '🔥' : o.v <= 30 ? '🧊' : '');
+        var b = ind.querySelector('.tb-w'), txt = 'RSI(주) ' + Math.round(o.v) + (o.v >= 75 ? '🔥' : o.v <= 30 ? '🧊' : '');
         var tip = '주봉 RSI(14) ' + o.v.toFixed(1) + ' · ' + (o.v >= 75 ? '과매수(75 이상)' : o.v <= 30 ? '과매도(30 이하)' : '중립') + ' · 주봉 ' + o.n + '개 · 마지막 봉 ' + o.last + '(이번 주 진행 중)';
         if (!b) { b = d.createElement('span'); ind.appendChild(b); }
-        brk(ind, b);
+        var pb = b.previousElementSibling; if (ind.querySelector('.tb-d')) { if (pb && pb.classList.contains('rsi-br')) pb.remove(); } else brk(ind, b);
         if (b.textContent !== txt || b.title !== tip) { b.className = 'tb tb-w ' + cls(o.v); b.textContent = txt; b.title = tip; }
       });
     });
