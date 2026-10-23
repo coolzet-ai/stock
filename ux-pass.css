@@ -279,3 +279,10 @@ html body #mk-cb .cb-s{font-size:13px;color:#475467}
 .ov-dd-t{height:8px;border-radius:4px;background:#eef2f6;overflow:hidden}.ov-dd-t i{display:block;height:100%;border-radius:4px}
 .ov-st{display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:8px}.ov-st i{display:block;min-width:3px}
 .ov-st-l{display:flex!important;gap:14px;flex-wrap:wrap;margin-top:6px}.ov-st-l u{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}.ov-st-l b{display:inline!important;font-size:13px!important}
+/* 배치 최적화: 일별 시세 카드는 전체 폭, PC는 차트(좌)+표(우) 2단 */
+@media(min-width:900px){.vt-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}}
+.vt-r{min-width:0}
+/* 이전 버전의 별도 '종목 개요' 박스는 숨김(재무 버튼 안으로 이동) */
+#mk-ov{display:none!important}
+html body .vt-t tr>th{background:#475467!important;color:#fff!important;font-weight:800}
+html body .vt-t tr:nth-child(even)>td{background:#f8fafc}

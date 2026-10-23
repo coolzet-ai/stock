@@ -36,6 +36,7 @@
 
 
   /* ───────── 요약 5개 박스 디자인: 숫자는 크게, 상태는 색 배지로 ───────── */
+  setInterval(function () { var o = d.getElementById('mk-ov'); if (o && o.parentNode) o.parentNode.removeChild(o); }, 1500); /* 구버전 종목 개요 박스 제거 */
   function decoTiles() {
     var b = d.getElementById('pro-brief'); if (!b) return;
     $$('.pb-grid > .pb-c', b).forEach(function (c) {

@@ -56,6 +56,9 @@
       fetch(W + S.map(function (s) { return s[0]; }).join(',')).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) {
         var okn = S.filter(function (s) { return j[s[0]]; }).length; if (!okn) throw new Error('FRED 응답 없음');
         host.innerHTML = S.map(function (s) { return cell(s, j[s[0]]); }).join('');
+        /* 일시적으로 비어 온 지표만 잠시 뒤 한 번 더 요청해 채운다 */
+        var miss = S.filter(function (s) { return !j[s[0]]; }).map(function (s) { return s[0]; });
+        if (miss.length) setTimeout(function () { fetch(W + miss.join(',')).then(function (r) { return r.json(); }).then(function (k) { Object.keys(k).forEach(function (id) { if (k[id]) j[id] = k[id]; }); host.innerHTML = S.map(function (s) { return cell(s, j[s[0]]); }).join(''); }).catch(function () {}); }, 2500);
       }).catch(function (e) { why = e && e.message || '연결 실패'; fallback(host, why); });
     }
     /* 집계 서버 v47(/fred)이 아직 없을 때: 기존 서버로 받을 수 있는 시장가격형 지표 4개만 먼저 보여준다 */

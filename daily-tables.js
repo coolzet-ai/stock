@@ -33,7 +33,7 @@
       if (r.length < 20) throw 0; r = r.slice(-66);
       var rows = r.slice(-10).reverse().map(function (x, i, ar) { var p = ar[i + 1], dk = p ? x.kc / p.kc - 1 : 0, df = p ? x.fx / p.fx - 1 : 0; return '<tr><td>' + x.k + '</td><td class="' + cl(dk) + '">' + f(x.kc, 2) + '</td><td class="' + cl(dk) + '">' + (p ? (dk > 0 ? '+' : '') + f(dk * 100, 2) + '%' : '-') + '</td><td>' + f(x.kh, 2) + '</td><td>' + f(x.kl, 2) + '</td><td class="' + cl(df) + '">' + f(x.fx, 1) + '</td><td class="' + cl(df) + '">' + (p ? (df > 0 ? '+' : '') + f(df * 100, 2) + '%' : '-') + '</td></tr>'; });
       var l = r[r.length - 1];
-      host.innerHTML = chart(r, 'kc', 'fx', '#067647', '#B54708', '코스피', '원/달러', 0, 0) + '<div class="vt-n">원/달러가 오르면(원화 약세) 외국인 매도 압력이 커지는 경향이 있습니다. 두 선이 반대로 움직이는지 확인하세요. <span class="mut">(VKOSPI는 일별 이력 데이터가 없어 제외)</span></div>' + table(['일자', '코스피', '등락', '고가', '저가', '원/달러', '등락'], rows) + '<div class="vt-s">출처: Yahoo Finance 일봉(한국 거래일 기준, 지연 가능). 상승 <b class="u">빨강</b>, 하락 <b class="dn">파랑</b>.</div>';
+      host.innerHTML = chart(r, 'kc', 'fx', '#067647', '#B54708', '코스피', '원/달러', 0, 0).replace('</div><svg','</div><div class="vt-2"><div class="vt-l"><svg') + '<div class="vt-n">원/달러가 오르면(원화 약세) 외국인 매도 압력이 커지는 경향이 있습니다. 두 선이 반대로 움직이는지 확인하세요. <span class="mut">(VKOSPI는 일별 이력 데이터가 없어 제외)</span></div></div><div class="vt-r">' + table(['일자', '코스피', '등락', '고가', '저가', '원/달러', '등락'], rows) + '</div></div>' + '<div class="vt-s">출처: Yahoo Finance 일봉(한국 거래일 기준, 지연 가능). 상승 <b class="u">빨강</b>, 하락 <b class="dn">파랑</b>.</div>';
     });
     return Promise.all([yc('BTC-USD'), fg()]).then(function (a) {
       var m = {}; a[1].forEach(function (x) { m[x.k] = x; });
@@ -41,7 +41,7 @@
       if (r.length < 20) throw 0; r = r.slice(-66);
       var kor = { 'Extreme Fear': '극단적 공포', 'Fear': '공포', 'Neutral': '중립', 'Greed': '탐욕', 'Extreme Greed': '극단적 탐욕' };
       var rows = r.slice(-10).reverse().map(function (x, i, ar) { var p = ar[i + 1], dc = p ? x.c / p.c - 1 : 0; return '<tr><td>' + x.k + '</td><td class="' + cl(dc) + '">$' + f(x.c, 0) + '</td><td class="' + cl(dc) + '">' + (p ? (dc > 0 ? '+' : '') + f(dc * 100, 2) + '%' : '-') + '</td><td>$' + f(x.h, 0) + '</td><td>$' + f(x.l, 0) + '</td><td><b>' + x.g + '</b> <span class="mut">' + (kor[x.gc] || x.gc) + '</span></td></tr>'; });
-      host.innerHTML = chart(r, 'c', 'g', '#B54708', '#7A5AF8', '비트코인', '공포탐욕', 0, 0) + '<div class="vt-n">공포탐욕지수가 극단적 공포일 때 가격이 바닥권이었던 경우가 많지만, 하락 추세에서는 공포가 더 길어질 수도 있습니다.</div>' + table(['일자', 'BTC 종가', '등락', '고가', '저가', '공포탐욕'], rows) + '<div class="vt-s">출처: Yahoo Finance(BTC-USD, UTC 일봉)·alternative.me. 상승 <b class="u">빨강</b>, 하락 <b class="dn">파랑</b>.</div>';
+      host.innerHTML = chart(r, 'c', 'g', '#B54708', '#7A5AF8', '비트코인', '공포탐욕', 0, 0).replace('</div><svg','</div><div class="vt-2"><div class="vt-l"><svg') + '<div class="vt-n">공포탐욕지수가 극단적 공포일 때 가격이 바닥권이었던 경우가 많지만, 하락 추세에서는 공포가 더 길어질 수도 있습니다.</div></div><div class="vt-r">' + table(['일자', 'BTC 종가', '등락', '고가', '저가', '공포탐욕'], rows) + '</div></div>' + '<div class="vt-s">출처: Yahoo Finance(BTC-USD, UTC 일봉)·alternative.me. 상승 <b class="u">빨강</b>, 하락 <b class="dn">파랑</b>.</div>';
     });
   }
   function init() {
