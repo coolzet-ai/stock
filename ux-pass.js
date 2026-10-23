@@ -91,6 +91,27 @@
       if (PAGE === 'crypto') { x.btc = pct(t(1)); x.eth = pct(t(2)); var hv = /D-(\d+)/.exec($('.pb-halv', brief) ? $('.pb-halv', brief).innerText : ''); x.halv = hv ? hv[1] : null; }
       return x;
     };
+    /* 가상화폐 추가 시그널: 코인 4종 시세 · 소셜 강/약세 · ETF 순유입/유출 · 레인보우 단계 */
+    var CX = { flow: {}, tried: 0, at: 0 }, CN = { bitcoin: '비트코인', ethereum: '이더리움', solana: '솔라나', ripple: '리플' }, CS = { bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', ripple: 'XRP' };
+    var loadFlow = function () {
+      if (PAGE !== 'crypto') return; var now = Date.now(); if (now - CX.at < 45000) return; CX.at = now;
+      Object.keys(CS).forEach(function (id) {
+        if (CX.flow[id] != null) return;
+        fetch('https://ai.coolzet.workers.dev/?url=' + encodeURIComponent('https://api.coinmarketcap.com/data-api/v3/etf/overview/netflow/chart?category=' + CS[id] + '&range=30d')).then(function (r) { return r.json(); }).then(function (j) {
+          var p = j && j.data && j.data.points; if (!p || !p.length) return;
+          p = p.slice().sort(function (a, b) { return a.timestamp - b.timestamp; }); var v = null; for (var i = p.length - 1; i >= 0; i--) { if (+p[i].value) { v = +p[i].value; break; } }
+          if (v != null) CX.flow[id] = v;
+        }).catch(function () { });
+      });
+    };
+    var cryptoX = function () {
+      var sy = { BTC: 'bitcoin', ETH: 'ethereum', SOL: 'solana', XRP: 'ripple' }, soc = {};
+      $$('#soc-sent .soc-row').forEach(function (r) { var nm = $('.soc-nm', r), v = $('.soc-v span', r); if (!nm || !v) return; var id = sy[nm.textContent.trim()], pc = parseFloat(v.textContent); if (id && !isNaN(pc)) soc[id] = pc; });
+      return Object.keys(CN).map(function (id) {
+        var row = $('#coin-tbl .wl-row[data-c="' + id + '"]'), px = row && $('.px', row), ch = row && $('.ch', row), b = row && $('.rb-badge', row);
+        return { n: CN[id], px: px ? px.textContent.trim() : '--', pc: ch ? ch.textContent.trim() : '--', cls: ch && /up/.test(ch.className) ? 'u' : ch && /down/.test(ch.className) ? 'd' : '', soc: soc[id] != null ? soc[id] : null, flow: CX.flow[id] != null ? CX.flow[id] : null, rb: b ? b.textContent.trim() : '', rbc: b ? (b.style.backgroundColor || '') : '' };
+      });
+    };
     var cands = function () { /* 눌림목(RSI(일) ≤40 & 200일선 위) · 과열(RSI(일) ≥70) 후보 — 미국 표만 */
       var pull = [], heat = [], seen = {};
       ['cap-tbl', 'cap2-tbl', 'cap3-tbl', 'tick-tbl', 'lev-tbl'].forEach(function (id) {
@@ -136,8 +157,9 @@
     var last = '';
     var render = function () {
       brief = d.getElementById('pro-brief'); if (!brief || !$('.pb-grid', brief)) return;
-      var x = read(), r = judge(x), cd = PAGE === 'stock' ? cands() : null;
-      var sig = JSON.stringify([x, r.cls, cd && [cd.pull, cd.heat]]); if (sig === last) return; last = sig;
+      if (PAGE === 'crypto') loadFlow();
+      var x = read(), r = judge(x), cd = PAGE === 'stock' ? cands() : null, cx = PAGE === 'crypto' ? cryptoX() : null;
+      var sig = JSON.stringify([x, r.cls, cd && [cd.pull, cd.heat], cx]); if (sig === last) return; last = sig;
       var g = $('.pb-grid', brief); if (!g) return;
       var el = d.getElementById('sg-strip'); if (!el) { el = mk('div', 'sg-strip'); el.id = 'sg-strip'; g.parentNode.insertBefore(el, g); }
       el.replaceChildren();
@@ -150,9 +172,36 @@
         ch.appendChild(chip('RSI 과매수', x.rs ? x.rs.hi + '종목' : '–', x.rs && x.rs.hi >= 5 ? 'cool' : ''));
       }
       if (PAGE === 'kr-stock') { ch.appendChild(chip('코스피', fmtp(x.kospi), x.kospi != null && x.kospi < 0 ? 'cool' : x.kospi > 0 ? 'on' : '')); ch.appendChild(chip('원/달러', fmtp(x.fx), '')); }
-      if (PAGE === 'crypto') { ch.appendChild(chip('비트코인', fmtp(x.btc), x.btc < 0 ? 'cool' : x.btc > 0 ? 'on' : '')); ch.appendChild(chip('이더리움', fmtp(x.eth), x.eth < 0 ? 'cool' : x.eth > 0 ? 'on' : '')); if (x.halv) ch.appendChild(chip('반감기', 'D-' + x.halv, '')); }
+      if (PAGE === 'crypto' && x.halv) ch.appendChild(chip('반감기', 'D-' + x.halv, ''));
       if (x.l3 != null) ch.appendChild(chip('레버리지 3일+ 연속하락', (x.l3 + x.l4) + '종목', 'wide' + ((x.l3 + x.l4) >= 2 ? ' on' : '')));
       ch.appendChild(chip('다음 일정', x.ev != null ? 'D-' + x.ev : '–', x.ev != null && +x.ev <= 3 ? 'on' : '')); el.appendChild(ch);
+      if (cx) {
+        var fm = function (v) { var a = Math.abs(v), t = a >= 1e9 ? (a / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (a / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'K' : Math.round(a); return (v >= 0 ? '+$' : '−$') + t; };
+        var mxf = Math.max.apply(null, cx.map(function (c) { return c.flow == null ? 0 : Math.abs(c.flow); }).concat([1]));
+        var mt = mk('div', 'cxm');
+        ['코인', '💬 소셜 투표', '🏦 ETF 자금', '🌈 레인보우'].forEach(function (h) { mt.appendChild(mk('div', 'cxm-h', h)); });
+        var hot = /과열 주의|FOMO|매도 구간|극단적 거품/, buy = /대폭 할인|매수|축적/;
+        cx.forEach(function (c) {
+          var k = mk('div', 'cxm-c'); k.appendChild(mk('b', '', c.n)); k.appendChild(mk('span', 'cxm-px', c.px)); k.appendChild(mk('em', c.cls, c.pc)); mt.appendChild(k);
+          var so = mk('div', 'cxm-s');
+          if (c.soc == null) so.appendChild(mk('span', 'cxm-na', '로딩')); else {
+            var bar = mk('div', 'cxm-bar'); var up = mk('i', 'u'); up.style.width = c.soc + '%'; var dn = mk('i', 'd'); dn.style.width = (100 - c.soc) + '%'; bar.appendChild(up); bar.appendChild(dn); so.appendChild(bar);
+            so.appendChild(mk('span', 'cxm-tag ' + (c.soc >= 55 ? 'u' : c.soc <= 45 ? 'd' : 'n'), (c.soc >= 55 ? '강세 ' : c.soc <= 45 ? '약세 ' : '중립 ') + Math.round(c.soc) + '%'));
+          }
+          mt.appendChild(so);
+          var fl = mk('div', 'cxm-f');
+          if (c.flow == null) fl.appendChild(mk('span', 'cxm-na', '로딩')); else {
+            var fb = mk('div', 'cxm-fb'); var fi = mk('i', c.flow >= 0 ? 'u' : 'd'); fi.style.width = Math.max(6, Math.abs(c.flow) / mxf * 50) + '%'; if (c.flow >= 0) fi.style.left = '50%'; else fi.style.right = '50%'; fb.appendChild(fi); fl.appendChild(fb);
+            fl.appendChild(mk('span', 'cxm-tag ' + (c.flow >= 0 ? 'u' : 'd'), (c.flow >= 0 ? '유입 ' : '유출 ') + fm(c.flow)));
+          }
+          mt.appendChild(fl);
+          var rbx = mk('div', 'cxm-r');
+          if (!c.rb) rbx.appendChild(mk('span', 'cxm-na', '로딩')); else { var p = mk('span', 'cxm-rb', c.rb); if (c.rbc) p.style.background = c.rbc; if (/축적|아직 저렴|보유|매수/.test(c.rb) && !/대폭/.test(c.rb)) p.style.color = '#1a1200'; rbx.appendChild(p); rbx.appendChild(mk('small', hot.test(c.rb) ? 'hot' : buy.test(c.rb) ? 'buy' : '', hot.test(c.rb) ? '과열 주의' : buy.test(c.rb) ? '매수 단계' : '관망')); }
+          mt.appendChild(rbx);
+        });
+        el.insertBefore(mt, ch);
+        el.appendChild(mk('div', 'sg-note', '빨강=강세·순유입, 파랑=약세·순유출. 소셜: CoinGecko 강세 투표(55%↑ 강세, 45%↓ 약세) · ETF: CoinMarketCap 최근 거래일 순유입/유출 · 레인보우: 현재 구간.'));
+     }
       var tip = mk('div', 'sg-msg'); var b = mk('b', '', '👉 ' + r.tip); tip.appendChild(b);
       if (x.ev != null && +x.ev <= 3) tip.appendChild(mk('div', 'sg-warn', '⚠ D-' + x.ev + ' ' + (x.evn || '주요 일정') + ' 임박 — 변동성 확대에 유의하세요.'));
       el.appendChild(tip);
