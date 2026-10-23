@@ -1,37 +1,11 @@
-/* bigmoney — 미국주식 '큰손 동향' (선물 포지션 · 옵션 · 13F) */
-#bigmoney{padding:0}
-#bigmoney .bm-pane{min-height:120px}
-#bigmoney .bm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
-#bigmoney .bm-tabs button{min-height:40px;padding:0 16px;border:1px solid #d6dbd8;border-radius:999px;background:#fff;color:#1e3932;font-weight:700;font-size:14px;cursor:pointer}
-#bigmoney .bm-tabs button[aria-pressed=true]{background:#006241;border-color:#006241;color:#fff}
-#bigmoney .bm-pane[hidden]{display:none}
-#bigmoney .bm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-#bigmoney .bm-card{background:#fff;border:1px solid #e3e8e5;border-radius:12px;padding:14px 16px;min-width:0}
-#bigmoney .bm-card h3{margin:0 0 4px;font-size:15px}
-#bigmoney .bm-big{font-size:22px;font-weight:800;line-height:1.3}
-#bigmoney .bm-up{color:#B42318}#bigmoney .bm-dn{color:#1D4ED8}
-#bigmoney .bm-mut{color:#55625d;font-size:13px;line-height:1.5}
-#bigmoney .bm-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0;border-top:1px dashed #e8ece9}
-#bigmoney .bm-note{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#f3f6f4;font-size:13px;line-height:1.55;color:#4a5651}
-#bigmoney .bm-sel{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 10px}
-#bigmoney select{min-height:40px;padding:0 10px;border:1px solid #d6dbd8;border-radius:8px;background:#fff;font-size:14px}
-#bigmoney table{width:100%;border-collapse:collapse;font-size:13px}
-#bigmoney th,#bigmoney td{padding:6px 6px;text-align:right;border-bottom:1px solid #eef1ef;white-space:nowrap}
-#bigmoney th:first-child,#bigmoney td:first-child{text-align:left;white-space:normal}
-#bigmoney .bm-tw{overflow-x:auto}
-#bigmoney svg.bm-spark{width:100%;height:36px;display:block;margin-top:6px}
-#bigmoney .bm-err{padding:12px;border-radius:8px;background:#fff6f4;border:1px solid #f3cfc8;font-size:13px;line-height:1.6}
-@media(prefers-color-scheme:dark){html:not([data-theme=light]) #bigmoney .bm-card,html:not([data-theme=light]) #bigmoney select,html:not([data-theme=light]) #bigmoney .bm-tabs button{background:#1b2220;border-color:#33403b;color:#e6ece9}html:not([data-theme=light]) #bigmoney .bm-note{background:#222b28;color:#b7c3be}html:not([data-theme=light]) #bigmoney .bm-up{color:#ff8a7a}html:not([data-theme=light]) #bigmoney .bm-dn{color:#7fa8ff}}
+/* bigmoney.css — 오늘의 시장 요약 RSI 칸 · 주봉 배지 (큰손 동향 본문은 bigmoney.js 안의 Shadow DOM 스타일) */
+#bigmoney{display:flow-root;position:relative;clear:both;overflow:visible;height:auto!important;max-height:none!important;padding:0}
 /* 오늘의 시장 요약 — RSI 칸 */
 #pro-brief .pb-rsi{display:flex;flex-direction:column;gap:4px;min-width:0}
 #pro-brief .pb-rsi .rsb-l{display:flex;gap:6px;align-items:baseline;font-size:13px;line-height:1.45;min-width:0}
 #pro-brief .pb-rsi .rsb-l em{font-style:normal;font-weight:800;flex:none}
 #pro-brief .pb-rsi .rsb-l span{font-weight:700;overflow-wrap:anywhere}
 #pro-brief .pb-rsi .rsb-lo span{color:#1D4ED8}#pro-brief .pb-rsi .rsb-hi span{color:#B42318}
-/* 겹침 방지: 부모 높이가 항상 내용을 감싸도록 하고, 안쪽 요소는 흐름 안에 둔다 */
-#bigmoney{display:flow-root;position:relative;clear:both;overflow:visible;height:auto!important;max-height:none!important}
-#bigmoney .bm-pane,#bigmoney .bm-grid,#bigmoney .bm-card{position:static!important;float:none!important;transform:none!important;max-width:100%}
-#bigmoney .bm-pane,#bigmoney .bm-grid{width:100%;box-sizing:border-box;height:auto!important}
 html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c.pb-rsi{grid-column:1/-1!important;order:99!important;flex:0 0 100%!important;cursor:default}
 #pro-brief .pb-rsi .rsb-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 #pro-brief .pb-rsi .rsb-sw{display:flex;gap:4px}
@@ -40,3 +14,21 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c.pb-rsi{grid-column:1/-1!impo
 #pro-brief .pb-rsi .rsb-bo span{color:#7a3e00}
 #pro-brief .pb-rsi .rsb-nt{font-size:11.5px;color:#6b7773}
 .wl-ind .tb-w{border-style:dashed}
+/* RSI 칸: 과매도(왼쪽)·과매수(오른쪽) 분할, 롤오버해도 글씨가 흰색으로 바뀌지 않게 고정 */
+html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c.pb-rsi .rsb-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-l{flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;border:1px solid #d9e2dd;background:#fff;align-items:flex-start;min-width:0}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-lo{border-color:#bcd0f7}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-hi{border-color:#f3c3bd}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:focus-within{background:#f8fafb!important;border-color:#a5cbbc!important;color:#1c2933!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover small,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi small{color:#44525c!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-l em,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-l em{color:#1c2933!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-lo span,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-lo span{color:#1D4ED8!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-hi span,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-hi span{color:#B42318!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-bo span,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-bo span{color:#7a3e00!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-nt,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-nt{color:#5c6872!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-sw button,html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-sw button{background:#fff!important;color:#1e3932!important;border:1px solid #cfd6d2!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-sw button[aria-pressed=true],html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .rsb-sw button[aria-pressed=true]{background:#006241!important;color:#fff!important;border-color:#006241!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi:hover .lv-n{color:#6b7773!important}
+@media(max-width:420px){html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols{gap:6px}html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi .rsb-cols .rsb-l{padding:8px 9px;font-size:12.5px}}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi{align-items:stretch!important}
+html body.pro.pro.pro.pro #pro-brief .pb-c.pb-rsi>*{width:100%;align-self:stretch;box-sizing:border-box}

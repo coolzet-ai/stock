@@ -48,7 +48,7 @@
     [['d', '일봉'], ['w', '주봉']].forEach(function (x) { var b = d.createElement('button'); b.type = 'button'; b.textContent = x[1]; b.setAttribute('data-m', x[0]); b.setAttribute('aria-pressed', mode === x[0] ? 'true' : 'false'); sw.appendChild(b); });
     hd.appendChild(sw); a.appendChild(hd);
     var wait = mode === 'w' ? (err ? '주봉 데이터를 받지 못했습니다 (Worker /yw 필요)' : late ? '주봉 데이터 없음' : '주봉 계산 중') : null;
-    a.appendChild(line('rsb-lo', '🧊 과매도', r.lo, r.n, wait)); a.appendChild(line('rsb-hi', '🔥 과매수', r.hi, r.n, wait));
+    var cols = d.createElement('div'); cols.className = 'rsb-cols'; cols.appendChild(line('rsb-lo', '🧊 과매도', r.lo, r.n, wait)); cols.appendChild(line('rsb-hi', '🔥 과매수', r.hi, r.n, wait)); a.appendChild(cols);
     var bo = r.both.filter(function (x) { return x.k === 'lo'; }), bh = r.both.filter(function (x) { return x.k === 'hi'; });
     if (r.both.length) { var s = d.createElement('div'); s.className = 'rsb-l rsb-bo'; var k = d.createElement('em'); k.textContent = '⚡ 일·주 동시'; s.appendChild(k); var v = d.createElement('span'); v.textContent = bo.map(function (x) { return '과매도 ' + x.t + ' ' + Math.round(x.v) + '/' + Math.round(x.w); }).concat(bh.map(function (x) { return '과매수 ' + x.t + ' ' + Math.round(x.v) + '/' + Math.round(x.w); })).join(' · '); s.appendChild(v); a.appendChild(s); }
     var nt = d.createElement('div'); nt.className = 'rsb-nt'; nt.textContent = mode === 'w' ? '주봉: 최근 2년 주봉 종가 · 마지막 봉은 이번 주 진행 중 값' : '일봉: 최근 1년 일봉 종가'; if (r.both.length) nt.textContent += ' · 숫자는 일/주 RSI'; a.appendChild(nt);
