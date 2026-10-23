@@ -187,3 +187,15 @@ html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct{border-left-color:#0B6B3A
 html body.pro.pro.pro.pro #pro-brief .pb-grid>#pb-acct>b{font-size:30px}
 @media(max-width:700px){html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c:not(.pb-lev):not(.pb-rsi)>b{font-size:26px}html body.pro.pro.pro.pro #pro-brief .pb-grid>.pb-c .z{font-size:13px;padding:3px 9px}}
 @media(max-width:900px){html body.pro.pro.pro.pro #pro-brief .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* VIX × S&P500 일별 시세 */
+.vt-box{margin-top:14px;padding-top:12px;border-top:1px dashed #d0d5dd}
+.vt-h{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px}
+.vt-lg{font-size:12px;color:#475467}.vt-lg i{display:inline-block;width:14px;height:3px;margin:0 3px 3px 8px;vertical-align:middle}
+.vt-svg{width:100%;height:auto;display:block;margin-top:6px}
+.vt-n{font-size:13px;margin:6px 0 8px;line-height:1.5}
+.vt-tw{overflow-x:auto}
+.vt-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;min-width:460px}
+.vt-t th{background:#667085;color:#fff;font-weight:700;padding:7px 6px;text-align:right;white-space:nowrap}.vt-t th:first-child,.vt-t td:first-child{text-align:left}
+.vt-t td{padding:6px;text-align:right;border-bottom:1px solid #eef0f3}
+.vt-t td.u,.vt-s b.u{color:#D92D20;font-weight:800}.vt-t td.dn,.vt-s b.dn{color:#1D4ED8;font-weight:800}
+.vt-s{font-size:11.5px;color:#667085;margin-top:6px}
