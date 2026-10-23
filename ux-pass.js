@@ -112,6 +112,36 @@
         return { n: CN[id], px: px ? px.textContent.trim() : '--', pc: ch ? ch.textContent.trim() : '--', cls: ch && /up/.test(ch.className) ? 'u' : ch && /down/.test(ch.className) ? 'd' : '', soc: soc[id] != null ? soc[id] : null, flow: CX.flow[id] != null ? CX.flow[id] : null, rb: b ? b.textContent.trim() : '', rbc: b ? (b.style.backgroundColor || '') : '' };
       });
     };
+    /* 미국: CTA·헤지펀드(레버리지 펀드) 선물 순포지션 주간 변화 — Worker /cot (CFTC TFF) */
+    var CTA = { d: null, at: 0, busy: false };
+    var loadCta = function () {
+      if (PAGE !== 'stock' || CTA.busy || (CTA.d && Date.now() - CTA.at < 3600000) || Date.now() - CTA.at < 30000) return; CTA.busy = true; CTA.at = Date.now();
+      var done = function () { CTA.busy = false; };
+      fetch('https://ai.coolzet.workers.dev/cot').then(function (r) { return r.json(); }).then(function (j) {
+        var by = {}; (j.rows || []).forEach(function (x) { (by[x.cftc_contract_market_code] = by[x.cftc_contract_market_code] || []).push(x); });
+        var out = []; [['13874A', 'S&P500'], ['209742', '나스닥100'], ['239742', '러셀2000']].forEach(function (m) {
+          var v = (by[m[0]] || []).sort(function (a, b) { return a.report_date_as_yyyy_mm_dd < b.report_date_as_yyyy_mm_dd ? -1 : 1; });
+          if (v.length < 5) return; var net = v.map(function (x) { return (+x.lev_money_positions_long) - (+x.lev_money_positions_short); }), n = net.length;
+          var lx = v[n - 1]; out.push({ n: m[1], now: net[n - 1], prev: net[n - 2], ch: net[n - 1] - net[n - 2], c4: net[n - 1] - net[n - 5], lg: +lx.lev_money_positions_long, sh: +lx.lev_money_positions_short, mx: Math.max.apply(null, net.slice(-26).map(Math.abs)), dt: lx.report_date_as_yyyy_mm_dd.slice(0, 10) });
+        });
+        if (out.length) { CTA.d = out; CTA.at = Date.now(); }
+      }).catch(function () { }).then(done, done);
+    };
+    /* 유동성: FRED(WALCL 연준자산 − WTREGEN TGA − RRPONTSYD 역레포) 주간 순유동성 */
+    var LQ = { d: null, at: 0, busy: false };
+    var loadLiq = function () {
+      if (PAGE !== 'stock' || LQ.busy || (LQ.d && Date.now() - LQ.at < 3600000) || Date.now() - LQ.at < 30000) return; LQ.busy = true; LQ.at = Date.now();
+      var done = function () { LQ.busy = false; };
+      fetch('https://ai.coolzet.workers.dev/fred?ids=WALCL,WTREGEN,RRPONTSYD,WRESBAL').then(function (r) { return r.json(); }).then(function (j) {
+        var A = j.WALCL, T = j.WTREGEN, R = j.RRPONTSYD, B = j.WRESBAL; if (!A || !T || !R || A.t.length < 8) return;
+        var ti = {}; T.t.forEach(function (d, i) { ti[d] = T.v[i]; }); var bi = {}; if (B) B.t.forEach(function (d, i) { bi[d] = B.v[i]; });
+        var rp = 0, net = [];
+        A.t.forEach(function (d, i) { if (ti[d] == null) return; var rr = 0; for (var k = R.t.length - 1; k >= 0; k--) if (R.t[k] <= d) { rr = R.v[k]; break; } net.push({ d: d, n: (A.v[i] - ti[d]) / 1000 - rr, tga: ti[d] / 1000, res: bi[d] != null ? bi[d] / 1e6 : null }); });
+        if (net.length < 8) return;
+        LQ.d = { net: net.slice(-14), rrp: R.v[R.v.length - 1], rrpd: R.t[R.t.length - 1] }; LQ.at = Date.now();
+      }).catch(function () { }).then(done, done);
+    };
+    var kfmt = function (v) { return (v < 0 ? '−' : '+') + Math.round(Math.abs(v) / 1000).toLocaleString('en-US') + 'K'; };
     var cands = function () { /* 눌림목(RSI(일) ≤40 & 200일선 위) · 과열(RSI(일) ≥70) 후보 — 미국 표만 */
       var pull = [], heat = [], seen = {};
       ['cap-tbl', 'cap2-tbl', 'cap3-tbl', 'tick-tbl', 'lev-tbl'].forEach(function (id) {
@@ -157,9 +187,9 @@
     var last = '';
     var render = function () {
       brief = d.getElementById('pro-brief'); if (!brief || !$('.pb-grid', brief)) return;
-      if (PAGE === 'crypto') loadFlow();
+      if (PAGE === 'crypto') loadFlow(); if (PAGE === 'stock') { loadCta(); loadLiq(); }
       var x = read(), r = judge(x), cd = PAGE === 'stock' ? cands() : null, cx = PAGE === 'crypto' ? cryptoX() : null;
-      var sig = JSON.stringify([x, r.cls, cd && [cd.pull, cd.heat], cx]); if (sig === last) return; last = sig;
+      var sig = JSON.stringify([x, r.cls, cd && [cd.pull, cd.heat], cx, PAGE === 'stock' ? [CTA.d, LQ.d] : null]); if (sig === last) return; last = sig;
       var g = $('.pb-grid', brief); if (!g) return;
       var el = d.getElementById('sg-strip'); if (!el) { el = mk('div', 'sg-strip'); el.id = 'sg-strip'; g.parentNode.insertBefore(el, g); }
       el.replaceChildren();
@@ -175,6 +205,46 @@
       if (PAGE === 'crypto' && x.halv) ch.appendChild(chip('반감기', 'D-' + x.halv, ''));
       if (x.l3 != null) ch.appendChild(chip('레버리지 3일+ 연속하락', (x.l3 + x.l4) + '종목', 'wide' + ((x.l3 + x.l4) >= 2 ? ' on' : '')));
       ch.appendChild(chip('다음 일정', x.ev != null ? 'D-' + x.ev : '–', x.ev != null && +x.ev <= 3 ? 'on' : '')); el.appendChild(ch);
+      if (PAGE === 'stock' && CTA.d) {
+        var cw = mk('div', 'cta-box'); var ct = mk('div', 'cta-t'); ct.appendChild(mk('span', '', '🏦 CTA·헤지펀드 선물 포지션')); ct.appendChild(mk('em', '', '전주 대비 · CFTC ' + CTA.d[0].dt.slice(5).replace('-', '/') + ' 기준')); cw.appendChild(ct);
+        var ax = mk('div', 'cta-ax'); ax.appendChild(mk('span', 'dn', '◀ 순숏(매도 우위)')); ax.appendChild(mk('span', '', '0')); ax.appendChild(mk('span', 'up', '순롱(매수 우위) ▶')); cw.appendChild(ax);
+        var st = function (c) { return c.ch > 0 ? (c.now < 0 ? '숏 축소' : '롱 확대') : c.ch < 0 ? (c.now < 0 ? '숏 확대' : '롱 축소') : '변화 없음'; };
+        var pc = function (v, m) { return Math.max(0, Math.min(100, 50 + v / m * 50)); };
+        CTA.d.forEach(function (c) {
+          var row = mk('a', 'cta-r'); row.href = '#bigmoney'; row.title = '큰손 동향 > 선물 포지션에서 13주 추이 보기'; var m = (c.mx || Math.abs(c.now)) * 1.05 || 1;
+          var nm = mk('div', 'cta-nm'); nm.appendChild(mk('b', '', c.n)); nm.appendChild(mk('small', '', '롱 ' + Math.round(c.lg / 1000) + 'K · 숏 ' + Math.round(c.sh / 1000) + 'K')); row.appendChild(nm);
+          var trk = mk('div', 'cta-trk'); var f = mk('i', 'cta-f ' + (c.now < 0 ? 'dn' : 'up')); var p = pc(c.now, m); f.style.left = (c.now < 0 ? p : 50) + '%'; f.style.width = Math.abs(p - 50) + '%'; trk.appendChild(f);
+          var pv = mk('u', 'cta-pv'); pv.style.left = pc(c.prev, m) + '%'; pv.title = '전주 위치'; trk.appendChild(pv); trk.appendChild(mk('s', 'cta-z')); row.appendChild(trk);
+          var vl = mk('div', 'cta-v'); vl.appendChild(mk('b', c.now < 0 ? 'dn' : 'up', kfmt(c.now))); vl.appendChild(mk('em', c.ch > 0 ? 'up' : c.ch < 0 ? 'dn' : '', (c.ch > 0 ? '▲' : c.ch < 0 ? '▼' : '–') + kfmt(c.ch) + ' ' + st(c))); row.appendChild(vl); cw.appendChild(row);
+        });
+        var allUp = CTA.d.every(function (c) { return c.ch > 0; }), allDn = CTA.d.every(function (c) { return c.ch < 0; }), big = CTA.d.slice().sort(function (a, b) { return Math.abs(b.now) - Math.abs(a.now); })[0];
+        var m2 = allUp ? CTA.d.length + '개 선물 모두 전주 대비 매수 쪽으로 이동했습니다(숏 축소·롱 확대).' : allDn ? CTA.d.length + '개 선물 모두 전주 대비 매도 쪽으로 이동했습니다(숏 확대·롱 축소).' : '선물별 포지션 변화가 엇갈립니다.';
+        if (big && Math.abs(big.now) >= 100000) m2 += ' 다만 ' + big.n + '은 여전히 큰 ' + (big.now < 0 ? '순숏' : '순롱') + '(' + kfmt(big.now) + ')입니다.';
+        cw.appendChild(mk('div', 'cta-m', m2)); cw.appendChild(mk('div', 'cta-n', '막대=현재 순포지션(롱−숏), 흰 눈금=전주 위치 · 최근 6개월 최대 규모 기준 · 레버리지 펀드=헤지펀드·CTA 합산 · 화요일 기준 금요일 공개 · 참고용'));
+        el.insertBefore(cw, ch.nextSibling);
+      }
+      if (PAGE === 'stock' && LQ.d) {
+        var nt = LQ.d.net, n0 = nt[nt.length - 1], n1 = nt[nt.length - 2], n4 = nt[nt.length - 5] || nt[0];
+        var w1 = n0.n - n1.n, w4 = n0.n - n4.n, TH = 50, verdict = w4 >= TH ? ['유동성 확대', 'up'] : w4 <= -TH ? ['유동성 감소', 'dn'] : ['유동성 보합', 'n'];
+        var lw = mk('div', 'liq-box'); var lt = mk('div', 'cta-t'); lt.appendChild(mk('span', '', '💧 유동성 점검')); lt.appendChild(mk('span', 'liq-vd ' + verdict[1], verdict[0])); lt.appendChild(mk('em', '', 'FRED ' + n0.d.slice(5).replace('-', '/') + ' 기준')); lw.appendChild(lt);
+        var sg = function (v, d) { return (v < 0 ? '−' : '+') + Math.abs(v).toFixed(d || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+        var hd = mk('div', 'liq-hd'); var bn = mk('div', 'liq-big'); bn.appendChild(mk('small', '', '순유동성 (연준자산−TGA−역레포)')); bn.appendChild(mk('b', '', '$' + (n0.n / 1000).toFixed(2) + 'T')); bn.appendChild(mk('span', w1 > 0 ? 'up' : 'dn', (w1 > 0 ? '▲ ' : '▼ ') + '전주 ' + sg(w1) + 'B · 4주 ' + sg(w4) + 'B')); hd.appendChild(bn);
+        var ws = []; for (var q = 1; q < nt.length; q++) ws.push({ d: nt[q].d, v: nt[q].n - nt[q - 1].n }); ws = ws.slice(-13);
+        var mxv = Math.max.apply(null, ws.map(function (x) { return Math.abs(x.v); }).concat([1])), W2 = 260, H2 = 56, bw = W2 / ws.length, zy = H2 / 2, svg = '<svg viewBox="0 0 ' + W2 + ' ' + H2 + '" preserveAspectRatio="none" class="liq-sv"><line x1="0" x2="' + W2 + '" y1="' + zy + '" y2="' + zy + '" stroke="#98a2b3"/>';
+        ws.forEach(function (x, i) { var h = Math.max(1.5, Math.abs(x.v) / mxv * (zy - 3)); svg += '<rect x="' + (i * bw + 1.5).toFixed(1) + '" y="' + (x.v >= 0 ? zy - h : zy).toFixed(1) + '" width="' + (bw - 3).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + (x.v >= 0 ? '#D92D20' : '#2563EB') + '" opacity="' + (i === ws.length - 1 ? 1 : .5) + '"><title>' + x.d + ' ' + sg(x.v) + 'B</title></rect>'; });
+        svg += '</svg>'; var ch2 = mk('div', 'liq-ch'); ch2.appendChild(mk('small', '', '주간 순유동성 변화 (최근 13주)')); var sv = mk('div', 'liq-svw'); sv.innerHTML = svg; ch2.appendChild(sv);
+        var lg2 = mk('div', 'liq-lg'); lg2.appendChild(mk('span', 'up', '■ 확대(증가)')); lg2.appendChild(mk('span', 'dn', '■ 감소')); ch2.appendChild(lg2); hd.appendChild(ch2); lw.appendChild(hd);
+        var tg0 = n0.tga, tg1 = n1.tga, lc = mk('div', 'liq-chips'), chp = function (k, v, sub, cls) { var e = mk('div', 'liq-c'); e.appendChild(mk('small', '', k)); e.appendChild(mk('b', '', v)); e.appendChild(mk('span', cls || '', sub)); lc.appendChild(e); };
+        chp('TGA', Math.round(tg0) + 'B', (tg0 >= tg1 ? '▲ ' : '▼ ') + sg(tg0 - tg1) + 'B ' + (tg0 >= tg1 ? '흡수' : '방출'), tg0 - tg1 >= 50 ? 'amb' : '');
+        chp('역레포', LQ.d.rrp.toFixed(2) + 'B', LQ.d.rrp < 1 ? '고갈·완충 작음' : '완충 여력 있음', LQ.d.rrp < 1 ? 'amb' : '');
+        if (n0.res != null && n1.res != null) chp('지급준비금', n0.res.toFixed(2) + 'T', (n0.res >= n1.res ? '▲ ' : '▼ ') + Math.abs(n0.res - n1.res).toFixed(2) + 'T', n0.res - n1.res < -0.04 ? 'amb' : '');
+        lw.appendChild(lc);
+        var lm = '순유동성이 전주 대비 ' + sg(w1) + 'B, 4주 ' + sg(w4) + 'B로 ' + (verdict[1] === 'up' ? '확대 흐름' : verdict[1] === 'dn' ? '감소 흐름' : '보합권') + '입니다.';
+        if (tg0 - tg1 >= 50) lm += ' TGA가 전주 ' + sg(tg0 - tg1) + 'B 늘어 유동성을 흡수했습니다.'; else if (tg0 - tg1 <= -50) lm += ' TGA가 전주 ' + sg(tg0 - tg1) + 'B 줄어 유동성이 풀렸습니다.';
+        if (LQ.d.rrp < 1) lm += ' 역레포는 $' + LQ.d.rrp.toFixed(2) + 'B로 고갈돼 완충 여력이 작습니다.';
+        lw.appendChild(mk('div', 'cta-m', lm)); lw.appendChild(mk('div', 'cta-n', '판정: 4주 순유동성 변화 ±$50B 이상이면 확대/감소(참고 기준) · 연준자산·TGA·지급준비금은 주간(수), 역레포는 일간이라 최대 일주일 늦을 수 있음 · 참고용'));
+        el.insertBefore(lw, (el.querySelector('.cta-box') || ch).nextSibling);
+      }
       if (cx) {
         var fm = function (v) { var a = Math.abs(v), t = a >= 1e9 ? (a / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (a / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'K' : Math.round(a); return (v >= 0 ? '+$' : '−$') + t; };
         var mxf = Math.max.apply(null, cx.map(function (c) { return c.flow == null ? 0 : Math.abs(c.flow); }).concat([1]));
