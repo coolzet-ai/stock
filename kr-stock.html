@@ -3,7 +3,12 @@
 <head>
 <script>(function(){try{var d=document.documentElement,t=localStorage.getItem('mk_theme'),c=localStorage.getItem('mk_cv');if(t==='dark'||(t!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.setAttribute('data-theme','dark');if(c==='us')d.setAttribute('data-cv','us');window.MK_CV={us:c==='us'}}catch(e){window.MK_CV={us:false}}})()</script>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev; media-src 'none'; frame-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+s+6wbUmNkiQTyeW91xVdUwbgN6jca6qSkXKNh8C55k=' 'sha256-7ILKw/PJCC8psSvtigMDUkiApK8gsRIdL+RNipvS9hY=' 'sha256-AZaGIY+2/dze7L7/yOUAqUMYyZXnXW81IfBZthDvGgk=' 'sha256-FIiokU11dQPrLh6DAnGbi1SLnjAf9+xsThRpQOfZ/wU=' 'sha256-I5X0oRcA0OdDGMXiJ830NNPaStRCnzclCfUJcxXh25U=' 'sha256-I73u6Acru3GEewLIZV5PmkEkbk6BKLBkpKH5ARcF7+M=' 'sha256-JVl56u0XCNCyCcnDgiQDc4rBYxhzA0Q0LdSjQClMtt8=' 'sha256-QSmeaE26tveu9n8UeysKYF7nIjc5uemcFDCYD7LFh9M=' 'sha256-QWikS/2yfkxVoWeEugIPjKVVprXCu1z3aAHTDyEmDM0=' 'sha256-RCOJypalpIDX8lt4OcvzUPa9/yfyN0pAx6Q2ZCSzSgM=' 'sha256-VGzMukpI+xp6YtfUALlO1+GZRgOs73c96cm+c5JIz7U=' 'sha256-fzr8sB/Jpw2Eo+LraIFxGYpWq3sXdJe69DQzM2lJ1SM=' 'sha256-wjzuEbdrG48AOMmgqkVowTJTjBDzCjweckB2WEzbJzo=' 'sha256-yi/hnbYl6USg7Z4Zj2IMZWfKiVn5mMorjvkf1oQ5Zzo='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev; media-src 'none'; frame-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<script src="csp-bridge.js?v=1"></script>
+<script>
+/* '상세보기' 접기/펼치기 — 인라인 핸들러 대신 호출(CSP 'unsafe-inline' 제거용) */
+function toggleRestRows(btn,id,n){var e=document.querySelectorAll('.'+id);var o=btn.dataset.o!=='1';e.forEach(function(x){x.style.display=o?'table-row':'none'});btn.dataset.o=o?'1':'0';btn.textContent=o?'접기 ▲':'상세보기 ▼ (나머지 '+n+'건)'}
+</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="mk-boot.js?v=45cd6ffe"></script>
@@ -2755,9 +2760,9 @@ html[data-theme="dark"] .pro [id^="sh-"][style*="#F1F2F4"]{background:#1f2630!im
 <link rel="stylesheet" href="kr-standard.css?v=23133c9e">
 <link rel="stylesheet" href="market-refine.css?v=7d2bfdc2">
 <link rel="stylesheet" href="brand-layout.css?v=ea25b0ef">
-<link rel="stylesheet" href="ux-pass.css?v=51">
+<link rel="stylesheet" href="ux-pass.css?v=56">
 <link rel="stylesheet" href="ui-fixes-v106.css?v=e3eaba04">
-<script defer src="ux-pass.js?v=19"></script>
+<script defer src="ux-pass.js?v=20"></script>
 <script defer src="daily-tables.js?v=6"></script>
 <script defer src="rsi-weekly.js?v=7"></script>
 </head>
@@ -4798,7 +4803,7 @@ function moreRowsHtml(g){
   return arr.map((r,i)=>{
     const c=r[0], rank=g==='krcap2'?11+i:11+i;
     return '<div class="wl-row" data-t="'+c+'.'+r[1]+'"><div class="wl-bar"></div><div class="wl-info" onclick="toggleFinancials(\''+c+'\',event)" style="cursor:pointer" title="빈 공간을 누르면 재무정보가 열립니다"><div class="wl-tag">'+rank+'위 · '+c+'</div><div class="wl-name"><a href="https://m.irgo.co.kr/IR-COMP/'+c+'" target="_blank" rel="noopener" title="'+r[2]+' IR 페이지 (IRGO)">'+r[2]+'</a></div></div><div class="wl-spark"></div><div class="wl-quote"><div class="px wl-price">--</div><div class="ch wl-pct">--</div><div class="wl-52w"></div></div>'+
-      act('<a href="https://finance.naver.com/item/main.naver?code='+c+'" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/'+c+'.'+r[1]+'/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="javascript:void(0)" onclick="toggleFinancials(\''+c+'\')" style="color:#facc15" title="손익계산서(최근 5년 + 올해 예상, DART 전자공시)">재무</a>')+'</div>'+
+      act('<a href="https://finance.naver.com/item/main.naver?code='+c+'" target="_blank" rel="noopener" title="네이버 증권에서 상세 지표 보기">+</a><a href="https://finance.yahoo.com/quote/'+c+'.'+r[1]+'/news/" target="_blank" rel="noopener" class="news-link" title="관련 최신 뉴스 보기">N</a><a href="#" role="button" onclick="toggleFinancials(\''+c+'\')" style="color:#facc15" title="손익계산서(최근 5년 + 올해 예상, DART 전자공시)">재무</a>')+'</div>'+
       '<div id="fin-'+c+'" style="display:none;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel2)"></div>';
   }).join('');
 }
@@ -5416,7 +5421,7 @@ function renderFinEvents(data){
     let html=top.length?top.map(rowHtml).join(''):'<tr><td class="mut" colspan="3">★★★ 이벤트가 없습니다'+(rest.length?' — 아래 상세보기에서 나머지 '+rest.length+'건을 확인하세요':'')+'</td></tr>';
     if(rest.length){
       const id='fin-more-'+cat;
-      html+='<tr><td colspan="3" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="var e=document.querySelectorAll(\'.'+id+'\');var o=this.dataset.o!==\'1\';e.forEach(function(x){x.style.display=o?\'table-row\':\'none\'});this.dataset.o=o?\'1\':\'0\';this.textContent=o?\'접기 ▲\':\'상세보기 ▼ (나머지 '+rest.length+'건)\'">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
+      html+='<tr><td colspan="3" style="text-align:center"><button type="button" class="btn sm" style="padding:6px 16px" onclick="toggleRestRows(this,\''+id+'\','+rest.length+')">상세보기 ▼ (나머지 '+rest.length+'건)</button></td></tr>'+
         rest.map(ev=>rowHtml(ev).replace('<tr style="','<tr class="'+id+'" style="display:none;')).join('');
     }
     tb.innerHTML=html;

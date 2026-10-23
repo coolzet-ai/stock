@@ -532,3 +532,30 @@ h2.mk-vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:r
 #mk-tpl a.mk-tpl-a{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;border:1px solid var(--line,#dfe5e1);background:var(--card,transparent);color:var(--tx2,inherit);text-decoration:none;white-space:nowrap}
 #mk-tpl a.mk-tpl-a:hover,#mk-tpl a.mk-tpl-a:focus-visible{border-color:#00754a;color:#00754a}
 @media(max-width:700px){#mk-tpl{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-2px}#mk-tpl::-webkit-scrollbar{display:none}}
+
+/* KR·가상화폐 제목 높이를 미국주식과 동일하게(헤더 아래 24px) */
+html body.pro.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{padding-top:18px!important}
+html body.pro.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head h1.v93-title{margin-top:6px!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro:is(.v93-kr-stock,.v93-crypto) .v86-page-head{padding-top:0!important}}
+
+/* ── 시장상태·데이터상태·새로고침 줄(#pro-status) 높이·배치 통일 (미국/한국/가상화폐) ── */
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:6px 8px!important;padding:8px 10px!important;box-sizing:border-box!important;min-height:50px}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>:is(.ps-mk,.ps-net,.ps-miss,.ps-telegram){display:inline-flex!important;align-items:center!important;height:28px!important;min-height:28px!important;padding:0 10px!important;box-sizing:border-box!important;white-space:nowrap!important;flex:none!important;width:auto!important;margin:0!important;line-height:1!important}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status .ps-n{display:none!important}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>:is(.v87-status-actions,.v90-actions,.cross-status-actions:not(:empty)){display:flex!important;flex-wrap:nowrap!important;flex:none!important;gap:6px!important;margin:0 0 0 auto!important;padding:0!important;align-items:center!important;order:3}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status button{height:32px!important;min-height:32px!important;box-sizing:border-box!important;margin:0!important}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>:is(.ps-t):not(:empty){order:5;flex:1 0 100%!important;width:100%!important;margin:0!important;font-size:11.5px!important;line-height:1.4!important}
+html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>:is(.ps-t):empty{display:none!important}
+@media(max-width:700px){
+  html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status{gap:5px!important;padding:8px!important;min-height:50px}
+  html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>:is(.ps-mk,.ps-net,.ps-miss,.ps-telegram){padding:0 8px!important;font-size:11.5px!important}
+  html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status button{width:32px!important;min-width:32px!important;height:32px!important;padding:0!important}
+  html body.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status button>span:not(.mk-ico){display:none!important}
+}
+html body.pro.pro.pro.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.v90-actions,.cross-status-actions) button{height:32px!important;min-height:32px!important;max-height:32px!important;box-sizing:border-box!important}
+html body.pro.pro.pro.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.v90-actions,.cross-status-actions){height:auto!important;min-height:0!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status :is(.v87-status-actions,.v90-actions,.cross-status-actions) button{width:32px!important;min-width:32px!important;max-width:32px!important}}
+/* 상태 줄 높이 통일: '최근 조회' 문구는 PC에서 같은 줄에 말줄임, 모바일에서는 숨김 */
+html body.pro.pro.pro.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>.ps-t:not(:empty){order:2!important;flex:1 1 0!important;width:auto!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;height:28px!important;line-height:28px!important;margin:0!important}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro.pro:is(.v93-stock,.v93-kr-stock,.v93-crypto) #pro-status>.ps-t{display:none!important}}
+@media(max-width:700px){html body.pro.pro.pro.pro.pro.pro.pro.v93-stock #pro-status>:is(.ps-miss,.ps-telegram){display:none!important}}

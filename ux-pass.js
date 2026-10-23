@@ -300,13 +300,78 @@
     setInterval(render, 1500); setTimeout(render, 800);
   }
 
+  /* ───────── (3a) 한국주식: 수급·유동성 패널 (기존 /kr-investor-history · /kr-market-deposit 재사용) ───────── */
+  if (PAGE === 'kr-stock') {
+    var KF = { d: null, at: 0, busy: false };
+    var WK = 'https://ai.coolzet.workers.dev/';
+    var jf = function (u) { return fetch(WK + u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); };
+    var loadKf = function () {
+      if (KF.busy || (KF.d && Date.now() - KF.at < 600000) || Date.now() - KF.at < 30000) return; KF.busy = true; KF.at = Date.now();
+      Promise.all([jf('kr-investor-history?market=KOSPI&size=30').catch(function () { return null; }), jf('kr-market-deposit?size=30').catch(function () { return null; })]).then(function (r) {
+        var h = Array.isArray(r[0]) && r[0].length >= 6 ? r[0] : null, dp = Array.isArray(r[1]) && r[1].length >= 6 ? r[1] : null;
+        if (h || dp) KF.d = { h: h, dp: dp };
+        KF.busy = false;
+      });
+    };
+    var eok = function (v, sg) { if (v == null || !isFinite(v)) return '--'; var a = Math.abs(v), s2 = v < 0 ? '−' : (sg && v > 0 ? '+' : ''); return a >= 10000 ? s2 + (a / 10000).toFixed(a >= 100000 ? 1 : 2) + '조' : s2 + Math.round(a).toLocaleString('ko-KR') + '억'; };
+    var sumN = function (a, k, n) { var t = 0, c = 0; for (var i = a.length - 1; i >= 0 && c < n; i--, c++) t += a[i][k] || 0; return t; };
+    var cls2 = function (v) { return v > 0 ? 'up' : v < 0 ? 'dn' : ''; };
+    var buildKf = function () {
+      var D = KF.d; if (!D) return null;
+      var box = mk('div', 'liq-box kr-flow'); box.id = 'kr-flow';
+      var vd = ['집계 중', 'n'], hs = D.h, dp = D.dp, msg = [];
+      if (hs) {
+        var f5 = sumN(hs, 'foreign', 5), i5 = sumN(hs, 'institutional', 5), p5 = sumN(hs, 'personal', 5);
+        vd = f5 > 0 && i5 > 0 ? ['수급 우호', 'up'] : f5 < 0 && i5 < 0 ? ['수급 약화', 'dn'] : ['수급 엇갈림', 'n'];
+      }
+      var lt = mk('div', 'cta-t'); lt.appendChild(mk('span', '', '💧 수급·유동성 점검 (코스피)')); lt.appendChild(mk('span', 'liq-vd ' + vd[1], vd[0]));
+      var last = hs ? hs[hs.length - 1].bizdate : dp ? dp[dp.length - 1].bizdate : ''; lt.appendChild(mk('em', '', String(last).replace(/^\d{4}(\d{2})(\d{2})$/, '$1/$2') + ' 기준')); box.appendChild(lt);
+      if (hs) {
+        var sm = hs.map(function (r) { return { d: r.bizdate, v: (r.foreign || 0) + (r.institutional || 0) }; }).slice(-13);
+        var hd = mk('div', 'liq-hd'); var bn = mk('div', 'liq-big'); bn.appendChild(mk('small', '', '외국인+기관 5일 순매수'));
+        var fi5 = sumN(hs, 'foreign', 5) + sumN(hs, 'institutional', 5); bn.appendChild(mk('b', cls2(fi5), eok(fi5, true)));
+        var td = sm[sm.length - 1].v; bn.appendChild(mk('span', cls2(td), '오늘 ' + eok(td, true))); hd.appendChild(bn);
+        var mxv = Math.max.apply(null, sm.map(function (x) { return Math.abs(x.v); }).concat([1])), W2 = 260, H2 = 56, bw = W2 / sm.length, zy = H2 / 2, svg = '<svg viewBox="0 0 ' + W2 + ' ' + H2 + '" preserveAspectRatio="none" class="liq-sv"><line x1="0" x2="' + W2 + '" y1="' + zy + '" y2="' + zy + '" stroke="#98a2b3" stroke-width=".8"/>';
+        sm.forEach(function (x, i) { var h = Math.max(1.5, Math.abs(x.v) / mxv * (zy - 3)); svg += '<rect x="' + (i * bw + 1.5).toFixed(1) + '" y="' + (x.v >= 0 ? zy - h : zy).toFixed(1) + '" width="' + (bw - 3).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + (x.v >= 0 ? '#D92D20' : '#2563EB') + '"/>'; });
+        svg += '</svg>'; var ch = mk('div', 'liq-ch'); ch.appendChild(mk('small', '', '일별 외국인+기관 순매수 (최근 13거래일)')); var sv = mk('div', 'liq-svw'); sv.innerHTML = svg; ch.appendChild(sv);
+        var lg = mk('div', 'liq-lg'); lg.appendChild(mk('span', 'up', '■ 순매수')); lg.appendChild(mk('span', 'dn', '■ 순매도')); ch.appendChild(lg); hd.appendChild(ch); box.appendChild(hd);
+      }
+      var lc = mk('div', 'liq-chips'), chp = function (k, v, sub, c, vc) { var e = mk('div', 'liq-c'); e.appendChild(mk('small', '', k)); e.appendChild(mk('b', vc || '', v)); e.appendChild(mk('span', c || '', sub)); lc.appendChild(e); };
+      if (hs) { [['외국인', 'foreign'], ['기관', 'institutional'], ['개인', 'personal']].forEach(function (k) { var t = hs[hs.length - 1][k[1]], w = sumN(hs, k[1], 5); chp(k[0], eok(t, true), '5일 ' + eok(w, true), '', cls2(t)); }); }
+      var dm = '';
+      if (dp) {
+        var d0 = dp[dp.length - 1], d5 = dp[Math.max(0, dp.length - 6)], d20 = dp[Math.max(0, dp.length - 21)];
+        var dc5 = d0.customerDeposit && d5.customerDeposit ? (d0.customerDeposit / d5.customerDeposit - 1) * 100 : null, dc20 = d0.customerDeposit && d20.customerDeposit ? (d0.customerDeposit / d20.customerDeposit - 1) * 100 : null;
+        var cr20 = d0.creditLoan && d20.creditLoan ? (d0.creditLoan / d20.creditLoan - 1) * 100 : null;
+        var pc = function (v) { return v == null ? '--' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%'; };
+        chp('고객예탁금', eok(d0.customerDeposit), '20일 ' + pc(dc20), dc20 != null && dc20 <= -3 ? 'amb' : '');
+        chp('신용잔고', eok(d0.creditLoan), '20일 ' + pc(cr20), cr20 != null && cr20 >= 5 ? 'amb' : '');
+        if (dc20 != null) dm = '고객예탁금은 20거래일 ' + pc(dc20) + '로 ' + (dc20 >= 3 ? '대기자금이 늘어난 흐름' : dc20 <= -3 ? '대기자금이 줄어든 흐름' : '보합권') + '입니다.' + (cr20 != null && cr20 >= 5 ? ' 신용잔고가 20일 ' + pc(cr20) + ' 늘어 빚투 과열에 유의하세요.' : '');
+      }
+      box.appendChild(lc);
+      if (hs) { var f5b = sumN(hs, 'foreign', 5), i5b = sumN(hs, 'institutional', 5); msg.push('최근 5거래일 외국인 ' + eok(f5b, true) + ', 기관 ' + eok(i5b, true) + (f5b > 0 && i5b > 0 ? ' — 동반 순매수입니다.' : f5b < 0 && i5b < 0 ? ' — 동반 순매도입니다.' : ' — 방향이 엇갈립니다.')); }
+      if (dm) msg.push(dm);
+      box.appendChild(mk('div', 'cta-m', msg.join(' ')));
+      box.appendChild(mk('div', 'cta-n', '판정: 5거래일 외국인·기관 순매수 합계가 모두 플러스면 수급 우호, 모두 마이너스면 약화 · 고객예탁금 ±3%/신용잔고 +5%(20거래일)는 참고 기준 · 네이버 증권 집계(억원) · 참고용'));
+      return box;
+    };
+    var kfTry = 0;
+    var kfT = setInterval(function () {
+      var strip = d.getElementById('sg-strip'); loadKf(); if (!strip || !KF.d) { if (++kfTry > 200) clearInterval(kfT); return; }
+      var sig = JSON.stringify(KF.d), ex = d.getElementById('kr-flow');
+      if (ex && ex.dataset.sig === sig) return;
+      var b = buildKf(); if (!b) return; b.dataset.sig = sig; if (ex) ex.remove();
+      strip.appendChild(b);
+    }, 1500);
+  }
+
   /* ───────── (3b) 공통 섹션 바로가기: ①요약 ②수급·유동성 ③후보·과열 ④차트북 ⑤목록 (세 시장 페이지 공통) ───────── */
   if (PAGE === 'stock' || PAGE === 'kr-stock' || PAGE === 'crypto') {
     var byText = function (re) { var hs = $$('main h2, h2'); for (var i = 0; i < hs.length; i++) if (re.test(hs[i].textContent) && hs[i].offsetParent) return hs[i]; return null; };
     var pick = function (sels) { for (var i = 0; i < sels.length; i++) { var e = typeof sels[i] === 'function' ? sels[i]() : $(sels[i]); if (e && e.offsetParent !== null) return e; } return null; };
     var TPL = [
       ['① 요약', ['#pro-brief']],
-      ['② 수급·유동성', PAGE === 'stock' ? ['.liq-box', '.cta-box', '#bigmoney'] : PAGE === 'kr-stock' ? ['#kr-breadth-panel', function () { return byText(/투자자별/); }] : ['.cxm']],
+      ['② 수급·유동성', PAGE === 'stock' ? ['.liq-box', '.cta-box', '#bigmoney'] : PAGE === 'kr-stock' ? ['#kr-flow', '#kr-breadth-panel', function () { return byText(/투자자별/); }] : ['.cxm']],
       ['③ 후보·과열', PAGE === 'stock' ? ['.sg-cands'] : ['.sg-strip']],
       ['④ 차트북', ['#mk-cb']],
       ['⑤ 목록', PAGE === 'stock' ? ['#tickers', function () { return byText(/시가총액/); }] : PAGE === 'kr-stock' ? [function () { return byText(/시가총액/); }] : ['#market-heading-1']]
