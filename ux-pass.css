@@ -411,3 +411,25 @@ html body .vt-d th{font-size:12.5px;padding:8px 5px}
 .cxm-tag{font-size:11px;letter-spacing:-.5px}.cxm-rb{font-size:10.5px;padding:3px 6px}.cxm-r small{font-size:10.5px}
 }
 @media(max-width:700px){.cxm{grid-template-columns:72px 1fr 1fr 1.18fr}.cxm-rb{font-size:10px;padding:3px 5px;letter-spacing:-.6px}.cxm-bar,.cxm-fb{height:9px}}
+/* 차트북 밀도 개선: PC 4열 · 모바일 2열 (구버전 JS가 만든 평면 구조도 동일하게 격자 처리) */
+html body #mk-cb #cb-g:not(:has(.cb-gg)){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+html body #mk-cb .cb-c{padding:10px 12px}
+html body #mk-cb .cb-t{font-size:13px;min-height:0;margin-bottom:2px}
+html body #mk-cb .cb-v{font-size:24px}
+html body #mk-cb .cb-chg{padding:1px 7px;font-size:12px;margin-left:2px}
+html body #mk-cb .cb-svg{height:62px;margin-top:2px}
+html body #mk-cb .cb-mm{font-size:12px;margin-top:2px}
+html body #mk-cb .cb-d{font-size:11.5px;line-height:1.3}
+@media(min-width:1500px){html body #mk-cb #cb-g:not(:has(.cb-gg)),#mk-cb .cb-gg{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1000px){html body #mk-cb #cb-g:not(:has(.cb-gg)),#mk-cb .cb-gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+html body #mk-cb #cb-g:not(:has(.cb-gg)),#mk-cb .cb-gg{gap:6px}
+html body #mk-cb .cb-c{padding:8px 8px 7px;border-left-width:4px}
+html body #mk-cb .cb-t{font-size:11.5px;letter-spacing:-.4px;line-height:1.25}
+html body #mk-cb .cb-v{font-size:19px}html body #mk-cb .cb-v small{font-size:11px}
+html body #mk-cb .cb-chg{font-size:10.5px;padding:1px 5px}
+html body #mk-cb .cb-svg{height:44px}
+html body #mk-cb .cb-mm{font-size:10.5px}
+html body #mk-cb .cb-d{font-size:10px}
+html body #mk-cb .cb-wn{font-size:10.5px;padding:2px 5px;margin:0 0 4px}
+}
