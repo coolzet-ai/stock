@@ -37,6 +37,7 @@
   function render(force) {
     var g = d.querySelector('#pro-brief .pb-grid'); if (!g) return;
     var r = scan(), err = window.MK_RSI_W_ERR ? 1 : 0, late = Date.now() - t0 > 20000 ? 1 : 0;
+    window.MK_RSI_SUM = { lo: r.lo.length, hi: r.hi.length, n: r.n };
     var key = [mode, r.n, err, late, r.lo.map(function (x) { return x.t + x.v.toFixed(0); }).join(), r.hi.map(function (x) { return x.t + x.v.toFixed(0); }).join(), r.both.map(function (x) { return x.t + x.k; }).join()].join('|');
     var a = g.querySelector('.pb-rsi');
     if (a && a._k === key && !force) return;
