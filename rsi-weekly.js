@@ -4,7 +4,7 @@
    값을 받지 못한 종목은 배지를 달지 않는다(추정·대체 없음). */
 (function () {
   'use strict';
-  var W = 'https://ai.coolzet.workers.dev', TABLES = ['cap-tbl', 'tick-tbl', 'lev-tbl'], d = document;
+  var W = 'https://ai.coolzet.workers.dev', TABLES = ['cap-tbl', 'tick-tbl', 'lev-tbl', 'cap2-tbl', 'cap3-tbl'], d = document;
   var DATA = window.MK_RSI_W = window.MK_RSI_W || {}; /* {TICKER:{v:RSI, n:봉수, last:'YYYY-MM-DD'}} */
   var fetched = {}, busy = false, failed = 0;
   function rsi(c, n) {
@@ -38,6 +38,19 @@
     })).then(function () { failed = 0; window.MK_RSI_W_ERR = 0; }).catch(function () { failed++; window.MK_RSI_W_ERR = 1; })
       .then(function () { busy = false; decorate(); d.dispatchEvent(new CustomEvent('mk-rsi-weekly')); });
   }
+
+  /* 배지 줄 구성(이름 / 이평선 배지 / RSI)을 CSS 파일 적용 여부와 무관하게 보장 */
+  (function(){
+    var st=d.createElement('style');st.id='rsi-w-layout';
+    st.textContent=
+      'html body.pro.pro :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-row .wl-ind{display:flex!important;flex:1 0 100%!important;width:100%!important;margin:3px 0 0!important;flex-wrap:wrap!important;align-items:center;gap:4px!important}'+
+      'html body.pro.pro :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-row .wl-ind .tb{white-space:nowrap;flex:0 0 auto}'+
+      'html body.pro.pro :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-row .wl-ind .rsi-br{flex:0 0 100%!important;width:0!important;height:0!important;order:4;margin:0!important;padding:0!important}'+
+      'html body.pro.pro :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-row .wl-ind .tb-d{order:5}'+
+      'html body.pro.pro :is(#cap-tbl,#cap2-tbl,#cap3-tbl,#tick-tbl,#lev-tbl) .wl-row .wl-ind .tb-w{order:6}'+
+      'html body.pro.pro #lev-tbl .wl-row .wl-tag{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%;font-size:11px!important;letter-spacing:-.3px}';
+    d.head.appendChild(st);
+  })();
   function cls(v) { return v >= 75 ? 'tb-hot' : v <= 30 ? 'tb-cold' : 'tb-mid'; }
   function brk(ind, before) { /* 줄바꿈용 보이지 않는 구분자 */
     var pr = before.previousElementSibling; if (pr && pr.classList.contains('rsi-br')) return;
@@ -66,7 +79,9 @@
   var timer = null;
   function kick() { clearTimeout(timer); timer = setTimeout(function () { decorate(); load(); }, 400); }
   function start() {
-    TABLES.forEach(function (id) { var e = d.getElementById(id); if (e) new MutationObserver(kick).observe(e, { childList: true, subtree: true }); });
+    var seen = {};
+    function attach() { TABLES.forEach(function (id) { var e = d.getElementById(id); if (e && seen[id] !== e) { seen[id] = e; new MutationObserver(kick).observe(e, { childList: true, subtree: true }); kick(); } }); }
+    attach(); setInterval(attach, 1500);
     kick(); setTimeout(kick, 4000); setTimeout(kick, 10000);
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', start); else start();
