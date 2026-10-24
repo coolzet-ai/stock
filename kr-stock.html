@@ -3,7 +3,7 @@
 <head>
 <script>(function(){try{var d=document.documentElement,t=localStorage.getItem('mk_theme'),c=localStorage.getItem('mk_cv');if(t==='dark'||(t!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.setAttribute('data-theme','dark');if(c==='us')d.setAttribute('data-cv','us');window.MK_CV={us:c==='us'}}catch(e){window.MK_CV={us:false}}})()</script>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-+s+6wbUmNkiQTyeW91xVdUwbgN6jca6qSkXKNh8C55k=' 'sha256-7ILKw/PJCC8psSvtigMDUkiApK8gsRIdL+RNipvS9hY=' 'sha256-FIiokU11dQPrLh6DAnGbi1SLnjAf9+xsThRpQOfZ/wU=' 'sha256-I5X0oRcA0OdDGMXiJ830NNPaStRCnzclCfUJcxXh25U=' 'sha256-I73u6Acru3GEewLIZV5PmkEkbk6BKLBkpKH5ARcF7+M=' 'sha256-JVl56u0XCNCyCcnDgiQDc4rBYxhzA0Q0LdSjQClMtt8=' 'sha256-QSmeaE26tveu9n8UeysKYF7nIjc5uemcFDCYD7LFh9M=' 'sha256-VGzMukpI+xp6YtfUALlO1+GZRgOs73c96cm+c5JIz7U=' 'sha256-fzr8sB/Jpw2Eo+LraIFxGYpWq3sXdJe69DQzM2lJ1SM=' 'sha256-wjzuEbdrG48AOMmgqkVowTJTjBDzCjweckB2WEzbJzo='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev; media-src 'none'; frame-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client 'sha256-+s+6wbUmNkiQTyeW91xVdUwbgN6jca6qSkXKNh8C55k=' 'sha256-7ILKw/PJCC8psSvtigMDUkiApK8gsRIdL+RNipvS9hY=' 'sha256-FIiokU11dQPrLh6DAnGbi1SLnjAf9+xsThRpQOfZ/wU=' 'sha256-I5X0oRcA0OdDGMXiJ830NNPaStRCnzclCfUJcxXh25U=' 'sha256-I73u6Acru3GEewLIZV5PmkEkbk6BKLBkpKH5ARcF7+M=' 'sha256-JVl56u0XCNCyCcnDgiQDc4rBYxhzA0Q0LdSjQClMtt8=' 'sha256-QSmeaE26tveu9n8UeysKYF7nIjc5uemcFDCYD7LFh9M=' 'sha256-VGzMukpI+xp6YtfUALlO1+GZRgOs73c96cm+c5JIz7U=' 'sha256-fzr8sB/Jpw2Eo+LraIFxGYpWq3sXdJe69DQzM2lJ1SM=' 'sha256-wjzuEbdrG48AOMmgqkVowTJTjBDzCjweckB2WEzbJzo='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev https://accounts.google.com/gsi/; media-src 'none'; frame-src https://accounts.google.com/gsi/; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <script src="csp-bridge.js?v=0612c548"></script>
 <script>
 /* '상세보기' 접기/펼치기 — 인라인 핸들러 대신 호출(CSP 'unsafe-inline' 제거용) */
@@ -41,9 +41,9 @@ function toggleRestRows(btn,id,n){var e=document.querySelectorAll('.'+id);var o=
 
 
 <link rel="stylesheet" href="common-style.css?v=64700863"><link rel="stylesheet" href="common-style2.css?v=d34b98cf">
-<link rel="stylesheet" href="kr-stock-links.css?v=e2c27c06">
-<script defer src="ux-pass.js?v=d727beb3"></script>
-<script defer src="daily-tables.js?v=c32ea931"></script>
+<link rel="stylesheet" href="kr-stock-links.css?v=ebf6c8a8">
+<script defer src="ux-pass.js?v=ec61e4fc"></script>
+<script defer src="daily-tables.js?v=d6e76d3b"></script>
 <script defer src="rsi-weekly.js?v=5fca02bc"></script>
 </head>
 <body class="pro kr">
@@ -773,5 +773,6 @@ async function toggleKrLev(t,ev){
 <script defer src="ui-fixes-v106.js?v=01db7f15"></script>
 <script defer src="kr-live.js?v=16ed20fc"></script>
 <script defer src="kr-trend.js?v=09f53a44"></script>
+<script src="auth.js?v=81409df3" defer></script>
 </body>
 </html>

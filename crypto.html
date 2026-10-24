@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-JVl56u0XCNCyCcnDgiQDc4rBYxhzA0Q0LdSjQClMtt8=' 'sha256-TfevtzC/ymvBrtQzFkiKsg75Zv+OR+YLZ7n1TcRBCxo=' 'sha256-vdYVdynjBHsBkQAt+csBEpiOvMM3KKbHQKDNei8i1MA=' 'sha256-x0nUkVqczv6FFV6yeFBkMMT5el13mzSUNLO79IQCpWw='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev https://api.coingecko.com https://api.alternative.me; media-src 'none'; frame-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client 'sha256-JVl56u0XCNCyCcnDgiQDc4rBYxhzA0Q0LdSjQClMtt8=' 'sha256-TfevtzC/ymvBrtQzFkiKsg75Zv+OR+YLZ7n1TcRBCxo=' 'sha256-vdYVdynjBHsBkQAt+csBEpiOvMM3KKbHQKDNei8i1MA=' 'sha256-x0nUkVqczv6FFV6yeFBkMMT5el13mzSUNLO79IQCpWw='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://ai.coolzet.workers.dev https://api.coingecko.com https://api.alternative.me https://accounts.google.com/gsi/; media-src 'none'; frame-src https://accounts.google.com/gsi/; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <script src="csp-bridge.js?v=0612c548"></script>
 <script>
 /* '상세보기' 접기/펼치기 — 인라인 핸들러 대신 호출(CSP 'unsafe-inline' 제거용) */
@@ -36,9 +36,9 @@ function toggleRestRows(btn,id,n){var e=document.querySelectorAll('.'+id);var o=
 <link rel="stylesheet" href="crypto-head.css?v=91fb7be1">
 <link rel="stylesheet" href="common-style.css?v=64700863"><link rel="stylesheet" href="common-style2.css?v=d34b98cf">
 <script src="common-a.js?v=76dc466a"></script>
-<link rel="stylesheet" href="crypto-links.css?v=2e09ec9d">
-<script defer src="ux-pass.js?v=d727beb3"></script>
-<script defer src="daily-tables.js?v=c32ea931"></script>
+<link rel="stylesheet" href="crypto-links.css?v=2cb9caa4">
+<script defer src="ux-pass.js?v=ec61e4fc"></script>
+<script defer src="daily-tables.js?v=d6e76d3b"></script>
 </head>
 <body class="pro lite"><h1 class="v101-sr">가상화폐 시장 대시보드 — Mr.Kim Signal</h1>
 
@@ -311,5 +311,6 @@ initKrwToggle('#krw-toggle');
 <script defer src="ui-fixes-v106.js?v=01db7f15"></script>
 <script defer src="crypto-brief.js?v=2392cee5"></script>
 <script defer src="crypto-halving.js?v=32e6c625"></script>
+<script src="auth.js?v=81409df3" defer></script>
 </body>
 </html>
