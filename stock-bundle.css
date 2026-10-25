@@ -103,3 +103,19 @@ html body #sg-more a.sg-chip.cool{border-color:#2563EB;background:#eff4ff}
 html body .sg-chip.xf{animation:none!important;box-shadow:0 0 0 2px #D92D2033,0 0 10px #D92D2033}
 html body #pro-brief .sg-strip,html body #pro-brief .sg-chip{backface-visibility:hidden;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
 @media(max-width:700px){#sg-more .sg-chip b{font-size:16px}}
+.pb-grid>.nf-dup{display:none!important}
+html body #sg-strip .sg-chip.nx{cursor:pointer;min-height:74px}
+html body #sg-strip .sg-chip.nx b{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+html body #sg-strip .sg-chip.nx small{font-size:12px}
+html body #sg-strip .sg-chip.nx i{font-style:normal;font-size:11px;line-height:1.35;color:#6b7280;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere}
+html body #sg-strip .sg-chip.nx.on{border-color:#D92D20;background:#fff1f0}html body #sg-strip .sg-chip.nx.on b{color:#B42318}
+html body #sg-strip .sg-chip.nx.cool{border-color:#2563EB;background:#eff4ff}html body #sg-strip .sg-chip.nx.cool b{color:#1d4ed8}
+.sg-chip.nx[hidden]{display:none!important}
+#pro-brief .pb-grid>a.pb-c[data-go="kc"],#pro-brief .pb-grid>a.pb-c[data-go="int"][data-vl],#pro-brief .pb-grid>a.pb-c[data-go="cal"],#pro-brief .pb-grid>a.pb-c[data-go="sec"],#pro-brief .pb-grid>#pb-acct{display:none!important}
+@media(max-width:700px){
+html body #sg-strip .sg-chips{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important}
+html body #sg-strip .sg-chip{grid-column:span 2!important;width:auto!important;min-width:0!important}
+html body #sg-strip .sg-chip.nx{grid-column:span 3!important}
+html body #sg-strip .sg-chip.wide{grid-column:1/-1!important}}
+@media(max-width:340px){html body #sg-strip .sg-chip{grid-column:span 3!important}html body #sg-strip .sg-chip.nx{grid-column:1/-1!important}}
+html body.pro.pro.pro.pro.pro.pro.pro.pro #pro-brief .pb-grid>.nf-dup{display:none!important}
