@@ -75,3 +75,21 @@ html body .cal-g .cal-c.today{outline:2px solid #00754A}html body .cal-g .cal-c.
 @media(max-width:340px){.cal-g{gap:2px}html body .cal-g .cal-c{min-height:42px;padding:2px}.cal-d{font-size:12px}}
 @media(max-width:600px){.in-t{min-width:0!important}.in-t thead{display:none}.in-t,.in-t tbody{display:block;width:100%}.in-t tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 2px;border-bottom:1px solid var(--line,#E4E7EC)}.in-t td{display:block;padding:0!important;border:0!important}.in-t td:nth-child(2){display:none}.in-t td:nth-child(3){text-align:right;font-size:15px}.in-t td:nth-child(4){grid-column:1/-1;font-size:13px}}
 @media(max-width:340px){.dd-t th:nth-child(1),.dd-t td:nth-child(1),.dd-t th:nth-child(6),.dd-t td:nth-child(6){display:none}}
+/* ── 신설 카드 = 기존 접기 섹션과 동일 구조 ── */
+.fold-body .mdd-card,.fold-body #pro-sector,.fold-body #mk-cb{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0 0 14px!important;border-radius:0!important}
+.fold-body>:last-child{margin-bottom:0!important}
+.fold-body .mdd-card:not(.nf-keep) .mdd-h>b{display:none}
+.fold-body .mdd-card:not(.nf-keep) .mdd-h:not(:has(.mdd-rg)){display:none}
+.fold-body .mdd-card:not(.nf-keep) .mdd-h{justify-content:flex-end}
+.fold-body .nf-keep{padding-top:12px!important;border-top:1px dashed var(--line)!important;margin-top:4px!important}
+.fold-body #pro-sector>h3:first-child,.fold-body #mk-cb summary,.fold-body .nf-keep .mdd-h>b{font-size:15px;font-weight:800}
+.fold-body #mk-cb summary{pointer-events:none;cursor:default}
+.fold-body #mk-cb summary::after{display:none!important}
+.fold-body #mk-cb{margin-bottom:16px!important}
+.in-hl{margin:0 0 10px;padding:9px 12px;border-radius:8px;background:#f1f6f3;border-left:3px solid var(--accent,#00754A);font-size:13px;line-height:1.6;color:var(--tx,#222);word-break:keep-all;overflow-wrap:anywhere}
+#sg-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:6px;margin:8px 0 0}
+#sg-more a{display:block;min-width:0;min-height:66px;padding:8px 11px;border:1px solid var(--line,#e3ddd0);border-left:3px solid var(--accent,#00754A);border-radius:8px;background:var(--panel,#fff);color:inherit;text-decoration:none;box-sizing:border-box}
+#sg-more a b{display:block;font-size:12px;font-weight:800;color:var(--accent2,#006241);margin-bottom:2px}
+#sg-more a span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.5;color:var(--tx,#222);word-break:keep-all;overflow-wrap:anywhere}
+.th-t{column-gap:6px}.th-t .th-v{margin-left:4px}
+#fwd-body{overflow-x:auto;max-width:100%}
