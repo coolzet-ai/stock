@@ -87,9 +87,19 @@ html body .cal-g .cal-c.today{outline:2px solid #00754A}html body .cal-g .cal-c.
 .fold-body #mk-cb summary::after{display:none!important}
 .fold-body #mk-cb{margin-bottom:16px!important}
 .in-hl{margin:0 0 10px;padding:9px 12px;border-radius:8px;background:#f1f6f3;border-left:3px solid var(--accent,#00754A);font-size:13px;line-height:1.6;color:var(--tx,#222);word-break:keep-all;overflow-wrap:anywhere}
-#sg-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:6px;margin:8px 0 0}
-#sg-more a{display:block;min-width:0;min-height:66px;padding:8px 11px;border:1px solid var(--line,#e3ddd0);border-left:3px solid var(--accent,#00754A);border-radius:8px;background:var(--panel,#fff);color:inherit;text-decoration:none;box-sizing:border-box}
-#sg-more a b{display:block;font-size:12px;font-weight:800;color:var(--accent2,#006241);margin-bottom:2px}
-#sg-more a span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.5;color:var(--tx,#222);word-break:keep-all;overflow-wrap:anywhere}
 .th-t{column-gap:6px}.th-t .th-v{margin-left:4px}
 #fwd-body{overflow-x:auto;max-width:100%}
+/* 요약 칩: 기존 .sg-chip 패턴과 동일 */
+#sg-more{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 0}
+@media(max-width:700px){#sg-more{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html body #sg-more a.sg-chip{display:flex;flex-direction:column;min-width:0;min-height:76px;padding:9px 11px;border-radius:12px;text-decoration:none;color:inherit;box-sizing:border-box;border-left-width:1px;border-left-color:#e3e8e5}
+html body #sg-more a.sg-chip.on{border-color:#D92D20;background:#fff1f0}
+html body #sg-more a.sg-chip.cool{border-color:#2563EB;background:#eff4ff}
+#sg-more .sg-chip small{font-size:12px;color:#6b7280;line-height:1.3}
+#sg-more .sg-chip b{font-size:17px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+#sg-more .sg-chip.on b{color:#B42318}#sg-more .sg-chip.cool b{color:#1d4ed8}
+#sg-more .sg-chip i{font-style:normal;font-size:11px;line-height:1.35;color:#6b7280;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere}
+/* 극단적 공포 칩 떨림 방지: 번쩍이는 그림자 애니메이션 제거(고정 강조) */
+html body .sg-chip.xf{animation:none!important;box-shadow:0 0 0 2px #D92D2033,0 0 10px #D92D2033}
+html body #pro-brief .sg-strip,html body #pro-brief .sg-chip{backface-visibility:hidden;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+@media(max-width:700px){#sg-more .sg-chip b{font-size:16px}}
