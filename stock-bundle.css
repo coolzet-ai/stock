@@ -143,3 +143,11 @@ html body #sg-strip .sg-chip:focus-visible{outline:2px solid #00754A;outline-off
 /* 칩 모바일: 2열 통일 */
 @media(max-width:700px){html body #sg-strip .sg-chip{grid-column:span 3!important}html body #sg-strip .sg-chip.wide{grid-column:span 3!important;flex-direction:column!important;align-items:flex-start!important}}
 h2.fold-h{scroll-margin-top:96px}
+.sg-chip.vx-buy b{color:#175cd3!important}.sg-chip.vx-sell b{color:#dc6803!important}
+.vx-g{display:block;position:relative;height:4px;margin-top:5px;border-radius:2px;background:linear-gradient(90deg,#dc6803 0 28%,#d0d5dd 28% 40%,#175cd3 40%)}
+.vx-g u{position:absolute;top:-2px;width:2px;height:8px;border-radius:1px;background:#101828;transform:translateX(-50%)}
+@media(min-width:701px) and (max-width:999px){html body #sg-strip .sg-chips{grid-auto-flow:row!important;grid-auto-columns:auto!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+html body #sg-strip .sg-chip{min-width:0;overflow:hidden;word-break:keep-all}
+html body #sg-strip .sg-chip b{font-size:clamp(14px,2.2vw,17px);white-space:normal;overflow-wrap:anywhere}
+html body #sg-strip .sg-chip.wide{grid-column:auto}}
+.vx-g{width:100%}
