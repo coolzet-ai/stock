@@ -42,7 +42,7 @@ function toggleRestRows(btn,id,n){var e=document.querySelectorAll('.'+id);var o=
 
 
 <link rel="stylesheet" href="common-style.css?v=0715a202"><link rel="stylesheet" href="common-style2.css?v=d34b98cf">
-<link rel="stylesheet" href="kr-stock-links.css?v=dc377321">
+<link rel="stylesheet" href="kr-stock-links.css?v=db7952ae">
 <script defer src="ux-pass.js?v=41e2d59b"></script>
 <script defer src="daily-tables.js?v=d6e76d3b"></script>
 <script defer src="rsi-weekly.js?v=5fca02bc"></script>
@@ -612,8 +612,8 @@ async function toggleKrLev(t,ev){
       if(fs<12){ e.style.fontSize=(e.classList.contains('tb')?Math.max(fs,11):12)+'px'; }
       e.dataset.fs='1'; }
     fixing=false; };
-  var tm=null, later=function(){ clearTimeout(tm); tm=setTimeout(fixFonts,700); };
-  [1200,3500,8000,15000].forEach(function(t){ setTimeout(fixFonts,t); });
+  var qf=false, later=function(){ if(qf) return; qf=true; queueMicrotask(function(){ qf=false; fixFonts(); }); };
+  fixFonts(); [1200,3500,8000,15000].forEach(function(t){ setTimeout(fixFonts,t); });
   var mo=new MutationObserver(later); var mn=document.getElementById('main'); if(mn) mo.observe(mn,{childList:true,subtree:true});
   /* ⑤ 종목 행: 가격 영역을 누르면 지표 배지·52주·바로가기가 펼쳐진다 */
   var deco=function(){ if(!mq.matches) return;
@@ -774,7 +774,7 @@ async function toggleKrLev(t,ev){
 <script defer src="ui-fixes-v106.js?v=0cc684b7"></script>
 <script defer src="kr-live.js?v=16ed20fc"></script>
 <script defer src="kr-trend.js?v=6948368a"></script>
-<script defer src="kr-pack.js?v=12b3570f"></script><script defer src="kr-viz.js?v=51f6631e"></script>
+<script defer src="kr-pack.js?v=12b3570f"></script><script defer src="kr-viz.js?v=51f6631e"></script><script defer src="kr-merge.js?v=0462dd73"></script>
 <script defer src="kr-pack2.js?v=b53f0956"></script>
 <script src="auth-config.js?v=1"></script>
 <script src="auth.js?v=fe468289" defer></script>

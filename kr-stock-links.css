@@ -57,3 +57,21 @@ html body #pro-brief .pb-grid>.pb-c{display:none!important}
 @media(min-width:1000px){html body #sg-strip .sg-chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}html body #sg-strip .sg-chip.cr{grid-column:auto!important}html body #sg-strip .sg-chip.sb{grid-column:1/-1!important}}
 @media(min-width:701px) and (max-width:999px){html body #sg-strip.sg-strip .sg-chips{display:grid!important;grid-auto-flow:row!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}html body #sg-strip.sg-strip .sg-chips .sg-chip.cr{grid-column:auto!important}html body #sg-strip.sg-strip .sg-chips .sg-chip.sb{grid-column:1/-1!important}}
 html body #sg-strip .sg-chip .xf-g{width:100%!important;align-self:stretch;min-width:0}html body #sg-strip .sg-chip .xf-t{align-self:flex-start;width:auto!important}
+
+/* 칩 통폐합: 중복·약세 칩 제거, 강·약은 한 칩으로 */
+html body .krp-chips [data-k="indw"],html body .krp-chips [data-k="thw"],html body .krp-chips [data-k="fx"]{display:none!important}
+html body .krp-chip .krp-w{display:block;margin-top:2px;font-size:14px}
+html body #sg-strip .sg-chip.wide{display:none!important}
+
+/* 로딩 스켈레톤 = 최종 화면과 같은 글자 크기·위치 (접속 직후 글씨가 줄어드는 현상 방지) */
+html #mk-skel2 .sk-bar{height:59px}
+html #mk-skel2 .sk-eb{display:none}
+html #mk-skel2 .sk-h1{font-size:22px;font-weight:850;color:#202d36;letter-spacing:-.7px;line-height:1.3;margin:6px 0 0}
+html #mk-skel2 .sk-h1 small{font-size:12px;margin-top:2px}
+html #mk-skel2 .sk-logo{font-size:20px}
+@media(max-width:700px){html #mk-skel2 .sk-logo{padding-left:40px}}
+@media(min-width:701px){html #mk-skel2 .sk-h1{font-size:24px;margin-top:24px}}
+html #mk-skel2 .sk-h1{min-height:51px}
+html #mk-skel2 .sk-status{height:42px;overflow:hidden}
+@media(min-width:701px){html #mk-skel2 .sk-h1{min-height:52px}html #mk-skel2 .sk-status{height:68px}}
+@media(min-width:701px) and (max-width:1279px){html #mk-skel2 .sk-in{width:calc(100% - 48px)}}
